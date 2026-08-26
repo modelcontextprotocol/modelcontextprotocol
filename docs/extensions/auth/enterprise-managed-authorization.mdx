@@ -144,6 +144,38 @@ Support for this extension varies by client. Extensions are opt-in and never act
 
 Check the [client matrix](/extensions/client-matrix) for current implementation status across MCP clients. Enterprise-Managed Authorization typically requires client-level support from the organization's IT team in addition to the MCP client application.
 
+## Identity provider support
+
+<Note>
+
+This list is maintained by the community. Corrections and additions are welcome as [pull requests](https://github.com/modelcontextprotocol/modelcontextprotocol/pulls).
+
+</Note>
+
+Enterprise-Managed Authorization requires the enterprise IdP to issue ID-JAG tokens as defined in [draft-ietf-oauth-identity-assertion-authz-grant](https://datatracker.ietf.org/doc/draft-ietf-oauth-identity-assertion-authz-grant/). Support is still rolling out across identity vendors. Statuses below are current as of August 2026.
+
+### Enterprise IdPs issuing ID-JAGs
+
+| Identity provider                                                                                                                                                             | Status        | Notes                                                                                                                                                                                  |
+| ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [Okta](https://developer.okta.com/docs/concepts/xaa/)                                                                                                                         | Early access  | Ships as [Cross App Access (XAA)](https://help.okta.com/oie/en-us/content/topics/apps/apps-cross-app-access.htm), with supported apps rolling out through the Okta Integration Network |
+| [Ping Identity](https://docs.pingidentity.com/pingfederate/13.1/release_notes/pf_release_notes.html)                                                                          | Shipped       | PingFederate 13.1 issues ID-JAGs through OAuth token exchange and also accepts them in JWT-bearer grant requests                                                                       |
+| [Microsoft Entra ID](https://techcommunity.microsoft.com/blog/appsonazureblog/mcp-enterprise-authorization-is-here-%E2%80%94-what-entra-and-app-service-can-do-today/4537433) | Not available | Microsoft states that Entra ID does not currently issue ID-JAGs and describes App Service authentication as an interim path for centrally governed MCP access                          |
+
+### Authorization servers accepting ID-JAGs
+
+The MCP server's authorization server plays a separate role in the flow, accepting ID-JAGs from the enterprise IdP and exchanging them for MCP access tokens.
+
+| Authorization server                                                                          | Status       | Notes                                                                                                                                                                             |
+| --------------------------------------------------------------------------------------------- | ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [Auth0](https://auth0.com/docs/secure/call-apis-on-users-behalf/xaa)                          | Early access | Cross App Access (XAA) for the resource app's authorization server                                                                                                                |
+| [Keycloak](https://www.keycloak.org/securing-apps/identity-assertion-jwt-authorization-grant) | Experimental | Receiving role only, behind the `identity-assertion-jwt` feature flag. Issuing ID-JAGs as an IdP is tracked in [an open issue](https://github.com/keycloak/keycloak/issues/48818) |
+| [WorkOS AuthKit](https://workos.com/docs/authkit/mcp)                                         | Shipped      | ID-JAG token exchange is enabled by default for MCP servers using AuthKit                                                                                                         |
+| [Descope](https://docs.descope.com/mcp)                                                       | Shipped      | Validates ID-JAGs so enterprise IdPs can grant access to MCP servers                                                                                                              |
+| [Scalekit](https://www.scalekit.com/blog/scalekit-joins-okta-cross-app)                       | Shipped      | Accepts ID-JAGs as the authorization server for MCP servers                                                                                                                       |
+
+The community-maintained [Cross-App Access implementations page](https://oauth.net/cross-app-access/) tracks the wider ecosystem, including MCP clients and resource applications.
+
 ## Related resources
 
 <CardGroup cols={2}>
