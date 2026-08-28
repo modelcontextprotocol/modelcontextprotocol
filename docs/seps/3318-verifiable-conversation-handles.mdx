@@ -69,14 +69,14 @@ key in each direction.
 Durable conversation identity is not a speculative requirement. Six widely-deployed systems solve
 it today, each in its own way, none of which interoperate:
 
-| System                                | Mechanism                                                                                                             | Supplied by |
-| ------------------------------------- | --------------------------------------------------------------------------------------------------------------------- | ----------- |
-| **Microsoft Foundry Agent Service**   | `scope` set to `"{{$userId}}"` in the tool definition, plus an `x-memory-user-id: <user-id>` HTTP header on each call | the caller  |
-| **mem0** and comparable memory layers | multi-scope tagging: each write carries `user_id`, `agent_id`, `run_id`/`session_id`, `app_id`/`org_id`               | the caller  |
-| **LangGraph**                         | `thread_id`, checkpointed under a composite `{user}:{thread_id}` key                                                  | the caller  |
-| **OpenAI Responses API**              | `previous_response_id` chains a conversation across stateless calls                                                   | the caller  |
-| **MCP memory servers**                | generic `store` / `retrieve` tools keyed on a caller-chosen session or user identifier passed as a tool argument      | the caller  |
-| **Plasm**                             | durable agent runtime combining memory, information-flow enforcement, and conversation-scoped tool policy             | the server  |
+| System                                | Mechanism                                                                                                        | Supplied by |
+| ------------------------------------- | ---------------------------------------------------------------------------------------------------------------- | ----------- |
+| **Microsoft Foundry Agent Service**   | `scope` set to `"{{$userId}}"` in the tool definition, plus an `x-memory-user-id` HTTP header on each call       | the caller  |
+| **mem0** and comparable memory layers | multi-scope tagging: each write carries `user_id`, `agent_id`, `run_id`/`session_id`, `app_id`/`org_id`          | the caller  |
+| **LangGraph**                         | `thread_id`, checkpointed under a composite `{user}:{thread_id}` key                                             | the caller  |
+| **OpenAI Responses API**              | `previous_response_id` chains a conversation across stateless calls                                              | the caller  |
+| **MCP memory servers**                | generic `store` / `retrieve` tools keyed on a caller-chosen session or user identifier passed as a tool argument | the caller  |
+| **Plasm**                             | durable agent runtime combining memory, information-flow enforcement, and conversation-scoped tool policy        | the server  |
 
 The pattern is identical in every case, and so are its consequences:
 
@@ -1092,19 +1092,19 @@ Maintainer sponsor is still required for formal review. Discord: `#security-ig`,
 
 ## References
 
-- SEP-2567, _Sessionless MCP via Explicit State Handles_ — <https://modelcontextprotocol.io/seps/2567-sessionless-mcp>
+- SEP-2567, _Sessionless MCP via Explicit State Handles_ — [https://modelcontextprotocol.io/seps/2567-sessionless-mcp](https://modelcontextprotocol.io/seps/2567-sessionless-mcp)
 - SEP-2575, _Per-request protocol fields_ (removal of `initialize`)
 - SEP-2549, _List result caching_
-- SEP-2133, _Extensions_ — <https://modelcontextprotocol.io/seps/2133-extensions>
-- SEP-1359, _Protocol-Level Sessions for MCP_ — <https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1359>
-- MCP Core Maintainer Meeting, 4 Feb 2026 (SEP-2084 rejection) — <https://github.com/modelcontextprotocol/modelcontextprotocol/discussions/2204>
-- MCP Roadmap, 22 Aug 2026 — <https://blog.modelcontextprotocol.io/posts/mcp-roadmap/>
-- Microsoft Foundry Agent Service, _Create and use memory_ — <https://learn.microsoft.com/en-us/azure/foundry/agents/how-to/memory-usage>
-- Microsoft, _Defending your Memory in Microsoft Foundry Agent Service against memory poisoning_ — <https://techcommunity.microsoft.com/blog/azure-ai-foundry-blog/defending-your-memory-in-microsoft-foundry-agent-service-against-memory-poisonin/4529638>
-- mem0, _State of AI Agent Memory 2026_ — <https://mem0.ai/blog/state-of-ai-agent-memory-2026>
-- OpenAI Responses API, conversation state via `previous_response_id` — <https://community.openai.com/t/responses-api-question-about-managing-conversation-state-with-previous-response-id/1141633>
-- LangChain / LangGraph, `use_previous_response_id` and thread checkpointing — <https://docs.langchain.com/oss/python/integrations/chat/openai>
-- Gorgiev & Dalla Piazza, _Stateless MCP_, Equixly, 5 Aug 2026 — <https://equixly.com/blog/2026/08/05/stateless-mcp/>
+- SEP-2133, _Extensions_ — [https://modelcontextprotocol.io/seps/2133-extensions](https://modelcontextprotocol.io/seps/2133-extensions)
+- SEP-1359, _Protocol-Level Sessions for MCP_ — [https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1359](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1359)
+- MCP Core Maintainer Meeting, 4 Feb 2026 (SEP-2084 rejection) — [https://github.com/modelcontextprotocol/modelcontextprotocol/discussions/2204](https://github.com/modelcontextprotocol/modelcontextprotocol/discussions/2204)
+- MCP Roadmap, 22 Aug 2026 — [https://blog.modelcontextprotocol.io/posts/mcp-roadmap/](https://blog.modelcontextprotocol.io/posts/mcp-roadmap/)
+- Microsoft Foundry Agent Service, _Create and use memory_ — [https://learn.microsoft.com/en-us/azure/foundry/agents/how-to/memory-usage](https://learn.microsoft.com/en-us/azure/foundry/agents/how-to/memory-usage)
+- Microsoft, _Defending your Memory in Microsoft Foundry Agent Service against memory poisoning_ — [https://techcommunity.microsoft.com/blog/azure-ai-foundry-blog/defending-your-memory-in-microsoft-foundry-agent-service-against-memory-poisonin/4529638](https://techcommunity.microsoft.com/blog/azure-ai-foundry-blog/defending-your-memory-in-microsoft-foundry-agent-service-against-memory-poisonin/4529638)
+- mem0, _State of AI Agent Memory 2026_ — [https://mem0.ai/blog/state-of-ai-agent-memory-2026](https://mem0.ai/blog/state-of-ai-agent-memory-2026)
+- OpenAI Responses API, conversation state via `previous_response_id` — [https://community.openai.com/t/responses-api-question-about-managing-conversation-state-with-previous-response-id/1141633](https://community.openai.com/t/responses-api-question-about-managing-conversation-state-with-previous-response-id/1141633)
+- LangChain / LangGraph, `use_previous_response_id` and thread checkpointing — [https://docs.langchain.com/oss/python/integrations/chat/openai](https://docs.langchain.com/oss/python/integrations/chat/openai)
+- Gorgiev & Dalla Piazza, _Stateless MCP_, Equixly, 5 Aug 2026 — [https://equixly.com/blog/2026/08/05/stateless-mcp/](https://equixly.com/blog/2026/08/05/stateless-mcp/)
 - Cai, Tang, Wen, Qin. _Ghost in the Agent: Redefining Information Flow Tracking for LLM Agents_, arXiv:2604.23374, 25 Apr 2026
 - Debenedetti et al. _CaMeL: Defeating Prompt Injections by Design_, arXiv:2503.18813
 - Wang et al. _From Agent Traces to Trust: A Survey of Evidence Tracing and Execution Provenance in LLM Agents_, arXiv:2606.04990
