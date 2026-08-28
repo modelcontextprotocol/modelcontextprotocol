@@ -6,7 +6,7 @@ description: "Verifiable Conversation Handles"
 
 <div className="flex items-center gap-2 mb-4">
   <Badge color="gray" shape="pill">
-    Draft
+    Awaiting Sponsor
   </Badge>
   <Badge color="gray" shape="pill">
     Standards Track
@@ -17,7 +17,7 @@ description: "Verifiable Conversation Handles"
 | ------------- | ------------------------------------------------------------------------------- |
 | **SEP**       | 3318                                                                            |
 | **Title**     | Verifiable Conversation Handles                                                 |
-| **Status**    | Draft                                                                           |
+| **Status**    | Awaiting Sponsor                                                                |
 | **Type**      | Standards Track                                                                 |
 | **Created**   | 2026-08-26                                                                      |
 | **Author(s)** | Ryan Roberts ([@ryan-s-roberts](https://github.com/ryan-s-roberts))             |
@@ -28,27 +28,15 @@ description: "Verifiable Conversation Handles"
 
 ## Abstract
 
-MCP is stateless at the protocol layer. State that spans requests is carried by an explicit
-identifier, and the specification's own normative text says that identifier is one **the client
-passes on each request**. SEP-2567 supplies the tool-design pattern that fills the gap left by
-session removal — a `create_*` tool returns a string the model threads back — and deliberately gives
-it no protocol form.
+This extension defines a **conversation handle**: a client-carried, server-minted **sequenced**
+conversation identifier in `_meta`, integrity-protected under a keyed MAC. The handle names a
+conversation, carries a monotonic sequence (`seq`) and an expiry, and carries an **opaque
+server-defined state commitment** the client returns verbatim and never interprets. Ordering via
+`seq` is the headline property: the server can tell whether a presented handle is the most recent
+one it issued for that conversation.
 
-That is correct for the state SEP-2567 discusses: baskets, browser contexts, database connections.
-It is insufficient for state that must be durably associated with a **conversation** — agent memory,
-personalization, response caching, resumption, metering, audit. Every system that needs this is
-building it today, once per vendor, out of band: a bespoke HTTP header, a caller-supplied `user_id`,
-a `thread_id`, a `previous_response_id`. None of these are verifiable by the server that honours
-them, none are portable across servers, and where the identifier is a tool argument, the model
-chooses it.
-
-This extension defines a **conversation handle**: a compact, server-minted, integrity-protected
-string carried in request `_meta` — by the client, not by the model — that names a conversation,
-carries a monotonic sequence and an expiry, and carries an **opaque server-defined state commitment**
-the client returns verbatim and never interprets.
-
-The handle is authenticated by a keyed MAC over a secret held by the issuing deployment, so any
-instance can verify it with no lookup and no affinity. It carries no principal claim: the server
+The MAC enables lookup-free rejection of fabricated tokens at the edge. It is not a substitute for
+the §2.3 principal–conversation association check. The handle carries no principal claim: the server
 already authenticates every request, and associating a principal with a conversation is server-side
 policy rather than token payload.
 
@@ -94,6 +82,30 @@ hold across an open ecosystem. The mechanism is a private header because the pro
 equivalent.
 
 The same primitive is absent in all six cases.
+
+### 1a. Demand inside the MCP ecosystem
+
+The same need is visible inside MCP itself.
+[transports-wg#36](https://github.com/modelcontextprotocol/transports-wg/issues/36)
+(Conversation / Thread IDs) collects several strands:
+
+- **watnab** argues that model-relayed handles put correlation IDs in an untrusted channel, and
+  presses for prompt-injection defence by keeping identity out of model-authored positions.
+- **n0mad-ai** notes that relay loss is unobservable and argues for local-first durable memory; see
+  also
+  [Discussion #2894](https://github.com/modelcontextprotocol/modelcontextprotocol/discussions/2894).
+- **hcjmartin (Flocker)** describes a valid-but-wrong relayed id producing silent misattribution.
+- **Agent-Hellboy** reports a custom `Mcp-Client-Session-Id` header plus gateway as a workaround.
+- **LucaButBoring** describes Bedrock AgentCore sticky-VM routing keyed on `Mcp-Session-Id`.
+
+SDK friction points in the same direction:
+[java-sdk#738](https://github.com/modelcontextprotocol/java-sdk/issues/738),
+[#274](https://github.com/modelcontextprotocol/java-sdk/issues/274),
+[#702](https://github.com/modelcontextprotocol/java-sdk/issues/702),
+[python-sdk#880](https://github.com/modelcontextprotocol/python-sdk/issues/880),
+[go-sdk#148](https://github.com/modelcontextprotocol/go-sdk/issues/148),
+[csharp-sdk#1036](https://github.com/modelcontextprotocol/csharp-sdk/issues/1036), and
+[modelcontextprotocol#823](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/823).
 
 ### 2. The core protocol already requires this, and does not define it
 
@@ -153,15 +165,18 @@ marking for model-threaded handles.
 Given sessionless MCP and explicit handles as the sanctioned pattern, a handle intended to carry
 durable conversation state must satisfy four properties an ordinary opaque string does not:
 
-1. **Server-minted.** Only the server creates handles, so an unrecognised handle is detectably not
+1. **Ordered (`seq`).** The server can tell whether a presented handle is the most recent one it
+   issued for that conversation, so it can detect that state has moved on. Ordering is the property
+   an ordinary opaque string cannot supply, and it is unobtainable from an ACL check alone.
+2. **Server-minted.** Only the server creates handles, so an unrecognised handle is detectably not
    the server's.
-2. **Integrity-protected.** The server can verify it issued this exact handle, unmodified, without
+3. **Integrity-protected.** The server can verify it issued this exact handle, unmodified, without
    consulting a store.
-3. **Expiring.** A handle recovered from an old transcript does not name a conversation forever.
-4. **Ordered.** The server can tell whether a presented handle is the most recent one it issued for
-   that conversation, so it can detect that state has moved on.
+4. **Expiring.** Absolute `exp` bounds the **unexpired-bearer** window: a handle recovered from an
+   old transcript is not useful as a current bearer forever. For principals associated under §2.3,
+   exchange (§4.4) may continue the conversation until retention (§4.6) ends.
 
-Properties 1–3 restate, in checkable form, guidance SEP-2567 already gives. Its Security Implications
+Properties 2–4 restate, in checkable form, guidance SEP-2567 already gives. Its Security Implications
 section directs that for authenticated servers implementers "validate `(handle, auth_context)` on
 every call," warns that "handles will end up in chat logs, copy-paste buffers, and subagent prompts,"
 and requires that unauthenticated servers generate handles with "at least 128 bits of
@@ -172,11 +187,16 @@ the Python SDK's stateful session manager "routes by `Mcp-Session-Id` alone with
 authenticated identity on the request matches the one that created the session, so a leaked session ID
 allows hijack by any other authenticated principal."
 
-Entropy and an auth-context check are properties of an implementation. The wire format provides no
-means for a server to confirm that it issued the handle it received, or that the handle is the
-current one. Properties 1–4 close that gap.
+Entropy and an auth-context check are properties of an implementation. A 128-bit random name plus a
+`(handle, auth_context)` lookup already stops cross-principal misuse when the association is
+enforced. What the MAC buys over that combination is **cheap edge rejection of garbage without a
+lookup**: fabricated or tampered tokens fail verification before the conversation record is touched.
+Every _accepted_ request still consults conversation state for supersession, retention, and
+association — the MAC is not a substitute for §2.3. Ordering remains unobtainable from the ACL
+alone. The wire format otherwise provides no means for a server to confirm that it issued the handle
+it received, or that the handle is the current one. Properties 1–4 close that gap.
 
-Properties 1–3 are also, in substance, the remedy that security analysis of the stateless
+Properties 2–4 are also, in substance, the remedy that security analysis of the stateless
 specification prescribes for the narrower case of MRTR `requestState`. Gorgiev and Dalla Piazza (Equixly,
 5 Aug 2026) observe that `requestState` "round-trips through the client. That makes it
 attacker-controlled input," and prescribe:
@@ -187,7 +207,7 @@ attacker-controlled input," and prescribe:
 That prescription generalises, with one divergence: the principal is not bound into the handle. The
 server authenticates every request independently, so a principal in the payload is a second authority
 for the same fact, and a durable user correlator in a string that persists in transcripts.
-§"Rationale" sets out the reasons in full. Property 4 is additional: ordering is not recoverable by
+§"Rationale" sets out the reasons in full. Property 1 is additional: ordering is not recoverable by
 a consumer on its own.
 
 ### 4. Consumers
@@ -207,7 +227,28 @@ The primitive is policy-free.
 The normative text defines no security labels, no lattice, and no enforcement model, and specifies
 nothing about information flow. §"Worked example" is non-normative.
 
-### 5. What this SEP is not
+### 5. Relationship to transports-wg#36 and SEP-1655
+
+[transports-wg#36](https://github.com/modelcontextprotocol/transports-wg/issues/36) asks for
+conversation / thread identity lifecycle and whether a Thread ID may mutate `tools/list`. This SEP
+answers lifecycle in §4 and forbids conversation-varying list results in §6.4. The working group has
+named an experimental-extension path for exploration; this SEP remains **Standards Track**,
+negotiated via the SEP-2133 extensions map. The two are adjacent, not competing.
+
+[SEP-1655](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1655) (Client-Side
+State Management, dormant) proposed server-set opaque state in `_meta` that the client echoes —
+cookies. This SEP is not cookie-plus-MAC: it defines a conversation scope, a monotonic `seq`,
+supersession, and exchange. The state commitment is not a mutable cookie jar.
+
+Related strands that feed the same problem space:
+[SEP-1685](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1685) (request-scoped
+state),
+[Discussion #2894](https://github.com/modelcontextprotocol/modelcontextprotocol/discussions/2894),
+and
+[SEP-2822](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2822) (Client Generated
+Session ID), which closed into #36.
+
+### 6. What this SEP is not
 
 It is **not** a proposal to restore sessions. SEP-1359 proposed protocol-level sessions and was not
 adopted. The reasoning in SEP-2567 — undefined lifetime, inconsistent client semantics, fixed
@@ -376,7 +417,7 @@ server-held key material and **without consulting a store**:
 | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | **Authenticity**                    | Handles MUST be integrity-protected under key material held only by the issuing deployment. A server MUST reject a presented handle that it did not issue, or that has been modified.                                    |
 | **Conversation identifier (`cid`)** | The handle MUST determine a stable conversation identifier, generated by the server from a cryptographically secure source with at least 128 bits of entropy, constant across every handle issued for that conversation. |
-| **Expiry (`exp`)**                  | The handle MUST determine an absolute expiry.                                                                                                                                                                            |
+| **Expiry (`exp`)**                  | The handle MUST determine an absolute expiry. Absolute `exp` bounds the unexpired-bearer window; exchange (§4.4) may continue the conversation for associated principals until retention (§4.6).                         |
 | **Sequence (`seq`)**                | The handle MUST determine a sequence number that strictly increases with each handle the server issues for a given `cid`.                                                                                                |
 | **State commitment (`state`)**      | The handle MAY carry an opaque server-defined value (§3).                                                                                                                                                                |
 
@@ -480,7 +521,6 @@ not wish to participate simply does not advertise the extension.
       },
       "io.modelcontextprotocol/conversation-handle": {
         "handle": "AQGWt3xK9pLmQ0aZeUu4oI6yPqXrEsN8kQ1wXvB6cRc",
-        "conversationId": "01JQ8Y2M5V0H8T4RXB6C1WZKQD",
         "seq": 1,
         "expiresAt": 1787753600,
         "supersededHandlePresented": false
@@ -490,16 +530,17 @@ not wish to participate simply does not advertise the extension.
 }
 ```
 
-`conversationId`, `seq`, `expiresAt`, and `supersededHandlePresented` mirror values the handle
-already carries, so that clients can make routing, UI, and diagnostic decisions without parsing it.
-Servers MUST NOT accept them as input.
+Only `seq`, `expiresAt`, and `supersededHandlePresented` are advisory mirrors of values the handle
+already carries. `seq` is for client merge ordering; `expiresAt` is for UX. Servers MUST NOT mirror
+`conversationId` in response `_meta`: that would place a cleartext correlator in transcripts for the
+retention window, while §5.3 forbids identifying material in the handle itself. Servers MUST NOT
+accept mirrored fields as input.
 
 Clients MUST use `seq` solely to order handles they have received (§4.2). Clients MUST NOT rely on
 any mirrored field for a security decision, and MUST NOT attempt to reconstruct a handle from them.
 
-The distinction is that `seq` is authoritative for ordering but not for security. A client misled
-about `seq` presents a handle the server then rejects or supersedes, which is a
-correctness-preserving failure; a client relying on `conversationId` for an access decision is not.
+Host applications that need a UI correlator SHOULD use their own session or thread key, not a
+protocol cleartext `cid`.
 
 #### 4.2 Rotation
 
@@ -516,8 +557,18 @@ during normal operation.
 Every replacement handle MUST carry a `seq` strictly greater than every `seq` the server has
 previously issued for that `cid`.
 
+Allocating the next `seq` for a `cid` requires deployment-wide monotonic coordination (an atomic
+counter or equivalent). Handle _verification_ remains affinity-free (§2.2); supersession, retention,
+and association already imply shared conversation state — mint-path `seq` allocation is in that set.
+The reference implementation uses compare-and-bump.
+
 Clients MUST send the handle with the highest `seq` they have received for that conversation.
 Clients SHOULD discard a handle carrying a lower `seq` than one they have already received.
+
+Under concurrent in-flight requests, N replacements may return; the client keeps the highest `seq`
+only (this section). Opaque state commitments are last-writer-wins by `seq` and are not mergeable by
+construction. Servers that need linearizable application state MUST NOT rely on the commitment alone
+— they MUST use server-side CAS or a journal keyed by `cid`.
 
 Rotation makes short expiry compatible with long conversations and bounds the lifetime of any single
 handle. It is discretionary rather than per-response because rotating on every response would make
@@ -565,9 +616,11 @@ handle it presented was superseded.
 An expired handle remains authentic — its integrity protection still verifies, so `cid` and `seq`
 are still trustworthy.
 
-Servers MUST support **exchange**: a request presenting an expired but otherwise authentic handle
-MUST be answered with a fresh handle for the same `cid`, subject to the server's own authorization
-and to the conversation still being retained (§4.6).
+Servers MUST support **exchange** for associated principals (§2.3) presenting an expired but
+otherwise authentic handle for a conversation that is still retained (§4.6): such a request MUST be
+answered with a fresh handle for the same `cid`. Exchange MUST proceed only when §2.3 association
+succeeds and the conversation is retained. An unauthenticated caller or a `principal_mismatch` MUST
+fail as for other authorization failures; the server MUST NOT mint a fresh handle in those cases.
 
 Servers MUST NOT treat an expired handle as satisfying §2.2 for the presenting request itself; it
 identifies the conversation to resume and nothing more.
@@ -610,9 +663,10 @@ and report it, or return an error. Servers MUST NOT reuse a retired `cid`.
 
 The handle MUST be carried in `params._meta["io.modelcontextprotocol/conversation-handle"].handle`.
 
-Servers MUST NOT accept a conversation handle from tool arguments, resource URIs, prompt arguments,
-or any other position whose contents are authored by the model. A server that encounters a
-handle-shaped value in such a position MUST ignore it.
+Servers MUST NOT read conversation identity from any position other than
+`params._meta["io.modelcontextprotocol/conversation-handle"].handle`. Values appearing in tool
+arguments, resource URIs, prompt arguments, or other model-authored positions MUST be ignored for
+conversation binding (no shape detection required).
 
 `_meta` is client-authored transport metadata; tool arguments are model output. Carrying conversation
 identity in `_meta` means the model does not choose which conversation a request belongs to, which is
@@ -662,7 +716,7 @@ RECOMMENDED construction:
 body = version   (1 byte,  = 0x01)
      ‖ key_id    (1 byte,  selects the MAC key, for rotation)
      ‖ cid       (16 bytes, CSPRNG)
-     ‖ exp       (4 bytes,  big-endian Unix seconds)
+     ‖ exp       (4 bytes,  unsigned 32-bit big-endian Unix seconds; valid through 2106-02-07 UTC)
      ‖ seq       (4 bytes,  big-endian, strictly increasing per cid)
      ‖ state_len (1 byte)
      ‖ state     (state_len bytes, opaque, server-defined, MAY be empty)
@@ -699,6 +753,12 @@ Conversation handles MUST NOT influence the results of `tools/list`, `resources/
 `prompts/list`. Servers MUST NOT vary list results by conversation. This preserves the caching model
 SEP-2567 and SEP-2549 establish. Static tool marks under §1.1 are part of the tool definition and
 MUST likewise be conversation-invariant.
+
+This deliberately declines use cases raised in
+[transports-wg#36](https://github.com/modelcontextprotocol/transports-wg/issues/36) (for example
+@javapro108 ERP dynamic tool activation) and Progressive Discovery of Tools in the sessions decision
+doc. Those need a separate catalog-versioning or elicitation mechanism, not conversation-varying list
+endpoints under this extension (caching / SEP-2549).
 
 ### 7. Extension settings
 
@@ -796,7 +856,8 @@ With this extension a runtime can do the equivalent check **preflight**:
   the safe case.
 
 The protocol supplies unforgeable, ordered conversation identity. Labels, lattices, declassification,
-and enforcement remain inside the runtime and can change without a protocol change.
+and enforcement remain inside the runtime and can change without a protocol change. Concurrent
+label-journal head races are resolved server-side; the opaque commitment is not a mergeable CRDT.
 
 ---
 
@@ -979,14 +1040,14 @@ layer sound.
 
 **What the extension defends against.**
 
-| Attack                                                          | Defence                                                                                  |
-| --------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| Caller or model fabricates a conversation identifier            | MAC verification fails; §8 forbids resolving it to an existing conversation.             |
-| Model tampers with `cid`, `seq`, `exp`, or the state commitment | Integrity protection covers the whole body.                                              |
-| Model omits the handle to escape conversation-scoped state      | §8 — MUST NOT resolve to an existing conversation.                                       |
-| Handle replayed after conversation state moved on               | §4.3 — supersession is detectable; the response is the server's policy.                  |
-| Handle replayed against a different deployment                  | §2.4 — implicit under the symmetric profile, explicit audience under the asymmetric one. |
-| Handle recovered from an old transcript, used indefinitely      | `exp` plus rotation (§4.2).                                                              |
+| Attack                                                          | Defence                                                                                                                                         |
+| --------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| Caller or model fabricates a conversation identifier            | MAC verification fails; §8 forbids resolving it to an existing conversation.                                                                    |
+| Model tampers with `cid`, `seq`, `exp`, or the state commitment | Integrity protection covers the whole body.                                                                                                     |
+| Model omits the handle to escape conversation-scoped state      | §8 — MUST NOT resolve to an existing conversation.                                                                                              |
+| Handle replayed after conversation state moved on               | §4.3 — supersession is detectable; the response is the server's policy.                                                                         |
+| Handle replayed against a different deployment                  | §2.4 — implicit under the symmetric profile, explicit audience under the asymmetric one.                                                        |
+| Handle recovered from an old transcript, used indefinitely      | `exp` bounds unexpired-bearer usefulness; exchange (§4.4) extends to retention for §2.3-associated principals; cross-principal stopped by §2.3. |
 
 **Leaked handles.** Because the handle carries no principal (§2.3), an
 attacker who obtains a valid, unexpired handle — from a transcript, a log, a screenshot, a shared
@@ -1057,22 +1118,22 @@ full wire surface end to end — including the client half (§4.2), which no exi
 covers. Run `npm install && npm test` to execute the conformance-style e2e suite; `pnpm run
 example:server` starts a streamable HTTP fixture.
 
-| Component                                                                       | Scope                                                                                                       | Location                                                               |
-| ------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
-| Handle construction and verification (§6.2)                                     | HMAC-SHA256 over a fixed-layout body, constant-time tag comparison, `key_id` selection. Node `crypto` only. | `src/codec.ts`, `src/bytes.ts`                                         |
-| Server: mint, rotate, attach to response `_meta`                                | Sequence allocation per `cid`, plus the advisory mirrors in §4.1.                                           | `src/handle-mint.ts`, `src/rotation.ts`, `src/store.ts`                |
-| Server: verify, detect supersession, exchange                                   | §§4.3–4.4. In-memory conversation record.                                                                   | `src/presentation-resolver.ts`, `src/execution.ts`, `src/extension.ts` |
-| Client: persist per conversation, attach to request `_meta`, discard superseded | §4.2. Seq-aware merge, session-key pinning, `clear()` generation bump.                                      | `src/client.ts`                                                        |
-| Capability advertisement                                                        | §1, both directions.                                                                                        | `src/request-meta.ts`, `src/sdk-meta.ts`, `src/schema/draft/schema.ts` |
-| Tool marking (§1.1)                                                             | `tools/list` `_meta` with `requirement` / `mayMint`.                                                        | `src/tool-meta.ts`, `src/integrate.ts`                                 |
-| Worked examples                                                                 | Memory and information-flow fixtures demonstrating §3 state commitment.                                     | `src/fixtures/`, `conformance/ifc-e2e.test.ts`                         |
-| Formal model                                                                    | Quint executable spec of §4 lifecycle and client merge rules.                                               | `models/conversation-handle/`                                          |
+| Component                                                                       | Scope                                                                                                                                           | Location                                                               |
+| ------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| Handle construction and verification (§6.2)                                     | HMAC-SHA256 over a fixed-layout body, constant-time tag comparison, `key_id` selection. Node `crypto` only.                                     | `src/codec.ts`, `src/bytes.ts`                                         |
+| Server: mint, rotate, attach to response `_meta`                                | Sequence allocation per `cid`, plus the advisory mirrors in §4.1 (`seq`, `expiresAt`, `supersededHandlePresented`; no `conversationId` mirror). | `src/handle-mint.ts`, `src/rotation.ts`, `src/store.ts`                |
+| Server: verify, detect supersession, exchange                                   | §§4.3–4.4. In-memory conversation record.                                                                                                       | `src/presentation-resolver.ts`, `src/execution.ts`, `src/extension.ts` |
+| Client: persist per conversation, attach to request `_meta`, discard superseded | §4.2. Seq-aware merge, session-key pinning, `clear()` generation bump.                                                                          | `src/client.ts`                                                        |
+| Capability advertisement                                                        | §1, both directions.                                                                                                                            | `src/request-meta.ts`, `src/sdk-meta.ts`, `src/schema/draft/schema.ts` |
+| Tool marking (§1.1)                                                             | `tools/list` `_meta` with `requirement` / `mayMint`.                                                                                            | `src/tool-meta.ts`, `src/integrate.ts`                                 |
+| Worked examples                                                                 | Memory and information-flow fixtures demonstrating §3 state commitment.                                                                         | `src/fixtures/`, `conformance/ifc-e2e.test.ts`                         |
+| Formal model                                                                    | Quint executable spec of §4 lifecycle and client merge rules.                                                                                   | `models/conversation-handle/`                                          |
 
 **Prototype status.** This repository is a runnable prototype sufficient for SEP review under the
 [prototype requirements](https://modelcontextprotocol.io/community/sep-guidelines#prototype-requirements):
 codec, server mint/rotate/verify/exchange, opaque client persistence, §1.1 tool marks, conformance-style
 e2e with `sep-0000.yaml` traceability, and a Quint model of §4. Landing an equivalent in an official
-SDK remains desirable adoption work, not a blocker to opening this SEP.
+SDK remains desirable adoption work, not a blocker while this SEP is **Awaiting Sponsor**.
 
 **Conformance.** As a Standards Track SEP with observable protocol behaviour, [SEP-2484](https://modelcontextprotocol.io/seps/2484-conformance-tests-required-for-final-seps)
 requires a conformance scenario and an `sep-NNNN.yaml` traceability file mapping each MUST/MUST NOT
@@ -1081,14 +1142,20 @@ Primary targets: §2.2 property verification, §2.3 rejection of cross-principal
 §4.3 supersession detectability, §4.4 exchange, §5.1 rejection of handles in tool arguments, §1.1 tool
 marking, and §8's prohibition. A draft traceability file already lives in the reference repository;
 writing the upstream scenario before Core Maintainer review is encouraged. §§4.3–4.4 carry the finest
-normative distinction between detection and policy.
+normative distinction between detection and policy. MUSTs without wire manifestation — supporting at
+least two concurrent `key_id` values (§6.2), and CSPRNG `cid` generation (§2.2) — are SEP-2484
+traceability exclusions (server-internal / implementation obligations verified by review, not wire
+scenarios).
 
 **Associated groups.** This SEP is co-routed through the
+[Transports Working Group](https://modelcontextprotocol.io/community/working-groups/transports),
+the
 [Security Interest Group](https://modelcontextprotocol.io/community/interest-groups/security)
-(threat model, cross-principal isolation, integrity) and the
+(threat model, cross-principal isolation, integrity), and the
 [Agents Working Group](https://modelcontextprotocol.io/community/working-groups/agents)
-(conversation continuity, memory/orchestration, composition with Tasks). A Core Maintainer or
-Maintainer sponsor is still required for formal review. Discord: `#security-ig`, `#agents-wg`.
+(conversation continuity, memory/orchestration, composition with Tasks). Status is **Awaiting
+Sponsor**; a Core Maintainer sponsor is sought for formal review. Discord: `#transports-wg`,
+`#security-ig`, `#agents-wg`.
 
 ## References
 
@@ -1097,6 +1164,11 @@ Maintainer sponsor is still required for formal review. Discord: `#security-ig`,
 - SEP-2549, _List result caching_
 - SEP-2133, _Extensions_ — [https://modelcontextprotocol.io/seps/2133-extensions](https://modelcontextprotocol.io/seps/2133-extensions)
 - SEP-1359, _Protocol-Level Sessions for MCP_ — [https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1359](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1359)
+- transports-wg#36, _Conversation / Thread IDs_ — [https://github.com/modelcontextprotocol/transports-wg/issues/36](https://github.com/modelcontextprotocol/transports-wg/issues/36)
+- SEP-1655, _Client-Side State Management_ (dormant) — [https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1655](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1655)
+- SEP-1685, _Request-scoped state_ — [https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1685](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1685)
+- Discussion #2894 — [https://github.com/modelcontextprotocol/modelcontextprotocol/discussions/2894](https://github.com/modelcontextprotocol/modelcontextprotocol/discussions/2894)
+- SEP-2822, _Client Generated Session ID_ (closed into transports-wg#36) — [https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2822](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2822)
 - MCP Core Maintainer Meeting, 4 Feb 2026 (SEP-2084 rejection) — [https://github.com/modelcontextprotocol/modelcontextprotocol/discussions/2204](https://github.com/modelcontextprotocol/modelcontextprotocol/discussions/2204)
 - MCP Roadmap, 22 Aug 2026 — [https://blog.modelcontextprotocol.io/posts/mcp-roadmap/](https://blog.modelcontextprotocol.io/posts/mcp-roadmap/)
 - Microsoft Foundry Agent Service, _Create and use memory_ — [https://learn.microsoft.com/en-us/azure/foundry/agents/how-to/memory-usage](https://learn.microsoft.com/en-us/azure/foundry/agents/how-to/memory-usage)

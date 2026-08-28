@@ -847,7 +847,7 @@
             ]
           },
           {
-            "group": "Draft",
+            "group": "Awaiting sponsor",
             "pages": [
               "seps/3318-verifiable-conversation-handles"
             ]
