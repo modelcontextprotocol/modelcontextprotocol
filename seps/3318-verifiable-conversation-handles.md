@@ -1,4 +1,4 @@
-# SEP-0000: Verifiable Conversation Handles
+# SEP-3318: Verifiable Conversation Handles
 
 - **Status**: Draft
 - **Type**: Standards Track
@@ -8,7 +8,7 @@
 - **Interest Group**: Security IG
 - **Working Group**: Agents WG
 - **Extension Identifier**: `io.modelcontextprotocol/conversation-handle`
-- **PR**: _pending_ (rename file and header to the PR number after open)
+- **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/3318
 - **Related**: [SEP-2567](https://modelcontextprotocol.io/seps/2567-sessionless-mcp) (Sessionless MCP), [SEP-2575](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2575) (per-request protocol fields), [SEP-2133](https://modelcontextprotocol.io/seps/2133-extensions) (Extensions)
 
 ---
