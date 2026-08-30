@@ -124,6 +124,15 @@ Authorization servers **MAY** implement domain-based trust policies:
 
 Servers maintain full control over their access policies.
 
+### Client Authentication Method Selection
+
+A Client ID Metadata Document **MAY** advertise multiple token endpoint
+authentication methods in `token_endpoint_auth_methods_supported`. Advertising a
+method does not oblige the authorization server to accept it: the authorization
+server **MUST** enforce its own local security policy and **MAY** reject a method
+it would otherwise support, so that a client cannot force a downgrade to the
+weakest method it lists.
+
 ## Confused Deputy Problem
 
 Attackers can exploit MCP servers acting as intermediaries to third-party APIs, leading to [confused deputy vulnerabilities](/docs/tutorials/security/security_best_practices#confused-deputy-problem).
