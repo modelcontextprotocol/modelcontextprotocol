@@ -9,13 +9,16 @@ description: Charter for the MCP Security Interest Group.
 
 ## Mission Statement
 
-The Security Interest Group catalogs MCP-specific threats, reviews security-relevant proposals, and
-scopes validated problems into focused Working Groups or [SEPs](/community/sep-guidelines).
+The Security Interest Group is the first stop for MCP-specific security topics. It does initial
+vetting of threats, security-relevant proposals, and disclosure questions, and routes validated
+work to the Working Group or [SEP](/community/sep-guidelines) that owns it.
 
 ## Scope
 
 ### In Scope
 
+- **Triage and routing**: intake of security topics raised on Discord or GitHub and handoff to the
+  owning group (Auth IG, Transports WG, Registry WG, Tool Annotations IG, SDK maintainers)
 - **Threat modeling**: developing and maintaining a shared, layered view of MCP attack surfaces
   spanning admission and identity, caller governance, runtime behavior, interception and enforcement,
   and auditability, to give individual proposals a common frame of reference
@@ -89,17 +92,20 @@ scopes validated problems into focused Working Groups or [SEPs](/community/sep-g
 | Stefano Ortolani         | Broadcom     | [@ostefano](https://github.com/ostefano)             | `ostefano.`      | Participant |
 
 Open to anyone. Join the `#security-ig` channel on the
-[MCP Contributors Discord](/community/communication#discord). Calls are open and active
-participation is highly encouraged. The group is looking for contributors who will engage with
-proposals and help drive work forward rather than observe.
+[MCP Contributors Discord](/community/communication#discord). Participation happens in
+`#security-ig`, and agenda-driven calls are announced there when there is something to discuss.
+The group is looking for contributors who will engage with proposals and help drive work forward
+rather than observe.
 
 ## Operations
 
-| Meeting      | Frequency     | Duration | Purpose                                                                 |
-| ------------ | ------------- | -------- | ----------------------------------------------------------------------- |
-| Office Hours | Every 2 weeks | 45 min   | Threat review, proposal triage, deployment reports, WG-proposal scoping |
+| Meeting    | Frequency                                         | Duration | Purpose                                                                                              |
+| ---------- | ------------------------------------------------- | -------- | ---------------------------------------------------------------------------------------------------- |
+| Forum call | As needed, on a call for agenda in `#security-ig` | 45 min   | Triage and routing of raised topics, WG proposal scoping                                             |
+| Digest     | Monthly                                           | n/a      | Summary of routed items, open topics, and advisories posted to `#security-ig` and GitHub Discussions |
 
-An agenda is shared in `#security-ig` ahead of each call.
+Anyone can request a call by posting a proposed agenda in `#security-ig`, and the facilitators
+schedule one when there is enough to discuss.
 
 Discord: [#security-ig](https://discord.com/channels/1358869848138059966/1379811011669921883)
 
@@ -123,6 +129,7 @@ evolve as the group identifies new areas of interest.
 
 ## Changelog
 
-| Date       | Change          |
-| ---------- | --------------- |
-| 2026-06-13 | Initial charter |
+| Date       | Change                                                                                                                                                                                                                                     |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 2026-08-26 | Restructured as a routing group, replaced biweekly office hours with agenda-driven calls and a monthly digest (core maintainer meeting, [discussion #3316](https://github.com/modelcontextprotocol/modelcontextprotocol/discussions/3316)) |
+| 2026-06-13 | Initial charter                                                                                                                                                                                                                            |
