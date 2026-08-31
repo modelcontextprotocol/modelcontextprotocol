@@ -123,6 +123,21 @@ The shortest summary: explore the problem space and validate that others share t
 build a prototype that demonstrates a solution, then write the SEP based on what the
 prototype taught you.
 
+## Issue Assignment Before Pull Requests
+
+For changes other than SEPs, find an existing issue that covers your change or open a
+new one, and ask to be assigned. Open a pull request only after a maintainer has
+assigned the issue to you. Pull requests that reference an issue the author is not
+assigned to, or that reference no issue at all, are closed automatically with a
+comment pointing back to this section.
+
+The following are exempt from this rule:
+
+- Repository maintainers and collaborators, including everyone listed in [MAINTAINERS.md](MAINTAINERS.md)
+- Bot accounts, such as Dependabot
+- Pull requests that only change SEP documents under `seps/` or `docs/seps/`
+- Pull requests with the `skip-assignment-check` label, which maintainers can apply to bypass the check
+
 ## Submitting Changes
 
 1. Push your changes to your fork

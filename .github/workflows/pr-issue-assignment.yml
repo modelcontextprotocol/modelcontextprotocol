@@ -1,0 +1,174 @@
+name: PR Issue Assignment
+
+# Closes pull requests whose author is not assigned to a linked issue.
+# Policy: CONTRIBUTING.md, "Issue Assignment Before Pull Requests".
+# Runs on pull_request_target and never checks out or executes PR code.
+
+on:
+  pull_request_target:
+    types: [opened, reopened]
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    if: github.repository == 'modelcontextprotocol/modelcontextprotocol'
+    steps:
+      - name: Check issue assignment
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const pr = context.payload.pull_request;
+            const author = pr.user.login;
+            const authorLower = author.toLowerCase();
+            const marker = '<!-- pr-issue-assignment-check -->';
+            const contributingUrl =
+              'https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/CONTRIBUTING.md#issue-assignment-before-pull-requests';
+            const bypassLabel = 'skip-assignment-check';
+            const botLogins = ['dependabot[bot]', 'github-actions[bot]', 'claude[bot]'];
+
+            async function finish(lines) {
+              await core.summary
+                .addHeading('PR issue assignment check')
+                .addList(lines)
+                .write();
+            }
+
+            // Exemptions. Each one skips the check entirely.
+            // Any unexpected API error below throws and fails the job before
+            // the close call is reached, so errors never close a PR.
+
+            if (['OWNER', 'MEMBER', 'COLLABORATOR'].includes(pr.author_association)) {
+              return finish([`Exempt: author ${author} has association ${pr.author_association}.`]);
+            }
+
+            if (pr.user.type === 'Bot' || botLogins.includes(authorLower)) {
+              return finish([`Exempt: author ${author} is a bot account.`]);
+            }
+
+            if ((pr.labels || []).some((label) => label.name === bypassLabel)) {
+              return finish([`Exempt: pull request carries the ${bypassLabel} label.`]);
+            }
+
+            const maintainersFile = await github.rest.repos.getContent({
+              owner,
+              repo,
+              path: 'MAINTAINERS.md',
+            });
+            const maintainersText = Buffer.from(maintainersFile.data.content, 'base64').toString('utf8');
+            const maintainers = new Set(
+              [...maintainersText.matchAll(/github\.com\/([A-Za-z0-9-]+)/g)].map((m) => m[1].toLowerCase()),
+            );
+            if (maintainers.has(authorLower)) {
+              return finish([`Exempt: author ${author} is listed in MAINTAINERS.md.`]);
+            }
+
+            const files = await github.paginate(github.rest.pulls.listFiles, {
+              owner,
+              repo,
+              pull_number: pr.number,
+              per_page: 100,
+            });
+            const sepOnly =
+              files.length > 0 &&
+              files.every((f) => f.filename.startsWith('seps/') || f.filename.startsWith('docs/seps/'));
+            if (sepOnly) {
+              return finish(['Exempt: all changed files are under seps/ or docs/seps/.']);
+            }
+
+            // Collect linked issues: closing references plus a body scan.
+            const issueNumbers = new Set();
+
+            const linked = await github.graphql(
+              `query ($owner: String!, $repo: String!, $number: Int!) {
+                repository(owner: $owner, name: $repo) {
+                  pullRequest(number: $number) {
+                    closingIssuesReferences(first: 50) {
+                      nodes {
+                        number
+                        repository { nameWithOwner }
+                      }
+                    }
+                  }
+                }
+              }`,
+              { owner, repo, number: pr.number },
+            );
+            for (const node of linked.repository.pullRequest.closingIssuesReferences.nodes) {
+              if (node.repository.nameWithOwner.toLowerCase() === `${owner}/${repo}`.toLowerCase()) {
+                issueNumbers.add(node.number);
+              }
+            }
+
+            const body = pr.body || '';
+            const keywordPattern =
+              /(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?)\s+(?:([A-Za-z0-9-]+\/[A-Za-z0-9._-]+)?#(\d+))/gi;
+            for (const match of body.matchAll(keywordPattern)) {
+              const crossRepo = match[1];
+              if (crossRepo && crossRepo.toLowerCase() !== `${owner}/${repo}`.toLowerCase()) {
+                continue;
+              }
+              issueNumbers.add(Number(match[2]));
+            }
+
+            // Pass if the author is assigned to at least one linked issue.
+            const checkedIssues = [];
+            for (const issueNumber of issueNumbers) {
+              let issue;
+              try {
+                issue = await github.rest.issues.get({ owner, repo, issue_number: issueNumber });
+              } catch (error) {
+                if (error.status === 404) continue;
+                throw error;
+              }
+              if (issue.data.pull_request) continue;
+              checkedIssues.push(issueNumber);
+              const assignees = (issue.data.assignees || []).map((a) => a.login.toLowerCase());
+              if (assignees.includes(authorLower)) {
+                return finish([`Pass: author ${author} is assigned to linked issue #${issueNumber}.`]);
+              }
+            }
+
+            // Policy failure. Comment once, then close.
+            const issueList = checkedIssues.map((n) => `#${n}`).join(', ');
+            const middle =
+              checkedIssues.length > 0
+                ? `This pull request references ${issueList}, but you are not assigned to any of these issues. Please request assignment on one of them.`
+                : 'This pull request does not reference an issue. Please find or open an issue that covers this change and request assignment.';
+            const commentBody = [
+              `This repository requires contributors to be assigned to an issue before opening a pull request. See [Issue Assignment Before Pull Requests](${contributingUrl}) in CONTRIBUTING.md.`,
+              middle,
+              'A maintainer can reopen this pull request once you are assigned. SEP pull requests and pull requests from maintainers are exempt, as described in the linked section.',
+              marker,
+            ].join('\n\n');
+
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner,
+              repo,
+              issue_number: pr.number,
+              per_page: 100,
+            });
+            const alreadyCommented = comments.some((c) => (c.body || '').includes(marker));
+            if (!alreadyCommented) {
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number: pr.number,
+                body: commentBody,
+              });
+            }
+
+            await github.rest.pulls.update({ owner, repo, pull_number: pr.number, state: 'closed' });
+
+            await finish([
+              checkedIssues.length > 0
+                ? `Fail: author ${author} is not assigned to any linked issue (${issueList}).`
+                : `Fail: no linked issue found for author ${author}.`,
+              alreadyCommented ? 'Comment already present, skipped posting.' : 'Posted explanatory comment.',
+              'Closed the pull request.',
+            ]);
