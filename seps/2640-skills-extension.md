@@ -1,6 +1,6 @@
 # SEP-2640: Skills Extension
 
-- **Status**: Draft
+- **Status**: Accepted
 - **Type**: Extensions Track
 - **Created**: 2026-04-23
 - **Author(s)**: Peter Alexander (@pja-ant), Ola Hungerford (@olaservo), Sambhav Kothari (@sambhav), Aditya Kumar (@aditya-scio), on behalf of the Skills Over MCP Working Group
