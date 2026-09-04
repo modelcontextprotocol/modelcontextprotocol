@@ -195,8 +195,9 @@ and **names** a third contributed by reference:
     including a single source — never a bare delimiter-joined list, which
     cannot unambiguously represent a source name containing the delimiter.
     Each element MUST be a well-formed Unicode string (no unpaired surrogate
-    code units) that satisfies the §2.3 protected-string rules (NFC, U+0020
-    trim, control-character rejection, length cap) and MUST be non-empty;
+    code units) that satisfies the §2.3 protected-string rules (well-formedness,
+    NFC, U+0020 trim, control-character rejection, length cap) and MUST be
+    non-empty;
     elements are then deduplicated and sorted in ascending order of their
     UTF-8 byte sequences (equivalently, Unicode code-point order). The array is
     serialized with no insignificant whitespace, escaping only `"` as `\"` and
@@ -264,9 +265,12 @@ with the canonicalization used by PR #2809's clearance assertion so that adopter
 process clearance assertions and audit records on one code path and one vector
 matrix. A canonicalization MUST:
 
-- **Sort object keys** lexicographically at every level, including the
-  `extensions` object and each extension's nested data, and serialize with no
-  insignificant whitespace.
+- **Sort object keys** lexicographically — in ascending order of their UTF-8
+  byte sequences, equivalently Unicode code-point order — at every level,
+  including the `extensions` object and each extension's nested data, and
+  serialize with no insignificant whitespace. The sort basis is declared rather
+  than inherited from a host language's default; on the controlled ASCII
+  registry vocabulary (§2.2) every common basis coincides.
 - **Canonicalize extensions in the type-keyed object form**
   `extensions:{"<type>":<data>, ...}` — this exact representation is the
   preimage. Implementations MUST NOT substitute an alternative representation
@@ -290,24 +294,40 @@ matrix. A canonicalization MUST:
   recorder's native timestamp storage.
 - **Normalize protected string values** to bound the coupling of integrity to
   free-text fields: Unicode **NFC**, **trim leading/trailing U+0020 (ASCII space)
-  only**, reject **control characters**, and enforce a **length cap** (baseline
-  8192 code units). A protected string failing normalization makes the record
-  non-conforming. The trim charset is deliberately **U+0020 only**, not the full
+  only**, reject **control characters**, require **well-formed Unicode** (no
+  unpaired surrogate code units), and enforce a **length cap** (baseline 8192
+  UTF-16 code units, measured on the normalized value). A protected string
+  failing normalization makes the record non-conforming. The trim charset is
+  deliberately **U+0020 only**, not the full
   Unicode whitespace class: ASCII space is the only commonly-accidental edge
   whitespace, while non-control Unicode whitespace (NBSP U+00A0, the U+2000–U+200A
   range, ideographic space U+3000, etc.) is preserved as significant content.
   Naming the charset is load-bearing for cross-implementation reproducibility — an
   unqualified "trim" diverges across implementations (SQL `btrim(x, ' ')` strips
   U+0020 only; a typical host `.trim()` strips the full whitespace class). Control
-  characters — including the C0 set (tab U+0009, LF U+000A, CR U+000D) — are
-  **rejected**, not trimmed; a leading or trailing control character renders the
-  record non-conforming rather than being stripped.
+  characters (Unicode category Cc: U+0000–U+001F and U+007F–U+009F) — including
+  the C0 set (tab U+0009, LF U+000A, CR U+000D) — are **rejected**, not trimmed;
+  a leading or trailing control character renders the record non-conforming
+  rather than being stripped. Well-formedness matches the §2.2 element rule: a
+  value carrying an unpaired surrogate code unit makes the record non-conforming
+  (RFC 8259 §8.2 leaves receiver behavior for unpaired surrogates
+  unpredictable — a parser may reject the record, substitute U+FFFD, or pass the
+  code unit through, and the latter two silently change the digest).
   **Registry vocabulary is exempt:** extension type ids and registered field
   names are a controlled ASCII registry vocabulary (§2.2) and pass through the
   canonical form verbatim — they are object _keys_, not values, and the registry
   (not normalization) is what constrains them. The exemption is safe precisely
   because the vocabulary is registry-controlled ASCII; an unregistered type id is
   non-conforming under C-REC-1 regardless of its bytes.
+- **Escape minimally and encode as UTF-8.** Within a serialized string value,
+  escape only `"` as `\"` and `\` as `\\`; every other character, including
+  non-ASCII, is serialized literally, never as a `\uXXXX` escape (normalization
+  has already rejected every character JSON cannot carry literally). The
+  canonical form hashed in §2.4 is the UTF-8 encoding of that serialization.
+  This is the same convention the `sources_touched` encoding names (§2.2); left
+  unstated, a host JSON serializer that escapes non-ASCII by default produces a
+  different preimage — and a different digest — from one that does not, for any
+  value outside ASCII.
 - **Exclude `event_hash`** (the output) and the reserved `anchor_witness` (§2.8,
   unused in v1) from the canonical body.
 
@@ -332,7 +352,11 @@ Records form an append-only **hash chain**. For each record:
 `H` MUST be SHA-256 at baseline. An implementation MAY use a stronger function;
 the function in use MUST be recorded in the attestation manifest (§2.7) so a
 verifier is unambiguous (algorithm agility). Implementations MUST NOT use a hash
-function with a known practical collision.
+function with a known practical collision. The digest values carried in the
+record (`event_hash`, `previous_hash`) MUST be expressed as **lowercase
+hexadecimal**: digest comparison (§2.6) is then exact string equality, and a
+digest re-entering the preimage as the next record's `previous_hash` has a
+single byte form across implementations.
 
 A chain "segment" is a contiguous run of records over which `previous_hash`
 threading is continuous. Implementations MAY segment chains (e.g. per time window
@@ -546,8 +570,9 @@ documented-exclusion model.
   protected body (core **and** extension data), uses the mandated type-keyed
   `extensions` representation, restricts protected values to string/bool/null
   (no bare numbers), normalizes equivalent strings, and rejects control
-  characters; null encodes distinguishably from empty string; registry
-  vocabulary (type ids, registered field names) passes through verbatim.
+  characters and unpaired surrogate code units; null encodes distinguishably
+  from empty string; registry vocabulary (type ids, registered field names)
+  passes through verbatim.
 - C-REC-3 — `event_hash` equals the hash of the canonical form of the protected
   body (§2.4), including a fixed known-answer test for cross-implementation
   interop — among them a **two-extension** record pinning how multiple
