@@ -125,6 +125,57 @@ This MCP server manages Azure DevOps work items and pipelines.
 <!-- mcp-name: io.github.username/azure-devops-mcp -->
 ```
 
+## Cargo (Rust) Packages
+
+For Cargo packages, the MCP Registry currently supports the official crates.io registry (`https://crates.io`) only.
+
+Cargo packages use `"registryType": "cargo"` in `server.json`. For example:
+
+```json server.json highlight={9}
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.username/widget-mcp",
+  "title": "Widget",
+  "description": "Rust-native MCP server",
+  "version": "0.3.0",
+  "packages": [
+    {
+      "registryType": "cargo",
+      "identifier": "widget-mcp",
+      "version": "0.3.0",
+      "transport": {
+        "type": "stdio"
+      }
+    }
+  ]
+}
+```
+
+### Runtime Model
+
+Cargo's runtime model differs from npm/PyPI/NuGet. `cargo install <crate>` places the compiled binary on PATH at `~/.cargo/bin`, after which MCP clients invoke it directly by name. There is no per-invocation runner equivalent to `npx` (npm), `uvx` (PyPI), or `dnx` (NuGet, .NET 10 SDK Preview 6+) — install is one-time, execution is by binary name. The Cargo example above intentionally omits `runtimeHint` for this reason.
+
+Rust MCP authors have two first-class distribution paths:
+
+- **Cargo (`registryType: cargo`)** — source-distributed via crates.io. End users need the Rust toolchain (`rustup`) to run `cargo install`. Idiomatic for the Rust ecosystem and consistent with how Rust CLIs are typically published.
+- **MCPB (`registryType: mcpb`)** — prebuilt binary distributed via GitHub or GitLab Releases. End users need no toolchain. Right choice if the priority is "no Rust toolchain required."
+
+Both paths are supported; the choice is the author's. Cargo native support exists so Rust authors who prefer source distribution are not forced into the MCPB binary-packaging workaround.
+
+### Ownership Verification
+
+The MCP Registry verifies ownership of Cargo packages by checking for the existence of an `mcp-name: $SERVER_NAME` string in the package README (which is rendered to HTML and served by crates.io's static CDN). The `$SERVER_NAME` portion **MUST** match the server name from `server.json`. For example:
+
+```markdown README.md highlight={5}
+# Widget MCP Server
+
+A Rust-native MCP server for widget operations.
+
+- MCP Registry name: `mcp-name: io.github.username/widget-mcp`
+```
+
+**Cargo-specific gotcha:** Unlike PyPI and NuGet (which preserve HTML comments in their README rendering), **crates.io strips HTML comments during markdown→HTML conversion**. The `<!-- mcp-name: ... -->` hidden-comment form that works for PyPI/NuGet **does not work for cargo** — the token will not appear in the rendered HTML the validator inspects. Cargo authors must include the `mcp-name:` token as visible markdown text. A simple bullet in the Links section is the recommended pattern.
+
 ## Docker/OCI Images
 
 For Docker/OCI images, the MCP Registry currently supports:
