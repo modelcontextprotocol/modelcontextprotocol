@@ -24,7 +24,7 @@ This SEP is fully backward compatible. A client that does not recognize the `_me
 
 2. **Support for signaling server-side state remediation**: Some authorization denials are not about the client's credential. The MCP server may deny a request because it has insufficient information to contact an external system, needs confirmation from the user, or another piece of server-side state must be established before the request can succeed. The decision may come from something other than the user at the client, such as a reviewer, a policy engine or an external ticketing system, and it may not arrive until long after the server has replied. OAuth authorization challenges such as `insufficient_scope` or `invalid_token` are shaped around credential changes and do not cover either case. MCP has URL-mode elicitation as a primitive for out-of-band user interaction, and the Tasks extension as a primitive for work that outlives the response, but neither is an authorization denial signaling mechanism.
 
-3. **Support for structured remediation data at denial**: In some cases, the server can safely share data with the client that helps with remediation. For example, OAuth 2.0 defines Rich Authorization Requests (RFC 9396) for conveying structured authorization requirements, but only as part of the authorization request flow. IETF OAuth Working Group draft, [`draft-ietf-oauth-rar-metadata-remediation`](https://datatracker.ietf.org/doc/draft-ietf-oauth-rar-metadata-remediation/), proposes a mechanism for HTTP by defining a new `WWW-Authenticate` error code, `insufficient_authorization`, with the structured data placed in the `authorization_remediation` header error parameter, which contains a base64url-encoded JSON object. The draft is HTTP-specific, and this SEP proposes to adopt the same error-remediation pattern at the JSON-RPC layer so it applies across MCP transports.
+3. **Support for structured remediation data at denial**: In some cases, the server can safely share data with the client that helps with remediation. For example, OAuth 2.0 defines Rich Authorization Requests (RFC 9396) for conveying structured authorization requirements, but only as part of the authorization request flow. An IETF OAuth Working Group draft, [`draft-ietf-oauth-rar-metadata-remediation`](https://datatracker.ietf.org/doc/draft-ietf-oauth-rar-metadata-remediation/), proposes a mechanism for HTTP by defining a new `WWW-Authenticate` error code, `insufficient_authorization`, with the structured data placed in the `authorization_remediation` header error parameter, which contains a base64url-encoded JSON object. The draft is HTTP-specific, and this SEP proposes to adopt the same error-remediation pattern at the JSON-RPC layer so it applies across MCP transports.
 
 4. **A denial does not indicate whether it can be remediated**: A client that receives an authorization denial cannot determine whether remediation is possible. It therefore either reattempts authorization for a denial that no credential or approval can satisfy, or treats a remediable denial as final. A remediation may also exist that the server cannot safely disclose or express. OAuth authorization challenges cannot resolve this, because every error value they define names something the client is expected to obtain, and none of them indicates that nothing can be obtained.
 
@@ -83,7 +83,7 @@ In case 5, where the server also sends the envelope, the transport challenge is 
 | Challenge                                                                                                                                                         | Remedy carried in `WWW-Authenticate`       | What the client does                                                                                             |
 | :---------------------------------------------------------------------------------------------------------------------------------------------------------------- | :----------------------------------------- | :--------------------------------------------------------------------------------------------------------------- |
 | `error="insufficient_scope"` ([RFC 6750](https://datatracker.ietf.org/doc/html/rfc6750))                                                                          | `scope`                                    | Obtains a token for the named scopes and retries                                                                 |
-| `error="insufficient_authorization"` ([draft-ietf-oauth-rar-metadata-remediation](https://datatracker.ietf.org/doc/draft-ietf-oauth-rar-metadata-remediation/))                 | `authorization_remediation`, base64url RAR | Decodes it and sends the `authorization_details` to the authorization server, then retries                       |
+| `error="insufficient_authorization"` ([draft-ietf-oauth-rar-metadata-remediation](https://datatracker.ietf.org/doc/draft-ietf-oauth-rar-metadata-remediation/))   | `authorization_remediation`, base64url RAR | Decodes it and sends the `authorization_details` to the authorization server, then retries                       |
 | `error="transaction_authorization_required"` ([draft-rosomakho-oauth-txn-challenge-00](https://datatracker.ietf.org/doc/draft-rosomakho-oauth-txn-challenge/00/)) | `transaction_challenge`, a JWS             | Posts the JWS to the authorization server's transaction authorization endpoint and retries with the issued token |
 
 No `WWW-Authenticate` parameter expresses `remediation: unavailable` or `undisclosed`. A bare `403` carrying none of these parameters therefore cannot be classified from the challenge alone. A challenge can express only a token remedy, so a remediation requiring a page visit has no case 5 form even on HTTP.
@@ -123,7 +123,7 @@ This SEP defines two such interactions. The server indicates which one applies w
 
 A representative example is a file picker in a cloud storage service, where the user's OAuth token is unchanged and the server records an approval tied to the user.
 
-The server expresses the denial as an `InputRequiredResult` whose `inputRequests` map carries an `elicitation/create` request in `url` mode. The envelope MUST include a `remediationHints` entry of type `url`. That hint carries no pointer to the elicitation, because the `inputRequests` map is where the client reads the URL. 
+The server expresses the denial as an `InputRequiredResult` whose `inputRequests` map carries an `elicitation/create` request in `url` mode. The envelope MUST include a `remediationHints` entry of type `url`. That hint carries no pointer to the elicitation, because the `inputRequests` map is where the client reads the URL.
 
 Elicitation modes are negotiated, and a server must not request a mode the client does not support, so this interaction is available only when the denied request declared `elicitation.url` in its client capabilities.
 
@@ -158,7 +158,7 @@ Example denial:
 }
 ```
 
-After the user completes the approval, the client retries the original request. It returns the elicitation outcome in `inputResponses` and passes `requestState` back unchanged as described in [Multi Round-Trip Requests](https://modelcontextprotocol.io/specification/draft/basic/patterns/mrtr). It also echoes the `authorizationContextId` as described in "Retry Echo via `_meta`":
+After the user completes the approval, the client retries the original request. It returns the elicitation outcome in `inputResponses` and passes `requestState` back unchanged as described in [Multi Round-Trip Requests](https://modelcontextprotocol.io/specification/2026-07-28/basic/patterns/mrtr). It also echoes the `authorizationContextId` as described in "Retry Echo via `_meta`":
 
 ```json
 {
@@ -315,7 +315,7 @@ WWW-Authenticate: Bearer error="insufficient_authorization",
 Cache-Control: no-store
 ```
 
-The client may retry the failing call using an existing valid credential if it matches a provided `authorization_reference`. Otherwise the client may use the `authorization_details` from WWW-Authenticate header's `authorization_remediation` parameter, to construct an OAuth authorization request, per [RFC 9396#section-2](https://datatracker.ietf.org/doc/html/rfc9396#section-2):
+The client may retry the failing call using an existing valid credential if it matches a provided `authorization_reference`. Otherwise the client uses the `authorization_details` from WWW-Authenticate header's `authorization_remediation` parameter, to construct an OAuth authorization request, per [RFC 9396#section-2](https://datatracker.ietf.org/doc/html/rfc9396#section-2):
 
 ```http
 GET /authorize?
@@ -450,7 +450,7 @@ A denial that carries no hints is the shape `remediation` exists to disambiguate
 }
 ```
 
-A server that holds a remedy it will not describe sends the same result with `remediation` set to `undisclosed`. The handle is still useful on both, because a caller who asks why the request failed needs something to quote.
+A server that holds a remedy it will not describe sends the same result with `remediation` set to `undisclosed`. The `authorizationContextId` is still useful on both, because a caller who asks why the request failed needs something to quote.
 
 ## Rationale
 
