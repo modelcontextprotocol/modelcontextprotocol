@@ -14,7 +14,7 @@ This SEP defines an authorization denial envelope for the Model Context Protocol
 
 The envelope is a single object with the same shape on every transport, carried in the `_meta` field of the result that expresses the denial. It tells the client whether there is a way forward, and when there is, it carries remediation hints describing what the client should do. New hint types can be defined by later SEPs without changing the envelope. Where an HTTP `WWW-Authenticate` challenge already describes the remediation in full, that challenge can be the entire denial, and a server that answers with a challenge alone sends no envelope.
 
-Sometimes the client's credential does not allow the operation, and the fix is to obtain a new one using OAuth scopes or [Rich Authorization Requests (RFC 9396)](https://datatracker.ietf.org/doc/html/rfc9396). Sometimes the credential is valid but a person has to approve the action first, and the fix is for the server to record that approval. This SEP covers both, including approvals that do not finish before the server has to reply.
+Sometimes the client's credential does not allow the operation, and the fix is to obtain a new one using OAuth scopes or [Rich Authorization Requests (RFC 9396)](https://datatracker.ietf.org/doc/html/rfc9396). Sometimes the credential is valid but a person has to approve the action first, and the fix is for the server to record that approval. This SEP covers both, including approvals that outlive the response.
 
 This SEP is fully backward compatible. A client that does not recognize the `_meta` key ignores it, so existing OAuth clients and libraries do not need to change.
 
@@ -117,7 +117,7 @@ To preserve backward compatibility with clients that do not implement this SEP, 
 
 This use case covers denials where the client's credential is valid and does not need to change. Remediation establishes server-side state, such as an approval or a selection of resources, through an interaction that takes place outside the request.
 
-This SEP defines two such interactions. The server indicates which one applies with a `remediationHints` entry of type `url` or `task`. In the first, the interaction is with the user at the client, who opens a URL and completes it while the request is in flight. In the second, the interaction is with someone else, such as a reviewer, a policy engine or a ticketing system, and it may not finish before the server has to reply.
+This SEP defines two such interactions. The server indicates which one applies with a `remediationHints` entry of type `url` or `task`. In the first, the interaction is with the user at the client, who opens a URL and completes it while the request is in flight. In the second, the interaction is with someone else, such as a reviewer, a policy engine or a ticketing system, and the decision can outlive the response.
 
 #### Interaction 1 — Completed by the user at a URL
 
@@ -181,7 +181,7 @@ After the user completes the approval, the client retries the original request. 
 
 #### Interaction 2 — Decided out of band
 
-The decision is reached outside the request and may not be reached before the server has to reply. A server that denies a request on authorization grounds and can remedy it only through such a decision MUST NOT carry out the request while the decision is pending. It returns a task that holds the request instead. The result is a `CreateTaskResult`, and its envelope MUST include a `remediationHints` entry of type `task`. The Tasks extension requires that a server never return a task to a client that has not declared it, so this interaction is available only when the denied request declared `io.modelcontextprotocol/tasks` in its client capabilities.
+The decision is reached outside the request and can outlive the response. A server that denies a request on authorization grounds and can remedy it only through such a decision MUST NOT carry out the request while the decision is pending. It returns a task that holds the request instead. The result is a `CreateTaskResult`, and its envelope MUST include a `remediationHints` entry of type `task`. The Tasks extension requires that a server never return a task to a client that has not declared it, so this interaction is available only when the denied request declared `io.modelcontextprotocol/tasks` in its client capabilities.
 
 ```json
 {
