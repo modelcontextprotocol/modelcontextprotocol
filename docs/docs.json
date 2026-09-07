@@ -861,8 +861,9 @@
             ]
           },
           {
-            "group": "Propose Changes",
+            "group": "Shaping the Protocol",
             "pages": [
+              "development/roadmap",
               "community/design-principles",
               "community/sep-guidelines"
             ]
@@ -881,6 +882,7 @@
           {
             "group": "Working Group Charters",
             "pages": [
+              "community/working-groups/agents",
               "community/working-groups/file-uploads",
               "community/working-groups/inspector-v2",
               "community/working-groups/interceptors",
@@ -888,6 +890,7 @@
               "community/working-groups/sdk",
               "community/working-groups/server-card",
               "community/working-groups/skills-over-mcp",
+              "community/working-groups/transports",
               "community/working-groups/triggers-events"
             ]
           },
@@ -895,17 +898,12 @@
             "group": "Interest Group Charters",
             "pages": [
               "community/interest-groups/auth",
+              "community/interest-groups/enterprise",
               "community/interest-groups/enterprise-managed-authorization",
               "community/interest-groups/financial-services",
               "community/interest-groups/primitive-grouping",
               "community/interest-groups/security",
               "community/interest-groups/tool-annotations"
-            ]
-          },
-          {
-            "group": "Roadmap",
-            "pages": [
-              "development/roadmap"
             ]
           }
         ]
@@ -941,6 +939,10 @@
       "destination": "/community/interest-groups/tool-annotations"
     },
     {
+      "source": "/community/agents/charter",
+      "destination": "/community/working-groups/agents"
+    },
+    {
       "source": "/community/file-uploads/charter",
       "destination": "/community/working-groups/file-uploads"
     },
@@ -967,6 +969,10 @@
     {
       "source": "/community/skills-over-mcp/charter",
       "destination": "/community/working-groups/skills-over-mcp"
+    },
+    {
+      "source": "/community/transports/charter",
+      "destination": "/community/working-groups/transports"
     },
     {
       "source": "/community/triggers-events/charter",
