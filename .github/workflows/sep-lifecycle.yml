@@ -12,7 +12,7 @@ on:
     - cron: '0 9 * * 1'  # Every Monday at 9 AM UTC
 
 env:
-  NODE_VERSION: '20'
+  NODE_VERSION: '24'
 
 jobs:
   check-sep:

@@ -1,7 +1,7 @@
 {
   "name": "@modelcontextprotocol/sep-automation",
   "version": "1.0.0",
-  "description": "SEP lifecycle automation for modelcontextprotocol/specification",
+  "description": "SEP lifecycle automation for modelcontextprotocol/modelcontextprotocol",
   "type": "module",
   "main": "dist/index.js",
   "scripts": {
