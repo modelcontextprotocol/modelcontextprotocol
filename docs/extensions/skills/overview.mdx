@@ -1,102 +1,68 @@
 ---
-title: Skills over MCP
+title: Skills
 sidebarTitle: Overview
 description: Discover and read Agent Skills from MCP servers
 ---
 
-Skills over MCP lets a server publish workflow instructions alongside its tools.
-An agent can discover a skill, load its `SKILL.md` when needed, and read supporting
-files through MCP resources. The skill format comes from the
-[Agent Skills specification](https://agentskills.io/specification); this extension
-defines how those skills are discovered and retrieved over MCP.
-
-<Note>
-
-[SEP-2640](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2640)
-has been [accepted by the Core Maintainers](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2640#issuecomment-5532996112).
-Finalization is in progress. Implementations may target different revisions or
-only part of the extension; see [implementation support](#implementation-support).
-
-</Note>
+The [ext-skills repository](https://github.com/modelcontextprotocol/ext-skills)
+contains the specification for Skills over MCP.
 
 <Card
-  title="Skills extension specification"
+  title="modelcontextprotocol/ext-skills"
   icon="github"
-  href="https://github.com/modelcontextprotocol/ext-skills/blob/main/specification/stable/skills.mdx"
+  href="https://github.com/modelcontextprotocol/ext-skills"
 >
-  Read the normative specification in modelcontextprotocol/ext-skills.
+  Specification and documentation for Skills over MCP.
 </Card>
 
-## When to use Skills over MCP
+Tools describe individual operations. Skills provide the instructions for using
+those operations together: a workflow, the decisions along the way, and any
+supporting reference material. Skills over MCP lets servers publish those
+instructions alongside their tools, so agents can discover and read them through
+the same connection.
 
-Use this extension to distribute instructions that explain how to combine a
-server's tools, follow a multi-step workflow, or consult supporting reference
-material. The instructions can be maintained and served through the same MCP
-connection as the tools they describe.
+A skill is a directory containing a `SKILL.md` file and optional supporting
+files. The format follows the [Agent Skills specification](https://agentskills.io/specification).
+This extension defines discovery and retrieval over MCP.
 
-Skills remain optional. Clients that do not implement the extension can continue
-using the server's ordinary tools and resources. Supporting local Agent Skills or
-generic MCP resource reads alone does not establish support for this extension.
+## Why serve skills over MCP?
 
-## How it works
+- **Keep instructions with the service.** Publish workflows alongside the tools
+  they describe and maintain them on the server.
+- **Discover available workflows.** Clients can find the skills a connected
+  server offers without a separate installation source.
+- **Load context as needed.** Clients can inspect skill metadata first, then
+  retrieve instructions and supporting files when relevant.
 
-1. **Detect support.** The server advertises `io.modelcontextprotocol/skills` in
-   `capabilities.extensions`, alongside the base `resources` capability. Clients
-   check that declaration before calling the extension methods.
-2. **Discover skills.** `skills/list` returns a paginated catalog. Each entry
-   contains the URI of its `SKILL.md`, its frontmatter, and a complete file
-   manifest with SHA-256 digests and byte sizes, or the explicit `"dynamic"` marker.
-3. **Resolve a skill.** `skills/get` returns the entry for a known `SKILL.md` URI,
+## How Skills work
+
+1. **Capability detection.** The server advertises
+   `io.modelcontextprotocol/skills` in `capabilities.extensions`, alongside the
+   base `resources` capability. Clients check this declaration before calling
+   the extension methods.
+2. **Discovery.** `skills/list` returns a paginated catalog. Each entry contains
+   the URI of its `SKILL.md`, its frontmatter, and a complete file manifest with
+   digests and byte sizes, or the explicit `"dynamic"` marker.
+3. **Lookup.** `skills/get` returns the entry for a known `SKILL.md` URI,
    including skills the server does not enumerate.
-4. **Read on demand.** `resources/read` retrieves the skill's instructions and
-   supporting files as needed. Hosts verify static content against its manifest
-   and apply the specification's consent and origin-isolation requirements.
-5. **Browse directories when available.** Servers may additionally advertise
-   `directoryRead: true` to enable `resources/directory/read` for direct children
-   of a directory resource.
+4. **Retrieval.** `resources/read` retrieves instructions and supporting files
+   on demand. Hosts verify static content against the manifest and apply the
+   specification's consent and origin-isolation requirements.
+
+Servers can additionally advertise `directoryRead: true` to support
+`resources/directory/read`, which lists a directory's direct children.
 
 The conventional URI is `skill://<skill-path>/SKILL.md`; other resource schemes
 are supported. A skill's identity includes both its originating server and its
-URI. A URI scheme alone does not establish that a resource is a skill.
+URI.
 
-The current specification uses individually addressable resources. The earlier
-`skill://index.json` catalog and archive distribution are not the current
-discovery and retrieval contract.
+## Client support
 
-## Implementation support
+Skills support varies by client. See the [client matrix](/extensions/client-matrix#skills-support)
+for implementation scope and availability. Clients that do not implement the
+extension can continue using the server's ordinary tools and resources.
 
-Last checked: **2026-09-08**. These tables track documented implementation scope,
-not conformance certification. **Available subset** means a documented product
-flow with stated limits; **merged** means code has landed but does not establish
-release availability; **open PR** and **draft PR** mean proposed support.
+## Specification
 
-### Clients and products
-
-| Client or product         | Status                         | Supported flow and limits                                                                                                                                                                                                      | Evidence                                                                                                                                                          |
-| ------------------------- | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| ChatGPT plugin submission | Available subset               | Imports a static snapshot using `skills/list`, `skills/get`, and digest-verified `resources/read`. Limited to five skills, 100 files per skill, and 5 MiB per skill; this is submission-time import, not live runtime loading. | [Product documentation](https://developers.openai.com/plugins/build/mcp-server#import-skills-from-the-mcp-server)                                                 |
-| fast-agent                | Available subset, pinned draft | Registry browsing and installation using `skills/list`, `skills/get`, and manifest-verified resource reads. Documentation pins revision `d7490ec`; installed skills are local copies, not live MCP resource readers.           | [Compatibility and scope](https://github.com/evalstate/fast-agent/blob/main/docs/docs/mcp/skills-over-mcp.md)                                                     |
-| MCP Inspector             | Merged                         | Web, CLI, and TUI inspection; paginated listing, entry lookup, optional directory reads, and digest, size, and frontmatter verification. Inspection does not implement agent activation or consent.                            | [Implementation #2251](https://github.com/modelcontextprotocol/inspector/pull/2251), [phase 3 #2293](https://github.com/modelcontextprotocol/inspector/pull/2293) |
-
-See the [Extension Support Matrix](/extensions/client-matrix) for the comparison
-across extensions. A missing entry means support has not been verified here.
-
-### Servers, SDKs, and conformance tooling
-
-| Implementation          | Status                              | Scope                                                                                                                                                                 | Evidence                                                                                                                                                        |
-| ----------------------- | ----------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Hugging Face MCP Server | Merged                              | Server-side `skills/list`, `skills/get`, `resources/read`, and `resources/directory/read`, with verified snapshots. Skills are exposed on HTTP transports, not STDIO. | [Implementation #219](https://github.com/huggingface/hf-mcp-server/pull/219)                                                                                    |
-| Go SDK                  | Open PR; filesystem helper in draft | Typed client and server APIs, validation, and optional directory reads. A separate filesystem provider adds discovery and resource serving.                           | [Protocol #1238](https://github.com/modelcontextprotocol/go-sdk/pull/1238), [filesystem helper #1240](https://github.com/modelcontextprotocol/go-sdk/pull/1240) |
-| C# SDK                  | Open PR                             | Server-side `skills/list` and `skills/get`; the implementation does not declare optional directory reads.                                                             | [Implementation #1856](https://github.com/modelcontextprotocol/csharp-sdk/pull/1856)                                                                            |
-| MCP conformance suite   | Open PR                             | Server and client scenarios for SEP-2640. The PR reports interoperability runs against Go SDK, C# SDK, and mcpkit implementations.                                    | [Conformance #330](https://github.com/modelcontextprotocol/conformance/pull/330)                                                                                |
-
-To update these tables, include a public documentation, release, or implementation
-link, the supported revision or version where known, and any scope or enablement
-limits. Keep proposals separate from merged or released implementations.
-
-## Resources
-
-- [Extension repository](https://github.com/modelcontextprotocol/ext-skills)
-- [Skills Over MCP Working Group charter](/community/working-groups/skills-over-mcp)
-- [Working Group client research](https://github.com/modelcontextprotocol/ext-skills/blob/main/docs/client-mcp-support.md)
-- [Extension lifecycle and requirements](/extensions/overview#creating-extensions)
+The full specification is in the [ext-skills repository](https://github.com/modelcontextprotocol/ext-skills/blob/main/specification/stable/skills.mdx).
+Development is coordinated by the [Skills Over MCP Working Group](/community/working-groups/skills-over-mcp).
