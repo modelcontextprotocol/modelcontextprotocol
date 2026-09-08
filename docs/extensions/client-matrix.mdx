@@ -13,7 +13,7 @@ export const CHECK = () => (
 
 {/* prettier-ignore-end */}
 
-This matrix shows which MCP clients support each [official extension](/extensions/overview). Extensions are always opt-in: a client only uses an extension if both client and server declare support in the `extensions` field of their [capabilities](/extensions/overview#negotiation).
+This matrix shows which MCP clients support each [official extension](/extensions/overview). Extensions are always opt-in; follow each extension's capability requirements. For [Skills](/extensions/skills/overview), the server declares support and the client checks that declaration before calling the extension methods.
 
 <Note>
 
@@ -23,27 +23,34 @@ This list is maintained by the community. If you notice any inaccuracies or woul
 
 ## Extension overview
 
-| Extension                                                                             | Identifier                                                 | Description                                                     |
-| ------------------------------------------------------------------------------------- | ---------------------------------------------------------- | --------------------------------------------------------------- |
-| [MCP Apps](/extensions/apps/overview)                                                 | `io.modelcontextprotocol/ui`                               | Interactive HTML interfaces rendered inline in the conversation |
-| [OAuth Client Credentials](/extensions/auth/oauth-client-credentials)                 | `io.modelcontextprotocol/oauth-client-credentials`         | Machine-to-machine auth without interactive user login          |
-| [Enterprise-Managed Authorization](/extensions/auth/enterprise-managed-authorization) | `io.modelcontextprotocol/enterprise-managed-authorization` | Centralized access control via enterprise IdP                   |
+| Extension                                                                             | Identifier                                                 | Description                                                      |
+| ------------------------------------------------------------------------------------- | ---------------------------------------------------------- | ---------------------------------------------------------------- |
+| [MCP Apps](/extensions/apps/overview)                                                 | `io.modelcontextprotocol/ui`                               | Interactive HTML interfaces rendered inline in the conversation  |
+| [OAuth Client Credentials](/extensions/auth/oauth-client-credentials)                 | `io.modelcontextprotocol/oauth-client-credentials`         | Machine-to-machine auth without interactive user login           |
+| [Enterprise-Managed Authorization](/extensions/auth/enterprise-managed-authorization) | `io.modelcontextprotocol/enterprise-managed-authorization` | Centralized access control via enterprise IdP                    |
+| [Skills over MCP](/extensions/skills/overview)                                        | `io.modelcontextprotocol/skills`                           | Discover skills and read their instructions and supporting files |
 
 ## Support matrix
 
-| Client                                                                   | [MCP Apps](/extensions/apps/overview) | [OAuth Client Credentials](/extensions/auth/oauth-client-credentials) | [Enterprise Auth](/extensions/auth/enterprise-managed-authorization) |
-| ------------------------------------------------------------------------ | :-----------------------------------: | :-------------------------------------------------------------------: | :------------------------------------------------------------------: |
-| [Claude (web)](https://claude.ai)                                        |               <CHECK />               |                                                                       |                                                                      |
-| [Claude Desktop](https://claude.ai/download)                             |               <CHECK />               |                                                                       |                                                                      |
-| [VS Code GitHub Copilot](https://code.visualstudio.com/)                 |               <CHECK />               |                                                                       |                                                                      |
-| [Microsoft 365 Copilot](https://www.microsoft.com/microsoft-365-copilot) |               <CHECK />               |                                                                       |                                                                      |
-| [Goose](https://block.github.io/goose/)                                  |               <CHECK />               |                                                                       |                                                                      |
-| [Postman](https://postman.com)                                           |               <CHECK />               |                                                                       |                                                                      |
-| [MCPJam](https://www.mcpjam.com/)                                        |               <CHECK />               |                                                                       |                                                                      |
-| [ChatGPT](https://chatgpt.com/)                                          |               <CHECK />               |                                                                       |                                                                      |
-| [Cursor](https://cursor.com/)                                            |               <CHECK />               |                                                                       |                                                                      |
-| [Archestra.AI](https://www.archestra.ai/)                                |               <CHECK />               |                                                                       |                              <CHECK />                               |
-| [PostHog Code](https://posthog.com/code/)                                |               <CHECK />               |                                                                       |                                                                      |
+| Client                                                                   | [MCP Apps](/extensions/apps/overview) | [OAuth Client Credentials](/extensions/auth/oauth-client-credentials) | [Enterprise Auth](/extensions/auth/enterprise-managed-authorization) |                 [Skills](/extensions/skills/overview)                  |
+| ------------------------------------------------------------------------ | :-----------------------------------: | :-------------------------------------------------------------------: | :------------------------------------------------------------------: | :--------------------------------------------------------------------: |
+| [Claude (web)](https://claude.ai)                                        |               <CHECK />               |                                                                       |                                                                      |                                                                        |
+| [Claude Desktop](https://claude.ai/download)                             |               <CHECK />               |                                                                       |                                                                      |                                                                        |
+| [VS Code GitHub Copilot](https://code.visualstudio.com/)                 |               <CHECK />               |                                                                       |                                                                      |                                                                        |
+| [Microsoft 365 Copilot](https://www.microsoft.com/microsoft-365-copilot) |               <CHECK />               |                                                                       |                                                                      |                                                                        |
+| [Goose](https://block.github.io/goose/)                                  |               <CHECK />               |                                                                       |                                                                      |                                                                        |
+| [Postman](https://postman.com)                                           |               <CHECK />               |                                                                       |                                                                      |                                                                        |
+| [MCPJam](https://www.mcpjam.com/)                                        |               <CHECK />               |                                                                       |                                                                      |                                                                        |
+| [ChatGPT](https://chatgpt.com/)                                          |               <CHECK />               |                                                                       |                                                                      |   [Import subset](/extensions/skills/overview#clients-and-products)    |
+| [Cursor](https://cursor.com/)                                            |               <CHECK />               |                                                                       |                                                                      |                                                                        |
+| [Archestra.AI](https://www.archestra.ai/)                                |               <CHECK />               |                                                                       |                              <CHECK />                               |                                                                        |
+| [PostHog Code](https://posthog.com/code/)                                |               <CHECK />               |                                                                       |                                                                      |                                                                        |
+| [fast-agent](https://github.com/evalstate/fast-agent)                    |                                       |                                                                       |                                                                      |   [Install subset](/extensions/skills/overview#clients-and-products)   |
+| [MCP Inspector](https://github.com/modelcontextprotocol/inspector)       |                                       |                                                                       |                                                                      | [Inspection; merged](/extensions/skills/overview#clients-and-products) |
+
+Blank cells mean support has not been verified in this matrix. Skills entries
+link to [dated evidence and scope limits](/extensions/skills/overview#implementation-support);
+import, installation, and inspection support do not imply full runtime support.
 
 <Note>
 
@@ -56,7 +63,7 @@ Auth extension support (OAuth Client Credentials and Enterprise-Managed Authoriz
 If you're building an MCP client and want to implement extension support:
 
 1. Review the extension specification (e.g., in the [ext-auth](https://github.com/modelcontextprotocol/ext-auth) or [ext-apps](https://github.com/modelcontextprotocol/ext-apps) repository)
-2. Declare support in the `extensions` field of the `io.modelcontextprotocol/clientCapabilities` your client sends in each request's `_meta`, and read the server's `extensions` from its [`server/discover`](/specification/draft/server/discover) response
+2. Follow that extension's capability negotiation rules. Where client advertisement is required, declare support in the `extensions` field of `io.modelcontextprotocol/clientCapabilities` in each request's `_meta`. Skills requires checking the server's extension declaration; see [Skills over MCP](/extensions/skills/overview#how-it-works).
 3. Implement the extension's protocol requirements
 4. Submit a pull request to update this matrix
 

@@ -767,6 +767,12 @@
             "pages": [
               "extensions/tasks/overview"
             ]
+          },
+          {
+            "group": "Skills",
+            "pages": [
+              "extensions/skills/overview"
+            ]
           }
         ]
       },
