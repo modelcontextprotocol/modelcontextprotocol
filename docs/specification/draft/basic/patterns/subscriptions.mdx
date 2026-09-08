@@ -104,6 +104,67 @@ with their originating subscription.
 }
 ```
 
+## Embedded Resources
+
+It is also possible to directly embed a resource together with the `notifications/resources/updated` event to avoid an extra round of reading, and avoid race conditions if another update is done before the reading actually happens. For this, the client **MUST** first query this embedding by adding a field `embedResources: true` in the `params` field when calling `subscriptions/listen`:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "subscriptions/listen",
+  "params": {
+    "_meta": {
+      "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+      "io.modelcontextprotocol/clientInfo": {
+        "name": "ExampleClient",
+        "version": "1.0.0"
+      },
+      "io.modelcontextprotocol/clientCapabilities": {}
+    },
+    "notifications": {
+      "toolsListChanged": true,
+      "resourceSubscriptions": ["file:///project/config.json"]
+    },
+    "embedResources": true
+  }
+}
+```
+
+The `notifications/resources/updated` call **MUST** then provide the attached resource as:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "notifications/resources/updated",
+  "params": {
+    "_meta": {
+      "io.modelcontextprotocol/subscriptionId": 1
+    },
+    "uri": "file:///project/config.json",
+    "mimeType": "application/json",
+    "text": "{foo: 42}"
+  }
+}
+```
+
+When the resource is a structured content, the `structuredContent` and the optional `contentSchema` are attached similarly:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "notifications/resources/updated",
+  "params": {
+    "_meta": {
+      "io.modelcontextprotocol/subscriptionId": 1
+    },
+    "uri": "file:///project/config.json",
+    "contentSchema": "file:///config_schema.json",
+    "structuredContent": { "foo": 42 }
+  }
+}
+```
+
 ## Multiple Concurrent Subscriptions
 
 A client **MAY** have multiple active subscriptions concurrently — for example,
