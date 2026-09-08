@@ -37,30 +37,16 @@ This extension defines discovery and retrieval over MCP.
 ## How Skills work
 
 1. **Capability detection.** The server advertises
-   `io.modelcontextprotocol/skills` in `capabilities.extensions`, alongside the
-   base `resources` capability. Clients check this declaration before calling
-   the extension methods.
-2. **Discovery.** `skills/list` returns a paginated catalog. Each entry contains
-   the URI of its `SKILL.md`, its frontmatter, and a complete file manifest with
-   digests and byte sizes, or the explicit `"dynamic"` marker.
-3. **Lookup.** `skills/get` returns the entry for a known `SKILL.md` URI,
-   including skills the server does not enumerate.
-4. **Retrieval.** `resources/read` retrieves instructions and supporting files
-   on demand. Hosts verify static content against the manifest and apply the
-   specification's consent and origin-isolation requirements.
-
-Servers can additionally advertise `directoryRead: true` to support
-`resources/directory/read`, which lists a directory's direct children.
-
-The conventional URI is `skill://<skill-path>/SKILL.md`; other resource schemes
-are supported. A skill's identity includes both its originating server and its
-URI.
+   `io.modelcontextprotocol/skills` alongside its resources capability.
+2. **Discovery.** Clients use `skills/list` to discover available skills and
+   `skills/get` to look up a skill by URI.
+3. **Retrieval.** Clients read instructions and supporting files on demand
+   through `resources/read`, verifying static content against the skill's manifest.
 
 ## Client support
 
-Skills support varies by client. See the [client matrix](/extensions/client-matrix#skills-support)
-for implementation scope and availability. Clients that do not implement the
-extension can continue using the server's ordinary tools and resources.
+See the [client matrix](/extensions/client-matrix) for Skills support and links
+to implementation documentation.
 
 ## Specification
 

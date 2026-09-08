@@ -13,7 +13,7 @@ export const CHECK = () => (
 
 {/* prettier-ignore-end */}
 
-This matrix shows which MCP clients support each [official extension](/extensions/overview). Extensions are always opt-in; follow each extension's capability requirements. For [Skills](/extensions/skills/overview), the server declares support and the client checks that declaration before calling the extension methods.
+This matrix shows which MCP clients support each [official extension](/extensions/overview). Extensions are always opt-in: a client only uses an extension if both client and server declare support in the `extensions` field of their [capabilities](/extensions/overview#negotiation).
 
 <Note>
 
@@ -32,25 +32,21 @@ This list is maintained by the community. If you notice any inaccuracies or woul
 
 ## Support matrix
 
-| Client                                                                   | [MCP Apps](/extensions/apps/overview) | [OAuth Client Credentials](/extensions/auth/oauth-client-credentials) | [Enterprise Auth](/extensions/auth/enterprise-managed-authorization) | [Skills](/extensions/skills/overview) |
-| ------------------------------------------------------------------------ | :-----------------------------------: | :-------------------------------------------------------------------: | :------------------------------------------------------------------: | :-----------------------------------: |
-| [Claude (web)](https://claude.ai)                                        |               <CHECK />               |                                                                       |                                                                      |                                       |
-| [Claude Desktop](https://claude.ai/download)                             |               <CHECK />               |                                                                       |                                                                      |                                       |
-| [VS Code GitHub Copilot](https://code.visualstudio.com/)                 |               <CHECK />               |                                                                       |                                                                      |                                       |
-| [Microsoft 365 Copilot](https://www.microsoft.com/microsoft-365-copilot) |               <CHECK />               |                                                                       |                                                                      |                                       |
-| [Goose](https://block.github.io/goose/)                                  |               <CHECK />               |                                                                       |                                                                      |                                       |
-| [Postman](https://postman.com)                                           |               <CHECK />               |                                                                       |                                                                      |                                       |
-| [MCPJam](https://www.mcpjam.com/)                                        |               <CHECK />               |                                                                       |                                                                      |                                       |
-| [ChatGPT](https://chatgpt.com/)                                          |               <CHECK />               |                                                                       |                                                                      |   [Import subset](#skills-support)    |
-| [Cursor](https://cursor.com/)                                            |               <CHECK />               |                                                                       |                                                                      |                                       |
-| [Archestra.AI](https://www.archestra.ai/)                                |               <CHECK />               |                                                                       |                              <CHECK />                               |                                       |
-| [PostHog Code](https://posthog.com/code/)                                |               <CHECK />               |                                                                       |                                                                      |                                       |
-| [fast-agent](https://github.com/evalstate/fast-agent)                    |                                       |                                                                       |                                                                      |   [Install subset](#skills-support)   |
-| [MCP Inspector](https://github.com/modelcontextprotocol/inspector)       |                                       |                                                                       |                                                                      | [Inspection; merged](#skills-support) |
-
-Blank cells mean support has not been verified in this matrix. Skills entries
-link to [dated evidence and scope limits](#skills-support);
-import, installation, and inspection support do not imply full runtime support.
+| Client                                                                   | [MCP Apps](/extensions/apps/overview) | [OAuth Client Credentials](/extensions/auth/oauth-client-credentials) | [Enterprise Auth](/extensions/auth/enterprise-managed-authorization) |                                          [Skills](/extensions/skills/overview)                                           |
+| ------------------------------------------------------------------------ | :-----------------------------------: | :-------------------------------------------------------------------: | :------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------------------------: |
+| [Claude (web)](https://claude.ai)                                        |               <CHECK />               |                                                                       |                                                                      |                                                                                                                          |
+| [Claude Desktop](https://claude.ai/download)                             |               <CHECK />               |                                                                       |                                                                      |                                                                                                                          |
+| [VS Code GitHub Copilot](https://code.visualstudio.com/)                 |               <CHECK />               |                                                                       |                                                                      |                                                                                                                          |
+| [Microsoft 365 Copilot](https://www.microsoft.com/microsoft-365-copilot) |               <CHECK />               |                                                                       |                                                                      |                                                                                                                          |
+| [Goose](https://block.github.io/goose/)                                  |               <CHECK />               |                                                                       |                                                                      |                                                                                                                          |
+| [Postman](https://postman.com)                                           |               <CHECK />               |                                                                       |                                                                      |                                                                                                                          |
+| [MCPJam](https://www.mcpjam.com/)                                        |               <CHECK />               |                                                                       |                                                                      |                                                                                                                          |
+| [ChatGPT](https://chatgpt.com/)                                          |               <CHECK />               |                                                                       |                                                                      |           [Partial](https://developers.openai.com/plugins/build/mcp-server#import-skills-from-the-mcp-server)            |
+| [Cursor](https://cursor.com/)                                            |               <CHECK />               |                                                                       |                                                                      |                                                                                                                          |
+| [Archestra.AI](https://www.archestra.ai/)                                |               <CHECK />               |                                                                       |                              <CHECK />                               |                                                                                                                          |
+| [PostHog Code](https://posthog.com/code/)                                |               <CHECK />               |                                                                       |                                                                      |                                                                                                                          |
+| [fast-agent](https://github.com/evalstate/fast-agent)                    |                                       |                                                                       |                                                                      |              [Partial](https://github.com/evalstate/fast-agent/blob/main/docs/docs/mcp/skills-over-mcp.md)               |
+| [MCP Inspector](https://github.com/modelcontextprotocol/inspector)       |                                       |                                                                       |                                                                      | [Partial](https://github.com/modelcontextprotocol/inspector/blob/main/clients/cli/README.md#skill-verification---verify) |
 
 <Note>
 
@@ -58,35 +54,12 @@ Auth extension support (OAuth Client Credentials and Enterprise-Managed Authoriz
 
 </Note>
 
-## Skills support
-
-Last checked: **2026-09-08**. The Skills column distinguishes the following
-implementation scopes:
-
-- **ChatGPT plugin submission — import subset.** Imports a static snapshot using
-  `skills/list`, `skills/get`, and digest-verified `resources/read`. The documented
-  limits include five skills, 100 files per skill, and 5 MiB per skill. This is
-  submission-time import, not live runtime loading. See the
-  [product documentation](https://developers.openai.com/plugins/build/mcp-server#import-skills-from-the-mcp-server).
-- **fast-agent — install subset.** Registry browsing and manifest-verified
-  installation, pinned to draft revision `d7490ec`. Installed skills are local
-  copies. See its [compatibility and scope documentation](https://github.com/evalstate/fast-agent/blob/main/docs/docs/mcp/skills-over-mcp.md).
-- **MCP Inspector — merged inspection support.** Web, CLI, and TUI inspection,
-  including listing, entry lookup, optional directory reads, and digest, size,
-  and frontmatter verification. This does not imply agent activation or release
-  availability. See [#2251](https://github.com/modelcontextprotocol/inspector/pull/2251)
-  and [#2293](https://github.com/modelcontextprotocol/inspector/pull/2293).
-
-Support for local Agent Skills or generic MCP resource reads alone does not
-establish Skills extension support. Updates should include a public source,
-version or revision where known, and any implementation limits.
-
 ## Adding extension support to your client
 
 If you're building an MCP client and want to implement extension support:
 
 1. Review the extension specification (e.g., in the [ext-auth](https://github.com/modelcontextprotocol/ext-auth) or [ext-apps](https://github.com/modelcontextprotocol/ext-apps) repository)
-2. Follow that extension's capability negotiation rules. Where client advertisement is required, declare support in the `extensions` field of `io.modelcontextprotocol/clientCapabilities` in each request's `_meta`. Skills requires checking the server's extension declaration; see [Skills over MCP](/extensions/skills/overview#how-skills-work).
+2. Declare support in the `extensions` field of the `io.modelcontextprotocol/clientCapabilities` your client sends in each request's `_meta`, and read the server's `extensions` from its [`server/discover`](/specification/draft/server/discover) response
 3. Implement the extension's protocol requirements
 4. Submit a pull request to update this matrix
 
