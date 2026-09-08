@@ -845,6 +845,12 @@
               "seps/2596-spec-feature-lifecycle-and-deprecation",
               "seps/2663-tasks-extension"
             ]
+          },
+          {
+            "group": "Unknown",
+            "pages": [
+              "seps/3172-tool-recovery-metadata"
+            ]
           }
         ]
       },
