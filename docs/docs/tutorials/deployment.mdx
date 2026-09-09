@@ -1,0 +1,151 @@
+---
+title: "Deploying MCP Servers Behind Proxies"
+description: "Operational guidance for deploying MCP servers behind reverse proxies and API gateways using Streamable HTTP transport"
+---
+
+## Overview
+
+When deploying MCP servers as remote HTTP services, reverse proxies and API gateways are commonly placed in front of them for TLS termination, load balancing, authentication, and rate limiting. However, MCP's use of [Streamable HTTP transport](/specification/latest/basic/transports) introduces specific requirements that standard proxy configurations may not satisfy out of the box.
+
+This guide covers the most common issues operators encounter and provides concrete configuration examples for popular reverse proxies.
+
+## SSE Buffering
+
+MCP servers use [Server-Sent Events (SSE)](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events) to stream responses to clients. By default, most reverse proxies buffer response bodies before forwarding them, which causes SSE events to be delayed or batched together. This breaks the real-time streaming behavior that MCP clients expect.
+
+Proxies **must** disable response buffering for SSE connections.
+
+### nginx
+
+```nginx
+location /mcp {
+    proxy_pass http://mcp-backend;
+
+    # Disable response buffering for SSE
+    proxy_buffering off;
+
+    # Signal to any upstream caches to not buffer
+    add_header X-Accel-Buffering no;
+}
+```
+
+### Caddy
+
+```caddyfile
+reverse_proxy /mcp* mcp-backend:8080 {
+    flush_interval -1
+}
+```
+
+### Generic Guidance
+
+If your proxy or CDN does not have a named SSE option, look for a way to:
+
+1. Detect responses with `Content-Type: text/event-stream`
+2. Disable output buffering for those responses
+3. Flush each chunk to the client as soon as it is received from the backend
+
+Most cloud load balancers (AWS ALB, GCP Cloud Load Balancing, Azure Application Gateway) handle SSE correctly by default but may buffer at other layers (CloudFront, Cloud CDN). Test end-to-end with an actual MCP client to verify events arrive immediately.
+
+## Connection Timeouts
+
+SSE connections are long-lived. A proxy that applies standard HTTP request timeouts (often 30–60 seconds) will terminate SSE streams prematurely, causing clients to see unexpected disconnections.
+
+Configure read timeouts substantially longer than the default. A minimum of **300 seconds** is recommended for production deployments. MCP servers should send periodic heartbeat events (the spec recommends keeping connections alive with empty comments or ping events) so that idle connections are not mistaken for dead ones — a **15-second heartbeat interval** is a reasonable default.
+
+### nginx
+
+```nginx
+location /mcp {
+    proxy_pass http://mcp-backend;
+    proxy_buffering off;
+
+    # Allow long-lived SSE connections
+    proxy_read_timeout 3600s;
+    proxy_send_timeout 3600s;
+}
+```
+
+### Caddy
+
+```caddyfile
+reverse_proxy /mcp* mcp-backend:8080 {
+    flush_interval -1
+    transport http {
+        read_timeout 0
+    }
+}
+```
+
+### Keep-Alive Considerations
+
+When placing a proxy between client and server, ensure HTTP keep-alive is enabled on both the client-facing and backend-facing connections. Disabling keep-alive can cause each MCP request to open a new TCP connection, increasing latency and resource usage.
+
+## Header Forwarding
+
+MCP's Streamable HTTP transport relies on several headers for session management, protocol negotiation, and authentication. Proxies must forward these transparently without stripping, rewriting, or lowercasing their values inappropriately.
+
+| Header                 | Direction        | Purpose                                                                                                                                                                                       |
+| ---------------------- | ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Mcp-Session-Id`       | Both directions  | Identifies the MCP session. Required for all requests after initialization.                                                                                                                   |
+| `Mcp-Protocol-Version` | Client to Server | Specifies the MCP protocol version the client supports.                                                                                                                                       |
+| `Authorization`        | Client to Server | Carries authentication credentials (e.g., Bearer tokens).                                                                                                                                     |
+| `Accept`               | Client to Server | Must include `text/event-stream` to indicate SSE support.                                                                                                                                     |
+| `Last-Event-ID`        | Client to Server | Used for [SSE resumption](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#setting_a_retry_delay) when a client reconnects after a disconnection. |
+
+**Key considerations:**
+
+- **`Mcp-Session-Id`** appears in both request and response headers. Ensure your proxy does not strip unknown headers in either direction. Some proxies have allowlists for response headers — add `Mcp-Session-Id` explicitly if needed.
+- **`Authorization`** should not be logged (see [Payload Logging](#payload-logging) below).
+- If your proxy adds or rewrites the `Accept` header, ensure `text/event-stream` is preserved in requests to the MCP server.
+
+### nginx
+
+```nginx
+location /mcp {
+    proxy_pass http://mcp-backend;
+
+    # Forward all relevant headers (nginx does this by default,
+    # but explicit configuration helps with documentation and debugging)
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+
+    # Ensure MCP headers are not stripped
+    proxy_pass_header Mcp-Session-Id;
+    proxy_pass_header Mcp-Protocol-Version;
+}
+```
+
+## SSRF Protection
+
+If your proxy or platform accepts user-configured backend URLs (e.g., allowing users to specify which MCP server to connect to), you must validate those URLs to prevent [Server-Side Request Forgery (SSRF)](https://owasp.org/www-community/attacks/Server_Side_Request_Forgery) attacks.
+
+### Blocked Address Ranges
+
+Reject backend URLs that resolve to any of the following:
+
+- **Loopback:** `127.0.0.0/8`, `::1`
+- **RFC 1918 private ranges:** `10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16`
+- **Link-local:** `169.254.0.0/16`, `fe80::/10` — this includes cloud metadata endpoints such as `169.254.169.254` (AWS, GCP) and `169.254.169.250` (Azure)
+- **Other non-routable ranges:** `0.0.0.0/8`, `100.64.0.0/10` (CGN), `192.0.0.0/24`, `198.18.0.0/15`
+
+### DNS Rebinding Prevention
+
+Validating the hostname at configuration time is not sufficient. An attacker can configure a domain that initially resolves to a public IP (passing validation) and later resolves to a private IP (exploiting the connection). To mitigate this:
+
+1. **Re-resolve DNS on every request** — do not cache DNS resolutions across requests
+2. **Validate the resolved IP** against the blocklist above before establishing the connection
+3. **Pin the resolved IP** for the duration of a single request to prevent mid-request DNS changes
+
+## Payload Logging
+
+MCP traffic carries tool invocations that may include sensitive user context: file contents, database query results, API responses containing PII, and authentication tokens. Logging full request and response bodies creates a significant data exposure risk.
+
+**Recommended logging practice:**
+
+- **Do log:** HTTP method, path, status code, response latency, `Mcp-Session-Id`, tool names (from the JSON-RPC `method` field)
+- **Do not log:** Full request bodies, full response bodies, `Authorization` header values, SSE event payloads
+
+If you need request-level debugging, implement it as an opt-in mode that is disabled by default and that redacts sensitive fields.
