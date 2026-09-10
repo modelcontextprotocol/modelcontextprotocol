@@ -2666,6 +2666,8 @@ export interface CompleteRequestParams extends RequestParams {
   argument: {
     /**
      * The name of the argument
+     *
+     * @maxLength 256
      */
     name: string;
     /**

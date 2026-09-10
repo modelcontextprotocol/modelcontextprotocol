@@ -458,6 +458,7 @@
                     "properties": {
                         "name": {
                             "description": "The name of the argument",
+                            "maxLength": 256,
                             "type": "string"
                         },
                         "value": {
