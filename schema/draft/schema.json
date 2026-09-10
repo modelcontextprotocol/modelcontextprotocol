@@ -109,6 +109,7 @@
                     "type": "string"
                 },
                 "title": {
+                    "description": "A human-readable display title, intended for a person (e.g. in a UI).",
                     "type": "string"
                 },
                 "type": {
@@ -1624,6 +1625,7 @@
                     "type": "array"
                 },
                 "title": {
+                    "description": "A human-readable display title, intended for a person (e.g. in a UI).",
                     "type": "string"
                 },
                 "type": {
@@ -2283,6 +2285,7 @@
                     "type": "number"
                 },
                 "title": {
+                    "description": "A human-readable display title, intended for a person (e.g. in a UI).",
                     "type": "string"
                 },
                 "type": {
@@ -3344,6 +3347,7 @@
                     "type": "integer"
                 },
                 "title": {
+                    "description": "A human-readable display title, intended for a person (e.g. in a UI).",
                     "type": "string"
                 },
                 "type": {
@@ -3567,6 +3571,10 @@
                 "uri"
             ],
             "type": "object"
+        },
+        "Title": {
+            "description": "A human-readable display title, intended for a person (e.g. in a UI).",
+            "type": "string"
         },
         "TitledMultiSelectEnumSchema": {
             "description": "Schema for multiple-selection enumeration with display titles for each option.",

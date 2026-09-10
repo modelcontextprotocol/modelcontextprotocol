@@ -204,6 +204,13 @@ export type Description = string;
 export type ModelDescription = string;
 
 /**
+ * A human-readable display title, intended for a person (e.g. in a UI).
+ *
+ * @category Common Types
+ */
+export type Title = string;
+
+/**
  * Common params for any request.
  *
  * @category Common Types
@@ -1003,7 +1010,7 @@ export interface BaseMetadata {
    * where `annotations.title` should be given precedence over using `name`,
    * if present).
    */
-  title?: string;
+  title?: Title;
 }
 
 /**
@@ -1954,7 +1961,7 @@ export interface ToolAnnotations {
   /**
    * A human-readable title for the tool.
    */
-  title?: string;
+  title?: Title;
 
   /**
    * If true, the tool does not modify its environment.
@@ -2944,7 +2951,7 @@ export type PrimitiveSchemaDefinition =
  */
 export interface StringSchema {
   type: "string";
-  title?: string;
+  title?: Title;
   description?: Description;
   minLength?: number;
   maxLength?: number;
@@ -2960,7 +2967,7 @@ export interface StringSchema {
  */
 export interface NumberSchema {
   type: "number" | "integer";
-  title?: string;
+  title?: Title;
   description?: Description;
   /**
    * @TJS-type number
@@ -2984,7 +2991,7 @@ export interface NumberSchema {
  */
 export interface BooleanSchema {
   type: "boolean";
-  title?: string;
+  title?: Title;
   description?: Description;
   default?: boolean;
 }
@@ -3002,7 +3009,7 @@ export interface UntitledSingleSelectEnumSchema {
   /**
    * Optional title for the enum field.
    */
-  title?: string;
+  title?: Title;
   /**
    * Optional description for the enum field.
    */
@@ -3030,7 +3037,7 @@ export interface TitledSingleSelectEnumSchema {
   /**
    * Optional title for the enum field.
    */
-  title?: string;
+  title?: Title;
   /**
    * Optional description for the enum field.
    */
@@ -3046,7 +3053,7 @@ export interface TitledSingleSelectEnumSchema {
     /**
      * Display label for this option.
      */
-    title: string;
+    title: Title;
   }>;
   /**
    * Optional default value.
@@ -3074,7 +3081,7 @@ export interface UntitledMultiSelectEnumSchema {
   /**
    * Optional title for the enum field.
    */
-  title?: string;
+  title?: Title;
   /**
    * Optional description for the enum field.
    */
@@ -3116,7 +3123,7 @@ export interface TitledMultiSelectEnumSchema {
   /**
    * Optional title for the enum field.
    */
-  title?: string;
+  title?: Title;
   /**
    * Optional description for the enum field.
    */
@@ -3144,7 +3151,7 @@ export interface TitledMultiSelectEnumSchema {
       /**
        * Display title for this option.
        */
-      title: string;
+      title: Title;
     }>;
   };
   /**
@@ -3168,7 +3175,7 @@ export type MultiSelectEnumSchema =
  */
 export interface LegacyTitledEnumSchema {
   type: "string";
-  title?: string;
+  title?: Title;
   description?: Description;
   enum: string[];
   /**
