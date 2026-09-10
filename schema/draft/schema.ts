@@ -181,6 +181,13 @@ export type Cursor = string;
 export type URI = string;
 
 /**
+ * A Multipurpose Internet Mail Extensions (MIME) type, as defined in RFC 2045.
+ *
+ * @category Common Types
+ */
+export type MIMEType = string;
+
+/**
  * Common params for any request.
  *
  * @category Common Types
@@ -917,7 +924,7 @@ export interface Icon {
    * Optional MIME type override if the source MIME type is missing or generic.
    * For example: `"image/png"`, `"image/jpeg"`, or `"image/svg+xml"`.
    */
-  mimeType?: string;
+  mimeType?: MIMEType;
 
   /**
    * Optional array of strings that specify sizes at which the icon can be used.
@@ -1470,7 +1477,7 @@ export interface Resource extends BaseMetadata, Icons {
   /**
    * The MIME type of this resource, if known.
    */
-  mimeType?: string;
+  mimeType?: MIMEType;
 
   /**
    * Optional annotations for the client.
@@ -1512,7 +1519,7 @@ export interface ResourceTemplate extends BaseMetadata, Icons {
   /**
    * The MIME type for all resources that match this template. This should only be included if all resources matching this template have the same type.
    */
-  mimeType?: string;
+  mimeType?: MIMEType;
 
   /**
    * Optional annotations for the client.
@@ -1535,7 +1542,7 @@ export interface ResourceContents {
   /**
    * The MIME type of this resource, if known.
    */
-  mimeType?: string;
+  mimeType?: MIMEType;
 
   _meta?: MetaObject;
 }
@@ -2380,7 +2387,7 @@ export interface ImageContent {
   /**
    * The MIME type of the image. Different providers may support different image types.
    */
-  mimeType: string;
+  mimeType: MIMEType;
 
   /**
    * Optional annotations for the client.
@@ -2411,7 +2418,7 @@ export interface AudioContent {
   /**
    * The MIME type of the audio. Different providers may support different audio types.
    */
-  mimeType: string;
+  mimeType: MIMEType;
 
   /**
    * Optional annotations for the client.

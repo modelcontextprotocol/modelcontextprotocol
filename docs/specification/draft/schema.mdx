@@ -150,6 +150,14 @@ deprecated features registry.</p> </div></div>
 
 <div class="type">
 
+### `MIMEType`
+
+<div class="tsd-signature"><span class="tsd-kind-type-alias">MIMEType</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div> <div class="tsd-comment tsd-typography"><p>A Multipurpose Internet Mail Extensions (MIME) type, as defined in RFC 2045.</p> </div>
+</div>
+
+
+<div class="type">
+
 ### `NotificationMetaObject`
 
 <div class="tsd-signature"><span class="tsd-signature-keyword">interface</span> <span class="tsd-kind-interface">NotificationMetaObject</span> <span class="tsd-signature-symbol">&#x7B;</span><br/>&nbsp;&nbsp;<a class="tsd-kind-property" href="#notificationmetaobject-iomodelcontextprotocolsubscriptionid">&quot;io.modelcontextprotocol/subscriptionId&quot;</a><span class="tsd-signature-symbol">?:</span> <a href="#requestid" class="tsd-signature-type tsd-kind-type-alias">RequestId</a><span class="tsd-signature-symbol">;</span><br/>&nbsp;&nbsp;<span class="tsd-signature-symbol">&#x5B;</span><span class="tsd-kind-index-signature">key</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">]:</span> <span class="tsd-signature-type">unknown</span><span class="tsd-signature-symbol">;</span><br/><span class="tsd-signature-symbol">}</span></div> <div class="tsd-comment tsd-typography"><p>Extends <a href="#metaobject" class="tsd-kind-type-alias">MetaObject</a> with additional notification-specific fields. All key naming rules from <code>MetaObject</code> apply.</p> </div> <div class="tsd-comment tsd-typography"> <div class="tsd-tag-see"> <div class="tsd-anchor-link" data-typedoc-h="4">See</div><ul> <li><a href="#metaobject" class="tsd-kind-type-alias">MetaObject</a> for key naming rules and reserved prefixes.</li> <li><a href="/specification/draft/basic/index#meta">General fields: <code>&#x5F;meta</code></a> for more details.</li> </ul> </div></div> <section class="tsd-panel tsd-member"> <div class="tsd-anchor-link" id="notificationmetaobject-iomodelcontextprotocolsubscriptionid" data-typedoc-h="3"><span>&quot;io.modelcontextprotocol/subscriptionId&quot;?: RequestId</span><a href="#notificationmetaobject-iomodelcontextprotocolsubscriptionid" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"/></svg></a></div> <div class="tsd-comment tsd-typography"><p>Identifies the subscription stream a notification was delivered on. The
