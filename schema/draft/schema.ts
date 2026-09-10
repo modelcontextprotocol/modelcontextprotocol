@@ -188,6 +188,22 @@ export type URI = string;
 export type MIMEType = string;
 
 /**
+ * A human-readable description, intended for display to a person (e.g. in a UI).
+ *
+ * @category Common Types
+ */
+export type Description = string;
+
+/**
+ * A description intended to inform how an LLM understands or uses the
+ * described object. Unlike {@link Description}, this is not primarily for
+ * human display — it can be thought of like a "hint" to the model.
+ *
+ * @category Common Types
+ */
+export type ModelDescription = string;
+
+/**
  * Common params for any request.
  *
  * @category Common Types
@@ -1010,7 +1026,7 @@ export interface Implementation extends BaseMetadata, Icons {
    * and capabilities. For example, a server might describe the types of resources
    * or tools it provides, while a client might describe its intended use case.
    */
-  description?: string;
+  description?: Description;
 
   /**
    * An optional URL of the website for this implementation.
@@ -1472,7 +1488,7 @@ export interface Resource extends BaseMetadata, Icons {
    *
    * This can be used by clients to improve the LLM's understanding of available resources. It can be thought of like a "hint" to the model.
    */
-  description?: string;
+  description?: ModelDescription;
 
   /**
    * The MIME type of this resource, if known.
@@ -1514,7 +1530,7 @@ export interface ResourceTemplate extends BaseMetadata, Icons {
    *
    * This can be used by clients to improve the LLM's understanding of available resources. It can be thought of like a "hint" to the model.
    */
-  description?: string;
+  description?: ModelDescription;
 
   /**
    * The MIME type for all resources that match this template. This should only be included if all resources matching this template have the same type.
@@ -1658,7 +1674,7 @@ export interface GetPromptResult extends Result {
   /**
    * An optional description for the prompt.
    */
-  description?: string;
+  description?: Description;
   messages: PromptMessage[];
 }
 
@@ -1683,7 +1699,7 @@ export interface Prompt extends BaseMetadata, Icons {
   /**
    * An optional description of what this prompt provides
    */
-  description?: string;
+  description?: Description;
 
   /**
    * A list of arguments to use for templating the prompt.
@@ -1702,7 +1718,7 @@ export interface PromptArgument extends BaseMetadata {
   /**
    * A human-readable description of the argument.
    */
-  description?: string;
+  description?: Description;
   /**
    * Whether this argument must be provided.
    */
@@ -2001,7 +2017,7 @@ export interface Tool extends BaseMetadata, Icons {
    *
    * This can be used by clients to improve the LLM's understanding of available tools. It can be thought of like a "hint" to the model.
    */
-  description?: string;
+  description?: ModelDescription;
 
   /**
    * A JSON Schema object defining the expected parameters for the tool.
@@ -2929,7 +2945,7 @@ export type PrimitiveSchemaDefinition =
 export interface StringSchema {
   type: "string";
   title?: string;
-  description?: string;
+  description?: Description;
   minLength?: number;
   maxLength?: number;
   format?: "email" | "uri" | "date" | "date-time";
@@ -2945,7 +2961,7 @@ export interface StringSchema {
 export interface NumberSchema {
   type: "number" | "integer";
   title?: string;
-  description?: string;
+  description?: Description;
   /**
    * @TJS-type number
    */
@@ -2969,7 +2985,7 @@ export interface NumberSchema {
 export interface BooleanSchema {
   type: "boolean";
   title?: string;
-  description?: string;
+  description?: Description;
   default?: boolean;
 }
 
@@ -2990,7 +3006,7 @@ export interface UntitledSingleSelectEnumSchema {
   /**
    * Optional description for the enum field.
    */
-  description?: string;
+  description?: Description;
   /**
    * Array of enum values to choose from.
    */
@@ -3018,7 +3034,7 @@ export interface TitledSingleSelectEnumSchema {
   /**
    * Optional description for the enum field.
    */
-  description?: string;
+  description?: Description;
   /**
    * Array of enum options with values and display labels.
    */
@@ -3062,7 +3078,7 @@ export interface UntitledMultiSelectEnumSchema {
   /**
    * Optional description for the enum field.
    */
-  description?: string;
+  description?: Description;
   /**
    * Minimum number of items to select.
    */
@@ -3104,7 +3120,7 @@ export interface TitledMultiSelectEnumSchema {
   /**
    * Optional description for the enum field.
    */
-  description?: string;
+  description?: Description;
   /**
    * Minimum number of items to select.
    */
@@ -3153,7 +3169,7 @@ export type MultiSelectEnumSchema =
 export interface LegacyTitledEnumSchema {
   type: "string";
   title?: string;
-  description?: string;
+  description?: Description;
   enum: string[];
   /**
    * (Legacy) Display names for enum values.
