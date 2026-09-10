@@ -897,10 +897,15 @@ export interface ServerCapabilities {
   resources?: {
     /**
      * Whether this server supports subscribing to resource updates.
+     *
+     * If this is `true`, the server will send updates whenever a resource changes.
+     *
      */
     subscribe?: boolean;
     /**
      * Whether this server supports notifications for changes to the resource list.
+     *
+     * If this is `true`, the server will send notifications whenever the resource list changes.
      */
     listChanged?: boolean;
   };
@@ -916,6 +921,8 @@ export interface ServerCapabilities {
   tools?: {
     /**
      * Whether this server supports notifications for changes to the tool list.
+     *
+     * If this is `true`, the server will send notifications whenever the tool list changes.
      */
     listChanged?: boolean;
   };
@@ -964,6 +971,8 @@ export interface Icon {
    * Each string should be in WxH format (e.g., `"48x48"`, `"96x96"`) or `"any"` for scalable formats like SVG.
    *
    * If not provided, the client should assume that the icon can be used at any size.
+   *
+   * @pattern ^(\d+x\d+|any)$
    */
   sizes?: string[];
 
@@ -994,7 +1003,7 @@ export interface Icons {
    * - `image/svg+xml` - SVG images (scalable but requires security precautions)
    * - `image/webp` - WebP images (modern, efficient format)
    *
-   * @maxItems 20
+   * @maxItems 10
    */
   icons?: Icon[];
 }

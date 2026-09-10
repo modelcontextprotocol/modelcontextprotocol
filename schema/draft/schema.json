@@ -1202,6 +1202,7 @@
                     "items": {
                         "type": "string"
                     },
+                    "pattern": "^(\\d+x\\d+|any)$",
                     "type": "array"
                 },
                 "src": {
@@ -1232,7 +1233,7 @@
                     "items": {
                         "$ref": "#/$defs/Icon"
                     },
-                    "maxItems": 20,
+                    "maxItems": 10,
                     "type": "array"
                 }
             },
@@ -1286,7 +1287,7 @@
                     "items": {
                         "$ref": "#/$defs/Icon"
                     },
-                    "maxItems": 20,
+                    "maxItems": 10,
                     "type": "array"
                 },
                 "name": {
@@ -2501,7 +2502,7 @@
                     "items": {
                         "$ref": "#/$defs/Icon"
                     },
-                    "maxItems": 20,
+                    "maxItems": 10,
                     "type": "array"
                 },
                 "name": {
@@ -2812,7 +2813,7 @@
                     "items": {
                         "$ref": "#/$defs/Icon"
                     },
-                    "maxItems": 20,
+                    "maxItems": 10,
                     "type": "array"
                 },
                 "mimeType": {
@@ -2885,7 +2886,7 @@
                     "items": {
                         "$ref": "#/$defs/Icon"
                     },
-                    "maxItems": 20,
+                    "maxItems": 10,
                     "type": "array"
                 },
                 "mimeType": {
@@ -2981,7 +2982,7 @@
                     "items": {
                         "$ref": "#/$defs/Icon"
                     },
-                    "maxItems": 20,
+                    "maxItems": 10,
                     "type": "array"
                 },
                 "mimeType": {
@@ -3227,11 +3228,11 @@
                     "description": "Present if the server offers any resources to read.",
                     "properties": {
                         "listChanged": {
-                            "description": "Whether this server supports notifications for changes to the resource list.",
+                            "description": "Whether this server supports notifications for changes to the resource list.\n\nIf this is `true`, the server will send notifications whenever the resource list changes.",
                             "type": "boolean"
                         },
                         "subscribe": {
-                            "description": "Whether this server supports subscribing to resource updates.",
+                            "description": "Whether this server supports subscribing to resource updates.\n\nIf this is `true`, the server will send updates whenever a resource changes.",
                             "type": "boolean"
                         }
                     },
@@ -3241,7 +3242,7 @@
                     "description": "Present if the server offers any tools to call.",
                     "properties": {
                         "listChanged": {
-                            "description": "Whether this server supports notifications for changes to the tool list.",
+                            "description": "Whether this server supports notifications for changes to the tool list.\n\nIf this is `true`, the server will send notifications whenever the tool list changes.",
                             "type": "boolean"
                         }
                     },
@@ -3715,7 +3716,7 @@
                     "items": {
                         "$ref": "#/$defs/Icon"
                     },
-                    "maxItems": 20,
+                    "maxItems": 10,
                     "type": "array"
                 },
                 "inputSchema": {
