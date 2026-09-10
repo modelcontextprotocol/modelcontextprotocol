@@ -1238,6 +1238,11 @@
             },
             "type": "object"
         },
+        "Identifier": {
+            "description": "A programmatic identifier, intended for machine use rather than display\n(e.g. a resource, prompt, or tool name). Unlike {@link Title}, this is not\nprimarily for human display.",
+            "maxLength": 256,
+            "type": "string"
+        },
         "ImageContent": {
             "description": "An image provided to or from an LLM.",
             "properties": {

@@ -211,6 +211,16 @@ export type ModelDescription = string;
 export type Title = string;
 
 /**
+ * A programmatic identifier, intended for machine use rather than display
+ * (e.g. a resource, prompt, or tool name). Unlike {@link Title}, this is not
+ * primarily for human display.
+ *
+ * @category Common Types
+ * @maxLength 256
+ */
+export type Identifier = string;
+
+/**
  * Common params for any request.
  *
  * @category Common Types
@@ -997,10 +1007,8 @@ export interface Icons {
 export interface BaseMetadata {
   /**
    * Intended for programmatic or logical use, but used as a display name in past specs or fallback (if title isn't present).
-   *
-   * @maxLength 256
    */
-  name: string;
+  name: Identifier;
 
   /**
    * Intended for UI and end-user contexts — optimized to be human-readable and easily understood,
@@ -1646,10 +1654,8 @@ export interface ListPromptsResultResponse extends JSONRPCResultResponse {
 export interface GetPromptRequestParams extends InputResponseRequestParams {
   /**
    * The name of the prompt or prompt template.
-   *
-   * @maxLength 256
    */
-  name: string;
+  name: Identifier;
   /**
    * Arguments to use for templating the prompt.
    */
@@ -1909,10 +1915,8 @@ export interface CallToolResultResponse extends JSONRPCResultResponse {
 export interface CallToolRequestParams extends InputResponseRequestParams {
   /**
    * The name of the tool.
-   *
-   * @maxLength 256
    */
-  name: string;
+  name: Identifier;
   /**
    * Arguments to use for the tool call.
    */
@@ -2666,10 +2670,8 @@ export interface CompleteRequestParams extends RequestParams {
   argument: {
     /**
      * The name of the argument
-     *
-     * @maxLength 256
      */
-    name: string;
+    name: Identifier;
     /**
      * The value of the argument to use for completion matching.
      */
