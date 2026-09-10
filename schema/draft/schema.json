@@ -3866,6 +3866,11 @@
             ],
             "type": "object"
         },
+        "URI": {
+            "description": "A Uniform Resource Identifier (URI), as defined by RFC 3986.",
+            "format": "uri",
+            "type": "string"
+        },
         "UnsupportedProtocolVersionError": {
             "description": "Returned when the request's protocol version is unknown to the server or\nunsupported (e.g., a known experimental or draft version the server has\nchosen not to implement). For HTTP, the response status code MUST be\n`400 Bad Request`.",
             "properties": {

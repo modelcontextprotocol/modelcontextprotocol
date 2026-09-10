@@ -173,6 +173,14 @@ export type ProgressToken = string | number;
 export type Cursor = string;
 
 /**
+ * A Uniform Resource Identifier (URI), as defined by RFC 3986.
+ *
+ * @category Common Types
+ * @format uri
+ */
+export type URI = string;
+
+/**
  * Common params for any request.
  *
  * @category Common Types
@@ -901,10 +909,9 @@ export interface Icon {
    * Consumers SHOULD take appropriate precautions when consuming SVGs as they can contain
    * executable JavaScript.
    *
-   * @format uri
    * @pattern ^(https?://|data:image/)
    */
-  src: string;
+  src: URI;
 
   /**
    * Optional MIME type override if the source MIME type is missing or generic.
@@ -1000,10 +1007,8 @@ export interface Implementation extends BaseMetadata, Icons {
 
   /**
    * An optional URL of the website for this implementation.
-   *
-   * @format uri
    */
-  websiteUrl?: string;
+  websiteUrl?: URI;
 }
 
 /* Progress notifications */
@@ -1204,10 +1209,8 @@ export interface ListResourceTemplatesResultResponse extends JSONRPCResultRespon
 export interface ResourceRequestParams extends RequestParams {
   /**
    * The URI of the resource. The URI can use any protocol; it is up to the server how to interpret it.
-   *
-   * @format uri
    */
-  uri: string;
+  uri: URI;
 }
 
 /**
@@ -1426,10 +1429,8 @@ export interface SubscriptionsAcknowledgedNotification extends JSONRPCNotificati
 export interface ResourceUpdatedNotificationParams extends NotificationParams {
   /**
    * The URI of the resource that has been updated. This might be a sub-resource of the one that the client actually subscribed to.
-   *
-   * @format uri
    */
-  uri: string;
+  uri: URI;
 }
 
 /**
@@ -1456,10 +1457,8 @@ export interface ResourceUpdatedNotification extends JSONRPCNotification {
 export interface Resource extends BaseMetadata, Icons {
   /**
    * The URI of this resource.
-   *
-   * @format uri
    */
-  uri: string;
+  uri: URI;
 
   /**
    * A description of what this resource represents.
@@ -1531,10 +1530,8 @@ export interface ResourceTemplate extends BaseMetadata, Icons {
 export interface ResourceContents {
   /**
    * The URI of this resource.
-   *
-   * @format uri
    */
-  uri: string;
+  uri: URI;
   /**
    * The MIME type of this resource, if known.
    */
@@ -2802,10 +2799,9 @@ export interface Root {
    * This restriction may be relaxed in future versions of the protocol to allow
    * other URI schemes.
    *
-   * @format uri
    * @pattern ^file://
    */
-  uri: string;
+  uri: URI;
   /**
    * An optional name for the root. This can be used to provide a human-readable
    * identifier for the root, which may be useful for display purposes or for
@@ -2882,10 +2878,9 @@ export interface ElicitRequestURLParams {
   /**
    * The URL that the user should navigate to.
    *
-   * @format uri
    * @pattern ^https?://
    */
-  url: string;
+  url: URI;
 }
 
 /**
