@@ -41,6 +41,9 @@
                 },
                 "mimeType": {
                     "description": "The MIME type of the audio. Different providers may support different audio types.",
+                    "format": "mime-type",
+                    "maxLength": 256,
+                    "minLength": 1,
                     "type": "string"
                 },
                 "type": {
@@ -65,6 +68,9 @@
                 },
                 "title": {
                     "description": "Intended for UI and end-user contexts — optimized to be human-readable and easily understood,\neven by those unfamiliar with domain-specific terminology.\n\nIf not provided, the name should be used for display (except for {@link Tool},\nwhere `annotations.title` should be given precedence over using `name`,\nif present).",
+                    "format": "text",
+                    "maxLength": 256,
+                    "minLength": 1,
                     "type": "string"
                 }
             },
@@ -85,11 +91,16 @@
                 },
                 "mimeType": {
                     "description": "The MIME type of this resource, if known.",
+                    "format": "mime-type",
+                    "maxLength": 256,
+                    "minLength": 1,
                     "type": "string"
                 },
                 "uri": {
                     "description": "The URI of this resource.",
                     "format": "uri",
+                    "maxLength": 8192,
+                    "minLength": 1,
                     "type": "string"
                 }
             },
@@ -106,10 +117,16 @@
                 },
                 "description": {
                     "description": "A human-readable description, intended for display to a person (e.g. in a UI).",
+                    "format": "text",
+                    "maxLength": 1024,
+                    "minLength": 1,
                     "type": "string"
                 },
                 "title": {
                     "description": "A human-readable display title, intended for a person (e.g. in a UI).",
+                    "format": "text",
+                    "maxLength": 256,
+                    "minLength": 1,
                     "type": "string"
                 },
                 "type": {
@@ -723,6 +740,9 @@
         },
         "Description": {
             "description": "A human-readable description, intended for display to a person (e.g. in a UI).",
+            "format": "text",
+            "maxLength": 1024,
+            "minLength": 1,
             "type": "string"
         },
         "DiscoverRequest": {
@@ -917,6 +937,8 @@
                 "url": {
                     "description": "The URL that the user should navigate to.",
                     "format": "uri",
+                    "maxLength": 8192,
+                    "minLength": 1,
                     "pattern": "^https?://",
                     "type": "string"
                 }
@@ -1107,6 +1129,9 @@
                 },
                 "description": {
                     "description": "An optional description for the prompt.",
+                    "format": "text",
+                    "maxLength": 1024,
+                    "minLength": 1,
                     "type": "string"
                 },
                 "messages": {
@@ -1195,6 +1220,9 @@
             "properties": {
                 "mimeType": {
                     "description": "Optional MIME type override if the source MIME type is missing or generic.\nFor example: `\"image/png\"`, `\"image/jpeg\"`, or `\"image/svg+xml\"`.",
+                    "format": "mime-type",
+                    "maxLength": 256,
+                    "minLength": 1,
                     "type": "string"
                 },
                 "sizes": {
@@ -1208,6 +1236,8 @@
                 "src": {
                     "description": "A standard URI pointing to an icon resource. May be an HTTP/HTTPS URL or a\n`data:` URI with Base64-encoded image data.\n\nConsumers SHOULD take steps to ensure URLs serving icons are from the\nsame domain as the client/server or a trusted domain.\n\nConsumers SHOULD take appropriate precautions when consuming SVGs as they can contain\nexecutable JavaScript.",
                     "format": "uri",
+                    "maxLength": 8192,
+                    "minLength": 1,
                     "pattern": "^(https?://|data:image/)",
                     "type": "string"
                 },
@@ -1261,6 +1291,9 @@
                 },
                 "mimeType": {
                     "description": "The MIME type of the image. Different providers may support different image types.",
+                    "format": "mime-type",
+                    "maxLength": 256,
+                    "minLength": 1,
                     "type": "string"
                 },
                 "type": {
@@ -1280,6 +1313,9 @@
             "properties": {
                 "description": {
                     "description": "An optional human-readable description of what this implementation does.\n\nThis can be used by clients or servers to provide context about their purpose\nand capabilities. For example, a server might describe the types of resources\nor tools it provides, while a client might describe its intended use case.",
+                    "format": "text",
+                    "maxLength": 1024,
+                    "minLength": 1,
                     "type": "string"
                 },
                 "icons": {
@@ -1297,6 +1333,9 @@
                 },
                 "title": {
                     "description": "Intended for UI and end-user contexts — optimized to be human-readable and easily understood,\neven by those unfamiliar with domain-specific terminology.\n\nIf not provided, the name should be used for display (except for {@link Tool},\nwhere `annotations.title` should be given precedence over using `name`,\nif present).",
+                    "format": "text",
+                    "maxLength": 256,
+                    "minLength": 1,
                     "type": "string"
                 },
                 "version": {
@@ -1307,6 +1346,8 @@
                 "websiteUrl": {
                     "description": "An optional URL of the website for this implementation.",
                     "format": "uri",
+                    "maxLength": 8192,
+                    "minLength": 1,
                     "type": "string"
                 }
             },
@@ -1616,6 +1657,9 @@
                 },
                 "description": {
                     "description": "A human-readable description, intended for display to a person (e.g. in a UI).",
+                    "format": "text",
+                    "maxLength": 1024,
+                    "minLength": 1,
                     "type": "string"
                 },
                 "enum": {
@@ -1633,6 +1677,9 @@
                 },
                 "title": {
                     "description": "A human-readable display title, intended for a person (e.g. in a UI).",
+                    "format": "text",
+                    "maxLength": 256,
+                    "minLength": 1,
                     "type": "string"
                 },
                 "type": {
@@ -2109,6 +2156,9 @@
         },
         "MIMEType": {
             "description": "A Multipurpose Internet Mail Extensions (MIME) type, as defined in RFC 2045.",
+            "format": "mime-type",
+            "maxLength": 256,
+            "minLength": 1,
             "type": "string"
         },
         "MetaObject": {
@@ -2188,6 +2238,9 @@
         },
         "ModelDescription": {
             "description": "A description intended to inform how an LLM understands or uses the\ndescribed object. Unlike {@link Description}, this is not primarily for\nhuman display — it can be thought of like a \"hint\" to the model.",
+            "format": "text",
+            "maxLength": 1024,
+            "minLength": 1,
             "type": "string"
         },
         "ModelHint": {
@@ -2283,6 +2336,9 @@
                 },
                 "description": {
                     "description": "A human-readable description, intended for display to a person (e.g. in a UI).",
+                    "format": "text",
+                    "maxLength": 1024,
+                    "minLength": 1,
                     "type": "string"
                 },
                 "maximum": {
@@ -2293,6 +2349,9 @@
                 },
                 "title": {
                     "description": "A human-readable display title, intended for a person (e.g. in a UI).",
+                    "format": "text",
+                    "maxLength": 256,
+                    "minLength": 1,
                     "type": "string"
                 },
                 "type": {
@@ -2495,6 +2554,9 @@
                 },
                 "description": {
                     "description": "An optional description of what this prompt provides",
+                    "format": "text",
+                    "maxLength": 1024,
+                    "minLength": 1,
                     "type": "string"
                 },
                 "icons": {
@@ -2512,6 +2574,9 @@
                 },
                 "title": {
                     "description": "Intended for UI and end-user contexts — optimized to be human-readable and easily understood,\neven by those unfamiliar with domain-specific terminology.\n\nIf not provided, the name should be used for display (except for {@link Tool},\nwhere `annotations.title` should be given precedence over using `name`,\nif present).",
+                    "format": "text",
+                    "maxLength": 256,
+                    "minLength": 1,
                     "type": "string"
                 }
             },
@@ -2525,6 +2590,9 @@
             "properties": {
                 "description": {
                     "description": "A human-readable description of the argument.",
+                    "format": "text",
+                    "maxLength": 1024,
+                    "minLength": 1,
                     "type": "string"
                 },
                 "name": {
@@ -2538,6 +2606,9 @@
                 },
                 "title": {
                     "description": "Intended for UI and end-user contexts — optimized to be human-readable and easily understood,\neven by those unfamiliar with domain-specific terminology.\n\nIf not provided, the name should be used for display (except for {@link Tool},\nwhere `annotations.title` should be given precedence over using `name`,\nif present).",
+                    "format": "text",
+                    "maxLength": 256,
+                    "minLength": 1,
                     "type": "string"
                 }
             },
@@ -2593,6 +2664,9 @@
                 },
                 "title": {
                     "description": "Intended for UI and end-user contexts — optimized to be human-readable and easily understood,\neven by those unfamiliar with domain-specific terminology.\n\nIf not provided, the name should be used for display (except for {@link Tool},\nwhere `annotations.title` should be given precedence over using `name`,\nif present).",
+                    "format": "text",
+                    "maxLength": 256,
+                    "minLength": 1,
                     "type": "string"
                 },
                 "type": {
@@ -2647,6 +2721,8 @@
                 "uri": {
                     "description": "The URI of the resource. The URI can use any protocol; it is up to the server how to interpret it.",
                     "format": "uri",
+                    "maxLength": 8192,
+                    "minLength": 1,
                     "type": "string"
                 }
             },
@@ -2806,6 +2882,9 @@
                 },
                 "description": {
                     "description": "A description of what this resource represents.\n\nThis can be used by clients to improve the LLM's understanding of available resources. It can be thought of like a \"hint\" to the model.",
+                    "format": "text",
+                    "maxLength": 1024,
+                    "minLength": 1,
                     "type": "string"
                 },
                 "icons": {
@@ -2818,6 +2897,9 @@
                 },
                 "mimeType": {
                     "description": "The MIME type of this resource, if known.",
+                    "format": "mime-type",
+                    "maxLength": 256,
+                    "minLength": 1,
                     "type": "string"
                 },
                 "name": {
@@ -2832,11 +2914,16 @@
                 },
                 "title": {
                     "description": "Intended for UI and end-user contexts — optimized to be human-readable and easily understood,\neven by those unfamiliar with domain-specific terminology.\n\nIf not provided, the name should be used for display (except for {@link Tool},\nwhere `annotations.title` should be given precedence over using `name`,\nif present).",
+                    "format": "text",
+                    "maxLength": 256,
+                    "minLength": 1,
                     "type": "string"
                 },
                 "uri": {
                     "description": "The URI of this resource.",
                     "format": "uri",
+                    "maxLength": 8192,
+                    "minLength": 1,
                     "type": "string"
                 }
             },
@@ -2854,11 +2941,16 @@
                 },
                 "mimeType": {
                     "description": "The MIME type of this resource, if known.",
+                    "format": "mime-type",
+                    "maxLength": 256,
+                    "minLength": 1,
                     "type": "string"
                 },
                 "uri": {
                     "description": "The URI of this resource.",
                     "format": "uri",
+                    "maxLength": 8192,
+                    "minLength": 1,
                     "type": "string"
                 }
             },
@@ -2879,6 +2971,9 @@
                 },
                 "description": {
                     "description": "A description of what this resource represents.\n\nThis can be used by clients to improve the LLM's understanding of available resources. It can be thought of like a \"hint\" to the model.",
+                    "format": "text",
+                    "maxLength": 1024,
+                    "minLength": 1,
                     "type": "string"
                 },
                 "icons": {
@@ -2891,6 +2986,9 @@
                 },
                 "mimeType": {
                     "description": "The MIME type of this resource, if known.",
+                    "format": "mime-type",
+                    "maxLength": 256,
+                    "minLength": 1,
                     "type": "string"
                 },
                 "name": {
@@ -2905,6 +3003,9 @@
                 },
                 "title": {
                     "description": "Intended for UI and end-user contexts — optimized to be human-readable and easily understood,\neven by those unfamiliar with domain-specific terminology.\n\nIf not provided, the name should be used for display (except for {@link Tool},\nwhere `annotations.title` should be given precedence over using `name`,\nif present).",
+                    "format": "text",
+                    "maxLength": 256,
+                    "minLength": 1,
                     "type": "string"
                 },
                 "type": {
@@ -2914,6 +3015,8 @@
                 "uri": {
                     "description": "The URI of this resource.",
                     "format": "uri",
+                    "maxLength": 8192,
+                    "minLength": 1,
                     "type": "string"
                 }
             },
@@ -2954,6 +3057,8 @@
                 "uri": {
                     "description": "The URI of the resource. The URI can use any protocol; it is up to the server how to interpret it.",
                     "format": "uri",
+                    "maxLength": 8192,
+                    "minLength": 1,
                     "type": "string"
                 }
             },
@@ -2975,6 +3080,9 @@
                 },
                 "description": {
                     "description": "A description of what this template is for.\n\nThis can be used by clients to improve the LLM's understanding of available resources. It can be thought of like a \"hint\" to the model.",
+                    "format": "text",
+                    "maxLength": 1024,
+                    "minLength": 1,
                     "type": "string"
                 },
                 "icons": {
@@ -2987,6 +3095,9 @@
                 },
                 "mimeType": {
                     "description": "The MIME type for all resources that match this template. This should only be included if all resources matching this template have the same type.",
+                    "format": "mime-type",
+                    "maxLength": 256,
+                    "minLength": 1,
                     "type": "string"
                 },
                 "name": {
@@ -2996,6 +3107,9 @@
                 },
                 "title": {
                     "description": "Intended for UI and end-user contexts — optimized to be human-readable and easily understood,\neven by those unfamiliar with domain-specific terminology.\n\nIf not provided, the name should be used for display (except for {@link Tool},\nwhere `annotations.title` should be given precedence over using `name`,\nif present).",
+                    "format": "text",
+                    "maxLength": 256,
+                    "minLength": 1,
                     "type": "string"
                 },
                 "uriTemplate": {
@@ -3060,6 +3174,8 @@
                 "uri": {
                     "description": "The URI of the resource that has been updated. This might be a sub-resource of the one that the client actually subscribed to.",
                     "format": "uri",
+                    "maxLength": 8192,
+                    "minLength": 1,
                     "type": "string"
                 }
             },
@@ -3120,6 +3236,8 @@
                 "uri": {
                     "description": "The URI identifying the root. This *must* start with `file://` for now.\nThis restriction may be relaxed in future versions of the protocol to allow\nother URI schemes.",
                     "format": "uri",
+                    "maxLength": 8192,
+                    "minLength": 1,
                     "pattern": "^file://",
                     "type": "string"
                 }
@@ -3336,6 +3454,9 @@
                 },
                 "description": {
                     "description": "A human-readable description, intended for display to a person (e.g. in a UI).",
+                    "format": "text",
+                    "maxLength": 1024,
+                    "minLength": 1,
                     "type": "string"
                 },
                 "format": {
@@ -3355,6 +3476,9 @@
                 },
                 "title": {
                     "description": "A human-readable display title, intended for a person (e.g. in a UI).",
+                    "format": "text",
+                    "maxLength": 256,
+                    "minLength": 1,
                     "type": "string"
                 },
                 "type": {
@@ -3561,6 +3685,9 @@
                 },
                 "mimeType": {
                     "description": "The MIME type of this resource, if known.",
+                    "format": "mime-type",
+                    "maxLength": 256,
+                    "minLength": 1,
                     "type": "string"
                 },
                 "text": {
@@ -3570,6 +3697,8 @@
                 "uri": {
                     "description": "The URI of this resource.",
                     "format": "uri",
+                    "maxLength": 8192,
+                    "minLength": 1,
                     "type": "string"
                 }
             },
@@ -3581,6 +3710,9 @@
         },
         "Title": {
             "description": "A human-readable display title, intended for a person (e.g. in a UI).",
+            "format": "text",
+            "maxLength": 256,
+            "minLength": 1,
             "type": "string"
         },
         "TitledMultiSelectEnumSchema": {
@@ -3595,6 +3727,9 @@
                 },
                 "description": {
                     "description": "Optional description for the enum field.",
+                    "format": "text",
+                    "maxLength": 1024,
+                    "minLength": 1,
                     "type": "string"
                 },
                 "items": {
@@ -3610,6 +3745,9 @@
                                     },
                                     "title": {
                                         "description": "Display title for this option.",
+                                        "format": "text",
+                                        "maxLength": 256,
+                                        "minLength": 1,
                                         "type": "string"
                                     }
                                 },
@@ -3637,6 +3775,9 @@
                 },
                 "title": {
                     "description": "Optional title for the enum field.",
+                    "format": "text",
+                    "maxLength": 256,
+                    "minLength": 1,
                     "type": "string"
                 },
                 "type": {
@@ -3659,6 +3800,9 @@
                 },
                 "description": {
                     "description": "Optional description for the enum field.",
+                    "format": "text",
+                    "maxLength": 1024,
+                    "minLength": 1,
                     "type": "string"
                 },
                 "oneOf": {
@@ -3671,6 +3815,9 @@
                             },
                             "title": {
                                 "description": "Display label for this option.",
+                                "format": "text",
+                                "maxLength": 256,
+                                "minLength": 1,
                                 "type": "string"
                             }
                         },
@@ -3684,6 +3831,9 @@
                 },
                 "title": {
                     "description": "Optional title for the enum field.",
+                    "format": "text",
+                    "maxLength": 256,
+                    "minLength": 1,
                     "type": "string"
                 },
                 "type": {
@@ -3709,6 +3859,9 @@
                 },
                 "description": {
                     "description": "A human-readable description of the tool.\n\nThis can be used by clients to improve the LLM's understanding of available tools. It can be thought of like a \"hint\" to the model.",
+                    "format": "text",
+                    "maxLength": 1024,
+                    "minLength": 1,
                     "type": "string"
                 },
                 "icons": {
@@ -3753,6 +3906,9 @@
                 },
                 "title": {
                     "description": "Intended for UI and end-user contexts — optimized to be human-readable and easily understood,\neven by those unfamiliar with domain-specific terminology.\n\nIf not provided, the name should be used for display (except for {@link Tool},\nwhere `annotations.title` should be given precedence over using `name`,\nif present).",
+                    "format": "text",
+                    "maxLength": 256,
+                    "minLength": 1,
                     "type": "string"
                 }
             },
@@ -3783,6 +3939,9 @@
                 },
                 "title": {
                     "description": "A human-readable title for the tool.",
+                    "format": "text",
+                    "maxLength": 256,
+                    "minLength": 1,
                     "type": "string"
                 }
             },
@@ -3900,6 +4059,8 @@
         "URI": {
             "description": "A Uniform Resource Identifier (URI), as defined by RFC 3986.",
             "format": "uri",
+            "maxLength": 8192,
+            "minLength": 1,
             "type": "string"
         },
         "UnsupportedProtocolVersionError": {
@@ -3971,6 +4132,9 @@
                 },
                 "description": {
                     "description": "Optional description for the enum field.",
+                    "format": "text",
+                    "maxLength": 1024,
+                    "minLength": 1,
                     "type": "string"
                 },
                 "items": {
@@ -4004,6 +4168,9 @@
                 },
                 "title": {
                     "description": "Optional title for the enum field.",
+                    "format": "text",
+                    "maxLength": 256,
+                    "minLength": 1,
                     "type": "string"
                 },
                 "type": {
@@ -4026,6 +4193,9 @@
                 },
                 "description": {
                     "description": "Optional description for the enum field.",
+                    "format": "text",
+                    "maxLength": 1024,
+                    "minLength": 1,
                     "type": "string"
                 },
                 "enum": {
@@ -4037,6 +4207,9 @@
                 },
                 "title": {
                     "description": "Optional title for the enum field.",
+                    "format": "text",
+                    "maxLength": 256,
+                    "minLength": 1,
                     "type": "string"
                 },
                 "type": {

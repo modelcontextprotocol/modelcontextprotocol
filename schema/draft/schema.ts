@@ -177,6 +177,8 @@ export type Cursor = string;
  *
  * @category Common Types
  * @format uri
+ * @minLength 1
+ * @maxLength 8192
  */
 export type URI = string;
 
@@ -184,6 +186,9 @@ export type URI = string;
  * A Multipurpose Internet Mail Extensions (MIME) type, as defined in RFC 2045.
  *
  * @category Common Types
+ * @format mime-type
+ * @minLength 1
+ * @maxLength 256
  */
 export type MIMEType = string;
 
@@ -191,6 +196,9 @@ export type MIMEType = string;
  * A human-readable description, intended for display to a person (e.g. in a UI).
  *
  * @category Common Types
+ * @format text
+ * @minLength 1
+ * @maxLength 1024
  */
 export type Description = string;
 
@@ -200,6 +208,9 @@ export type Description = string;
  * human display — it can be thought of like a "hint" to the model.
  *
  * @category Common Types
+ * @format text
+ * @minLength 1
+ * @maxLength 1024
  */
 export type ModelDescription = string;
 
@@ -207,6 +218,9 @@ export type ModelDescription = string;
  * A human-readable display title, intended for a person (e.g. in a UI).
  *
  * @category Common Types
+ * @format text
+ * @minLength 1
+ * @maxLength 256
  */
 export type Title = string;
 
