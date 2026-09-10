@@ -9,24 +9,30 @@ description: Charter for the MCP Filesystems Working Group.
 
 ## Mission Statement
 
-The Filesystems Working Group exists to make MCP Resources bidirectional, so that an agent can write a result back to
-the server it reads its inputs from. Agent platforms are converging on presenting services to models as filesystems, and
-Resources already addresses content by URI under a [`file://` scheme the specification defines as identifying "resources
-that behave like a filesystem"](/specification/draft/server/resources#common-uri-schemes). Currently, Resources carries
-that surface in the read direction. The WG will produce a single Extensions Track SEP covering write operations,
-optimistic concurrency control, and the interaction with change notification and caching.
+The Filesystems Working Group exists to align MCP Resources with general filesystem semantics, so that MCP clients and
+servers share a consistent interface for discovering, reading and modifying filesystem-shaped resources. Agent
+platforms are converging on presenting services to models as filesystems, and Resources already addresses content by URI under a [`file://` scheme
+the specification defines as identifying "resources that behave like a
+filesystem"](/specification/draft/server/resources#common-uri-schemes). The WG will determine which filesystem semantics
+fit MCP and produce one or more Extensions Track SEPs that apply those semantics consistently to Resources.
 
 ## Scope
 
 ### In Scope
 
-- **Specification Work**: One Extensions Track SEP, provisionally titled Filesystem Operations for Resources, covering:
-  1. **Operations.** Define create, update, delete, and a metadata read (`stat`) that answers existence, size and
-     last-modified for one URI without fetching the body.
-  2. **Optimistic concurrency control.** Specify how two writers avoid a lost update, and how a client creates a
+- **Specification Work**: One or more Extensions Track SEPs covering:
+  1. **Directory listing and traversal.** Investigate hierarchy-aware directory listing, including an operation that
+     enumerates one level below a URI, analogous to `readdir`, and how it relates to the existing flat `resources/list`
+     operation.
+  2. **Read semantics.** Investigate which filesystem read semantics fit MCP, including whether the protocol can support
+     a `seek` operation.
+  3. **Write and metadata operations.** Define create, update, delete, and a metadata read (`stat`) that answers
+     existence, size and last-modified for one URI without fetching the body.
+  4. **Optimistic concurrency control.** Specify how two writers avoid a lost update, and how a client creates a
      resource under a create-if-absent precondition.
-  3. **Change notification and caching.** Specify how a write interacts with `notifications/resources/updated`, the
-     time-to-live and cache scope fields `ttlMs` and `cacheScope`, and the `lastModified` annotation.
+  5. **Change notification and caching.** Specify how filesystem operations interact with
+     `notifications/resources/updated`, the time-to-live and cache scope fields `ttlMs` and `cacheScope`, and the
+     `lastModified` annotation.
 - **Cross-Cutting Concerns**: Reconcile the proposals that extend this primitive into one coherent design.
   [SEP-2571, Resource Submission for Agent Coordination](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2571)
   proposes `resources/create` and `resources/delete`.
@@ -34,23 +40,26 @@ optimistic concurrency control, and the interaction with change notification and
   proposes `resources/stream`.
   [SEP-1708, MCP Client-Brokered Filesystem Access](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1708)
   proposed a `files/*` method family standing beside Resources, and closed on 23 January 2026.
-- **Documentation**: Document the new operations in the specification, and give server authors guidance on choosing
-  between a resource write path and a tool-based one.
+- **Documentation**: Document the adopted filesystem semantics in the specification, and give server authors guidance
+  on choosing between a resource operation and a tool-based one.
 
 ### Out of Scope
 
 - A parallel `files/*` primitive standing beside Resources. The WG broadens the existing Resources primitive.
+- A complete mapping of POSIX or another operating system's filesystem API. The WG will select the semantics that fit a
+  client-server protocol and document the rationale for any exclusions.
 - Host-side sandbox and local-disk semantics. The WG standardizes the client and server wire format. How a host
   materializes resources into a filesystem for the model stays a host concern.
-- Authorization policy for writes, beyond stating where the existing MCP authorization specification applies.
+- Authorization policy for filesystem operations, beyond stating where the existing MCP authorization specification
+  applies.
 
 ### Related Groups
 
-- **File Uploads WG.** Both groups transfer content to a server. Coordination needed on where an upload-oriented flow
+- **File Uploads WG.** Both groups transfer content to a server. Coordination is needed on where an upload-oriented flow
   ends and a resource write operation begins.
 - **Skills Over MCP WG.** Filesystem dependency, including questions about write access, was an agenda item at the
   office hours of 24 March 2026 and remains open.
-- **Agents WG.** Multi-agent and job orchestration systems are the motivating consumers of a shared write path.
+- **Agents WG.** Multi-agent and job orchestration systems are motivating consumers of shared filesystem semantics.
 
 ## Leadership
 
@@ -102,16 +111,18 @@ The group's first act is to take up SEP-2571 with its author, since it already c
 
 ### Success Criteria
 
-- An accepted Extensions Track SEP covering create, update, delete and `stat`, with a defined optimistic concurrency
-  control mechanism and a specified interaction with `notifications/resources/updated`, `ttlMs`, `cacheScope` and
+- One or more accepted Extensions Track SEPs defining hierarchy-aware directory listing and the supported read, write
+  and metadata semantics. The accepted work must record the WG's conclusion on `seek`, define an optimistic concurrency
+  control mechanism, and specify the interaction with `notifications/resources/updated`, `ttlMs`, `cacheScope` and
   `lastModified`.
 - Each proposal in this space resolved. SEP-2571 and SEP-2532 are open at time of writing, and each should end up folded
   in, superseded, or explicitly scoped out.
 - Reference implementations in at least two Tier 1 SDKs.
-- Two independent server implementations exercising the write path against a common client.
+- Two independent server implementations exercising the adopted filesystem operations against a common client.
 
 ## Changelog
 
-| Date       | Change          |
-| ---------- | --------------- |
-| 2026-08-24 | Initial charter |
+| Date       | Change                                |
+| ---------- | ------------------------------------- |
+| 2026-09-10 | Broaden scope to filesystem semantics |
+| 2026-08-24 | Initial charter                       |
