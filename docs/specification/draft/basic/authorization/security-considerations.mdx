@@ -104,6 +104,15 @@ Authorization servers:
 
 Authorization servers **MAY** implement domain-based trust policies for accepting Client ID Metadata Documents, as described in [Section 6.4](https://www.ietf.org/archive/id/draft-ietf-oauth-client-id-metadata-document-00.html#section-6.4) and [Section 6.8](https://www.ietf.org/archive/id/draft-ietf-oauth-client-id-metadata-document-00.html#section-6.8) of the Client ID Metadata Document specification.
 
+### Client Authentication Method Selection
+
+A Client ID Metadata Document **MAY** advertise multiple token endpoint
+authentication methods in `token_endpoint_auth_methods_supported`. Advertising a
+method does not oblige the authorization server to accept it: the authorization
+server **MUST** enforce its own local security policy and **MAY** reject a method
+it would otherwise support, so that a client cannot force a downgrade to the
+weakest method it lists.
+
 ## Confused Deputy Problem
 
 Attackers can exploit MCP servers acting as intermediaries to third-party APIs, leading to [confused deputy vulnerabilities](/docs/draft/tutorials/security/security_best_practices#confused-deputy-problem).
