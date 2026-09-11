@@ -286,7 +286,7 @@ requires an entry refresh and any required user approval.
 
 ## Message Flow
 
-This example shows successful loading of a skill with a file manifest, after
+This example shows loading a skill with a file manifest, after
 server capabilities have been discovered. The host's MCP client sends the
 protocol requests. Skill selection and user approval are host interactions.
 
@@ -310,11 +310,14 @@ sequenceDiagram
         User->>Host: Load skill (server, URI)
     end
 
-    opt Entry not already available
+    opt Host has only a URI
         Host->>Server: skills/get (URI)
-        Server-->>Host: Skill entry with frontmatter and manifest
+        Server-->>Host: Skill entry or error
     end
-    Note over Host: Retain the entry with its server identity and URI
+    break Lookup failed
+        Note over Host,Server: Stop loading (unknown skill: -32602)
+    end
+    Note over Host: Retain entry (server, URI)
 
     opt User approval required
         Host->>User: Request approval for this skill and manifest
@@ -336,13 +339,14 @@ sequenceDiagram
     end
 ```
 
-A known skill URI can come from the user, another skill, or server instructions;
-listing is not a prerequisite. When a listing already supplied the entry,
-`skills/get` is unnecessary. All skill reads use the originating server.
+A known URI can be loaded without listing. An entry returned by `skills/list`
+can be reused; otherwise, the host calls `skills/get`. An unlisted skill may
+still exist, but an unknown URI returns `-32602` (Invalid params) and stops
+loading. All skill reads use the originating server.
 
-If approval is denied or verification fails, the host does not load or use the
-content. Recovering from a changed manifest requires refreshing the entry and
-obtaining any required approval again, as described below.
+If lookup fails, approval is denied, or verification fails, the host does not load
+or use the content. Recovering from a changed manifest requires refreshing the
+entry and obtaining any required approval again, as described below.
 
 ## Integrity and Verification
 
