@@ -15,61 +15,31 @@ contains the specification for Skills over MCP.
   Specification and documentation for Skills over MCP.
 </Card>
 
-Tools describe individual operations. Skills provide the instructions for using
-those operations together: a workflow, the decisions along the way, and any
-supporting reference material. Skills over MCP lets servers publish those
-instructions alongside their tools, so agents can discover and read them through
-the same MCP server.
+The Skills extension allows MCP servers to expose workflow instructions and
+supporting files to clients. Clients can discover available skills, retrieve
+their metadata, and read their contents using the existing Resources primitive.
 
 A skill is a directory containing a `SKILL.md` file and optional supporting
 files, following the [Agent Skills specification](https://agentskills.io/specification).
 This extension defines discovery and retrieval over MCP.
 
-## How Skills work
+## User Interaction Model
 
-The host discovers skill metadata, makes relevant skills available to the model
-or user, and loads instructions when a skill is selected. Supporting files are
-read only when needed. This keeps workflows with the service that maintains them
-without loading every file into model context.
+Host applications determine which skills are available to the model or user and
+when their instructions are loaded into model context. Skill metadata supports
+discovery without retrieving file contents. Instructions and supporting files
+are retrieved as needed.
 
-Reading `SKILL.md` in a resource browser does not activate a skill. The host's
-skill-loading path verifies the content and applies any required user approval
-before loading it into model context.
-
-```mermaid
-sequenceDiagram
-    participant Model
-    participant Host
-    participant Server
-
-    Host->>Server: server/discover
-    Server-->>Host: Resources and Skills capabilities
-    alt Discover the catalog
-        Host->>Server: skills/list
-        Server-->>Host: Skill entries and file manifests
-    else Start with a known skill URI
-        Host->>Server: skills/get
-        Server-->>Host: One skill entry and file manifest
-    end
-    Host-->>Model: Skill names, descriptions, and origins
-    Model->>Host: Load a selected skill
-    Note over Host: Apply required approval
-    Host->>Server: resources/read (SKILL.md)
-    Server-->>Host: Instructions
-    Note over Host: Verify size, digest, and frontmatter
-    Host-->>Model: Verified instructions with server origin
-    opt Supporting file needed
-        Model->>Host: Read references/checklist.md
-        Host->>Server: resources/read (supporting file)
-        Server-->>Host: File content
-        Host-->>Model: Content after verification
-    end
-```
+Reading `SKILL.md` through `resources/read` does not itself activate a skill.
+Activation occurs through the host's skill-loading path, which verifies the
+content and applies any required user approval before loading it into model
+context.
 
 ## Capabilities
 
-Servers advertise the extension alongside their `resources` capability in
-`server/discover`:
+Servers that support Skills **MUST** declare both the `resources` capability and
+the `io.modelcontextprotocol/skills` extension in
+[`server/discover`](/specification/draft/server/discover):
 
 ```json
 {
@@ -84,25 +54,31 @@ Servers advertise the extension alongside their `resources` capability in
 }
 ```
 
-The extension requires `skills/list` and `skills/get`; files use the existing
-`resources/read` method. `directoryRead` is optional and defaults to `false`.
-An empty extension object advertises support without directory browsing. Clients
-call these extension methods only after observing the corresponding capability.
+Servers that declare this extension **MUST** implement `skills/list` and
+`skills/get`. Skill files are served through `resources/read`.
+
+The optional `directoryRead` setting indicates support for
+`resources/directory/read` and defaults to `false`. An empty extension object
+indicates support without directory reading. Clients issue `skills/list` and
+`skills/get` only after observing the server's declaration.
 
 <Note>
-  These examples use protocol revision `2026-07-28` or later. For brevity,
-  requests omit the required [request
-  metadata](/specification/draft/basic/index#meta).
+  These examples use protocol revision `2026-07-28` or later. For brevity, the
+  request examples omit `_meta`. Every request **MUST** include the required
+  [request metadata](/specification/draft/basic/index#meta).
 </Note>
 
-## Discovering skills
+## Protocol Messages
 
-### Listing skills
+### Listing Skills
 
-Call `skills/list` to build a registry without fetching file contents:
+To discover available skills, clients send a `skills/list` request. This
+operation supports [pagination](/specification/draft/server/utilities/pagination)
+and [caching](/specification/draft/server/utilities/caching).
 
-<CodeGroup>
-```json Request
+**Request:**
+
+```json
 {
   "jsonrpc": "2.0",
   "id": 1,
@@ -111,7 +87,9 @@ Call `skills/list` to build a registry without fetching file contents:
 }
 ```
 
-```json Response
+**Response:**
+
+```json
 {
   "jsonrpc": "2.0",
   "id": 1,
@@ -144,31 +122,35 @@ Call `skills/list` to build a registry without fetching file contents:
 }
 ```
 
-</CodeGroup>
-
 Each entry contains:
 
-| Field         | Meaning                                                                      |
-| ------------- | ---------------------------------------------------------------------------- |
-| `uri`         | The resource URI of the skill's `SKILL.md`.                                  |
-| `frontmatter` | All YAML frontmatter fields, unchanged, including `name` and `description`.  |
-| `resources`   | Every file's URI, SHA-256 digest, and byte size, or `"dynamic"` (see below). |
+| Field         | Meaning                                                                     |
+| ------------- | --------------------------------------------------------------------------- |
+| `uri`         | The resource URI of the skill's `SKILL.md`.                                 |
+| `frontmatter` | All YAML frontmatter fields, unchanged, including `name` and `description`. |
+| `resources`   | The complete file manifest, or `"dynamic"` for generated content.           |
 
-The manifest includes `SKILL.md` and every supporting file. A listed entry is
-complete; no `skills/get` call is needed to fill it in. If a response includes
-`nextCursor`, pass it as `params.cursor` to retrieve the next page.
-`resultType: "complete"`, `ttlMs`, and `cacheScope` are required on list and
-get results. The [cache fields](/specification/draft/server/utilities/caching)
-describe freshness and sharing, not content integrity.
+A manifest **MUST** include `SKILL.md` and every supporting file, with each file's
+URI, SHA-256 digest, and byte size. Each entry returned by `skills/list` is
+complete; clients do not need to call `skills/get` for additional metadata.
 
-A skill is identified by **server identity and URI together**. Names are labels
-and can collide. Keep registries, approvals, and caches scoped to the originating
-server. `skill://` is the recommended scheme; other schemes are supported.
-A URI scheme alone does not establish that a resource is a skill.
+When a response includes `nextCursor`, clients pass it as `params.cursor` to
+retrieve the next page. List and get results **MUST** include
+`resultType: "complete"`, `ttlMs`, and `cacheScope`. The cache fields describe
+freshness and sharing; they do not provide content integrity.
 
-### Getting a skill by URI
+Skill identity consists of the originating server's identity and the skill URI.
+Names are labels and are not guaranteed to be unique. Hosts **MUST** preserve
+both server identity and URI in registries, approvals, and caches. Servers
+**SHOULD** use the `skill://` scheme, but **MAY** use another scheme.
+Hosts **MUST NOT** identify a resource as a skill solely by its URI scheme.
 
-A user, another skill, or server instructions may supply a skill URI directly:
+### Getting a Skill
+
+To retrieve a skill entry by URI, clients send a `skills/get` request. The URI
+may be supplied by a user, another skill, or server instructions.
+
+**Request:**
 
 ```json
 {
@@ -181,21 +163,23 @@ A user, another skill, or server instructions may supply a skill URI directly:
 }
 ```
 
-The response contains the same entry under `result.skill`, alongside
-`resultType: "complete"`, `ttlMs`, and `cacheScope`. This also refreshes a
-single skill after it changes.
+The response contains a skill entry under `result.skill`, with the same shape
+as an entry in `skills/list`, alongside `resultType: "complete"`, `ttlMs`,
+and `cacheScope`. Clients can also use this method to refresh an existing entry.
 
-Servers may return empty or partial catalogs, but must answer `skills/get` for
-every skill they serve. Clients must support loading by URI even when a skill
-does not appear in a listing.
+Servers **MAY** return empty or partial listings, but **MUST** respond to
+`skills/get` for every skill they serve. Hosts **MUST** support loading by URI,
+including skills that do not appear in a listing.
 
-## Reading instructions and supporting files
+### Reading Skill Content
 
-When loading the example skill, read its `SKILL.md` using
-[`resources/read`](/specification/draft/server/resources#reading-resources):
+To retrieve skill instructions or supporting files, clients send a
+[`resources/read`](/specification/draft/server/resources#reading-resources)
+request. This example retrieves the `SKILL.md` from the listing above.
 
-<CodeGroup>
-```json Request
+**Request:**
+
+```json
 {
   "jsonrpc": "2.0",
   "id": 3,
@@ -206,7 +190,9 @@ When loading the example skill, read its `SKILL.md` using
 }
 ```
 
-```json Response
+**Response:**
+
+```json
 {
   "jsonrpc": "2.0",
   "id": 3,
@@ -225,14 +211,14 @@ When loading the example skill, read its `SKILL.md` using
 }
 ```
 
-</CodeGroup>
+A `SKILL.md` file **MUST** begin with YAML frontmatter containing `name` and
+`description`. The final segment of its parent directory's path **MUST** match
+`name`.
 
-The file begins with YAML frontmatter containing `name` and `description`.
-Its parent directory's final path segment matches `name`.
-
-Resolve `references/checklist.md` relative to the skill's root:
-`skill://code-review/references/checklist.md`. Read it from the same server
-with another `resources/read` request when needed. Its example content is:
+Clients resolve relative references against the skill's root directory. In this
+example, `references/checklist.md` resolves to
+`skill://code-review/references/checklist.md`. The supporting file is retrieved
+from the same server using `resources/read` and contains:
 
 ```markdown
 # Review checklist
@@ -241,43 +227,18 @@ Check correctness, tests, and compatibility.
 ```
 
 Both example files end with a newline; their digests and sizes match the manifest.
-Do not prefetch files on connection, listing, or approval. Approval can bind to
-the manifest without downloading its files.
+Hosts **MUST NOT** retrieve files ahead of need, including on connection, listing,
+or approval. Approval binds to the manifest without requiring file retrieval.
 
-## Verification and updates
+### Reading Directories
 
-For a skill with a manifest, the host holds that entry while the skill's
-instructions remain in model context. Before using a retrieved file:
+To list a directory's direct children, clients send a `resources/directory/read`
+request. This method is optional. Clients **MUST NOT** call it unless the server
+declares `directoryRead: true`.
 
-1. Check that its URI appears in the held manifest.
-2. Verify its raw byte size and SHA-256 digest.
-3. For `SKILL.md`, parse the YAML frontmatter and compare every field with the
-   entry's `frontmatter`.
+**Request:**
 
-On any mismatch, do not use the content. Refresh the entry with `skills/get`.
-Persisted approval binds to the complete set of file URIs and digests; a changed,
-added, or removed file revokes that approval and requires approval again before
-loading or executing.
-
-Cache verified files on demand. Disk caches must either prevent modification by
-the model, its tools, or other users and keep files immutable, or verify cached
-bytes on every access. Keep them outside filesystem-skill discovery paths and
-preserve their MCP origin, including after a restart.
-
-<Note>
-  Digests establish consistency with the server's manifest, not trust in its
-  content. For generated content without stable digests, an entry uses
-  `"resources": "dynamic"`. Hosts may decline these skills. If accepted,
-  frontmatter still needs verification, and persisted approval cannot cover
-  arbitrary future content.
-</Note>
-
-## Optional directory browsing
-
-With `directoryRead: true`, clients can list a directory's direct children:
-
-<CodeGroup>
-```json Request
+```json
 {
   "jsonrpc": "2.0",
   "id": 4,
@@ -288,7 +249,9 @@ With `directoryRead: true`, clients can list a directory's direct children:
 }
 ```
 
-```json Response
+**Response:**
+
+```json
 {
   "jsonrpc": "2.0",
   "id": 4,
@@ -305,48 +268,116 @@ With `directoryRead: true`, clients can list a directory's direct children:
 }
 ```
 
-</CodeGroup>
-
 Directory URIs have no trailing slash. Child directories use
-`mimeType: "inode/directory"`; descend with another request. Results support
-`cursor` / `nextCursor` pagination and are not recursive.
+`mimeType: "inode/directory"`. Clients descend by issuing another request for
+a child directory. Results support `cursor` / `nextCursor` pagination and
+contain direct children only.
 
-For static skills, the manifest already enumerates files and can answer
-directory queries locally. Directory browsing helps with dynamic skills or
-other resource trees. A live listing does not extend a held manifest: newly
-listed files must not be exposed as part of the skill until its entry is
-refreshed and any required approval obtained again.
+For skills with a manifest, hosts **MAY** answer directory queries from that
+manifest. Directory reading also supports dynamic skills and other resource
+trees. Hosts **MUST NOT** treat a live directory result as extending the retained
+manifest or expose newly listed files as part of the skill. Access to those files
+requires an entry refresh and any required user approval.
 
-## Implementation requirements
+## Message Flow
 
-### For MCP servers
+```mermaid
+sequenceDiagram
+    participant Model
+    participant Host
+    participant Server
+
+    Host->>Server: server/discover
+    Server-->>Host: Resources and Skills capabilities
+    alt Discover the catalog
+        Host->>Server: skills/list
+        Server-->>Host: Skill entries and file manifests
+    else Start with a known skill URI
+        Host->>Server: skills/get
+        Server-->>Host: One skill entry and file manifest
+    end
+    Host-->>Model: Skill names, descriptions, and origins
+    Model->>Host: Load a selected skill
+    Note over Host: Apply required approval
+    Host->>Server: resources/read (SKILL.md)
+    Server-->>Host: Instructions
+    Note over Host: Verify size, digest, and frontmatter
+    Host-->>Model: Verified instructions with server origin
+    opt Supporting file needed
+        Model->>Host: Read references/checklist.md
+        Host->>Server: resources/read (supporting file)
+        Server-->>Host: File content
+        Host-->>Model: Content after verification
+    end
+```
+
+## Integrity and Verification
+
+While acting on a skill, the host retains the entry used to load it. This period
+extends at least until the skill's `SKILL.md` leaves model context. For skills
+with a manifest, hosts **MUST**:
+
+1. Restrict file reads to URIs in the retained manifest.
+2. Verify each file's raw byte size and SHA-256 digest before use.
+3. Parse `SKILL.md` frontmatter and compare it field-by-field with the entry's
+   `frontmatter`.
+
+Hosts **MUST NOT** use content that fails verification. To recover from stale
+metadata, the host refreshes the entry with `skills/get`. Persisted approval
+**MUST** bind to the complete set of file URIs and digests. A changed, added, or
+removed file revokes that approval; the host **MUST** obtain approval again
+before loading or executing.
+
+Hosts **SHOULD** cache verified content on demand. Disk caches **MUST** either
+prevent modification by the model, its tools, or other users and keep files
+immutable, or verify cached bytes on every access. Hosts **MUST** exclude cached
+files from filesystem-skill discovery paths and preserve their MCP origin,
+including after a restart.
+
+<Note>
+  Digests establish consistency with the server's manifest, not trust in its
+  content. For generated content without stable digests, an entry uses
+  `"resources": "dynamic"`. Hosts **MAY** decline these skills. If accepted,
+  hosts **MUST** still verify frontmatter and **MUST NOT** treat persisted
+  approval as covering arbitrary future content.
+</Note>
+
+## Implementation Requirements
+
+### Servers
+
+Servers **MUST**:
 
 - Serve valid Agent Skills and implement the declared methods, including base
-  Resources support. Preserve all frontmatter fields and publish complete manifests
-  computed from the exact bytes served.
-- Support direct lookup independently of catalog enumeration. Return one whole
-  skill entry per item; do not split its manifest across pages.
-- If advertising `directoryRead`, support every directory in the served skill
-  namespaces.
-- Aim to stay within the portable limits: **512 files and 16 MiB per skill**,
-  including `SKILL.md`.
+  Resources support.
+- Preserve all frontmatter fields and publish complete manifests computed from
+  the bytes served, unless the skill's resources are declared `"dynamic"`.
+- Support direct lookup independently of listing. Each skill entry is atomic;
+  its manifest **MUST NOT** be split across pages.
+- Support every directory in the served skill namespaces when declaring
+  `directoryRead: true`.
 
-### For MCP clients and hosts
+Servers **SHOULD NOT** exceed **512 files or 16 MiB per skill**, including
+`SKILL.md`. Hosts **MUST** support skills up to these limits and **MAY** support
+larger skills.
 
-- Support skills up to those limits, namespace them by server and URI, and
-  prevent same-named skills from silently replacing one another.
-- Tag loaded content with its originating server. Bind resource reads to that
-  server using a host-assigned label; cross-server reads require explicit
+### Security Considerations
+
+Hosts **MUST**:
+
+- Prevent skills with the same name from silently replacing one another.
+- Tag loaded content with its originating server and bind resource reads to that
+  server using a host-assigned label. Cross-server reads require explicit
   per-call approval naming both servers.
-- Treat content as untrusted input. Local code execution and permission grants
-  such as `allowed-tools` require explicit per-skill user approval.
-- Reading a nested `SKILL.md` as supporting content does not activate it or its
-  frontmatter. Activating it separately requires fresh user consent.
+- Treat skill content as untrusted input. Host-side code execution and permission
+  grants such as `allowed-tools` require explicit per-skill user approval.
+- Obtain fresh user consent before activating a nested skill. Reading its
+  `SKILL.md` as supporting content does not activate it or its frontmatter.
 
 See the [security requirements](https://github.com/modelcontextprotocol/ext-skills/blob/main/specification/stable/skills.mdx#security-considerations)
 for the full approval, origin, and cache rules.
 
-### Errors
+## Error Handling
 
 | Condition                                       | Handling                                      |
 | ----------------------------------------------- | --------------------------------------------- |
@@ -354,10 +385,10 @@ for the full approval, origin, and cache rules.
 | Internal server failure                         | JSON-RPC `-32603` (Internal error).           |
 | Digest, size, frontmatter, or manifest mismatch | Host rejects content and refreshes the entry. |
 
-Verification failures are host-side conditions, not new protocol error codes.
-If directory browsing is not advertised, clients must not call it.
+Verification failures are host-side conditions rather than protocol errors.
+They are handled as described in [Integrity and Verification](#integrity-and-verification).
 
-## Client support
+## Client Support
 
 See the [client matrix](/extensions/client-matrix) for Skills support and links
 to implementation documentation.
