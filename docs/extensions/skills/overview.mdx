@@ -31,13 +31,14 @@ files only when needed.
 
 ## User Interaction Model
 
-Host applications determine which skills are available to the model or user and
-when their instructions are loaded into model context.
+Host applications determine how skills are exposed to the model and user. Skills
+can be selected by the model based on their names and descriptions, or explicitly
+by the user. The extension does not mandate a specific user interaction model.
 
 Reading `SKILL.md` through `resources/read` does not itself activate a skill.
-Activation occurs through the host's skill-loading path, which verifies the
-content and applies any required user approval before loading it into model
-context.
+To load the skill, the host routes the read through its skill-loading path, which
+verifies the content and applies any required user approval before loading it
+into model context.
 
 ## Capabilities
 
@@ -284,6 +285,8 @@ manifest or expose newly listed files as part of the skill. Access to those file
 requires an entry refresh and any required user approval.
 
 ## Message Flow
+
+The following example shows a model selecting a skill with a file manifest.
 
 ```mermaid
 sequenceDiagram
