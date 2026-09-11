@@ -456,13 +456,8 @@
               "seps/2575-stateless-mcp",
               "seps/2577-deprecate-roots-sampling-and-logging",
               "seps/2596-spec-feature-lifecycle-and-deprecation",
+              "seps/2640-skills-extension",
               "seps/2663-tasks-extension"
-            ]
-          },
-          {
-            "group": "Accepted",
-            "pages": [
-              "seps/2640-skills-extension"
             ]
           }
         ]

@@ -5,8 +5,8 @@ description: "Skills Extension"
 ---
 
 <div className="flex items-center gap-2 mb-4">
-  <Badge color="blue" shape="pill">
-    Accepted
+  <Badge color="green" shape="pill">
+    Final
   </Badge>
   <Badge color="gray" shape="pill">
     Extensions Track
@@ -17,7 +17,7 @@ description: "Skills Extension"
 | ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **SEP**       | 2640                                                                                                                                                                                                                                                                                         |
 | **Title**     | Skills Extension                                                                                                                                                                                                                                                                             |
-| **Status**    | Accepted                                                                                                                                                                                                                                                                                     |
+| **Status**    | Final                                                                                                                                                                                                                                                                                        |
 | **Type**      | Extensions Track                                                                                                                                                                                                                                                                             |
 | **Created**   | 2026-04-23                                                                                                                                                                                                                                                                                   |
 | **Author(s)** | Peter Alexander ([@pja-ant](https://github.com/pja-ant)), Ola Hungerford ([@olaservo](https://github.com/olaservo)), Sambhav Kothari ([@sambhav](https://github.com/sambhav)), Aditya Kumar ([@aditya-scio](https://github.com/aditya-scio)), on behalf of the Skills Over MCP Working Group |
@@ -607,9 +607,16 @@ Skill content is instructional text delivered to a model, which makes it a promp
 
 Per [SEP-2133], an Extensions Track SEP requires at least one reference implementation in an official SDK prior to review.
 
-**SDK implementation:**
+**SDK implementations:**
 
 - TypeScript SDK convenience wrappers (`@server.skill()`, `client.listSkills()`, `client.readSkillUri()`): [experimental-ext-skills#71](https://github.com/modelcontextprotocol/experimental-ext-skills/pull/71)
+- Python SDK: [python-sdk#3485](https://github.com/modelcontextprotocol/python-sdk/pull/3485)
+- C# SDK: [csharp-sdk#1856](https://github.com/modelcontextprotocol/csharp-sdk/pull/1856)
+- Go SDK: [go-sdk#1238](https://github.com/modelcontextprotocol/go-sdk/pull/1238)
+
+**Conformance tests:**
+
+- Client and server scenarios with the SEP traceability file (`sep-2640.yaml`): [conformance#330](https://github.com/modelcontextprotocol/conformance/pull/330)
 
 **Prototype host implementations** (reading `skill://` resources, surfacing skills alongside filesystem skills):
 
