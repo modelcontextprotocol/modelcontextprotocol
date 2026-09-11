@@ -286,37 +286,63 @@ requires an entry refresh and any required user approval.
 
 ## Message Flow
 
-The following example shows a model selecting a skill with a file manifest.
+This example shows successful loading of a skill with a file manifest, after
+server capabilities have been discovered. The host's MCP client sends the
+protocol requests. Skill selection and user approval are host interactions.
 
 ```mermaid
 sequenceDiagram
+    actor User
     participant Model
     participant Host
     participant Server
 
-    Host->>Server: server/discover
-    Server-->>Host: Resources and Skills capabilities
-    alt Discover the catalog
+    opt Discover a catalog
         Host->>Server: skills/list
-        Server-->>Host: Skill entries and file manifests
-    else Start with a known skill URI
-        Host->>Server: skills/get
-        Server-->>Host: One skill entry and file manifest
+        Server-->>Host: Skill entries with frontmatter and manifests
+        Host->>Model: Available skills and their origins
+        Host->>User: Available skills and their origins
     end
-    Host-->>Model: Skill names, descriptions, and origins
-    Model->>Host: Load a selected skill
-    Note over Host: Apply required approval
-    Host->>Server: resources/read (SKILL.md)
-    Server-->>Host: Instructions
-    Note over Host: Verify size, digest, and frontmatter
-    Host-->>Model: Verified instructions with server origin
-    opt Supporting file needed
-        Model->>Host: Read references/checklist.md
-        Host->>Server: resources/read (supporting file)
+
+    alt Model selects a skill
+        Model->>Host: Load skill (server, URI)
+    else User selects a skill
+        User->>Host: Load skill (server, URI)
+    end
+
+    opt Entry not already available
+        Host->>Server: skills/get (URI)
+        Server-->>Host: Skill entry with frontmatter and manifest
+    end
+    Note over Host: Retain the entry with its server identity and URI
+
+    opt User approval required
+        Host->>User: Request approval for this skill and manifest
+        User-->>Host: Approve
+    end
+
+    Host->>Server: resources/read (SKILL.md URI)
+    Server-->>Host: SKILL.md content
+    Host->>Host: Verify byte size, digest, and frontmatter
+    Host->>Model: Load verified instructions with server origin
+
+    loop Supporting files requested while the skill is active
+        Model->>Host: Read a supporting file
+        Host->>Host: Resolve URI within the retained manifest
+        Host->>Server: resources/read (file URI)
         Server-->>Host: File content
-        Host-->>Model: Content after verification
+        Host->>Host: Verify byte size and digest
+        Host->>Model: Verified content with server origin
     end
 ```
+
+A known skill URI can come from the user, another skill, or server instructions;
+listing is not a prerequisite. When a listing already supplied the entry,
+`skills/get` is unnecessary. All skill reads use the originating server.
+
+If approval is denied or verification fails, the host does not load or use the
+content. Recovering from a changed manifest requires refreshing the entry and
+obtaining any required approval again, as described below.
 
 ## Integrity and Verification
 
