@@ -1,0 +1,67 @@
+---
+title: Security Policy
+description: How to report security vulnerabilities in the Model Context Protocol specification and SDKs, what is in and out of scope, and how SDK maintainers coordinate disclosure.
+---
+
+This page summarizes how security reports are handled across the Model Context Protocol
+project. The full policy, including the trust model and the complete list of behaviors that
+are intentional and not eligible as vulnerabilities, lives in
+[SECURITY.md](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/SECURITY.md)
+in the specification repository.
+
+## Reporting a vulnerability
+
+Report security issues through GitHub Security Advisories on the affected repository.
+Private vulnerability reporting is enabled on the specification repository and on every
+official SDK repository in the [modelcontextprotocol](https://github.com/modelcontextprotocol)
+organization.
+
+Do not report security issues through public issues, discussions, or pull requests.
+
+## SDK disclosure and cross-SDK coordination
+
+When a report is filed against an SDK, the maintainers of that SDK assess whether the same
+issue affects other official SDKs. Many MCP vulnerabilities stem from shared patterns,
+transport implementations, or spec-level behavior that multiple SDKs implement the same
+way. The receiving maintainers coordinate with the maintainers of other potentially
+affected SDKs to determine which are impacted and to what degree, so that fixes and
+advisories can be released together rather than leaving some SDKs exposed after others have
+published.
+
+If the root cause is a defect in the specification rather than an implementation bug, the
+coordinating maintainers will discuss this with the specification maintainers.
+
+CVEs are assigned through GitHub's CNA as part of the GHSA workflow.
+
+## Scope
+
+The following are considered security vulnerabilities when they arise from flaws in the
+specification or official SDKs: protocol-level vulnerabilities, authentication or
+authorization bypasses, implementation bugs such as injection or memory-safety issues,
+sandbox escapes, session hijacking, token leakage, and cross-tenant access.
+
+The full
+[SECURITY.md](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/SECURITY.md)
+documents the MCP trust model and a list of intentional behaviors that are not
+vulnerabilities. One of the most common is stdio peer attacks, summarized below.
+
+### Stdio transport trust boundary
+
+When using the stdio transport, the client spawns the server as a local subprocess and both
+might run with equivalent environment-level privilege. The SDK does not defend either peer
+against a malicious counterpart across the stdio channel: a malicious server already has
+arbitrary code execution by virtue of being run, and a malicious client already has full
+process control over the server it spawned.
+
+Reports whose only impact is that one stdio peer can crash, hang, exhaust resources of, or
+otherwise deny service to the other are out of scope and should be filed as regular issues
+rather than as a GHSA. If the affected SDK code is reachable via any of the supported
+remote transports, or results in a sandbox escape, the report remains in scope. Deployments
+that run stdio servers at reduced privilege are responsible for enforcing isolation at that
+boundary. The SDK's stdio transport is not a sandbox.
+
+## Security Interest Group
+
+The [Security Interest Group](/community/interest-groups/security) is the venue for
+discussing MCP-specific threats, reviewing security-relevant proposals, and routing
+disclosure questions that don't fit a single repository.

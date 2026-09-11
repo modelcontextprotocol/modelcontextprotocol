@@ -171,7 +171,7 @@ return a JSON-RPC error response. For HTTP, the response status code MUST be
 `400 Bad Request`. The error MUST conform to the following structure:
 
 ```ts
-export const UNSUPPORTED_PROTOCOL_VERSION = -32004;
+export const UNSUPPORTED_PROTOCOL_VERSION = -32022;
 
 export interface UnsupportedProtocolVersionError extends Omit<
   JSONRPCErrorResponse,
@@ -377,7 +377,7 @@ the missing capabilities. For HTTP, the response status code MUST be
 `400 Bad Request`.
 
 ```ts
-export const MISSING_REQUIRED_CLIENT_CAPABILITY = -32003;
+export const MISSING_REQUIRED_CLIENT_CAPABILITY = -32021;
 
 export interface MissingRequiredClientCapabilityError extends Omit<
   JSONRPCErrorResponse,
@@ -777,6 +777,31 @@ a single field for all client metadata would reduce overhead. However,
 negotiation). Should `clientInfo` be folded into `ClientCapabilities`, remain a
 separate per-request `_meta` field, or be handled through a different mechanism
 entirely (e.g., only sent via `subscriptions/listen`)?
+
+## Changes since SEP became Final
+
+This SEP is preserved as a historical record of what was accepted. The list
+below tracks changes made to the specification after this SEP reached Final
+status. Refer to the current
+[specification](https://modelcontextprotocol.io/specification) for the
+authoritative, up-to-date requirements.
+
+- **Client identity became optional request metadata.**
+  [#3002](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/3002)
+  made `io.modelcontextprotocol/clientInfo` optional. Clients **SHOULD** include
+  it on every request unless specifically configured not to do so.
+- **Server identity moved to optional result metadata.**
+  [#3002](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/3002)
+  introduced `io.modelcontextprotocol/serverInfo` in result `_meta` and removed
+  the top-level `DiscoverResult.serverInfo` field to avoid duplicate
+  representations. Servers **SHOULD** include this metadata on every result
+  unless specifically configured not to do so.
+- **Subscriptions gained a graceful completion result.**
+  [#2953](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2953)
+  defined a `subscriptions/listen` result for server-initiated graceful
+  closure, replacing the SEP's statement that a subscription has no natural
+  completion result. Servers **SHOULD** send this result before closing the
+  stream.
 
 [SEP-2127]: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2127
 [SEP-2243]: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2243

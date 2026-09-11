@@ -11,7 +11,7 @@ const execAsync = promisify(exec);
 const LEGACY_SCHEMAS = ['2024-11-05', '2025-03-26', '2025-06-18'];
 
 // Modern schema versions that use JSON Schema 2020-12
-const MODERN_SCHEMAS = ['2025-11-25', 'draft'];
+const MODERN_SCHEMAS = ['2025-11-25', '2026-07-28', 'draft'];
 
 // All schema versions to generate
 const ALL_SCHEMAS = [...LEGACY_SCHEMAS, ...MODERN_SCHEMAS];

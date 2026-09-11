@@ -13,6 +13,15 @@ title: Multi Round-Trip Requests
   supported. This is a breaking change.
 </Note>
 
+<Note>
+  For brevity, the request examples on this page omit the `_meta` request
+  metadata (`io.modelcontextprotocol/protocolVersion`,
+  `io.modelcontextprotocol/clientInfo`, and
+  `io.modelcontextprotocol/clientCapabilities`). Every request **MUST** include
+  the required `_meta` fields; see
+  [`_meta`](/specification/draft/basic/index#meta).
+</Note>
+
 ## Multi Round-Trip Requests
 
 The Model Context Protocol (MCP) defines several ways for servers to request additional information
