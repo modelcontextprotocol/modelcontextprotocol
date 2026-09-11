@@ -23,12 +23,16 @@ A skill is a directory containing a `SKILL.md` file and optional supporting
 files, following the [Agent Skills specification](https://agentskills.io/specification).
 This extension defines discovery and retrieval over MCP.
 
+Skills are useful for reusable workflows that combine several tools or require
+supporting references, such as code review or document processing. Serving them
+over MCP keeps those instructions with the service they describe. Clients can
+discover available workflows from metadata and load instructions and supporting
+files only when needed.
+
 ## User Interaction Model
 
 Host applications determine which skills are available to the model or user and
-when their instructions are loaded into model context. Skill metadata supports
-discovery without retrieving file contents. Instructions and supporting files
-are retrieved as needed.
+when their instructions are loaded into model context.
 
 Reading `SKILL.md` through `resources/read` does not itself activate a skill.
 Activation occurs through the host's skill-loading path, which verifies the
@@ -65,7 +69,7 @@ indicates support without directory reading. Clients issue `skills/list` and
 <Note>
   These examples use protocol revision `2026-07-28` or later. For brevity, the
   request examples omit `_meta`. Every request **MUST** include the required
-  [request metadata](/specification/draft/basic/index#meta).
+  [request metadata](/specification/draft/basic/index#_meta).
 </Note>
 
 ## Protocol Messages
