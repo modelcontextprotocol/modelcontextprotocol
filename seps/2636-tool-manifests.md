@@ -11,7 +11,7 @@
 
 This SEP adds two coordination primitives to the tools capability that let a client obtain and maintain a server's tool definitions incrementally rather than wholesale.
 
-The first is `tools/manifest`, which returns, for every tool the session may see, a compact manifest entry: the tool's identity, a server-computed `digest` of its full definition, and optional annotations, but no invocation schema. The second is `tools/describe`, which returns the complete `Tool` definitions for an explicitly named subset. A server capability, `tools.manifest`, advertises both. `tools/list` is unchanged and remains the compatibility floor. The manifest and `tools/list` MUST return the same set of tools for a session, and every name in the manifest MUST be describable.
+The first is `tools/manifest`, which returns, for every tool the session may see, a compact manifest entry: the tool's identity, a server-computed `digest` and byte `size` of its full definition, and optional annotations, but no invocation schema. The second is `tools/describe`, which returns the complete `Tool` definitions for an explicitly named subset. A server capability, `tools.manifest`, advertises both. `tools/list` is unchanged and remains the compatibility floor. The manifest and `tools/list` MUST return the same set of tools for a session, and every name in the manifest MUST be describable.
 
 The relationship between the two methods is the one between a manifest and the content it indexes. The manifest lists entries by name with a digest, `tools/describe` fetches the full definition by name, and a client reconciles its cached copy by comparing digests. The digest is computed over the full `Tool` object under a defined canonical serialization, so two parties that hold the same definition compute the same value. It gives a client a per-tool freshness key that neither the catalog-wide `notifications/tools/list_changed` notification nor the result-wide TTL fields of SEP-2549 provide.
 
@@ -75,6 +75,8 @@ The two methods are always advertised together. A manifest without a way to fetc
 
 `tools/manifest` returns a paginated list of `ToolManifestEntry` records, one per tool the session is authorised to see. Each record identifies a tool and carries a digest of its full definition, but not the definition itself.
 
+The criterion for what belongs in an entry is deliberate and narrow: an entry carries what a client needs to decide whether to fetch a definition and to tell whether a cached one is current, and nothing a client needs in order to use the tool. This is the opposite of the choice made for skills in SEP-2640, whose listing entries are complete because a skill's metadata is small and its content is fetched lazily by design. For tools, the definition is the payload, so the entry excludes it.
+
 #### Request
 
 ```typescript
@@ -111,6 +113,13 @@ interface ToolManifestEntry extends BaseMetadata {
   digest: string;
 
   /**
+   * REQUIRED. Length in bytes of the canonical serialization of the
+   * full Tool definition, the same bytes the digest covers. Lets a
+   * client budget a tools/describe batch before issuing it.
+   */
+  size: number;
+
+  /**
    * Optional. The tool's annotations, identical to (or a key-subset of)
    * the `annotations` on the full Tool. Servers SHOULD include the
    * action-risk hints so a client can rank candidates by risk before
@@ -133,8 +142,8 @@ Richer risk signals, such as a required authorisation scope or whether a call ne
 #### Server Behaviour
 
 1. The server MUST return an entry for every tool the current session is authorised to see, paginated via `cursor`. The set of names returned across all pages MUST be identical to the set `tools/list` would return for the same session at the same time.
-2. The server MUST NOT include `inputSchema`, `outputSchema`, `description`, `icons`, `_meta`, or any field other than those defined on `ToolManifestEntry`. Clients rely on this to bound the per-entry size.
-3. Each entry's `digest` MUST equal the digest, computed per §5, of the `Tool` that `tools/describe` would return for that name at the same time.
+2. The server MUST NOT include `inputSchema`, `outputSchema`, `description`, `icons`, `_meta`, or any field other than those defined on `ToolManifestEntry`. Clients rely on this to bound the per-entry cost.
+3. Each entry's `digest` MUST equal the digest, computed per §5, of the `Tool` that `tools/describe` would return for that name at the same time, and each entry's `size` MUST equal the byte length of the canonical serialization that digest was computed over.
 4. The server MUST emit `notifications/tools/list_changed` when the set of names changes or when any digest changes, if it advertises `listChanged`. The notification carries no detail; the manifest is how a client learns what changed.
 
 ### 3. `tools/describe` Method
@@ -216,7 +225,9 @@ Clients SHOULD prefer `tools/manifest` and `tools/describe` over `tools/list` wh
 
 A digest is a string of the form `<algorithm>:<encoded value>`. This SEP defines one algorithm, `sha256`, whose encoded value is the lowercase hexadecimal SHA-256 of the canonical JSON serialization of the full `Tool` object. Servers MUST emit `sha256` digests. Clients MUST treat a digest with an algorithm they do not recognise as "unknown", which for reconciliation purposes means "refetch".
 
-The algorithm prefix follows the convention used by container image registries and lets a future SEP introduce another algorithm without changing the field's shape.
+The algorithm prefix follows the convention used by container image registries and lets a future SEP introduce another algorithm without changing the field's shape. It is the same format SEP-2640 uses for skill file digests, so a host that implements both extensions handles one digest shape.
+
+The `size` field alongside the digest is the byte length of the canonical serialization, the same bytes the digest covers. It exists so a client can sum the sizes of the entries it intends to describe and split the batch, or defer part of it, before issuing the request. A client MAY also use it as a cheap pre-check: a definition whose canonical serialization has a different length than the manifest's `size` cannot match the digest, and need not be hashed to be known stale. SEP-2640 applies the same pairing of digest and size to skill files for the same two reasons.
 
 #### Canonical serialization
 
@@ -244,7 +255,7 @@ The protocol does not prescribe a cache strategy. It provides the digest so that
 1. Fetch the manifest (all pages).
 2. For each entry, compare its digest with the digest the client computed over its cached `Tool` for that name. Collect the names with no cached entry or a different digest.
 3. Drop cached entries whose names are no longer in the manifest.
-4. Fetch the collected names via `tools/describe`, in batches no larger than the server's bound.
+4. Fetch the collected names via `tools/describe`, in batches no larger than the server's bound, using the entries' `size` values to keep each batch to a response the client is prepared to handle.
 5. Recompute the digest over each returned `Tool` and confirm it matches the manifest. A mismatch indicates the definition changed between steps 1 and 4; repeat from step 1.
 
 At a cold start, step 4 fetches everything. Afterwards it fetches only what changed.
@@ -255,6 +266,7 @@ At a cold start, step 4 fetches everything. Afterwards it fetches only what chan
 
 ### 6. Relationship to Other SEPs and Groups
 
+- **SEP-2640 (Skills Extension)**: Precedent. That extension's `skills/list` returns entries carrying `sha256:` digests and byte sizes for content fetched lazily by URI, reuses the SEP-2549 cache fields on the listing with the same freshness-not-integrity framing, uses `-32602` for unknown items, and states that a digest match proves consistency between listing and content rather than trustworthiness. This SEP applies the same shape to tool definitions and adopts the same digest format, cache fields, error code, and security framing so that a host implementing both handles one pattern. The two differ in entry completeness for the reason given in §2, and in that `tools/describe` is batched where `skills/get` retrieves one item.
 - **SEP-2549 (TTL for List Results)**: Complementary, as described in §5. `ListToolManifestResult` reuses the `CacheableResult` fields directly.
 - **SEP-2164 (Resource Not Found Error)**: Followed. `tools/describe` uses `-32602` with a `data` object for unknown names, matching the convention that SEP established for resources.
 - **SEP-1821 (Dynamic Tool Discovery)**: Orthogonal. That proposal adds server-side search to `tools/list`. This SEP deliberately carries no query surface; a server that implements both would apply the same authorisation filtering to all three listing methods, and a client would use SEP-1821 to find candidates and this SEP to keep their definitions current.
@@ -307,6 +319,10 @@ Earlier drafts called the compact listing a catalog and the SEP "progressive too
 ### Why leave discovery metadata out?
 
 Short summaries, tags, groups, and tier-aware descriptions are all useful and all belong to the same design space, which the Primitive Grouping Interest Group is working through with several implementations in hand. Defining a subset of that metadata here would either pre-empt that work or produce two overlapping definitions. Keeping the manifest entry to identity, digest, and the existing annotations gives the grouping work a stable base to extend and keeps this SEP small enough to evaluate on its own.
+
+### Precedent in SEP-2640
+
+The pattern this SEP proposes is not new to the protocol. SEP-2640, the Skills Extension, was accepted with a listing whose entries carry per-file digests and sizes, a single-item retrieval method used to refresh one entry after a digest mismatch without re-enumerating the catalog, the SEP-2549 cache fields on the listing, and host guidance to fetch lazily, cache what is fetched, and validate the cache by digest. Its rationale for a complete listing entry, that a host connecting to many servers should not pay a second round trip per skill, is the mirror image of this SEP's rationale for an incomplete one: for tools the second round trip is the point, because the definition it fetches is what a wholesale listing would otherwise force on every client. Where the two designs can align without cost, on digest format, size, cache fields, error code, and the security status of a digest, this SEP aligns with SEP-2640 deliberately.
 
 ### Prior art
 
@@ -395,7 +411,7 @@ Two costs are worth stating plainly:
 
 The prototype's existing tests cover canonical serialization, digest stability under key reordering, change detection on schema and annotation mutation, pagination, batch bounds, unknown-name rejection, and cache reconciliation including eviction of removed names. The following are added or changed for this revision:
 
-1. **Digest format.** Every digest has the `sha256:` prefix and a lowercase 64-character hex value.
+1. **Digest format and size.** Every digest has the `sha256:` prefix and a lowercase 64-character hex value, and every `size` equals the byte length of the canonical serialization the digest was computed over.
 2. **Digest coverage.** Mutating any field of a `Tool`, including `icons` and `_meta`, changes the digest; the digest is unaffected by key order at any depth.
 3. **Set equality.** For a fixed session, the set of names from `tools/manifest` (all pages) equals the set from `tools/list`.
 4. **Describe consistency.** For every name in the manifest, `tools/describe` returns a `Tool` whose computed digest equals the manifest's digest.
@@ -411,7 +427,8 @@ Wire-format conformance against an SDK-integrated implementation, and the confor
 1. **Manifest-level digest.** A single digest over the whole manifest would let a client confirm "nothing changed" with one comparison instead of one per entry. It interacts awkwardly with pagination, since the value would have to be stable across pages. Deferred; input welcome.
 2. **Icons in the manifest entry.** A tool-picker UI would want icons without fetching definitions. They are excluded to keep the entry minimal. Whether they belong in the core entry or in a display-oriented extension is open.
 3. **Minimum batch bound.** The SHOULD of 50 names is a judgement. Implementers with large catalogs may have better data.
-4. **Shape of the grouping extension.** Whether the Primitive Grouping Interest Group's work lands as additional optional fields on `ToolManifestEntry`, as a separate method, or both, is that group's decision. This SEP only commits to keeping the entry extensible.
+4. **Method name for retrieval.** SEP-2640 named its single-item retrieval method `skills/get`. `tools/describe` is batched, which is a reason the names may legitimately differ, but `tools/get` would align with the precedent. Input welcome.
+5. **Shape of the grouping extension.** Whether the Primitive Grouping Interest Group's work lands as additional optional fields on `ToolManifestEntry`, as a separate method, or both, is that group's decision. This SEP only commits to keeping the entry extensible.
 
 ## Acknowledgments
 
