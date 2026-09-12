@@ -1,4 +1,4 @@
-# SEP-2636: Progressive Tool Disclosure
+# SEP-2636: Tool Manifests for Incremental Catalog Synchronization
 
 - **Status**: Draft
 - **Type**: Standards Track
@@ -9,37 +9,47 @@
 
 ## Abstract
 
-This SEP introduces **Progressive Tool Disclosure**: a two-stage discovery lifecycle that decouples the lightweight catalog payload returned to a model from the full invocation contract required to call a tool.
+This SEP adds two coordination primitives to the tools capability that let a client obtain and maintain a server's tool definitions incrementally rather than wholesale.
 
-Two new methods are added: `tools/catalog` returns a compact `ToolCatalogEntry` per tool — name, one-line summary, tags, optional annotations, and a content hash of the underlying schema; `tools/describe` returns the complete `Tool` (including `inputSchema` and `outputSchema`) for an explicitly named subset. A new server capability, `tools.progressiveDisclosure`, gates both methods. The existing `tools/list` method is unchanged and remains the backward-compatible floor.
+The first is `tools/manifest`, which returns, for every tool the session may see, a compact manifest entry: the tool's identity, a server-computed `digest` of its full definition, and optional annotations, but no invocation schema. The second is `tools/describe`, which returns the complete `Tool` definitions for an explicitly named subset. A server capability, `tools.manifest`, advertises both. `tools/list` is unchanged and remains the compatibility floor. The manifest and `tools/list` MUST return the same set of tools for a session, and every name in the manifest MUST be describable.
 
-The `tools/catalog` method also accepts an optional opaque `query` string with semantics drawn from [SEP-1821](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1821), allowing servers to return a search-filtered subset of the catalog. Together these primitives let agents perform a `query → describe → call` flow that loads full JSON Schemas only for the small set of tools actually being considered for invocation, materially reducing the per-turn context footprint of MCP integrations with tool catalogs of more than a handful of entries.
+The relationship between the two methods is the one between a manifest and the content it indexes. The manifest lists entries by name with a digest, `tools/describe` fetches the full definition by name, and a client reconciles its cached copy by comparing digests. The digest is computed over the full `Tool` object under a defined canonical serialization, so two parties that hold the same definition compute the same value. It gives a client a per-tool freshness key that neither the catalog-wide `notifications/tools/list_changed` notification nor the result-wide TTL fields of SEP-2549 provide.
+
+This SEP makes no claim about model context tokens. How and when a host places definitions in front of a model is a host concern, already addressed by client-side progressive discovery and by native provider tool search. This SEP addresses the step before that: how a client, or an intermediary acting for many clients, acquires and keeps current the definitions those mechanisms depend on, when the catalog is large or changes often.
 
 ## Motivation
 
-The current `tools/list` method returns a single monolithic `Tool` record per available tool, comprising `name`, `description`, full `inputSchema`, optional `outputSchema`, and `annotations`. For real-world MCP servers — particularly those wrapping enterprise applications — this record is large: 300–2000 tokens per tool is typical, dominated by JSON Schema for parameters with rich enums, format hints, and nested object shapes.
+### The host side of the problem is solved; the wire side is not
 
-In every MCP host that exposes tools to an LLM today, this entire payload is materialised in the model's context on every turn, before the model has even decided whether tools are relevant to the user's request. The cost scales linearly with catalog size and is paid on every chat completion.
+Hosts that connect to many servers no longer place every tool definition in front of the model. The recommended pattern is to fetch definitions with `tools/list`, hold them outside the model's context, expose a search meta-tool, and load a definition only when the model selects it. Several model providers now offer this natively. Context cost is therefore a host optimisation, and this SEP does not attempt to improve on it.
 
-A worked example from the MindStaq MCP service (project, task, OKR, and issue management for a SaaS work-management platform):
+Every such pattern, however, begins with the host holding a complete and current copy of every definition, and the protocol offers exactly one way to obtain that: `tools/list`, which returns every tool with its full schema. This is adequate for a server with a few dozen tools. It stops being adequate in two situations that are now common.
 
-| Metric                                | Value          |
-| ------------------------------------- | -------------- |
-| Distinct tools exposed                | ~25            |
-| Mean tool record size                 | ~700 tokens    |
-| Per-turn `tools/list` context cost    | ~17,500 tokens |
-| Tools actually invoked per turn (p95) | 0–2            |
-| Wasted tokens per turn (p95)          | ~16,000+       |
+### Situation 1: catalogs too large to fetch wholesale
 
-The community has converged on the symptom from several angles:
+Servers that front an entire product surface, and intermediaries that aggregate many upstream servers, routinely expose hundreds to thousands of tools. An aggregator that fronts several hundred upstream servers must, on every cold start and every reconnect, pull every definition from every server to rebuild the index its own search depends on. The transfer is dominated by JSON Schema that the aggregator will not read until a tool is actually selected, and most of it is unchanged since the last fetch.
 
-- **[SEP-1821](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1821)** (Dynamic Tool Discovery, Egor Orlov) adds a `query` parameter so `tools/list` returns a filtered subset. This reduces _how many_ records are returned but does not reduce the per-record payload — matching tools still ship full schemas.
-- **[SEP-1862](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/1862)** (Tool Resolution, Nick Cooper) adds `tools/resolve` for refining per-call annotations once arguments are known. Orthogonal to upfront catalog cost.
-- **[SEP-1881](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1881)** (Scope-Filtered Tool Discovery, Kevin Gao) standardises auth-driven filtering. Also orthogonal: a user with full scopes legitimately holding 200 tools is not helped.
-- **[Issue #2470](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/2470)** (Capability-Aware Tool Presentation) proposes per-tool tier hints. Reduces individual record size but leaves the catalog enumeration model unchanged.
-- **[SEP-2564](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2564)** (Server-Side Filtering for List Methods, LucaButBoring) adds glob-based name filters. Pattern matching only; matching tools still ship full schemas.
+There is no way today to ask a server for the definitions of three named tools. A client that already knows which tools it needs still pays for the whole catalog.
 
-What is missing across all of these is the structural change: separating the **discovery contract** (what tools exist, what they roughly do) from the **invocation contract** (the exact schema needed to call them). Once those are separate, every other proposal in this space composes more cleanly: search filters operate on the cheap surface, scope filtering hides records at the catalog layer, capability tiers describe how the catalog summary is generated, and tool resolution refines annotations after `describe`.
+### Situation 2: catalogs that change while cached
+
+`notifications/tools/list_changed` tells a client that something in the catalog changed. It does not say what. The TTL fields introduced by SEP-2549 tell a client how long a whole list result may be trusted. Neither lets a client that has cached a thousand definitions discover that one of them is stale without refetching all of them. For a server whose tools are generated from a live schema, a permission model, or a plugin system, the catalog changes frequently and the whole-catalog refetch is paid frequently.
+
+### The pattern is being reinvented privately
+
+Implementations that hit these limits have converged on the same shape: a lightweight index entry per tool, a fetch of the full definition by a stable identifier, and invocation by that identifier. Publicly visible examples include tool aggregators that return search hits with an inline schema for some entries and a reference to fetch it for others, and servers that group operations behind domain entrypoints whose result data carries the child definitions and a content-derived generation number.
+
+Because the protocol has no primitive for this, each implementation defines its own identifiers, its own fetch contract, and its own staleness signal. The practical cost falls on hosts. A tool discovered through one of these private layers arrives as result data behind a generic wrapper tool. The host cannot register it as a native tool with the model provider, cannot read its annotations before deciding to inspect it, and cannot apply per-tool policy, because from the host's point of view the only tool that exists is the wrapper. The wrapper's author, not the host, ends up owning authorisation and audit for every call that passes through it.
+
+### Why this belongs in the protocol
+
+The two capabilities this SEP adds fail the "do it client-side" test in the strict sense: a client cannot fetch a subset of definitions unless the server offers a method that accepts names, and a client cannot know whether its cached copy of a definition matches the server's without a value the server computes over its own copy. Both require the client and server to agree on a contract, and both are useful to every implementation that has outgrown wholesale `tools/list`, whether it is a host, an aggregator, or a server-side polyfill over an existing catalog.
+
+Standardising the shape also restores tool identity across intermediaries. An aggregator that speaks these primitives to its upstream servers can keep its index current at the cost of the entries that actually changed. An aggregator that speaks them to its downstream hosts hands over real `Tool` definitions that the host can treat exactly as it treats tools from any other server, including registering them with a provider's native tool search.
+
+### What this SEP measures
+
+The claims above are about transfer cost and freshness, not tokens. The reference implementation therefore reports, for a synthetic server of one thousand tools: bytes and definitions transferred at cold start with and without the manifest; bytes and definitions transferred to reconcile a warm cache after one, ten, and one hundred tools change; and the number of round trips in each case. Those figures, not context tokens, are the basis on which this proposal should be judged.
 
 ## Specification
 
