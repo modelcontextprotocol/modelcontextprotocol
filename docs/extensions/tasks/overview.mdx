@@ -1,14 +1,15 @@
 ---
-title: MCP Tasks
+title: Tasks
+sidebarTitle: Overview
 description: Asynchronous task execution for long-running MCP operations
 ---
 
-The [experimental-ext-tasks repository](https://github.com/modelcontextprotocol/experimental-ext-tasks) contains the full specification and documentation for MCP Tasks.
+The [ext-tasks repository](https://github.com/modelcontextprotocol/ext-tasks) contains the full specification and documentation for MCP Tasks.
 
 <Card
-  title="modelcontextprotocol/experimental-ext-tasks"
+  title="modelcontextprotocol/ext-tasks"
   icon="github"
-  href="https://github.com/modelcontextprotocol/experimental-ext-tasks"
+  href="https://github.com/modelcontextprotocol/ext-tasks"
 >
   Full specification and documentation for MCP Tasks.
 </Card>
@@ -135,7 +136,7 @@ state does not change.
 
 ## Notifications
 
-Servers can push status updates via `notifications/tasks/status`. Clients opt
+Servers can push status updates via `notifications/tasks`. Clients opt
 into these through the `subscriptions/listen` mechanism. Each notification
 carries the full task state, eliminating the need for an extra `tasks/get`
 round-trip.
@@ -152,19 +153,24 @@ To consume task-augmented responses, your client must:
 <Steps>
 <Step title="Declare support">
 
-Include the extension in per-request capabilities:
+Include the extension in its per-request capabilities:
 
-```json
+```jsonc
 {
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "...",
   "params": {
+    // Other fields...
     "_meta": {
+      // Other fields...
       "io.modelcontextprotocol/clientCapabilities": {
         "extensions": {
-          "io.modelcontextprotocol/tasks": {}
-        }
-      }
-    }
-  }
+          "io.modelcontextprotocol/tasks": {},
+        },
+      },
+    },
+  },
 }
 ```
 
@@ -204,13 +210,18 @@ To return tasks from your server:
 
 Include the extension in your `server/discover` capabilities:
 
-```json
+```jsonc
 {
-  "capabilities": {
-    "extensions": {
-      "io.modelcontextprotocol/tasks": {}
-    }
-  }
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    // Other fields...
+    "capabilities": {
+      "extensions": {
+        "io.modelcontextprotocol/tasks": {},
+      },
+    },
+  },
 }
 ```
 
@@ -254,7 +265,7 @@ non-`cancelled` terminal status.
 
 <Note>
 
-MCP Tasks is an extension to the [core MCP specification](/specification). Host
+MCP Tasks is an extension to the [core MCP specification](/specification/latest). Host
 support varies by client.
 
 </Note>
@@ -264,4 +275,4 @@ clients. Task support requires explicit opt-in from both client and server.
 
 ## Specification
 
-The Tasks extension is specified in the [experimental-ext-tasks repository](https://github.com/modelcontextprotocol/experimental-ext-tasks). It uses the standard MCP [extension negotiation](/extensions/overview#negotiation) mechanism: clients and servers declare support in the `extensions` field of their capabilities during initialization.
+The Tasks extension is specified in the [ext-tasks repository](https://github.com/modelcontextprotocol/ext-tasks). It uses the standard MCP [extension negotiation](/extensions/overview#negotiation) mechanism: clients declare support in the `extensions` field of the `io.modelcontextprotocol/clientCapabilities` they send in each request's `_meta`, and servers advertise theirs in the capabilities returned by [`server/discover`](/specification/draft/server/discover).

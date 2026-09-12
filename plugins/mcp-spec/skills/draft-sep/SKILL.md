@@ -50,7 +50,7 @@ When unsure, the guidelines say to ask in Discord before starting significant wo
 
 Ask the user these six questions before touching any files. The answers feed directly into the draft.
 
-1. **SEP type?** Standards Track (core protocol feature), Extensions Track (extension rather than core — see SEP-2133), Informational (guidelines/design notes), or Process (governance/workflow change). Most SEPs are Standards Track. Note: `seps/TEMPLATE.md` and the SEP guidelines list only three types; Extensions Track was added by SEP-2133 and has not yet been backfilled into those docs.
+1. **SEP type?** Standards Track (core protocol feature), Extensions Track (extension rather than core — see SEP-2133), Informational (guidelines/design notes), or Process (governance/workflow change). Most SEPs are Standards Track.
    - **If Extensions Track:** also ask which Working Group and Extension Maintainers will be responsible for the extension — SEP-2133 makes this a hard requirement, and an Extensions Track SEP MUST have at least one reference implementation in an official SDK prior to review.
 2. **Is this a breaking change?** Determines how much weight the Backward Compatibility section carries.
 3. **Prototype status?** There are two distinct gates: a working prototype is required before a SEP can be **accepted**, and a complete reference implementation is required before it can reach **Final**. The prototype proves feasibility — it doesn't need to be production-ready, but it must be runnable, not pseudocode. Does one exist, is one in progress, or is it still TBD?
@@ -113,7 +113,7 @@ Everything above the `---` rule in the template is required — write "none iden
 **Preamble notes:**
 
 - `Status:` — leave blank or omit. Authors should request status changes through their sponsor rather than setting the field themselves.
-- `Type:` — from Q1. `seps/TEMPLATE.md` lists only `Standards Track | Informational | Process`, but `Extensions Track` is valid here per SEP-2133.
+- `Type:` — from Q1: `Standards Track | Informational | Process | Extensions Track`.
 - `Created:` — today's date in `YYYY-MM-DD` format.
 - `Author(s):` — `Name <email> (@github-username)` from Q5.
 - `Sponsor:` — `@github-username` from Q5, or the literal `None`.

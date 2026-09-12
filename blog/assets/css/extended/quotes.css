@@ -1,0 +1,284 @@
+/* ─── Quote cards (quotes / quote shortcodes) ────────────────────────────── */
+/* A row of testimonial cards separated by hairline dividers. The track is a
+   scroll-snap carousel; nav controls are injected by the shortcode's script
+   and stay hidden when everything fits one view. */
+
+/* The strip breaks out of the prose column: symmetric negative margins grow
+   it toward the viewport edges, capped at 1200px so it stays sane on wide
+   monitors. The viewport bound is 50vw - 50% - 32px per side. 100vw includes
+   the page scrollbar, so the 32px gutter both absorbs the scrollbar width
+   and keeps a visible margin, which is what prevents a page-level horizontal
+   scrollbar. The prose column is centered in the viewport, so symmetric
+   margins keep the strip centered too. */
+.mcp-quotes {
+    --mcp-quotes-bleed: max(0px, min((1200px - 100%) / 2, 50vw - 50% - 32px));
+    margin: 40px calc(-1 * var(--mcp-quotes-bleed));
+}
+
+/* A lone quote is a pull quote, not a strip: it stays in the prose column. */
+.mcp-quotes:has(.mcp-quote:only-child) {
+    --mcp-quotes-bleed: 0px;
+}
+
+.mcp-quotes-track {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 100%;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+}
+
+.mcp-quotes-track::-webkit-scrollbar {
+    display: none;
+}
+
+/* When more cards exist than fit one view, they are sized a bit narrower so
+   a slice of the next card peeks at the right edge, signaling that the strip
+   scrolls. Sets that fit exactly (1, 2, or 3 cards per breakpoint) keep the
+   full division and no peek. */
+@media (max-width: 599px) {
+    .mcp-quotes-track:has(> .mcp-quote + .mcp-quote) {
+        grid-auto-columns: calc(100% - 44px);
+    }
+}
+
+@media (min-width: 600px) {
+    .mcp-quotes-track {
+        grid-auto-columns: 50%;
+    }
+}
+
+@media (min-width: 600px) and (max-width: 899px) {
+    .mcp-quotes-track:has(> .mcp-quote:nth-child(3)) {
+        grid-auto-columns: calc((100% - 56px) / 2);
+    }
+}
+
+@media (min-width: 900px) {
+    .mcp-quotes-track {
+        grid-auto-columns: calc(100% / 3);
+    }
+
+    .mcp-quotes-track:has(> .mcp-quote:nth-child(4)) {
+        grid-auto-columns: calc((100% - 72px) / 3);
+    }
+}
+
+.post-content .mcp-quote {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    margin: 0;
+    padding: 8px 24px;
+    border-inline-start: 1px solid var(--border);
+    scroll-snap-align: start;
+}
+
+.post-content .mcp-quote:first-child {
+    padding-inline-start: 0;
+    border-inline-start: none;
+}
+
+/* A lone quote reads as a pull quote: full track width, capped measure. */
+.mcp-quotes-track:has(> .mcp-quote:only-child) {
+    grid-auto-columns: 100%;
+}
+
+.post-content .mcp-quote:only-child {
+    padding-inline-end: 0;
+}
+
+.post-content .mcp-quote:only-child .mcp-quote-text {
+    max-width: 640px;
+}
+
+/* 1-up mobile: tighter padding, but keep the hairline so the peeking next
+   card reads as a separate card. */
+@media (max-width: 599px) {
+    .post-content .mcp-quote {
+        padding-inline: 16px;
+    }
+}
+
+/* Logos render at a common cap height regardless of the SVG's own aspect
+   ratio. Inline SVGs inherit currentColor so they track the theme. */
+.mcp-quote-logo {
+    display: block;
+    height: 28px;
+    margin-bottom: 20px;
+    color: var(--primary);
+}
+
+.mcp-quote-logo svg,
+.mcp-quote-logo img {
+    display: block;
+    height: 100%;
+    width: auto;
+    max-width: 100%;
+}
+
+/* PaperMod gives .post-content img a 1rem vertical margin and rounded
+   corners, which pushed raster logos 16px below the svg and text logos.
+   Reset both (with the same .post-content specificity bump the other
+   resets use) so every logo kind starts on the same top line. */
+.post-content .mcp-quote-logo svg,
+.post-content .mcp-quote-logo img {
+    margin: 0;
+    border-radius: 0;
+}
+
+/* Paired logo variants (the quote shortcode's `logo-dark` param): the light
+   file renders in light mode, the dark file in dark mode. Theme switching
+   follows PaperMod's body.dark class toggle. */
+body.dark .mcp-quote-logo-light,
+body:not(.dark) .mcp-quote-logo-dark {
+    display: none;
+}
+
+.mcp-quote-logo-text {
+    font-size: 18px;
+    font-weight: 400;
+    line-height: 28px;
+    letter-spacing: -0.01em;
+    color: var(--primary);
+}
+
+/* Reset PaperMod's blockquote treatment (left bar, italic-ish inset). */
+.post-content .mcp-quote-text {
+    margin: 0;
+    padding: 0;
+    border: none;
+    font-size: 16px;
+    font-style: normal;
+    line-height: 1.6;
+    color: var(--content);
+}
+
+.post-content .mcp-quote-text p {
+    display: inline;
+    margin: 0;
+    font-size: inherit;
+}
+
+/* Attribution: the name bold on one line, the title regular and muted on the
+   next. PaperMod bolds figure > figcaption wholesale, so the figcaption is
+   reset to 400 and only the name span re-bolds (700, matching the blog's
+   strong text). Both lines share one tight line-height so the pair reads as
+   a unit, not two paragraphs. */
+.post-content .mcp-quote-attrib {
+    margin-top: auto;
+    padding-top: 16px;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 1.45;
+    color: var(--secondary);
+}
+
+.mcp-quote-attrib-name {
+    display: block;
+    font-weight: 700;
+    color: var(--content);
+}
+
+.mcp-quote-attrib-title {
+    display: block;
+}
+
+/* PaperMod's .post-content figure > figcaption (0,2,1) adds margin:8px 0 16px
+   to the attribution. The 16px bottom margin inflated the shared attribution
+   row, so the card dividers hung 16px longer below the content than the 8px
+   they extend above the logos, and the 8px top margin also beat the flex
+   fallback's margin-top:auto bottom-alignment. Re-own both margins at higher
+   specificity; the subgrid block below still wins its margin-top:0 by order. */
+.post-content .mcp-quote .mcp-quote-attrib {
+    margin: auto 0 0;
+}
+
+/* Attributions start on the same line in every card. The track exposes three
+   explicit rows (logo / quote / attribution) and each card adopts them via
+   subgrid, so the quote row is sized by the longest quote in the set and
+   every attribution starts at the same y, on every carousel page. Long
+   quotes spill downward inside that row; short cards keep the open space.
+   Browsers without subgrid keep the flex column above, where attributions
+   bottom-align instead. Skipped under 600px, where cards show one per view
+   and cross-card alignment would only add empty space. */
+@media (min-width: 600px) {
+    @supports (grid-template-rows: subgrid) {
+        .mcp-quotes-track {
+            grid-template-rows: auto auto auto;
+        }
+
+        .post-content .mcp-quote {
+            display: grid;
+            grid-template-rows: subgrid;
+            grid-row: span 3;
+        }
+
+        .post-content .mcp-quote .mcp-quote-attrib {
+            margin-top: 0;
+            align-self: start;
+        }
+    }
+}
+
+/* ─── Carousel controls ──────────────────────────────────────────────────── */
+.mcp-quotes-nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 28px;
+}
+
+.mcp-quotes-nav[hidden] {
+    display: none;
+}
+
+.mcp-quotes-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    color: var(--primary);
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    cursor: pointer;
+    transition: border-color 0.15s ease;
+}
+
+@media (hover: hover) {
+    .mcp-quotes-btn:not(:disabled):hover {
+        border-color: var(--primary);
+    }
+}
+
+.mcp-quotes-btn:disabled {
+    opacity: 0.35;
+    cursor: default;
+}
+
+.mcp-quotes-dots {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.mcp-quotes-dot {
+    width: 8px;
+    height: 8px;
+    padding: 0;
+    background: var(--tertiary);
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.mcp-quotes-dot[aria-current="true"] {
+    background: var(--primary);
+}

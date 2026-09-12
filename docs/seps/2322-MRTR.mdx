@@ -5,24 +5,32 @@ description: "Multi Round-Trip Requests"
 ---
 
 <div className="flex items-center gap-2 mb-4">
-  <Badge color="blue" shape="pill">
-    Accepted
+  <Badge color="green" shape="pill">
+    Final
   </Badge>
   <Badge color="gray" shape="pill">
     Standards Track
   </Badge>
 </div>
 
-| Field         | Value                                                                                                                     |
-| ------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| **SEP**       | 2322                                                                                                                      |
-| **Title**     | Multi Round-Trip Requests                                                                                                 |
-| **Status**    | Accepted                                                                                                                  |
-| **Type**      | Standards Track                                                                                                           |
-| **Created**   | 2026-02-03                                                                                                                |
-| **Author(s)** | Mark D. Roth ([@markdroth](https://github.com/markdroth)), Caitie McCaffrey ([@CaitieM20](https://github.com/CaitieM20)), |
-| **Sponsor**   | Caitie McCaffrey ([@CaitieM20](https://github.com/CaitieM20))                                                             |
-| **PR**        | [#2322](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2322)                                           |
+<Note>
+  This SEP has reached Final status and is preserved as a historical record of
+  the design as accepted. Changes made to the protocol after finalization are
+  not reflected here. Refer to the [current
+  specification](/specification/latest) and its changelog for authoritative
+  requirements.
+</Note>
+
+| Field         | Value                                                                                                                                                                            |
+| ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **SEP**       | 2322                                                                                                                                                                             |
+| **Title**     | Multi Round-Trip Requests                                                                                                                                                        |
+| **Status**    | Final                                                                                                                                                                            |
+| **Type**      | Standards Track                                                                                                                                                                  |
+| **Created**   | 2026-02-03                                                                                                                                                                       |
+| **Author(s)** | Mark D. Roth ([@markdroth](https://github.com/markdroth)), Caitie McCaffrey ([@CaitieM20](https://github.com/CaitieM20)), Gabriel Zimmerman ([@gjz22](https://github.com/gjz22)) |
+| **Sponsor**   | Caitie McCaffrey ([@CaitieM20](https://github.com/CaitieM20))                                                                                                                    |
+| **PR**        | [#2322](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2322)                                                                                                  |
 
 ---
 
@@ -218,18 +226,14 @@ how that would look in the typescript MCP schema:
 
 ```typescript
 export type InputRequest =
-  | CreateMessageRequest
-  | ElicitRequest
-  | ListRootsRequest;
+  CreateMessageRequest | ElicitRequest | ListRootsRequest;
 
 export interface InputRequests {
   [key: string]: InputRequest;
 }
 
 export type InputResponse =
-  | CreateMessageResult
-  | ElicitResult
-  | ListRootsResult;
+  CreateMessageResult | ElicitResult | ListRootsResult;
 
 export interface InputResponses {
   [key: string]: InputResponse;
@@ -338,7 +342,13 @@ export interface InputResponseRequestParams extends RequestParams {
 }
 ```
 
-Since this change creates a polymorphic response for method calls like 'tools/call', we are introducing a new field to `Result` which indicate the `ResultType`. The client should parse this field to determine the type of the Result contained in the message. If this field is not provided the Client should assume a `ResultType` of "complete" for backwards compatibility. The schema change will look like this:
+Since this change creates a polymorphic response for method calls like `tools/call`, we are introducing a new field to `Result` which indicate the `ResultType`. The client should parse this field to determine the type of the `Result` contained in the message. If this field is not provided, the Client should assume a `ResultType` of `"complete"` for backwards compatibility.
+
+Extensions **MAY** add additional `ResultType` values. The set of supported `ResultType` values **MUST** be created from the set defined in the core protocol and include any additional values of supported extensions that are advertised via capabilities.
+
+The Client **SHOULD** treat unrecognized values as invalid protocol responses.
+
+The schema change will look like this:
 
 ```typescript
 /**
@@ -355,7 +365,8 @@ export interface Result {
 
 export type ResultType =
   | "complete" // the request completed successfully and the result contains the final content.
-  | "input_required"; // the request is incomplete and the result contains an {@link InputRequiredResult} object
+  | "input_required" // the request is incomplete and the result contains an {@link InputRequiredResult} object
+  | string; // open to extensions
 ```
 
 We anticipate this field will be useful for future extensibility, as it allows us to introduce new types of results and can also apply to `tasks` as well.
@@ -1264,7 +1275,7 @@ In the ephemeral workflow, this would look like the following:
 }
 ```
 
-2. The Server responds wit an incomplete response, indicating that the client needs to provide missing information for the request to succeed.
+2. The Server responds with an incomplete response, indicating that the client needs to provide missing information for the request to succeed.
 
 In the persistent workflow, this would look like the following:
 Step 7 from above: <b>Client Request</b> The client mistakenly or maliciously sends unexpected, but well-formed data to the server in response to the input request.
@@ -1292,7 +1303,7 @@ Step 7 from above: <b>Client Request</b> The client mistakenly or maliciously se
 }
 ```
 
-Step 8 from above. <b>Server Response</b> Server acknowledges the receipt of the response by sending a `JSONRPCResultResponse`. However, since the response is missing required information, the server does not proceed with processing the taks and leaves the Task status as `input_required`. The next time the client calls `tasks/result`, the server responds with a new `inputRequest` requesting the necessary information again.
+Step 8 from above. <b>Server Response</b> Server acknowledges the receipt of the response by sending a `JSONRPCResultResponse`. However, since the response is missing required information, the server does not proceed with processing the task and leaves the Task status as `input_required`. The next time the client calls `tasks/result`, the server responds with a new `inputRequest` requesting the necessary information again.
 
 ```json
 {

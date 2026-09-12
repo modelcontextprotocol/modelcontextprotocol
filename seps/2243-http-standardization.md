@@ -42,6 +42,8 @@ These headers are **required** for compliance with the MCP version in which they
 
 > **Rationale**: This requirement prevents potential security vulnerabilities and error conditions that could arise when different components in the network rely on different sources of truth. For example, a load balancer or gateway might use the header values to make routing decisions, while the MCP server uses the body values for execution. This requirement applies to any network intermediary that processes the message body, as well as the MCP server itself.
 
+> **Implementation Note**: When validating integer parameter values, servers SHOULD compare the header value and the body value numerically rather than as strings (e.g., `42.0` and `42` are considered equal).
+
 **Case Sensitivity**: Header names (called "field names" in [RFC 9110](https://datatracker.ietf.org/doc/html/rfc9110#name-field-names)) are case-insensitive. Clients and servers MUST use case-insensitive comparisons for header names.
 
 #### Example: tools/call Request
@@ -160,11 +162,13 @@ The `x-mcp-header` property specifies the name portion used to construct the hea
 **Constraints on `x-mcp-header` values**:
 
 - MUST NOT be empty
-- MUST contain only ASCII characters (excluding space and `:`)
+- MUST match HTTP field-name token syntax (`1*tchar`, [RFC 9110 Section 5.1](https://datatracker.ietf.org/doc/html/rfc9110#section-5.1))
+- MUST NOT contain control characters, including carriage return (CR, `\r`) or line feed (LF, `\n`)
 - MUST be case-insensitively unique among all `x-mcp-header` values in the `inputSchema`
-- MUST only be applied to parameters with primitive types (number, string, boolean)
+- MUST only be applied to parameters with primitive types (integer, string, boolean). Parameters with type `number` are not permitted. Integer values MUST be within the safe range for JavaScript (−2^53+1 to 2^53−1)
+- MAY be applied to properties at any nesting depth within the `inputSchema`, not only top-level properties
 
-Clients MUST reject tool definitions where any `x-mcp-header` value violates these constraints. Rejection means the client MUST exclude the invalid tool from the result of `tools/list`. Clients SHOULD log a warning when rejecting a tool definition, including the tool name and the reason for rejection. This behavior ensures that a single malformed tool definition does not prevent other valid tools from being used.
+Clients using the Streamable HTTP transport MUST reject tool definitions where any `x-mcp-header` value violates these constraints. Rejection means the client MUST exclude the invalid tool from the result of `tools/list`. Clients SHOULD log a warning when rejecting a tool definition, including the tool name and the reason for rejection. This behavior ensures that a single malformed tool definition does not prevent other valid tools from being used. Clients using other transports (e.g., stdio) MAY ignore `x-mcp-header` annotations entirely.
 
 **Example Tool Definition**:
 
@@ -390,7 +394,7 @@ Clients MUST apply the following encoding rules in order:
 
 1. **Type conversion**: Convert the parameter value to its string representation:
    - `string`: Use the value as-is
-   - `number`: Convert to decimal string representation (e.g., `42`, `3.14`)
+   - `integer`: Convert to decimal string representation (e.g., `42`, `-7`)
    - `boolean`: Convert to lowercase `"true"` or `"false"`
 
 2. **Whitespace check**: If the string starts or ends with whitespace (space or tab):
@@ -411,16 +415,19 @@ When a value cannot be safely represented as a plain ASCII header value, clients
 Mcp-Param-{Name}: =?base64?{Base64EncodedValue}?=
 ```
 
-The prefix `=?base64?` and suffix `?=` indicate that the value is Base64-encoded. Servers and intermediaries that need to inspect these values MUST decode them accordingly.
+The prefix `=?base64?` and suffix `?=` indicate that the value is Base64-encoded. These markers are case-sensitive and MUST appear exactly as shown (lowercase). Servers and intermediaries that need to inspect these values MUST decode them accordingly.
+
+To avoid ambiguity, clients MUST also Base64-encode any plain-ASCII value that matches the sentinel pattern (i.e., starts with `=?base64?` and ends with `?=`).
 
 **Examples**:
 
-| Original Value   | Reason                  | Encoded Header Value                                  |
-| ---------------- | ----------------------- | ----------------------------------------------------- |
-| `"us-west1"`     | Plain ASCII             | `Mcp-Param-Region: us-west1`                          |
-| `"Hello, 世界"`  | Contains non-ASCII      | `Mcp-Param-Greeting: =?base64?SGVsbG8sIOS4lueVjA==?=` |
-| `" padded "`     | Leading/trailing spaces | `Mcp-Param-Text: =?base64?IHBhZGRlZCA=?=`             |
-| `"line1\nline2"` | Contains newline        | `Mcp-Param-Text: =?base64?bGluZTEKbGluZTI=?=`         |
+| Original Value         | Reason                   | Encoded Header Value                                  |
+| ---------------------- | ------------------------ | ----------------------------------------------------- |
+| `"us-west1"`           | Plain ASCII              | `Mcp-Param-Region: us-west1`                          |
+| `"Hello, 世界"`        | Contains non-ASCII       | `Mcp-Param-Greeting: =?base64?SGVsbG8sIOS4lueVjA==?=` |
+| `" padded "`           | Leading/trailing spaces  | `Mcp-Param-Text: =?base64?IHBhZGRlZCA=?=`             |
+| `"line1\nline2"`       | Contains newline         | `Mcp-Param-Text: =?base64?bGluZTEKbGluZTI=?=`         |
+| `"=?base64?literal?="` | Matches sentinel pattern | `Mcp-Param-Val: =?base64?PT9iYXNlNjQ/bGl0ZXJhbD89?=`  |
 
 #### Client Behavior
 
@@ -431,6 +438,8 @@ When constructing a `tools/call` request via HTTP transport, the client MUST:
 1. Inspect the tool's `inputSchema` for properties marked with `x-mcp-header` and extract the value for each parameter
 1. Encode the values according to the rules in [Value Encoding](#value-encoding)
 1. Append a `Mcp-Param-{Name}: {Value}` header to the request:
+
+> **Implementation Note**: Clients MUST construct `Mcp-Param-*` headers using the most recently obtained `inputSchema` for the tool. A client that has never obtained the tool's `inputSchema` SHOULD send the request without `Mcp-Param-*` headers. If the server rejects the request because required `Mcp-Param-*` headers are missing or do not match the body, the client SHOULD call `tools/list` to obtain the current `inputSchema`, then retry the original request with the appropriate headers. Clients MAY pre-load tool definitions via other means (e.g., from a previous session or configuration) to enable header emission without a prior `tools/list` call.
 
 #### Server Behavior
 
@@ -469,6 +478,8 @@ This error code is in the JSON-RPC implementation-defined server error range (`-
 - A header value contains invalid characters
 
 > **Note**: Intermediaries MUST return an appropriate HTTP error status (e.g., `400 Bad Request`) for validation failures but are not required to return a JSON-RPC error response.
+
+> **Note**: Intermediaries that enforce policy based on mirrored headers (e.g., routing or rate-limiting by tenant) SHOULD verify that the `MCP-Protocol-Version` header indicates a version that requires header–body validation. If the version is older or the header is absent, the intermediary SHOULD reject the request rather than trusting unvalidated header values.
 
 **Custom Header Handling**:
 
@@ -743,7 +754,7 @@ This section defines edge cases that conformance tests MUST cover to ensure inte
 | Invalid Base64 characters | `=?base64?SGVs!!!bG8=?=` | Server MUST reject with 400 and error code `-32001`; Intermediary MAY reject with 400 status code |
 | Missing prefix            | `SGVsbG8=`               | Server treats as literal value, not Base64                                                        |
 | Missing suffix            | `=?base64?SGVsbG8=`      | Server treats as literal value, not Base64                                                        |
-| Malformed wrapper         | `=?BASE64?SGVsbG8=?=`    | Server MUST accept (case-insensitive prefix)                                                      |
+| Non-lowercase prefix      | `=?BASE64?SGVsbG8=?=`    | Server treats as literal value, not Base64                                                        |
 
 #### Null and Missing Values
 
@@ -769,3 +780,9 @@ Implementation requirements:
 - **Server SDKs**: Provide a mechanism (attribute/decorator) for marking parameters with `x-mcp-header`
 - **Client SDKs**: Implement the client behavior for extracting and encoding header values
 - **Validation**: Both sides must validate header/body consistency
+
+## Changes since SEP became Final
+
+This SEP is preserved as a historical record of what was accepted. The list below tracks changes made to the specification after this SEP reached Final status. Refer to the current [specification](https://modelcontextprotocol.io/specification) for the authoritative, up-to-date requirements.
+
+- **`HeaderMismatch` error code reassigned from `-32001` to `-32020`.** This SEP originally assigned `HeaderMismatch` to `-32001`. The error-code allocation update in [#2907](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2907) reassigned `HeaderMismatch` to `-32020`. All references to `-32001` above should be read as `-32020` when implementing against the current specification.

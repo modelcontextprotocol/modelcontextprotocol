@@ -4,12 +4,7 @@
  * @category Common Types
  */
 export type JSONValue =
-  | string
-  | number
-  | boolean
-  | null
-  | JSONObject
-  | JSONArray;
+  string | number | boolean | null | JSONObject | JSONArray;
 
 /**
  * @category Common Types
@@ -29,12 +24,10 @@ export type JSONArray = JSONValue[];
  * @category JSON-RPC
  */
 export type JSONRPCMessage =
-  | JSONRPCRequest
-  | JSONRPCNotification
-  | JSONRPCResponse;
+  JSONRPCRequest | JSONRPCNotification | JSONRPCResponse;
 
 /** @internal */
-export const LATEST_PROTOCOL_VERSION = "DRAFT-2026-v1";
+export const LATEST_PROTOCOL_VERSION = "2026-07-28";
 /** @internal */
 export const JSONRPC_VERSION = "2.0";
 
@@ -48,7 +41,8 @@ export const JSONRPC_VERSION = "2.0";
  * **Prefix:**
  * - Optional — if specified, MUST be a series of _labels_ separated by dots (`.`), followed by a slash (`/`).
  * - Labels MUST start with a letter and end with a letter or digit. Interior characters may be letters, digits, or hyphens (`-`).
- * - Any prefix consisting of zero or more labels, followed by `modelcontextprotocol` or `mcp`, followed by any label, is **reserved** for MCP use. For example: `modelcontextprotocol.io/`, `mcp.dev/`, `api.modelcontextprotocol.org/`, and `tools.mcp.com/` are all reserved.
+ * - Implementations SHOULD use reverse DNS notation (e.g., `com.example/` rather than `example.com/`).
+ * - Any prefix where the second label is `modelcontextprotocol` or `mcp` is **reserved** for MCP use. For example: `io.modelcontextprotocol/`, `dev.mcp/`, `org.modelcontextprotocol.api/`, and `com.mcp.tools/` are all reserved. However, `com.example.mcp/` is NOT reserved, as the second label is `example`.
  *
  * **Name:**
  * - Unless empty, MUST start and end with an alphanumeric character (`[a-z0-9A-Z]`).
@@ -81,12 +75,19 @@ export interface RequestMetaObject extends MetaObject {
    */
   "io.modelcontextprotocol/protocolVersion": string;
   /**
-   * Identifies the client software making the request. Required.
+   * Identifies the client software making the request. Clients SHOULD
+   * include this field on every request unless specifically configured not
+   * to do so.
    *
    * The {@link Implementation} schema requires `name` and `version`; other
    * fields are optional.
+   *
+   * The value is self-reported by the client and is not verified by the
+   * protocol. It is intended for display, logging, and debugging. Servers
+   * SHOULD NOT use it to change their behavior, and SHOULD NOT rely on it for
+   * security decisions.
    */
-  "io.modelcontextprotocol/clientInfo": Implementation;
+  "io.modelcontextprotocol/clientInfo"?: Implementation;
   /**
    * The client's capabilities for this specific request. Required.
    *
@@ -101,8 +102,59 @@ export interface RequestMetaObject extends MetaObject {
    * If absent, the server MUST NOT send any {@link LoggingMessageNotification | notifications/message}
    * notifications for this request. The client opts in to log messages by
    * explicitly setting a level. Replaces the former `logging/setLevel` RPC.
+   *
+   * @deprecated Deprecated as of protocol version 2026-07-28 (SEP-2577).
+   * Remains in the specification for at least twelve months; see the
+   * deprecated features registry.
    */
   "io.modelcontextprotocol/logLevel"?: LoggingLevel;
+}
+
+/**
+ * Extends {@link MetaObject} with additional notification-specific fields. All key naming rules from `MetaObject` apply.
+ *
+ * @see {@link MetaObject} for key naming rules and reserved prefixes.
+ * @see [General fields: `_meta`](/specification/draft/basic/index#meta) for more details.
+ * @category Common Types
+ */
+export interface NotificationMetaObject extends MetaObject {
+  /**
+   * Identifies the subscription stream a notification was delivered on. The
+   * server MUST include this key on every notification delivered via a
+   * {@link SubscriptionsListenRequest | subscriptions/listen} stream, so the
+   * client can correlate the notification with the originating subscription.
+   * The key is absent on notifications not delivered via a subscription
+   * stream (e.g. progress notifications for an in-flight request), which is
+   * why it is optional here.
+   *
+   * The value is the JSON-RPC ID of the `subscriptions/listen` request that
+   * opened the stream.
+   */
+  "io.modelcontextprotocol/subscriptionId"?: RequestId;
+}
+
+/**
+ * Extends {@link MetaObject} with additional result-specific fields. All key naming rules from `MetaObject` apply.
+ *
+ * @see {@link MetaObject} for key naming rules and reserved prefixes.
+ * @see [General fields: `_meta`](/specification/draft/basic/index#meta) for more details.
+ * @category Common Types
+ */
+export interface ResultMetaObject extends MetaObject {
+  /**
+   * Identifies the server software producing the response. Servers SHOULD
+   * include this field on every response unless specifically configured not
+   * to do so.
+   *
+   * The {@link Implementation} schema requires `name` and `version`; other
+   * fields are optional.
+   *
+   * The value is self-reported by the server and is not verified by the
+   * protocol. It is intended for display, logging, and debugging. Clients
+   * SHOULD NOT use it to change their behavior, and SHOULD NOT rely on it for
+   * security decisions.
+   */
+  "io.modelcontextprotocol/serverInfo"?: Implementation;
 }
 
 /**
@@ -142,7 +194,7 @@ export interface Request {
  * @category Common Types
  */
 export interface NotificationParams {
-  _meta?: MetaObject;
+  _meta?: NotificationMetaObject;
 }
 
 /** @internal */
@@ -161,7 +213,7 @@ export interface Notification {
  * input_required - the request requires additional input and the result contains an {@link InputRequiredResult} object with instructions for the client to provide additional input before retrying the original request.
  * @category Common Types
  */
-export type ResultType = "complete" | "input_required";
+export type ResultType = "complete" | "input_required" | string;
 
 /**
  * Common result fields.
@@ -169,7 +221,7 @@ export type ResultType = "complete" | "input_required";
  * @category Common Types
  */
 export interface Result {
-  _meta?: MetaObject;
+  _meta?: ResultMetaObject;
   /**
    * Indicates the type of the result, which allows the client to determine
    * how to parse the result object.
@@ -291,15 +343,14 @@ export interface InvalidRequestError extends Error {
 /**
  * A JSON-RPC error indicating that the requested method does not exist or is not available.
  *
- * In MCP, this error is returned when a request is made for a method that requires a capability that has not been declared. This can occur in either direction:
+ * In MCP, a server returns this error when a client invokes a method the server does not implement — either a genuinely unknown method, or one gated behind a server capability the server did not advertise (e.g., calling `prompts/list` when the `prompts` capability was not advertised).
  *
- * - A server returning this error when the client requests a capability it doesn't support (e.g., requesting completions when the `completions` capability was not advertised)
- * - A client returning this error when the server requests a capability it doesn't support (e.g., requesting roots when the client did not declare the `roots` capability)
+ * A request that requires a client capability the client did not declare is signalled instead by {@link MissingRequiredClientCapabilityError} (`-32021`).
  *
  * @see {@link https://www.jsonrpc.org/specification#error_object | JSON-RPC 2.0 Error Object}
  *
- * @example Roots not supported
- * {@includeCode ./examples/MethodNotFoundError/roots-not-supported.json}
+ * @example Prompts not supported
+ * {@includeCode ./examples/MethodNotFoundError/prompts-not-supported.json}
  *
  * @category Errors
  */
@@ -353,13 +404,70 @@ export interface InternalError extends Error {
   code: typeof INTERNAL_ERROR;
 }
 
+/*
+ * MCP error codes.
+ *
+ * JSON-RPC 2.0 reserves `-32000` to `-32099` for implementation-defined
+ * server errors. MCP partitions that range:
+ *
+ * - `-32000` to `-32019`: implementation-defined. Existing SDKs and
+ *   implementations use codes here for their own purposes; the specification
+ *   will never define codes in this sub-range, and receivers must not assign
+ *   cross-implementation semantics to them.
+ * - `-32020` to `-32099`: reserved for error codes defined by the MCP
+ *   specification. Every code allocated here is recorded in this file.
+ *   Codes are allocated sequentially starting at `-32020` and proceeding
+ *   toward `-32099`.
+ *
+ * Codes defined by earlier protocol versions remain reserved and are never
+ * reused: `-32002` (resource not found, 2025-11-25 and earlier; replaced by
+ * `-32602`) and `-32042` (URL elicitation required, 2025-11-25 only).
+ */
+
+/**
+ * Error code returned when the HTTP headers of a request do not match the
+ * corresponding values in the request body, or required headers are
+ * missing or malformed.
+ *
+ * @category Errors
+ */
+export const HEADER_MISMATCH = -32020;
+
 /**
  * Error code returned when a server requires a client capability that was
  * not declared in the request's `clientCapabilities`.
  *
  * @category Errors
  */
-export const MISSING_REQUIRED_CLIENT_CAPABILITY = -32003;
+export const MISSING_REQUIRED_CLIENT_CAPABILITY = -32021;
+
+/**
+ * Error code returned when the request's protocol version is not supported
+ * by the server.
+ *
+ * @category Errors
+ */
+export const UNSUPPORTED_PROTOCOL_VERSION = -32022;
+
+/**
+ * Returned when a server rejects a request because the values in the HTTP
+ * headers do not match the corresponding values in the request body, or
+ * because required headers are missing or malformed. For HTTP, the response
+ * status code MUST be `400 Bad Request`.
+ *
+ * @example Header mismatch
+ * {@includeCode ./examples/HeaderMismatchError/header-mismatch.json}
+ *
+ * @category Errors
+ */
+export interface HeaderMismatchError extends Omit<
+  JSONRPCErrorResponse,
+  "error"
+> {
+  error: Error & {
+    code: typeof HEADER_MISMATCH;
+  };
+}
 
 /**
  * Returned when the request's protocol version is unknown to the server or
@@ -377,7 +485,7 @@ export interface UnsupportedProtocolVersionError extends Omit<
   "error"
 > {
   error: Error & {
-    code: typeof INVALID_PARAMS;
+    code: typeof UNSUPPORTED_PROTOCOL_VERSION;
     data: {
       /**
        * Protocol versions the server supports. The client should choose a
@@ -427,15 +535,11 @@ export type EmptyResult = Result;
 
 /** @internal */
 export type InputRequest =
-  | CreateMessageRequest
-  | ListRootsRequest
-  | ElicitRequest;
+  CreateMessageRequest | ListRootsRequest | ElicitRequest;
 
 /** @internal */
 export type InputResponse =
-  | CreateMessageResult
-  | ListRootsResult
-  | ElicitResult;
+  CreateMessageResult | ListRootsResult | ElicitResult;
 
 /**
  * A map of server-initiated requests that the client must fulfill.
@@ -517,9 +621,9 @@ export interface CancelledNotificationParams extends NotificationParams {
   /**
    * The ID of the request to cancel.
    *
-   * This MUST correspond to the ID of a request previously issued in the same direction.
+   * This MUST correspond to the ID of a request the client previously issued.
    */
-  requestId?: RequestId;
+  requestId: RequestId;
 
   /**
    * An optional string describing the reason for the cancellation. This MAY be logged or presented to the user.
@@ -528,7 +632,9 @@ export interface CancelledNotificationParams extends NotificationParams {
 }
 
 /**
- * This notification can be sent by either side to indicate that it is cancelling a previously-issued request.
+ * This notification is sent by the client to indicate that it is cancelling a request it previously issued.
+ *
+ * On stdio, the server also sends this notification, solely to terminate a {@link SubscriptionsListenRequest | subscriptions/listen} stream: it references the ID of the `subscriptions/listen` request that opened the stream. Servers MUST NOT use this notification to cancel any other request.
  *
  * The request SHOULD still be in-flight, but due to communication latency, it is always possible that this notification MAY arrive after the request has already finished.
  *
@@ -558,7 +664,7 @@ export interface CancelledNotification extends JSONRPCNotification {
  */
 export interface DiscoverRequest extends JSONRPCRequest {
   method: "server/discover";
-  params?: RequestParams;
+  params: RequestParams;
 }
 
 /**
@@ -569,7 +675,7 @@ export interface DiscoverRequest extends JSONRPCRequest {
  *
  * @category `server/discover`
  */
-export interface DiscoverResult extends Result {
+export interface DiscoverResult extends CacheableResult {
   /**
    * MCP Protocol Versions this server supports. The client should choose a
    * version from this list for use in subsequent requests.
@@ -579,10 +685,6 @@ export interface DiscoverResult extends Result {
    * The capabilities of the server.
    */
   capabilities: ServerCapabilities;
-  /**
-   * Information about the server software implementation.
-   */
-  serverInfo: Implementation;
   /**
    * Natural-language guidance describing the server and its features.
    *
@@ -619,6 +721,10 @@ export interface ClientCapabilities {
   /**
    * Present if the client supports listing roots.
    *
+   * @deprecated Deprecated as of protocol version 2026-07-28 (SEP-2577).
+   * Remains in the specification for at least twelve months; see the
+   * deprecated features registry.
+   *
    * @example Roots — minimum baseline support
    * {@includeCode ./examples/ClientCapabilities/roots-minimum-baseline-support.json}
    */
@@ -627,14 +733,18 @@ export interface ClientCapabilities {
   /**
    * Present if the client supports sampling from an LLM.
    *
+   * @deprecated Deprecated as of protocol version 2026-07-28 (SEP-2577).
+   * Remains in the specification for at least twelve months; see the
+   * deprecated features registry.
+   *
    * @example Sampling — minimum baseline support
    * {@includeCode ./examples/ClientCapabilities/sampling-minimum-baseline-support.json}
    *
    * @example Sampling — tool use support
    * {@includeCode ./examples/ClientCapabilities/sampling-tool-use-support.json}
    *
-   * @example Sampling — context inclusion support (soft-deprecated)
-   * {@includeCode ./examples/ClientCapabilities/sampling-context-inclusion-support-soft-deprecated.json}
+   * @example Sampling — context inclusion support (deprecated)
+   * {@includeCode ./examples/ClientCapabilities/sampling-context-inclusion-support-deprecated.json}
    */
   sampling?: {
     /**
@@ -666,7 +776,10 @@ export interface ClientCapabilities {
    * (e.g., "io.modelcontextprotocol/oauth-client-credentials"), and values are
    * per-extension settings objects. An empty object indicates support with no settings.
    *
-   * @example Extensions — UI extension with MIME type support
+   * Keys MUST follow the {@link MetaObject | `_meta` key naming rules}, with a
+   * mandatory prefix.
+   *
+   * @example Extensions — MCP Apps (UI) extension with MIME type support
    * {@includeCode ./examples/ClientCapabilities/extensions-ui-mime-types.json}
    */
   extensions?: { [key: string]: JSONObject };
@@ -684,6 +797,10 @@ export interface ServerCapabilities {
   experimental?: { [key: string]: JSONObject };
   /**
    * Present if the server supports sending log messages to the client.
+   *
+   * @deprecated Deprecated as of protocol version 2026-07-28 (SEP-2577).
+   * Remains in the specification for at least twelve months; see the
+   * deprecated features registry.
    *
    * @example Logging — minimum baseline support
    * {@includeCode ./examples/ServerCapabilities/logging-minimum-baseline-support.json}
@@ -753,11 +870,14 @@ export interface ServerCapabilities {
   };
   /**
    * Optional MCP extensions that the server supports. Keys are extension identifiers
-   * (e.g., "io.modelcontextprotocol/apps"), and values are per-extension settings
+   * (e.g., "io.modelcontextprotocol/tasks"), and values are per-extension settings
    * objects. An empty object indicates support with no settings.
    *
-   * @example Extensions — UI extension support
-   * {@includeCode ./examples/ServerCapabilities/extensions-ui.json}
+   * Keys MUST follow the {@link MetaObject | `_meta` key naming rules}, with a
+   * mandatory prefix.
+   *
+   * @example Extensions — Tasks extension support
+   * {@includeCode ./examples/ServerCapabilities/extensions-tasks.json}
    */
   extensions?: { [key: string]: JSONObject };
 }
@@ -941,7 +1061,7 @@ export interface PaginatedRequestParams extends RequestParams {
 
 /** @internal */
 export interface PaginatedRequest extends JSONRPCRequest {
-  params?: PaginatedRequestParams;
+  params: PaginatedRequestParams;
 }
 
 /** @internal */
@@ -977,11 +1097,13 @@ export interface CacheableResult extends Result {
    * Indicates the intended scope of the cached response, analogous to HTTP
    * `Cache-Control: public` vs `Cache-Control: private`.
    *
-   * - `"public"`: Any client or intermediary (e.g., shared gateway, proxy)
-   *   MAY cache the response and serve it to any user.
-   * - `"private"`: Only the requesting user's client MAY cache the response.
-   *   Shared caches (e.g., multi-tenant gateways) MUST NOT serve a cached
-   *   copy to a different user.
+   * - `"public"`: The response does not contain user-specific data. Any
+   *   client or intermediary (e.g., shared gateway, caching proxy) MAY cache
+   *   the response and serve it across authorization contexts.
+   * - `"private"`: The response MAY be cached and reused only within the
+   *   same authorization context. Caches MUST NOT be shared across
+   *   authorization contexts (e.g., a different access token requires a
+   *   different cache).
    *
    */
   cacheScope: "public" | "private";
@@ -1102,9 +1224,6 @@ export interface ReadResourceRequest extends JSONRPCRequest {
  * @example File resource contents
  * {@includeCode ./examples/ReadResourceResult/file-resource-contents.json}
  *
- * @example File resource contents with TTL
- * {@includeCode ./examples/ReadResourceResult/file-resource-contents-with-ttl.json}
- *
  * @category `resources/read`
  */
 export interface ReadResourceResult extends CacheableResult {
@@ -1127,7 +1246,7 @@ export interface ReadResourceResultResponse extends JSONRPCResultResponse {
 }
 
 /**
- * An optional notification from the server to the client, informing it that the list of resources it can read from has changed. This may be issued by servers without any previous subscription from the client.
+ * An optional notification from the server to the client, informing it that the list of resources it can read from has changed. This is only delivered on a {@link SubscriptionsListenRequest | subscriptions/listen} stream when the client requested it via the `resourcesListChanged` filter field.
  *
  * @example Resources list changed
  * {@includeCode ./examples/ResourceListChangedNotification/resources-list-changed.json}
@@ -1198,6 +1317,53 @@ export interface SubscriptionsListenRequest extends JSONRPCRequest {
 }
 
 /**
+ * Extends {@link ResultMetaObject} with the subscription-stream identifier carried by a
+ * {@link SubscriptionsListenResult}. All key naming rules from `MetaObject` apply.
+ *
+ * @see {@link MetaObject} for key naming rules and reserved prefixes.
+ * @category `subscriptions/listen`
+ */
+export interface SubscriptionsListenResultMetaObject extends ResultMetaObject {
+  /**
+   * Identifies the subscription stream this response closes, so the client can
+   * correlate it with the originating subscription — mirroring the same key on
+   * the stream's notifications. The value is the JSON-RPC ID of the
+   * `subscriptions/listen` request that opened the stream (and equals this
+   * response's `id`).
+   */
+  "io.modelcontextprotocol/subscriptionId": RequestId;
+}
+
+/**
+ * The response to a {@link SubscriptionsListenRequest | subscriptions/listen}
+ * request, signalling that the subscription has ended gracefully (for example,
+ * during server shutdown). Because the listen stream is long-lived, this result
+ * is sent only when the server tears the subscription down; an abrupt transport
+ * close carries no response. The result body is otherwise empty.
+ *
+ * @example Subscription closed gracefully
+ * {@includeCode ./examples/SubscriptionsListenResult/listen-closed.json}
+ *
+ * @category `subscriptions/listen`
+ */
+export interface SubscriptionsListenResult extends Result {
+  _meta: SubscriptionsListenResultMetaObject;
+}
+
+/**
+ * A successful response from the server for a {@link SubscriptionsListenRequest | subscriptions/listen}
+ * request, sent when the server tears the subscription down gracefully.
+ *
+ * @example Subscription closed gracefully response
+ * {@includeCode ./examples/SubscriptionsListenResultResponse/listen-closed-response.json}
+ *
+ * @category `subscriptions/listen`
+ */
+export interface SubscriptionsListenResultResponse extends JSONRPCResultResponse {
+  result: SubscriptionsListenResult;
+}
+
+/**
  * Parameters for a {@link SubscriptionsAcknowledgedNotification | notifications/subscriptions/acknowledged} notification.
  *
  * @category `notifications/subscriptions/acknowledged`
@@ -1213,10 +1379,16 @@ export interface SubscriptionsAcknowledgedNotificationParams extends Notificatio
 }
 
 /**
- * Sent by the server as the first message on a
- * {@link SubscriptionsListenRequest | subscriptions/listen} stream to acknowledge
- * that the subscription has been established and to report which notification
- * types it agreed to honor.
+ * Sent by the server to acknowledge that a
+ * {@link SubscriptionsListenRequest | subscriptions/listen} subscription has been
+ * established and to report which notification types it agreed to honor.
+ *
+ * This notification MUST be the first message the server sends carrying the
+ * subscription's ID in `io.modelcontextprotocol/subscriptionId`. The server MUST
+ * NOT send any notification on the subscription before acknowledging it. On
+ * stdio, where every subscription shares one channel, this ordering is defined
+ * per subscription ID and not per channel: messages belonging to other
+ * subscriptions MAY be interleaved before it.
  *
  * @example Listen acknowledged
  * {@includeCode ./examples/SubscriptionsAcknowledgedNotification/listen-acknowledged.json}
@@ -1571,7 +1743,7 @@ export interface EmbeddedResource {
   _meta?: MetaObject;
 }
 /**
- * An optional notification from the server to the client, informing it that the list of prompts it offers has changed. This may be issued by servers without any previous subscription from the client.
+ * An optional notification from the server to the client, informing it that the list of prompts it offers has changed. This is only delivered on a {@link SubscriptionsListenRequest | subscriptions/listen} stream when the client requested it via the `promptsListChanged` filter field.
  *
  * @example Prompts list changed
  * {@includeCode ./examples/PromptListChangedNotification/prompts-list-changed.json}
@@ -1641,9 +1813,12 @@ export interface CallToolResult extends Result {
   content: ContentBlock[];
 
   /**
-   * An optional JSON object that represents the structured result of the tool call.
+   * An optional JSON value that represents the structured result of the tool call.
+   *
+   * This can be any JSON value (object, array, string, number, boolean, or null)
+   * that conforms to the tool's outputSchema if one is defined.
    */
-  structuredContent?: { [key: string]: unknown };
+  structuredContent?: unknown;
 
   /**
    * Whether the tool call ended in an error.
@@ -1710,7 +1885,7 @@ export interface CallToolRequest extends JSONRPCRequest {
 }
 
 /**
- * An optional notification from the server to the client, informing it that the list of tools it offers has changed. This may be issued by servers without any previous subscription from the client.
+ * An optional notification from the server to the client, informing it that the list of tools it offers has changed. This is only delivered on a {@link SubscriptionsListenRequest | subscriptions/listen} stream when the client requested it via the `toolsListChanged` filter field.
  *
  * @example Tools list changed
  * {@includeCode ./examples/ToolListChangedNotification/tools-list-changed.json}
@@ -1805,27 +1980,29 @@ export interface Tool extends BaseMetadata, Icons {
 
   /**
    * A JSON Schema object defining the expected parameters for the tool.
+   *
+   * Tool arguments are always JSON objects, so `type: "object"` is required at the root.
+   * Beyond that, any JSON Schema 2020-12 keyword may appear alongside `type` — including
+   * composition keywords (`oneOf`, `anyOf`, `allOf`, `not`), conditional keywords
+   * (`if`/`then`/`else`), reference keywords (`$ref`, `$defs`, `$anchor`), and any other
+   * standard validation or annotation keywords.
+   *
+   * Property schemas may carry an `x-mcp-header` annotation to mirror the
+   * argument value into an HTTP header on the Streamable HTTP transport. See
+   * the Streamable HTTP transport specification for the validity and
+   * extraction rules.
+   *
+   * Defaults to JSON Schema 2020-12 when no explicit `$schema` is provided.
    */
-  inputSchema: {
-    $schema?: string;
-    type: "object";
-    properties?: { [key: string]: JSONValue };
-    required?: string[];
-  };
+  inputSchema: { $schema?: string; type: "object"; [key: string]: unknown };
 
   /**
    * An optional JSON Schema object defining the structure of the tool's output returned in
-   * the structuredContent field of a {@link CallToolResult}.
+   * the structuredContent field of a {@link CallToolResult}. This can be any valid JSON Schema 2020-12.
    *
    * Defaults to JSON Schema 2020-12 when no explicit `$schema` is provided.
-   * Currently restricted to `type: "object"` at the root level.
    */
-  outputSchema?: {
-    $schema?: string;
-    type: "object";
-    properties?: { [key: string]: JSONValue };
-    required?: string[];
-  };
+  outputSchema?: { $schema?: string; [key: string]: unknown };
 
   /**
    * Optional additional tool information.
@@ -1841,6 +2018,10 @@ export interface Tool extends BaseMetadata, Icons {
 
 /**
  * Parameters for a `notifications/message` notification.
+ *
+ * @deprecated Deprecated as of protocol version 2026-07-28 (SEP-2577).
+ * Remains in the specification for at least twelve months; see the
+ * deprecated features registry.
  *
  * @example Log database connection failed
  * {@includeCode ./examples/LoggingMessageNotificationParams/log-database-connection-failed.json}
@@ -1865,6 +2046,10 @@ export interface LoggingMessageNotificationParams extends NotificationParams {
 /**
  * JSONRPCNotification of a log message passed from server to client. The client opts in by setting `"io.modelcontextprotocol/logLevel"` in a request's `_meta`.
  *
+ * @deprecated Deprecated as of protocol version 2026-07-28 (SEP-2577).
+ * Remains in the specification for at least twelve months; see the
+ * deprecated features registry.
+ *
  * @example Log database connection failed
  * {@includeCode ./examples/LoggingMessageNotification/log-database-connection-failed.json}
  *
@@ -1880,6 +2065,10 @@ export interface LoggingMessageNotification extends JSONRPCNotification {
  *
  * These map to syslog message severities, as specified in RFC-5424:
  * https://datatracker.ietf.org/doc/html/rfc5424#section-6.2.1
+ *
+ * @deprecated Deprecated as of protocol version 2026-07-28 (SEP-2577).
+ * Remains in the specification for at least twelve months; see the
+ * deprecated features registry.
  *
  * @category Common Types
  */
@@ -1906,6 +2095,10 @@ export type LoggingLevel =
  * @example Follow-up request with tool results
  * {@includeCode ./examples/CreateMessageRequestParams/follow-up-with-tool-results.json}
  *
+ * @deprecated Deprecated as of protocol version 2026-07-28 (SEP-2577).
+ * Remains in the specification for at least twelve months; see the
+ * deprecated features registry.
+ *
  * @category `sampling/createMessage`
  */
 export interface CreateMessageRequestParams {
@@ -1922,8 +2115,12 @@ export interface CreateMessageRequestParams {
    * A request to include context from one or more MCP servers (including the caller), to be attached to the prompt.
    * The client MAY ignore this request.
    *
-   * Default is `"none"`. Values `"thisServer"` and `"allServers"` are soft-deprecated. Servers SHOULD only use these values if the client
-   * declares {@link ClientCapabilities.sampling.context}. These values may be removed in future spec releases.
+   * Default is `"none"`. The values `"thisServer"` and `"allServers"` are deprecated (SEP-2596): servers SHOULD
+   * omit this field or use `"none"`, and SHOULD only use the deprecated values if the client declares
+   * {@link ClientCapabilities.sampling.context}.
+   *
+   * @deprecated The `"thisServer"` and `"allServers"` values are deprecated as of protocol version 2025-11-25
+   * (SEP-2596) and will be removed no later than the Sampling feature itself (SEP-2577). Omit this field or use `"none"`.
    */
   includeContext?: "none" | "thisServer" | "allServers";
   /**
@@ -1957,6 +2154,10 @@ export interface CreateMessageRequestParams {
 /**
  * Controls tool selection behavior for sampling requests.
  *
+ * @deprecated Deprecated as of protocol version 2026-07-28 (SEP-2577).
+ * Remains in the specification for at least twelve months; see the
+ * deprecated features registry.
+ *
  * @category `sampling/createMessage`
  */
 export interface ToolChoice {
@@ -1974,6 +2175,10 @@ export interface ToolChoice {
  *
  * @example Sampling request
  * {@includeCode ./examples/CreateMessageRequest/sampling-request.json}
+ *
+ * @deprecated Deprecated as of protocol version 2026-07-28 (SEP-2577).
+ * Remains in the specification for at least twelve months; see the
+ * deprecated features registry.
  *
  * @category `sampling/createMessage`
  */
@@ -1995,6 +2200,10 @@ export interface CreateMessageRequest {
  *
  * @example Final response after tool use
  * {@includeCode ./examples/CreateMessageResult/final-response.json}
+ *
+ * @deprecated Deprecated as of protocol version 2026-07-28 (SEP-2577).
+ * Remains in the specification for at least twelve months; see the
+ * deprecated features registry.
  *
  * @category `sampling/createMessage`
  */
@@ -2027,6 +2236,10 @@ export interface CreateMessageResult extends SamplingMessage {
  * @example Multiple content blocks
  * {@includeCode ./examples/SamplingMessage/multiple-content-blocks.json}
  *
+ * @deprecated Deprecated as of protocol version 2026-07-28 (SEP-2577).
+ * Remains in the specification for at least twelve months; see the
+ * deprecated features registry.
+ *
  * @category `sampling/createMessage`
  */
 export interface SamplingMessage {
@@ -2036,6 +2249,10 @@ export interface SamplingMessage {
 }
 
 /**
+ * @deprecated Deprecated as of protocol version 2026-07-28 (SEP-2577).
+ * Remains in the specification for at least twelve months; see the
+ * deprecated features registry.
+ *
  * @category `sampling/createMessage`
  */
 export type SamplingMessageContentBlock =
@@ -2086,11 +2303,7 @@ export interface Annotations {
  * @category Content
  */
 export type ContentBlock =
-  | TextContent
-  | ImageContent
-  | AudioContent
-  | ResourceLink
-  | EmbeddedResource;
+  TextContent | ImageContent | AudioContent | ResourceLink | EmbeddedResource;
 
 /**
  * Text provided to or from an LLM.
@@ -2184,6 +2397,10 @@ export interface AudioContent {
  * @example `get_weather` tool use
  * {@includeCode ./examples/ToolUseContent/get-weather-tool-use.json}
  *
+ * @deprecated Deprecated as of protocol version 2026-07-28 (SEP-2577).
+ * Remains in the specification for at least twelve months; see the
+ * deprecated features registry.
+ *
  * @category `sampling/createMessage`
  */
 export interface ToolUseContent {
@@ -2219,6 +2436,10 @@ export interface ToolUseContent {
  * @example `get_weather` tool result
  * {@includeCode ./examples/ToolResultContent/get-weather-tool-result.json}
  *
+ * @deprecated Deprecated as of protocol version 2026-07-28 (SEP-2577).
+ * Remains in the specification for at least twelve months; see the
+ * deprecated features registry.
+ *
  * @category `sampling/createMessage`
  */
 export interface ToolResultContent {
@@ -2240,11 +2461,12 @@ export interface ToolResultContent {
   content: ContentBlock[];
 
   /**
-   * An optional structured result object.
+   * An optional structured result value.
    *
+   * This can be any JSON value (object, array, string, number, boolean, or null).
    * If the tool defined an {@link Tool.outputSchema}, this SHOULD conform to that schema.
    */
-  structuredContent?: { [key: string]: unknown };
+  structuredContent?: unknown;
 
   /**
    * Whether the tool use resulted in an error.
@@ -2276,6 +2498,10 @@ export interface ToolResultContent {
  *
  * @example With hints and priorities
  * {@includeCode ./examples/ModelPreferences/with-hints-and-priorities.json}
+ *
+ * @deprecated Deprecated as of protocol version 2026-07-28 (SEP-2577).
+ * Remains in the specification for at least twelve months; see the
+ * deprecated features registry.
  *
  * @category `sampling/createMessage`
  */
@@ -2330,6 +2556,10 @@ export interface ModelPreferences {
  *
  * Keys not declared here are currently left unspecified by the spec and are up
  * to the client to interpret.
+ *
+ * @deprecated Deprecated as of protocol version 2026-07-28 (SEP-2577).
+ * Remains in the specification for at least twelve months; see the
+ * deprecated features registry.
  *
  * @category `sampling/createMessage`
  */
@@ -2479,11 +2709,17 @@ export interface PromptReference extends BaseMetadata {
  * @example List roots request
  * {@includeCode ./examples/ListRootsRequest/list-roots-request.json}
  *
+ * @deprecated Deprecated as of protocol version 2026-07-28 (SEP-2577).
+ * Remains in the specification for at least twelve months; see the
+ * deprecated features registry.
+ *
  * @category `roots/list`
  */
 export interface ListRootsRequest {
   method: "roots/list";
-  params?: RequestParams;
+  params?: {
+    _meta?: MetaObject;
+  };
 }
 
 /**
@@ -2497,6 +2733,10 @@ export interface ListRootsRequest {
  * @example Multiple root directories
  * {@includeCode ./examples/ListRootsResult/multiple-root-directories.json}
  *
+ * @deprecated Deprecated as of protocol version 2026-07-28 (SEP-2577).
+ * Remains in the specification for at least twelve months; see the
+ * deprecated features registry.
+ *
  * @category `roots/list`
  */
 export interface ListRootsResult {
@@ -2508,6 +2748,10 @@ export interface ListRootsResult {
  *
  * @example Project directory root
  * {@includeCode ./examples/Root/project-directory.json}
+ *
+ * @deprecated Deprecated as of protocol version 2026-07-28 (SEP-2577).
+ * Remains in the specification for at least twelve months; see the
+ * deprecated features registry.
  *
  * @category `roots/list`
  */
@@ -2586,12 +2830,6 @@ export interface ElicitRequestURLParams {
   message: string;
 
   /**
-   * The ID of the elicitation, which must be unique within the context of the server.
-   * The client MUST treat this ID as an opaque value.
-   */
-  elicitationId: string;
-
-  /**
    * The URL that the user should navigate to.
    *
    * @format uri
@@ -2605,8 +2843,7 @@ export interface ElicitRequestURLParams {
  * @category `elicitation/create`
  */
 export type ElicitRequestParams =
-  | ElicitRequestFormParams
-  | ElicitRequestURLParams;
+  ElicitRequestFormParams | ElicitRequestURLParams;
 
 /**
  * A request from the server to elicit additional information from the user via the client.
@@ -2628,10 +2865,7 @@ export interface ElicitRequest {
  * @category `elicitation/create`
  */
 export type PrimitiveSchemaDefinition =
-  | StringSchema
-  | NumberSchema
-  | BooleanSchema
-  | EnumSchema;
+  StringSchema | NumberSchema | BooleanSchema | EnumSchema;
 
 /**
  * @example Email input schema
@@ -2659,8 +2893,17 @@ export interface NumberSchema {
   type: "number" | "integer";
   title?: string;
   description?: string;
+  /**
+   * @TJS-type number
+   */
   minimum?: number;
+  /**
+   * @TJS-type number
+   */
   maximum?: number;
+  /**
+   * @TJS-type number
+   */
   default?: number;
 }
 
@@ -2747,8 +2990,7 @@ export interface TitledSingleSelectEnumSchema {
  */
 // Combined single selection enumeration
 export type SingleSelectEnumSchema =
-  | UntitledSingleSelectEnumSchema
-  | TitledSingleSelectEnumSchema;
+  UntitledSingleSelectEnumSchema | TitledSingleSelectEnumSchema;
 
 /**
  * Schema for multiple-selection enumeration without display titles for options.
@@ -2847,8 +3089,7 @@ export interface TitledMultiSelectEnumSchema {
  */
 // Combined multiple selection enumeration
 export type MultiSelectEnumSchema =
-  | UntitledMultiSelectEnumSchema
-  | TitledMultiSelectEnumSchema;
+  UntitledMultiSelectEnumSchema | TitledMultiSelectEnumSchema;
 
 /**
  * Use {@link TitledSingleSelectEnumSchema} instead.
@@ -2874,9 +3115,7 @@ export interface LegacyTitledEnumSchema {
  */
 // Union type for all enum schemas
 export type EnumSchema =
-  | SingleSelectEnumSchema
-  | MultiSelectEnumSchema
-  | LegacyTitledEnumSchema;
+  SingleSelectEnumSchema | MultiSelectEnumSchema | LegacyTitledEnumSchema;
 
 /**
  * The result returned by the client for an {@link ElicitRequest| elicitation/create} request.
@@ -2909,24 +3148,6 @@ export interface ElicitResult {
   content?: { [key: string]: string | number | boolean | string[] };
 }
 
-/**
- * An optional notification from the server to the client, informing it of a completion of a out-of-band elicitation request.
- *
- * @example Elicitation complete
- * {@includeCode ./examples/ElicitationCompleteNotification/elicitation-complete.json}
- *
- * @category `notifications/elicitation/complete`
- */
-export interface ElicitationCompleteNotification extends JSONRPCNotification {
-  method: "notifications/elicitation/complete";
-  params: {
-    /**
-     * The ID of the elicitation that completed.
-     */
-    elicitationId: string;
-  };
-}
-
 /* Client messages */
 /** @internal */
 export type ClientRequest =
@@ -2942,7 +3163,7 @@ export type ClientRequest =
   | ListToolsRequest;
 
 /** @internal */
-export type ClientNotification = CancelledNotification | ProgressNotification;
+export type ClientNotification = CancelledNotification;
 
 /** @internal */
 export type ClientResult = EmptyResult;
@@ -2958,7 +3179,6 @@ export type ServerNotification =
   | ResourceListChangedNotification
   | ToolListChangedNotification
   | PromptListChangedNotification
-  | ElicitationCompleteNotification
   | SubscriptionsAcknowledgedNotification;
 
 /** @internal */
@@ -2971,6 +3191,7 @@ export type ServerResult =
   | ListResourceTemplatesResult
   | ListResourcesResult
   | ReadResourceResult
+  | SubscriptionsListenResult
   | CallToolResult
   | ListToolsResult
   | InputRequiredResult;

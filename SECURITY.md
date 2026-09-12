@@ -73,6 +73,22 @@ executes those configurations. Reports about "arbitrary command execution" via S
 transport configuration, whether in MCP client applications or SDKs, are not
 vulnerabilities. Process spawning is a core feature of the STDIO transport mechanism.
 
+#### STDIO Transport Trust Boundary
+
+When using the stdio transport, the client spawns the server as a local subprocess in the
+designated environment (e.g., OS, containerized sandbox) and both run with equivalent
+environment-level privilege. The SDK does not defend either peer against a malicious
+counterpart across the stdio channel: a malicious server already has arbitrary code
+execution by virtue of being run, and a malicious client already has full process control
+over the server it spawned.
+
+Out of scope (file as a regular issue, no CVE/GHSA): reports whose only impact is that one
+stdio peer can crash, hang, exhaust resources of, or otherwise deny service to the other.
+If the affected SDK code is reachable via any of the supported remote transports or results
+in vulnerabilities such as a sandbox escape, the report remains in scope. Deployments that
+run stdio servers at reduced privilege (containers, sandboxes) are responsible for enforcing
+isolation at that boundary; the SDK's stdio transport is not a sandbox.
+
 #### Server Capabilities and Side Effects
 
 MCP servers provide capabilities that may have significant effects on the system or
@@ -171,6 +187,24 @@ from flaws in the MCP specification or official SDK implementations:
   multi-tenant deployments
 
 This list is not exhaustive.
+
+## SDK Vulnerability Disclosure
+
+Security reports against the official MCP SDKs are handled through GitHub Security
+Advisories on the affected SDK's repository. Private vulnerability reporting is enabled on
+every official SDK repository in the modelcontextprotocol organization.
+
+When a report is received, the maintainers of that SDK assess whether the same issue
+affects other official SDKs. Many MCP vulnerabilities stem from shared patterns, transport
+implementations, or spec-level behavior that multiple SDKs implement the same way. The
+receiving maintainers coordinate with the maintainers of other potentially affected SDKs to
+determine which are impacted and to what degree, so that fixes and advisories can be
+released together rather than leaving some SDKs exposed after others have published.
+
+If the root cause is a defect in the specification rather than an implementation bug, the
+coordinating maintainers will discuss this with the specification maintainers.
+
+CVEs are assigned through GitHub's CNA as part of the GHSA workflow.
 
 ### Reporting Guidelines
 

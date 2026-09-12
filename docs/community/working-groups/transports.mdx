@@ -1,0 +1,151 @@
+---
+title: Transports Charter
+description: Charter for the MCP Transports Working Group.
+---
+
+## Group Type
+
+**Working Group**
+
+## Mission Statement
+
+The Transports Working Group evolves MCP transport bindings and transport-adjacent
+protocol architecture so implementations remain interoperable, scalable, reliable,
+and easy to operate across local and remote deployments. The WG produces transport
+proposals, SEPs, implementation evidence, and guidance. The
+[working group repository](https://github.com/modelcontextprotocol/transports-wg) and
+its [upstream charter](https://github.com/modelcontextprotocol/transports-wg/blob/main/CHARTER.md)
+maintain the WG's current technical focus, proposal strategy, and supporting detail
+within these boundaries.
+
+## Scope
+
+### In Scope
+
+- **Transport Bindings**: Framing, delivery, request and envelope metadata,
+  cancellation and termination, connection lifecycle, backward compatibility, and
+  the behavior of existing and future MCP transports. The current specification's
+  [transport overview](/specification/draft/basic/transports) defines the boundary
+  between a transport binding and core protocol semantics.
+- **Scalability and Reliability**: Transport-level connection management, resource
+  efficiency, multiplexing, load distribution, error handling, reconnection,
+  resumption, and the delivery and ordering guarantees offered by a binding.
+- **Transport-Adjacent Protocol Architecture**: Protocol-wide message-flow concerns
+  required for scalable, interoperable bindings, including request association,
+  per-request metadata, stateless operation, and migration from legacy initialization
+  and transport-session models.
+- **Transport Security**: Binding and envelope security requirements such as Origin
+  validation, TLS, mTLS, and certificate handling, coordinated with the Security IG.
+  Credential carriage is coordinated with the Auth IG.
+- **Validation and Guidance**: Reference implementations, experiments, implementation
+  evidence, and documentation needed to evaluate proposals and help implementers
+  adopt agreed transport behavior. Supporting material is maintained in the upstream
+  [documentation](https://github.com/modelcontextprotocol/transports-wg/tree/main/docs).
+  The WG contributes transport scenarios and requirements to the Conformance Testing
+  project, whose maintainers own the conformance suite.
+- **Cross-Cutting Coordination**: Transport implications of work owned by other MCP
+  groups, without taking ownership of their application-layer features.
+
+The upstream [scope statement](https://github.com/modelcontextprotocol/transports-wg/blob/main/CHARTER.md#scope)
+provides supporting context but cannot expand the boundaries in this charter.
+
+### Out of Scope
+
+- Application-layer behavior for MCP primitives such as tools, resources, prompts,
+  tasks, agents, or events, including application state, application-session meaning,
+  task lifecycle, and event or subscription semantics. The WG coordinates where those
+  features depend on binding or message-flow behavior.
+- Domain-specific extensions and implementation-specific product or business concerns.
+- SDK APIs and implementation details unrelated to transports.
+- Authorization protocol mechanics, credential and token semantics, application
+  identity, and authorization policy. The WG coordinates with the relevant groups on
+  how bindings carry agreed authorization data.
+- Ownership of the MCP conformance suite. The WG contributes transport requirements
+  and scenarios in coordination with its maintainers.
+
+### Related Groups
+
+- **[SDK WG](/community/working-groups/sdk)**: Official SDKs implement transport
+  changes; the groups coordinate on feasibility, reference implementations, and
+  rollout sequencing.
+- **[Agents WG](/community/working-groups/agents)**: The Agents WG owns Tasks and
+  durable execution; the groups coordinate where these depend on multi-round-trip
+  requests, request association, stateless operation, or binding behavior.
+- **[Triggers and Events WG](/community/working-groups/triggers-events)**: Event
+  callbacks, subscriptions, and application-level delivery semantics are owned by that
+  group; Transports owns binding-specific carriage and guarantees.
+- **[Auth IG](/community/interest-groups/auth)** and
+  **[Security IG](/community/interest-groups/security)**: The groups coordinate on
+  credential carriage and transport wire security while authorization mechanics and
+  broader security requirements remain with the respective IGs.
+
+## Leadership
+
+The current WG Lead is
+[Kurtis Van Gent](https://github.com/kurtisvg).
+
+## Authority & Decision Rights
+
+| Decision Type                       | Authority Level                                        |
+| ----------------------------------- | ------------------------------------------------------ |
+| Meeting logistics & scheduling      | WG Leads (autonomous)                                  |
+| Proposal prioritization within WG   | WG Leads (autonomous)                                  |
+| SEP triage & closure (in scope)     | WG Leads (autonomous, with documented rationale)       |
+| Technical design within scope       | WG consensus                                           |
+| Spec changes (additive)             | WG consensus → Core Maintainer approval                |
+| Spec changes (breaking/fundamental) | WG consensus → Core Maintainer approval + wider review |
+| Scope expansion                     | Core Maintainer approval required                      |
+| WG Member approval                  | WG Member sponsors                                     |
+
+## Membership
+
+Current WG Members are listed in the upstream
+[group membership roster](https://github.com/modelcontextprotocol/transports-wg/blob/main/GOVERNANCE.md#members).
+
+## Operations
+
+The WG holds a regular weekly meeting, with the current time and joining details listed
+at [meet.modelcontextprotocol.io](https://meet.modelcontextprotocol.io). Topics are
+discussed asynchronously in `#transports-wg` on the
+[MCP Discord](https://discord.gg/6CSzBmMkjX).
+
+Work follows a problem-first workflow:
+
+1. Create a core problem statement in the
+   [working group repository](https://github.com/modelcontextprotocol/transports-wg) to
+   align the WG on the problem and its requirements.
+2. Work with other interested participants to define a solution.
+3. Review and iterate on the solution to address WG feedback.
+4. After the WG reaches consensus under its decision-making process, present the
+   solution to Core Maintainers as an SEP through the
+   [SEP process](/community/sep-guidelines).
+
+## Resources
+
+- [modelcontextprotocol/transports-wg](https://github.com/modelcontextprotocol/transports-wg)
+  - [Proposals](https://github.com/modelcontextprotocol/transports-wg/tree/main/proposals)
+  - [Supporting documentation and decision records](https://github.com/modelcontextprotocol/transports-wg/tree/main/docs)
+  - [Meeting notes](https://github.com/modelcontextprotocol/transports-wg/tree/main/meetings)
+
+## Deliverables & Success Metrics
+
+### Active Work Items
+
+See [open pull requests](https://github.com/modelcontextprotocol/transports-wg/pulls)
+and the [`roadmaps/` directory](https://github.com/modelcontextprotocol/transports-wg/tree/main/roadmaps).
+
+### Success Criteria
+
+- Adopted transport-agnostic protocol behavior remains consistent across transports,
+  while binding-specific differences are explicit and validated by implementation
+  evidence and applicable conformance scenarios.
+- Transport changes that affect official SDKs are coordinated with the SDK WG and have
+  clear implementation guidance.
+- Decisions, proposal status, and supporting rationale remain publicly discoverable in
+  or linked from the working group repository.
+
+## Changelog
+
+| Date       | Change          |
+| ---------- | --------------- |
+| 2026-08-23 | Initial charter |

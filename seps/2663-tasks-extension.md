@@ -86,7 +86,7 @@ A server that has negotiated this extension **MAY** return `CreateTaskResult` in
 
 A server **MUST NOT** return `CreateTaskResult` to a client that did not include the extension capability on its request, regardless of prior declarations. A client that has negotiated this extension **MUST** be prepared to handle either `CallToolResult` or `CreateTaskResult` in response to any supported request it issues. A client that receives `CreateTaskResult` in response to an unsupported request type **MUST** interpret this as an invalid response to the request.
 
-If a server is unable to service a request to a client that does not declare this extension capability without returning `CreateTaskResult`, the server **MUST** return an error with the code `-32003` (Missing Required Client Capability), indicating the required extension in the error response:
+If a server is unable to service a request to a client that does not declare this extension capability without returning `CreateTaskResult`, the server **MUST** return an error with the code `-32021` (Missing Required Client Capability), indicating the required extension in the error response:
 
 ```jsonl
 {
@@ -94,7 +94,7 @@ If a server is unable to service a request to a client that does not declare thi
   "id": 1,
   "error": {
     // MISSING_REQUIRED_CLIENT_CAPABILITY
-    "code": -32003,
+    "code": -32021,
     // Message provided for example purposes only. The content of this example message is non-normative.
     "message": "Missing required client capability",
     "data": {
@@ -122,7 +122,7 @@ A request that is eligible for task-augmentation may return one of two distinct 
 
 ```typescript
 // "task" is introduced by this extension.
-type ResultType = "complete" | "input_required" | "task";
+type ResultType = "complete" | "input_required" | "task" | string;
 ```
 
 Servers **MUST** set `resultType` to `"task"` when returning a `CreateTaskResult` so that clients can distinguish it from a standard result. Servers **MUST NOT** set `resultType` to `"task"` on result types other than `CreateTaskResult`.
@@ -250,11 +250,7 @@ export interface CancelledTask extends Task {
  * including terminal results or pending input requests.
  */
 export type DetailedTask =
-  | WorkingTask
-  | InputRequiredTask
-  | CompletedTask
-  | FailedTask
-  | CancelledTask;
+  WorkingTask | InputRequiredTask | CompletedTask | FailedTask | CancelledTask;
 ```
 
 ### Task Creation
@@ -468,7 +464,7 @@ If a client requests task status notifications but does not declare the `io.mode
   "id": 12,
   "error": {
     // MISSING_REQUIRED_CLIENT_CAPABILITY
-    "code": -32003,
+    "code": -32021,
     // Message provided for example purposes only. The content of this example message is non-normative.
     "message": "Missing required client capability",
     "data": {
@@ -798,6 +794,9 @@ Servers **MUST** return standard JSON-RPC errors for the following protocol erro
   - Servers **MUST** return this error for `tasks/get`.
   - Servers **SHOULD** return this error for `tasks/update` and `tasks/cancel`.
 - Internal errors: `-32603` (Internal error)
+- Missing required client capabilities: `-32021` (Missing Required Client Capability)
+  - Servers **MUST** return this error for non-declaring clients requesting task notifications on `subscriptions/listen`.
+  - Servers **MUST** return this error for non-declaring clients issuing `tasks/get`, `tasks/update`, and `tasks/cancel` requests.
 
 Servers **SHOULD** provide informative error messages to describe the cause of errors.
 
@@ -942,13 +941,12 @@ The two flows maintain separate state despite sharing field names. The MRTR phas
 
 ## Backward Compatibility
 
-The experimental tasks feature in the `2025-11-25` release is **not wire-compatible** with this extension. Specifically:
+The experimental tasks feature in the `2025-11-25` release is **not wire-compatible** with this extension. Implementations that need to interoperate with both surfaces can shim at the SDK level by implementing the experimental and extension flows in parallel and dispatching on the negotiated protocol version and the client capability the peer declared. The following table summarizes the expected behavior for each permutation:
 
-- `tasks/result` is removed. Clients calling `tasks/result` against a server with this extension in the `2026-06-30` specification **MUST** receive `-32601` (Method Not Found).
-- The `task` parameter on `CallToolRequest` is removed. Servers receiving requests with a `task` parameter under this extension in the `2026-06-30` specification **MUST** ignore it (treat the field as unknown) rather than using it as an opt-in.
-- The `tasks.requests.*` and `tasks.cancel`/`tasks.list` capability declarations are not part of this extension. A server that previously advertised these **MUST** migrate to declaring `io.modelcontextprotocol/tasks` as of the `2026-06-30` specification and **MUST NOT** continue to advertise the legacy capabilities under any protocol version that includes this extension.
-
-Implementations that need to bridge legacy clients can shim at the SDK level: a server can implement both the experimental and extension surfaces in parallel, dispatching based on which capability and protocol version the client negotiated.
+| Protocol Version | `tasks.*` (legacy)                                                                                                                                                                                                                                                                                                                                                                                               | `io.modelcontextprotocol/tasks`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `2025-11-25`     | Legacy experimental tasks per the `2025-11-25` specification. The client opts into task augmentation per request via the `task` parameter on `CallToolRequest`; the server uses `tasks/result`, `tasks/get`, `tasks/cancel`, and (where supported) `tasks/list` per that specification. This extension does not apply.                                                                                           | This extension is not defined under the `2025-11-25` protocol version. Servers **MUST NOT** treat this capability as enabling tasks under that protocol version; requests proceed as if the client had declared no task capability at all.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| `2026-06-30`     | The legacy capability is not part of this extension. Servers **MUST** treat clients declaring only the legacy capability as non-declaring with respect to this extension. Servers that simultaneously support the `2025-11-25` Tasks specification alongside this extension **SHOULD** continue to permit `tasks/get` and `tasks/cancel` requests from such clients to operate on tasks created under that flow. | The canonical case. Full task lifecycle as specified in this document, with the following wire-level differences from the `2025-11-25` experimental feature:<ul><li>`tasks/result` is removed; clients calling it **MUST** receive `-32601` (Method Not Found).</li><li>The `task` parameter on `CallToolRequest` is removed; servers **MUST** ignore it (treat the field as unknown) rather than using it as an opt-in.</li><li>The `tasks.requests.*`, `tasks.cancel`, and `tasks.list` capability declarations are not part of this extension. Servers that previously advertised these **MUST** migrate to declaring `io.modelcontextprotocol/tasks`, and **MUST NOT** continue to advertise the legacy capabilities under any protocol version that includes this extension.</li></ul> |
 
 A server that returns the standard `CallToolResult` shape — i.e., never elects to create a task — remains fully spec-compliant under this extension. Clients that have negotiated the extension **MUST** handle both result shapes for any augmented request.
 
