@@ -283,6 +283,16 @@ At a cold start, step 4 fetches everything. Afterwards it fetches only what chan
 - **Primitive Grouping Interest Group**: This SEP is designed as the substrate for that group's work rather than a competitor to it. Discovery metadata such as short summaries, tags, and group membership was removed from earlier drafts of this SEP specifically so that it can be defined as an extension that layers additional fields onto `ToolManifestEntry`. The manifest gives such an extension a cheap listing surface and a per-tool change signal; the extension supplies the domain structure.
 - **Issue #2470 (Capability-Aware Tool Presentation)**: Not addressed here. Tier-aware descriptions are discovery metadata and belong with the grouping work above.
 
+#### Extension points
+
+This SEP is intended to be extended, and two extension points are defined so that extensions compose with it predictably.
+
+**Additional fields on the manifest entry.** An extension MAY define additional optional fields on `ToolManifestEntry`, such as a short summary, tags, or group membership. Clients MUST ignore entry fields they do not recognise. An extension MUST NOT change the meaning of `name`, `digest`, or `annotations`, and MUST NOT make any of its own fields required, since a client that does not implement the extension must still be able to reconcile from the base entry alone. Fields that exist only on the entry are not covered by the digest; an extension that adds them is responsible for its own change signal if one is needed.
+
+**Metadata in the tool's `_meta` object.** The digest covers the entire `Tool`, including `_meta`. An extension that stores its per-tool metadata under a namespaced key in `_meta`, rather than only on the manifest entry, therefore gets change detection without defining anything new: when the metadata changes, the digest changes, and a reconciling client refetches the definition. This is the RECOMMENDED placement for metadata that a client caches and acts on, such as group membership or a tier-aware description. The manifest entry is the RECOMMENDED placement for a projection of that metadata that a client needs before deciding whether to fetch the definition at all.
+
+An extension MAY use both: the authoritative value in `_meta`, covered by the digest, and a copy on the entry for cheap listing. Where it does, the copy on the entry MUST equal the value in `_meta` for the same tool at the same time, following the same rule this SEP applies to `annotations`.
+
 ## Rationale
 
 ### Why a separate method rather than a parameter on `tools/list`?
