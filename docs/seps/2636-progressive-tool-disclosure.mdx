@@ -146,12 +146,22 @@ interface ToolCatalogEntry {
   /**
    * Optional. Lightweight annotations safe to surface in the catalog
    * (e.g., `readOnlyHint`, `destructiveHint`, `openWorldHint`).
-   * Clients SHOULD treat these as advisory and prefer per-call
-   * refinement via tools/resolve (SEP-1862) when available.
+   * Servers SHOULD include the action-risk hints here so an agent can
+   * rank candidates by risk before loading any schema. Clients SHOULD
+   * treat these as advisory and prefer per-call refinement via
+   * tools/resolve (SEP-1862) when available.
    */
   annotations?: ToolAnnotations;
 }
 ```
+
+#### Action risk in the catalog
+
+A common reason an agent inspects a tool is to decide whether it is safe or appropriate to call. To keep that decision cheap, servers SHOULD populate the action-risk hints already defined on `ToolAnnotations` (`readOnlyHint`, `destructiveHint`, `idempotentHint`, `openWorldHint`) in the catalog entry rather than deferring them to `tools/describe`. These fields are small, stable, and do not depend on the invocation schema, so they belong in the discovery contract.
+
+The `annotations` object in a `ToolCatalogEntry` MUST be equal to the `annotations` object of the corresponding `Tool` returned by `tools/describe`, or a subset of its keys. A server MUST NOT report an annotation value in the catalog that differs from the value on the full `Tool`.
+
+Richer risk signals — required authorisation scope, whether a call needs prior approval, or whether an execution receipt is expected — are not part of `ToolAnnotations` today. Defining them is out of scope for this SEP; if they are standardised elsewhere, they would flow into the catalog through the same `annotations` field without changing the structure here.
 
 #### A note on `summary` quality
 
@@ -159,8 +169,8 @@ interface ToolCatalogEntry {
 
 #### Server Behaviour
 
-1. When `query` is present, the server SHOULD return a filtered subset of the catalog that the server considers relevant to the query.
-2. When `query` is absent, the server MUST return all tools the current session is authorised to see, paginated via `cursor`.
+1. When `query` is present, the server SHOULD return a filtered subset of the catalog that the server considers relevant to the query. The result MUST be a subset of the unfiltered catalog: a queried catalog MUST NOT include any tool that the unqueried catalog would not include for the same session.
+2. When `query` is absent, the server MUST return all tools the current session is authorised to see, paginated via `cursor`. The set of tool names returned (across all pages) MUST be identical to the set returned by `tools/list` for the same session.
 3. The server MUST NOT include `inputSchema`, `outputSchema`, or any field other than those defined on `ToolCatalogEntry`. Clients rely on this to bound the per-record size.
 4. The set of tools and the contents of each `ToolCatalogEntry` MUST be consistent with what `tools/describe` and `tools/list` return for the same session.
 5. The server MUST emit `notifications/tools/list_changed` (existing notification) when the catalog, the schemas, or any `schemaHash` value changes. See §5 for the change-domain semantics.
@@ -206,6 +216,14 @@ The `-32002` code is in the JSON-RPC server-defined range (`-32000` to `-32099`)
 ### 4. Interaction with `tools/list`
 
 `tools/list` is unchanged. Servers advertising `tools.progressiveDisclosure` MUST continue to support `tools/list` and MUST return identical content for the same session.
+
+The three discovery surfaces are related as follows, for a given session at a given point in time:
+
+- **`tools/list` and `tools/catalog` without `query` return the same set of tools.** Both return the complete set of tools the session is authorised to see; they differ only in the per-tool record shape (`Tool` vs `ToolCatalogEntry`). A tool name present in one MUST be present in the other.
+- **`tools/catalog` with `query` returns a subset of `tools/catalog` without `query`.** A query only narrows the catalog; it MUST NOT surface tools that the unqueried catalog would not.
+- **`tools/describe` resolves any name in the unqueried catalog.** Every name returned by `tools/catalog` without `query` MUST be describable; names outside that set MUST be reported as unknown (see §3).
+
+Clients MAY rely on these relationships. In particular, a client that has previously fetched the unqueried catalog can treat any queried result as a view over names it has already seen, and a client MAY fall back from a queried catalog to the unqueried catalog without changing the set of tools it is permitted to call.
 
 A trivial server-side polyfill — implementing `tools/catalog` and `tools/describe` as views over an existing `tools/list` — is provided in the reference implementation. This means SDK authors can ship the new methods with no application-code changes for servers that already implement `tools/list`.
 
