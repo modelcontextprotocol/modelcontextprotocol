@@ -10,8 +10,8 @@
 
 <Note>
 This SEP was developed by the [Skills Over MCP Working Group](https://modelcontextprotocol.io/community/skills-over-mcp/charter).
-Design history, experimental findings, and reference implementations are maintained in the
-[experimental-ext-skills repository](https://github.com/modelcontextprotocol/experimental-ext-skills).
+Design history and experimental findings are maintained in the
+[ext-skills repository](https://github.com/modelcontextprotocol/ext-skills).
 </Note>
 
 ## Abstract
@@ -24,8 +24,8 @@ The extension defines three protocol methods. Every server declaring the extensi
 
 Native skills support in host applications demonstrates strong demand for rich, progressively disclosed workflow instructions. MCP does not currently offer a conventional way to ship this content alongside the tools it describes, which leads to:
 
-- **Fragmented distribution.** A server and the skill that teaches an agent to use it are versioned, discovered, and installed separately. Users installing a server from a registry have no signal that a companion skill exists. ([problem statement](https://github.com/modelcontextprotocol/experimental-ext-skills/blob/main/docs/problem-statement.md))
-- **Instruction size limits.** Server instructions are delivered as the `instructions` field of the `server/discover` result and are practically bounded in size. Complex workflows — such as the 875-line [mcpGraph skill](https://github.com/TeamSparkAI/mcpGraph/blob/main/skills/mcpgraphtoolkit/SKILL.md) — do not fit this model. ([experimental findings](https://github.com/modelcontextprotocol/experimental-ext-skills/blob/main/docs/experimental-findings.md#mcpgraph-skills-in-mcp-server-repo))
+- **Fragmented distribution.** A server and the skill that teaches an agent to use it are versioned, discovered, and installed separately. Users installing a server from a registry have no signal that a companion skill exists. ([problem statement](https://github.com/modelcontextprotocol/ext-skills/blob/main/docs/problem-statement.md))
+- **Instruction size limits.** Server instructions are delivered as the `instructions` field of the `server/discover` result and are practically bounded in size. Complex workflows — such as the 875-line [mcpGraph skill](https://github.com/TeamSparkAI/mcpGraph/blob/main/skills/mcpgraphtoolkit/SKILL.md) — do not fit this model. ([experimental findings](https://github.com/modelcontextprotocol/ext-skills/blob/main/docs/experimental-findings.md#mcpgraph-skills-in-mcp-server-repo))
 - **Inconsistent ad-hoc solutions.** Absent a convention, several independent implementations have each invented their own `skill://` URI structure, with diverging semantics for authority, path, and sub-resource addressing.
 
 ## Specification
@@ -366,7 +366,7 @@ A server MAY direct the agent to specific skill URIs from its `instructions` fie
 
 #### Capability Declaration
 
-Per [SEP-2133] extension negotiation, servers declare support for this extension in their `initialize` response:
+Per [SEP-2133] extension negotiation, servers declare support for this extension in the `extensions` field of their capabilities:
 
 ```json
 {
@@ -386,7 +386,7 @@ One extension-specific setting is defined:
 | --------------- | ------- | ------- | ----------------------------------------------------------------------- |
 | `directoryRead` | boolean | `false` | The server implements [`resources/directory/read`](#directory-listing). |
 
-An empty object indicates support for the extension with no optional features. Declaring the extension itself commits the server to [`skills/list`](#enumeration-via-skillslist) and [`skills/get`](#retrieval-via-skillsget); clients MUST NOT call `resources/directory/read` against a server that has not declared `directoryRead: true`.
+An empty object indicates support for the extension with no optional features. Declaring the extension itself commits the server to [`skills/list`](#enumeration-via-skillslist) and [`skills/get`](#retrieval-via-skillsget); clients MUST NOT call `resources/directory/read` against a server that has not declared `directoryRead: true`. A server declaring this extension MUST also declare the `resources` capability.
 
 ### Reading
 
@@ -398,7 +398,7 @@ Internal references within a skill (e.g., `SKILL.md` linking to `references/GUID
 
 ### Directory Listing
 
-A skill's instructions frequently reference a directory rather than a file: "pick the appropriate template from `templates/`", "run the matching script in `scripts/`". To act on this, the agent must learn what the directory contains. `resources/list` cannot answer that scoped question: it enumerates the server's entire resource space, not a subtree, and the servers this SEP most wants to accommodate — large, generated, or unenumerable catalogs (see [Why May the Listing Be Empty or Partial?](https://github.com/modelcontextprotocol/experimental-ext-skills/blob/main/docs/rationale.md#why-may-the-listing-be-empty-or-partial)) — may not implement meaningful global listing at all.
+A skill's instructions frequently reference a directory rather than a file: "pick the appropriate template from `templates/`", "run the matching script in `scripts/`". To act on this, the agent must learn what the directory contains. `resources/list` cannot answer that scoped question: it enumerates the server's entire resource space, not a subtree, and the servers this SEP most wants to accommodate — large, generated, or unenumerable catalogs (see [Why May the Listing Be Empty or Partial?](https://github.com/modelcontextprotocol/ext-skills/blob/main/docs/rationale.md#why-may-the-listing-be-empty-or-partial)) — may not implement meaningful global listing at all.
 
 This extension therefore defines one new method, `resources/directory/read`, gated behind the `directoryRead` setting of the [capability declaration](#capability-declaration).
 
@@ -563,7 +563,7 @@ These wrappers are thin — each is a single underlying protocol call with a fix
 
 ## Rationale
 
-The design rationale for this SEP — why skills map to Resources rather than a new primitive, the URI structure, listing semantics, `skills/get`, the choice of a method over an index resource, format delegation to agentskills.io, directory reads, verbatim frontmatter, and per-file digests — is maintained as a standalone document in the Working Group repository: [rationale.md](https://github.com/modelcontextprotocol/experimental-ext-skills/blob/main/docs/rationale.md).
+The design rationale for this SEP — why skills map to Resources rather than a new primitive, the URI structure, listing semantics, `skills/get`, the choice of a method over an index resource, format delegation to agentskills.io, directory reads, verbatim frontmatter, and per-file digests — is maintained as a standalone document in the Working Group repository: [rationale.md](https://github.com/modelcontextprotocol/ext-skills/blob/main/docs/rationale.md).
 
 One point of that design bears restating here because it shapes how the two methods relate. A `skills/list` entry is intentionally a complete manifest of the skill — its verbatim `frontmatter` and its full `resources` set with digests — rather than a summary to be filled in by a follow-up call. A host that pages through the listing therefore has, in that one pass, everything it needs to build its registry, present the skill for approval, bind the approval to content, and verify every file it later reads; there is no second round-trip per skill, which matters most for exactly the hosts that connect to many servers or servers with many skills. `skills/get` exists for the cases the listing does not serve: refreshing a single skill's entry — typically after a digest mismatch — without re-enumerating the catalog, and obtaining an entry for a skill that a partial listing omitted. It is never a step a host must take to complete a listed entry.
 
@@ -571,11 +571,11 @@ One point of that design bears restating here because it shapes how the two meth
 
 This extension introduces three protocol methods. `skills/list` and `skills/get` are implemented by every server declaring the extension, so a client only issues those calls after seeing the declaration, and a client that predates the extension never issues them. `resources/directory/read` is additionally gated behind the `directoryRead` capability setting — a server that does not declare it never receives the call. The extension introduces no other methods, message types, or schema changes. A server that does not implement this extension simply exposes no `skill://` resources; existing clients are unaffected. A client that does not implement this extension sees `skill://` resources as ordinary resources, which they are.
 
-Existing implementations using other `skill://` URI structures will need to adjust to conform — see the Working Group's [related-work survey](https://github.com/modelcontextprotocol/experimental-ext-skills/blob/main/docs/related-work.md) for a catalog. Notably, FastMCP's widely-used [SkillsProvider](https://gofastmcp.com/servers/providers/skills) diverges on URI structure, discovery (per-skill `_manifest` vs. central index), and metadata mapping; coordinating that migration is a near-term Working Group priority. These are mechanical changes, not semantic ones.
+Existing implementations using other `skill://` URI structures will need to adjust to conform — see the Working Group's [related-work survey](https://github.com/modelcontextprotocol/ext-skills/blob/main/docs/related-work.md) for a catalog. Notably, FastMCP's widely-used [SkillsProvider](https://gofastmcp.com/servers/providers/skills) diverges on URI structure, discovery (per-skill `_manifest` vs. central index), and metadata mapping; coordinating that migration is a near-term Working Group priority. These are mechanical changes, not semantic ones.
 
 ## Security Implications
 
-Skill content is instructional text delivered to a model, which makes it a prompt-injection surface (background in [open-questions.md §10](https://github.com/modelcontextprotocol/experimental-ext-skills/blob/main/docs/open-questions.md#10-how-should-skills-handle-security-and-trust-boundaries)). This extension imposes the following requirements:
+Skill content is instructional text delivered to a model, which makes it a prompt-injection surface (background in [open-questions.md §10](https://github.com/modelcontextprotocol/ext-skills/blob/main/docs/open-questions.md#10-how-should-skills-handle-security-and-trust-boundaries)). This extension imposes the following requirements:
 
 - **Skill content is untrusted input.** Hosts MUST treat MCP-served skill content as untrusted model input, subject to the same prompt-injection defenses applied to any server-provided text. A server being connected does not make its skill content authoritative.
 - **Origin MUST be visible to the model.** Hosts MUST tag MCP-served skill content with its originating server identity at the point it enters model context and MUST NOT present an MCP-served skill to the model as indistinguishable from a local filesystem skill. The model, not the host, decides whether to follow a skill's instructions. Withholding origin from it makes the untrusted-input requirement above unenforceable at the layer that acts on it.
@@ -608,14 +608,14 @@ Per [SEP-2133], an Extensions Track SEP requires at least one reference implemen
 **Prototype host implementations** (reading `skill://` resources, surfacing skills alongside filesystem skills):
 
 - gemini-cli: [olaservo/gemini-cli#1](https://github.com/olaservo/gemini-cli/pull/1)
-- fast-agent: [olaservo/fast-agent#1](https://github.com/olaservo/fast-agent/pull/1)
+- fast-agent: [evalstate/fast-agent#815](https://github.com/evalstate/fast-agent/pull/815)
 - goose: [olaservo/goose#1](https://github.com/olaservo/goose/pull/1)
 - codex: [olaservo/codex#1](https://github.com/olaservo/codex/pull/1)
 - Claude Code: prototyped internally at Anthropic; not yet public
 
 **Prototype server implementation:**
 
-- GitHub MCP Server: [github/github-mcp-server#2360](https://github.com/github/github-mcp-server/pull/2360)
+- GitHub MCP Server: [github/github-mcp-server#3046](https://github.com/github/github-mcp-server/pull/3046)
 
 ## Appendix: Deferred Features
 
@@ -639,10 +639,10 @@ The cost of removal is the one archives were introduced to address — a skill w
 - [SEP-2549]: TTL for list results
 - [SEP-2076]: Agent Skills as first-class primitive (alternative approach)
 - [Skills Over MCP Working Group charter](https://modelcontextprotocol.io/community/skills-over-mcp/charter)
-- [Decision Log](https://github.com/modelcontextprotocol/experimental-ext-skills/blob/main/docs/decisions.md) — Working Group decisions and rationale
-- [Experimental Findings](https://github.com/modelcontextprotocol/experimental-ext-skills/blob/main/docs/experimental-findings.md) — results from implementations (WIP)
-- [Related Work](https://github.com/modelcontextprotocol/experimental-ext-skills/blob/main/docs/related-work.md) — survey of existing skill-serving implementations
-- [Skill `_meta` Keys](https://github.com/modelcontextprotocol/experimental-ext-skills/blob/main/docs/skill-meta-keys.md) — `_meta` key conventions for skill resources
+- [Decision Log](https://github.com/modelcontextprotocol/ext-skills/blob/main/docs/decisions.md) — Working Group decisions and rationale
+- [Experimental Findings](https://github.com/modelcontextprotocol/ext-skills/blob/main/docs/experimental-findings.md) — results from implementations (WIP)
+- [Related Work](https://github.com/modelcontextprotocol/ext-skills/blob/main/docs/related-work.md) — survey of existing skill-serving implementations
+- [Skill `_meta` Keys](https://github.com/modelcontextprotocol/ext-skills/blob/main/docs/skill-meta-keys.md) — `_meta` key conventions for skill resources
 - [RFC 3986: URIs](https://datatracker.ietf.org/doc/html/rfc3986)
 
 [SEP-2076]: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2076
