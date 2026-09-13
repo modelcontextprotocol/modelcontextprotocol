@@ -1,0 +1,1036 @@
+# SEP-3094: Granular citations format
+
+- **Status**: Draft
+- **Type**: Standards Track
+- **Created**: 2026-07-15
+- **Author(s)**: Karthik Palaniappan (karthik.palaniappan@thomsonreuters.com) (@karth295)
+- **Sponsor**: None
+- **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/3094
+
+## Abstract
+
+Many popular MCP clients (e.g. ChatGPT, Copilot) have **bespoke** formats for MCP servers to return rich citations.
+Other popular MCP clients (e.g. Claude) **only** render citation chips from first-party features such as public web
+search, making responses from MCP servers appear less trustworthy. Citations are an important mechanism for
+professionals and academic researchers to verify the accuracy of LLM-generated responses.
+
+This SEP proposes **standardizing** a mechanism for MCP servers and clients to exchange **granular, verifiable
+citations** to resources or portions of resources — sentences, HTML elements, image regions, table rows. It reuses
+existing MCP and web standards for selectors and fragments, such as [MCP resource
+URIs](https://modelcontextprotocol.io/specification/2025-06-18/server/resources#resource) and [schema.org
+citations](https://schema.org/citation). It explicitly tries to avoid creating bespoke formats that have not gone
+through rigorous review and real world usage.
+
+## Motivation
+
+### Building trust through verifiable responses
+
+Professionals such as lawyers, auditors, and academic researchers are legally and ethically bound to produce work
+grounded in hard evidence. As AI models have become more capable and MCP servers/tools have become more agentic,
+professional work has been moving towards steering and reviewing AI outputs.
+
+However, when professionals do not catch hallucinations, the consequences can be severe. The US court of appeals for the
+sixth circuit fined lawyers $30,000 for
+[misrepresentations](https://www.reuters.com/legal/litigation/us-appeals-court-fines-lawyers-30000-latest-ai-related-sanction-2026-03-16/).
+Damien Charlotin's [database](https://www.damiencharlotin.com/hallucinations/) underscores the depth of the problem with
+nearly 1200 hallucinated cases cited before July 2026.
+
+Citations have been an integral part of the end-user experience of using LLM-based systems even as early as
+[2022](https://arxiv.org/pdf/2203.11147). **However, how citations are exchanged and presented is bespoke to tools and
+clients.**
+
+This proposal does not discuss methods to reduce hallucinations; it instead proposes **formalizing commonly used
+patterns for servers and clients to present avenues for professionals to verify AI outputs for accuracy and
+completeness.**
+
+### Varied MCP client support for exchanging citations
+
+Here is a quick summary of support for citations among a few popular MCP clients in July 2026. Even among clients that
+support citations, the expected format varies.
+
+| MCP host              | Primary product(s)                                                                                                                                                                                          | Citation chips | Clickable links | Notes                                                                                                                                                                                                                                                                                               |
+| --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------- | --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Anthropic Claude**  | [Claude Desktop](https://code.claude.com/docs/en/desktop), [claude.ai](https://claude.ai)                                                                                                                   | No             | No              | Only plain markdown links are supported. MCP embedded resources are [not shown to the user](https://github.com/anthropics/claude-ai-mcp/issues/287). First party [web search](https://platform.claude.com/docs/en/agents-and-tools/tool-use/web-search-tool) chips cannot be driven by MCP servers. |
+| **OpenAI ChatGPT**    | [ChatGPT Connectors / Apps](https://developers.openai.com/api/docs/mcp), [Responses API remote MCP](https://developers.openai.com/api/docs/guides/tools-connectors-mcp)                                     | Yes            | Yes             | Specifically [`search` and `fetch`](https://developers.openai.com/api/docs/mcp) tools that return a non-empty `url` field get [inline citation chips](https://developers.openai.com/api/docs/mcp) linking to that URL.                                                                              |
+| **Microsoft Copilot** | [Microsoft 365 Copilot](https://learn.microsoft.com/en-us/microsoft-365/copilot/extensibility/overview) (declarative agents), [Copilot Studio](https://learn.microsoft.com/en-us/microsoft-copilot-studio/) | Yes            | Yes             | Firm-admin approved [Plugins](https://learn.microsoft.com/en-us/microsoft-365/copilot/extensibility/plugin-citations) can return [citations](https://learn.microsoft.com/en-us/microsoft-365/copilot/extensibility/plugin-citations) via a JSON format                                              |
+
+Some MCP clients do not have any mechanisms for servers to push down citations to be rendered as citation chips. This
+makes MCP-based tools appear less trustworthy than first party tools, even though their responses may be more grounded
+in authoritative data.
+
+Note that [MCP apps](https://modelcontextprotocol.io/extensions/apps/overview) can be used to render citations. However,
+this is unnecessarily heavyweight for MCP servers to implement for documents that are already addressible via URI.
+
+### Examples of bespoke citation formats returned by popular RAG and Agent APIs
+
+Server-returned citations also vary widely, even within the same server provider.
+
+<table>
+<thead>
+<tr>
+<th>Provider</th>
+<th>Tool</th>
+<th>Example response</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Anthropic</td>
+<td><code>web_search</code></td>
+<td>
+
+```json
+{
+  "text": "Claude Shannon was born on April 30, 1916, in Petoskey, Michigan",
+  "type": "text",
+  "citations": [
+    {
+      "type": "web_search_result_location",
+      "url": "https://en.wikipedia.org/wiki/Claude_Shannon",
+      "title": "Claude Shannon - Wikipedia",
+      "encrypted_index": "Eo8BCioIAhgBIiQyYjQ0OWJmZi1lNm..",
+      "cited_text": "Claude Elwood Shannon (April 30, 1916 – February 24, 2001)..."
+    }
+  ]
+}
+```
+
+</td>
+</tr>
+<tr>
+<td>Anthropic</td>
+<td><code>web_fetch</code></td>
+<td>
+
+```json
+{
+  "text": "the main argument presented is that artificial intelligence will transform healthcare",
+  "type": "text",
+  "citations": [
+    {
+      "type": "char_location",
+      "document_index": 0,
+      "document_title": "Article Title",
+      "start_char_index": 1234,
+      "end_char_index": 1456,
+      "cited_text": "Artificial intelligence is poised to revolutionize healthcare delivery..."
+    }
+  ]
+}
+```
+
+</td>
+</tr>
+<tr>
+<td>OpenAI</td>
+<td><code>web_search</code> (<code>url_citation</code>)</td>
+<td>
+
+```json
+{
+  "type": "output_text",
+  "text": "On March 6, 2025, several news outlets reported...",
+  "annotations": [
+    {
+      "type": "url_citation",
+      "start_index": 2606,
+      "end_index": 2758,
+      "url": "https://example.com/article",
+      "title": "Example Article"
+    }
+  ]
+}
+```
+
+</td>
+</tr>
+<tr>
+<td>OpenAI</td>
+<td><code>file_citation</code> / <code>container_file_citation</code></td>
+<td>
+
+```json
+{
+  "type": "output_text",
+  "text": "Per the uploaded report, revenue increased 12% year-over-year.",
+  "annotations": [
+    {
+      "type": "file_citation",
+      "file_id": "file-abc123",
+      "filename": "q3-earnings.pdf",
+      "index": 0
+    }
+  ]
+}
+```
+
+</td>
+</tr>
+<tr>
+<td>Perplexity</td>
+<td>Sonar</td>
+<td>
+
+```json
+{
+  "choices": [
+    {
+      "message": {
+        "role": "assistant",
+        "content": "Apple reported Q2 revenue of $95.4 billion [1], driven by Services growth [2]."
+      }
+    }
+  ],
+  "citations": [
+    "https://www.apple.com/newsroom/pdfs/fy2025-q2/FY25_Q2_Consolidated_Financial_Statements.pdf"
+  ],
+  "search_results": [
+    {
+      "title": "[PDF] Consolidated Financial Statements - Apple",
+      "url": "https://www.apple.com/newsroom/pdfs/fy2025-q2/FY25_Q2_Consolidated_Financial_Statements.pdf",
+      "date": "2025-05-01",
+      "snippet": "Net sales by reportable segment: Americas $40,315..."
+    }
+  ]
+}
+```
+
+</td>
+</tr>
+<tr>
+<td>Perplexity</td>
+<td>Agent API</td>
+<td>
+
+```json
+{
+  "type": "output_text",
+  "text": "Spain won Euro 2024, defeating England 2-1 in the final [1].",
+  "annotations": [
+    {
+      "type": "url_citation",
+      "start_index": 0,
+      "end_index": 52,
+      "url": "https://en.wikipedia.org/wiki/UEFA_Euro_2024_final",
+      "title": "UEFA Euro 2024 final"
+    }
+  ]
+}
+```
+
+</td>
+</tr>
+<tr>
+<td>Amazon Bedrock</td>
+<td><code>InvokeAgent</code></td>
+<td>
+
+```json
+{
+  "completion": "The refund policy allows returns within 30 days of purchase.",
+  "citations": [
+    {
+      "generatedResponsePart": {
+        "textResponsePart": {
+          "text": "returns within 30 days of purchase",
+          "span": { "start": 32, "end": 66 }
+        }
+      },
+      "retrievedReferences": [
+        {
+          "content": {
+            "type": "TEXT",
+            "text": "Customers may return items within 30 days..."
+          },
+          "location": {
+            "s3Location": { "uri": "s3://my-bucket/policies/refund.pdf" }
+          }
+        }
+      ]
+    }
+  ]
+}
+```
+
+</td>
+</tr>
+<tr>
+<td>Amazon Bedrock</td>
+<td><code>RetrieveAndGenerate</code> / Knowledge Bases</td>
+<td>
+
+```json
+{
+  "output": {
+    "text": "The refund policy allows returns within 30 days of purchase."
+  },
+  "citations": [
+    {
+      "generatedResponsePart": {
+        "textResponsePart": {
+          "text": "returns within 30 days of purchase",
+          "span": { "start": 32, "end": 66 }
+        }
+      },
+      "retrievedReferences": [
+        {
+          "content": {
+            "type": "TEXT",
+            "text": "Customers may return items within 30 days..."
+          },
+          "location": {
+            "s3Location": { "uri": "s3://my-bucket/policies/refund.pdf" }
+          },
+          "metadata": { "x-amz-bedrock-kb-chunk-id": "abc123" }
+        }
+      ]
+    }
+  ]
+}
+```
+
+</td>
+</tr>
+<tr>
+<td>Azure</td>
+<td>Responses API + Bing (<code>url_citation</code>)</td>
+<td>
+
+```json
+{
+  "type": "output_text",
+  "text": "If you're searching for uplifting news from November 2025...",
+  "annotations": [
+    {
+      "type": "url_citation",
+      "start_index": 333,
+      "end_index": 564,
+      "url": "https://example.com/article",
+      "title": "Example Article"
+    }
+  ]
+}
+```
+
+</td>
+</tr>
+<tr>
+<td>Azure</td>
+<td>On Your Data (Azure AI Search)</td>
+<td>
+
+```json
+{
+  "role": "assistant",
+  "content": "Contoso's Q3 revenue grew 12% year-over-year [doc1].",
+  "context": {
+    "citations": [
+      {
+        "content": "Q3 revenue was $4.2B, up 12% YoY...",
+        "title": "Q3 Earnings Summary",
+        "filepath": "reports/q3-2025.pdf",
+        "url": "https://contoso.sharepoint.com/...",
+        "chunk_id": "chunk-42"
+      }
+    ]
+  }
+}
+```
+
+</td>
+</tr>
+</tbody>
+</table>
+
+### Other examples of proposals to formalize citations
+
+Agent Stack (formerly BeeAI) has an [extension](https://github.com/a2aproject/A2A/issues/981) to the A2A protocol for
+citations, further highlighting the desire for standardization.
+
+It uses this simple format:
+
+```
+    start_index: int | None = None
+    end_index: int | None = None
+    url: str | None = None
+    title: str | None = None
+    description: str | None = None
+```
+
+## Specification
+
+Tool results MAY include a `citations` field at the top level of the tool result, referenced from the `content` field by
+[markdown link labels or text](https://spec.commonmark.org/0.31.2/#links). Citation objects MUST conform to the MCP
+citation JSON-LD schema (or a derivative schema). If `@context` is not specified and the response includes `citations`
+clients MUST assume the format is `citations.jsonld`.
+
+```json
+{
+  "content": [ ... ],
+  "citations": [
+    {
+      "id": "c1",
+      "@context": "https://modelcontextprotocol.io/ns/citations.jsonld",
+      ...
+    }
+  ]
+}
+```
+
+Note that structuredContent MAY contain citations in this format, but this spec does not explicitly mandate that clients
+understand or respect the citations returned.
+
+### Binding citations to content
+
+Servers bind citations to specific claims with a **markdown link in the text**, following [CommonMark's link
+spec](https://spec.commonmark.org/0.31.2/#link-reference-definitions). Clients that do not support MCP citations often
+still understand and render markdown formatted links.
+
+Note that not all markdown links imply that they are citations.
+
+#### Example 1: reference-style link
+
+Servers will frequently emit reference-style links, as an LLM outputs the link label as a marker in a single pass
+generation. The link label with a colon elsewhere in the text pairs that marker with a destination and an optional title
+(`[c1]: url "title"`). CommonMark requires the title to be quoted; an unquoted title invalidates the whole definition,
+leaving the marker as literal text and printing the definition line to the user. Servers are RECOMMENDED to use
+reference-style links for citations, as it provides a unique marker.
+
+```markdown
+It is emphatically the province and duty of the judicial department to say what the law is [c1].
+
+...
+
+[c1]: https://www.law.cornell.edu/supremecourt/text/5/137 "Marbury v. Madison, 5 U.S. (1 Cranch) 137 (1803)"
+```
+
+In this case, the reference-style marker `c1` can be a key to the citations array.
+
+#### Example 2: reference-style link with link text
+
+Here is the same reference-style link, but with the title directly as the link text (`Marbury v. Madison, 5 U.S. (1
+Cranch) 137 (1803)`).
+
+```markdown
+It is emphatically the province and duty of the judicial department to say what the law is [Marbury v. Madison, 5 U.S. (1 Cranch) 137 (1803)][c1].
+
+...
+
+[c1]: https://www.law.cornell.edu/supremecourt/text/5/137
+```
+
+#### Example 3: inline link
+
+An inline link just contains the link text and destination.
+
+```markdown
+It is emphatically the province and duty of the judicial department to say what the law is [Marbury v. Madison, 5 U.S. (1 Cranch) 137 (1803)](https://www.law.cornell.edu/supremecourt/text/5/137).
+```
+
+In this case, the link text is the key to the `citations` array: clients match it against the citation's `name`. A
+server using inline links SHOULD therefore set `name` to exactly the link text, and SHOULD ensure either that inline
+link text is unique, or that duplicates carry the same citation metadata.
+
+### Connecting links to citations
+
+Servers MAY key elements in the `citations` array based on link label (RECOMMENDED) or link text. When information in a
+markdown link does not match the information in `citations`, clients SHOULD prefer the information in `citations`.
+
+```json
+
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "It is emphatically the province and duty of the judicial department to say what the law is [1].\n\n...\n\n[1]: https://www.law.cornell.edu/supremecourt/text/5/137 \"Marbury v. Madison, 5 U.S. (1 Cranch) 137 (1803)\""
+    }
+  ],
+  "citations": [
+    {
+      "id": "1",
+      ...
+    }
+  ]
+}
+```
+
+In this case, the citations array annotates `[1]` as a citation that should be rendered as such to the user.
+
+### Block-level citations
+
+Servers MAY include `citations` that are not keyed by a marker in the text. Those citations are understood to apply to
+the returned content block(s) as a whole. Block-level citations do not require an id. Resources that cannot embed
+citation markers (e.g. `image` or `audio`) will always use block-level citations.
+
+```json
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "It is emphatically the province and duty of the judicial department to say what the law is."
+    }
+  ],
+  "citations": [
+    {
+      ...
+    }
+  ]
+}
+```
+
+### Capability negotiation
+
+Citations increase payload size and server-side work. Clients SHOULD advertise whether they render citations so servers
+can omit sending deeper metadata when they would not be used.
+
+#### Client capabilities
+
+Clients declare citation support in per-request
+[`io.modelcontextprotocol/clientCapabilities`](/specification/draft/basic/index#meta). The field is present on every
+client request (including [`tools/call`](/specification/draft/server/tools#calling-tools) and
+[`server/discover`](/specification/draft/server/discover)).
+
+```json
+{
+  "citations": {
+    "render": {}
+  }
+}
+```
+
+| Field              | Meaning                                                                                   |
+| ------------------ | ----------------------------------------------------------------------------------------- |
+| `citations`        | Client understands MCP citations array on tool results.                                   |
+| `citations.render` | Client surfaces citations to the user (e.g. citation chips, hovercards, clickable links). |
+
+An empty `render` object indicates support with no additional settings. Additional sub-fields MAY be defined in future
+revisions.
+
+Servers **SHOULD** omit the top-level `citations` array on tool results when the client did not declare any support for
+`citations`.
+
+Clients that declared support for `citations` without `citations.render` **MAY** still pass them to an LLM as opaque,
+metadata.
+
+### Client rendering
+
+When tool results contain citations, clients that declared `citations.render` SHOULD attempt to surface citations to the
+user. This SEP does not mandate a format for rendering citations, but a common method for graphical clients is to show
+citation chips with rich hovercards (title, description, thumbnail from `target.schema:citation`), with clickable links
+to the cited work. Clients SHOULD prefer `target.schema:citation.schema:url` when present (the cited work as a whole);
+otherwise they MAY fall back to `target.source`. Clients MAY use `target.source` instead when opening a deep link to the
+specific span (URL fragment or selector) the citation supports.
+
+Clients MAY synthesize content returned in tool calls, but SHOULD still preserve citations in their synthesis as
+relevant.
+
+#### Citation open behavior (embedded vs external)
+
+Servers MAY return a hint in the `display` field suggesting the client display citations in a sandboxed in-app webview
+or to open an external browser.
+
+Clients with the appropriate capabilities MAY honor this hint, but are not required to do so.
+
+Opening citations within a web view allows supporting richer rendering of authoritative documents (e.g. spreadsheets),
+without needing to implement an MCP app.
+
+### MCP Citation JSON-LD schema (extension of schema.org CreativeWork)
+
+MCP citations are JSON-LD objects that describe the cited work as a schema.org
+[`CreativeWork`](https://schema.org/CreativeWork) — the same kind of node that schema.org's
+[`citation`](https://schema.org/citation) property points at. `name`, `description`, `url`, `text`, `thumbnailUrl`,
+`datePublished`, `author`, and `publisher` are therefore ordinary schema.org properties carrying their usual meanings,
+and a server MAY narrow the citation to a more specific subtype such as `WebPage`, `ScholarlyArticle`, or `ImageObject`
+via `type`. Markdown links bind a citation to the span of the tool result it supports. See the Rationale section for
+alternatives considered, including the W3C Web Annotation Data Model and more granular selection within the tool
+response.
+
+The MCP citation schema layers three extensions on top of schema.org:
+
+1. An `id` carrying the markdown link label that binds the citation to a span of the content. Because this is a local
+   key within the tool result rather than an IRI naming the cited work, the context maps `id` to `mcp:id`, overriding
+   schema.org's own aliasing of `id` to `@id`.
+2. A copy of MCP resources' `mcp:annotations` field to hint to clients whether to render a citation or simply use it as
+   context for further investigation.
+3. A `display` hint for whether to open a citation in an embedded webview or an external browser.
+
+The JSON-LD context is canonically published at `https://modelcontextprotocol.io/ns/citations.jsonld` and referenced by
+the `@context` in examples. It is reproduced here so this SEP remains self-contained:
+
+```json
+{
+  "@context": [
+    "https://schema.org/",
+    {
+      "@version": 1.1,
+
+      "mcp": "https://modelcontextprotocol.io/ns#",
+      "dcterms": "http://purl.org/dc/terms/",
+      "xsd": "http://www.w3.org/2001/XMLSchema#",
+
+      "id": { "@id": "mcp:id" },
+
+      "display": { "@id": "mcp:display" },
+
+      "mcp:annotations": {
+        "@id": "mcp:annotations",
+        "@context": {
+          "audience": { "@id": "mcp:audience", "@container": "@set" },
+          "priority": { "@id": "mcp:priority", "@type": "xsd:decimal" },
+          "lastModified": { "@id": "dcterms:modified", "@type": "xsd:dateTime" }
+        }
+      }
+    }
+  ]
+}
+```
+
+Here is a clearer Typescript schema, illustrating a commonly used **subset** of the schema.org fields. Note that servers
+and clients may exchange more fields of schema.org's CreativeWork, or extend the protocol further. Although `id`,
+`name`, and `url` are each optional, at least one of them is required to produce a valid citation.
+
+```typescript
+interface Citation {
+  // Optional citation ID, potentially referring to a markdown link label, e.g. `[c1]`.
+  id?: string;
+
+  // Optional citation title, potentially referring to a markdown link text, e.g. `[name](url)`.
+  // This is the suggested display title for the MCP client.
+  name?: string;
+
+  // URL to the cited source. The URL may express granularity via URL parameters. Common formats include:
+  // Text fragments (subset of text): https://developer.mozilla.org/en-US/docs/Web/URI/Reference/Fragment/Text_fragments
+  // Media fragments (subset of images, audio, or video): https://developer.mozilla.org/en-US/docs/Web/URI/Reference/Fragment/Media_fragments
+  // PDF fragments (subset of documents): https://www.rfc-editor.org/info/rfc8118/#section-3
+  // There are also vendor-specific formats such as:
+  //   Excel (OOXML): #<sheet>!<cell>
+  //   Google Sheets: #gid=<sheet_id>&range=<cell_or_range>
+  // URLs are recommended to contain version information when possible, such as Wikipedia's oldid.
+  url?: string;
+
+  // Quoted text of the cited content, if applicable. Often useful when URL cannot granularly link to relevant text,
+  // such as for a PDF or Microsoft word document.
+  text?: string;
+
+  // Short human-readable summary of the cited work, for display alongside the title.
+  // Unlike `text`, this is not a quotation from the source, so a client cannot verify it against the cited content.
+  description?: string;
+
+  // Visual for the citation.
+  thumbnailUrl?: string;
+
+  // Published date of the cited content.
+  datePublished?: string;
+
+  // Author(s) of the cited content. schema.org's `author` ranges over
+  // https://schema.org/Person and https://schema.org/Organization.
+  author?: SchemaAgent | SchemaAgent[];
+
+  // Publisher(s) of the cited content. schema.org's `publisher` has the same range as `author`.
+  publisher?: SchemaAgent | SchemaAgent[];
+
+  // Open-behavior hint; advisory (default "auto")
+  display?: "embedded" | "external" | "auto";
+
+  // MCP client context hints (mcp:annotations)
+  "mcp:annotations"?: {
+    audience?: ("user" | "assistant")[];
+    priority?: number;
+    lastModified?: string;
+  };
+}
+
+// schema.org types an author or publisher as a Person or an Organization. A bare string is out of range but
+// widely accepted in practice, so servers MAY send one.
+type SchemaAgent =
+  | string
+  | {
+      type?: "Person" | "Organization";
+      name?: string;
+      url?: string;
+    };
+```
+
+### Examples
+
+Only one of `id`, `name`, or `url` is required for a citation. Fields the markdown link already carries are not repeated
+in `citations`; the JSON adds only what markdown cannot express.
+
+#### Minimalist: reference-style marker
+
+The marker carries no display text, and its definition already supplies the destination, so the citation needs only the
+`id` that joins it to the marker.
+
+```json
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "It is emphatically the province and duty of the judicial department to say what the law is [c1].\n\n[c1]: https://www.law.cornell.edu/supremecourt/text/5/137\n"
+    }
+  ],
+  "citations": [
+    {
+      "id": "c1"
+    }
+  ]
+}
+```
+
+#### Minimalist: reference-style link with link text
+
+This is the form where the title does belong in the text. The link text carries it and the definition carries the
+destination, so the citation again needs only its `id`.
+
+```json
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "It is emphatically the province and duty of the judicial department to say what the law is [Marbury v. Madison, 5 U.S. (1 Cranch) 137 (1803)][c1].\n\n[c1]: https://www.law.cornell.edu/supremecourt/text/5/137\n"
+    }
+  ],
+  "citations": [
+    {
+      "id": "c1"
+    }
+  ]
+}
+```
+
+#### Minimalist: inline link
+
+An inline link has no label, so the citation is keyed by its link text in `name`. The destination stays in the link.
+
+```json
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "It is emphatically the province and duty of the judicial department to say what the law is [Marbury v. Madison, 5 U.S. (1 Cranch) 137 (1803)](https://www.law.cornell.edu/supremecourt/text/5/137)."
+    }
+  ],
+  "citations": [
+    {
+      "name": "Marbury v. Madison, 5 U.S. (1 Cranch) 137 (1803)"
+    }
+  ]
+}
+```
+
+#### Granular text in a PDF
+
+A [PDF fragment](https://www.rfc-editor.org/rfc/rfc8118) (`#page=`) reaches a page but cannot address a span of text
+within it, so the citation quotes the passage in `text`. A client can use the quote to highlight the passage, and to
+confirm it still appears on the page when re-fetching.
+
+```json
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "The opinion is widely treated as [the origin of judicial review][c1]."
+    }
+  ],
+  "citations": [
+    {
+      "id": "c1",
+      "name": "Marbury and the Origins of Judicial Review",
+      "url": "https://example.org/papers/marbury-judicial-review.pdf#page=12",
+      "text": "Marbury is conventionally treated as the origin of judicial review in the United States."
+    }
+  ]
+}
+```
+
+#### Region of an image
+
+A [Media Fragment](https://www.w3.org/TR/media-frags/) (`#xywh=`) addresses a rectangle within an image. Percent units
+are resolution-independent.
+
+```json
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "The holding is [engraved in the Supreme Court building][c1]."
+    }
+  ],
+  "citations": [
+    {
+      "id": "c1",
+      "name": "Marbury v. Madison quotation, U.S. Supreme Court Building",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/b/b9/Marbury_v_Madison_John_Marshall_by_Swatjester.jpg#xywh=percent:4,24,58,56"
+    }
+  ]
+}
+```
+
+#### Heading in a Word document
+
+Word addresses a location inside a document by bookmark name, so a heading is cited through the bookmark at that heading
+— `_Toc…` when the bookmark was generated by a table of contents. The fragment reaches the heading, and the quoted
+`text` identifies the sentence beneath it.
+
+```json
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "Severance is set out in [Section 4, Termination][c1]."
+    }
+  ],
+  "citations": [
+    {
+      "id": "c1",
+      "name": "Employee Handbook",
+      "url": "https://contoso.sharepoint.com/sites/hr/Shared%20Documents/Employee-Handbook.docx#Section_4_Termination",
+      "text": "An employee terminated without cause receives four weeks of severance for each year of service."
+    }
+  ]
+}
+```
+
+#### Cell in an Excel spreadsheet
+
+Excel addresses a cell as `#<sheet>!<cell>`, the form Microsoft documents for [links in
+Excel](https://support.microsoft.com/en-us/excel/work-with-links-in-excel). The fragment reaches the cell, and `text`
+carries its value so a client can show the figure without opening the workbook.
+
+```json
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "Revenue is forecast at [$1,284,500 for FY25][c1]."
+    }
+  ],
+  "citations": [
+    {
+      "id": "c1",
+      "name": "FY25 Forecast",
+      "url": "https://contoso.sharepoint.com/sites/finance/Shared%20Documents/FY25-Forecast.xlsx#Revenue!B7",
+      "text": "1284500"
+    }
+  ]
+}
+```
+
+#### Hovercard metadata
+
+A client rendering a hovercard has room for more than a title. `description` summarizes the cited work in the server's
+own words; unlike `text` it is not a quotation from the source, so it is display metadata rather than something a client
+can check against the resource.
+
+```json
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "Judicial review in the United States traces to [an 1803 decision of the Marshall Court][c1]."
+    }
+  ],
+  "citations": [
+    {
+      "id": "c1",
+      "name": "Marbury v. Madison, 5 U.S. (1 Cranch) 137 (1803)",
+      "description": "The Supreme Court decision that established the federal judiciary's power to strike down laws repugnant to the Constitution.",
+      "url": "https://www.law.cornell.edu/supremecourt/text/5/137",
+      "thumbnailUrl": "https://upload.wikimedia.org/wikipedia/commons/b/b9/Marbury_v_Madison_John_Marshall_by_Swatjester.jpg"
+    }
+  ]
+}
+```
+
+## Rationale
+
+### Standard vs extension
+
+Citations are core to verifying AI outputs in professional work. However, if the maintainers believe that citations
+should be an extension, we can make that change.
+
+### Clients SHOULD vs MUST vs MAY render citations
+
+While citations are an important part of professional work, some clients will not need to provide citations. For
+example:
+
+1. MCP clients that do not show output to end users (e.g. M2M usage of MCP).
+2. Narrow-purpose MCP clients, e.g. ones that primarily consume structured output
+3. Coding-specific MCP clients, such as Claude Code or Cursor. They typically use diffs in place of citations.
+
+However, general purpose clients should still be encouraged to show citations. MAY is not strong enough language.
+
+### Annotate citations using an inline format such as pandoc's [@referenceId]
+
+Pandoc has a citation syntax within markdown links, e.g. `[@marbury1803]`, or `[@marbury1803, p. 137]`. There's a clear
+separation between regular links and citations with the `@` in front. This means that "minimalist" citations could avoid
+even creating a `citations` array.
+
+However, supporting arbitrary markdown links is an easier onboarding path for existing server implementations, including
+support for selecting within the body.
+
+### Why not include start/end markers?
+
+Most of the examples of web search APIs (Anthropic, OpenAI, etc) return offsets within a wider work where a text quote
+was pulled. However, this SEP recommends using web text fragment URLs, which more directly help clients render the
+citation.
+
+Offsets are less helpful for other file formats such as Excel or Word, and the SEP recommends using URLs to encode this
+information. URLs make it easier for humans to jump to and verify a citation.
+
+However, if we do want to keep start/end offsets, we can add it to the JSON-LD for MCP citations.
+
+### schema.org citations vs Web Annotation Data Model
+
+schema.org's citations are very widely used for SEO purposes. However, it is primarily designed to provide context to
+search engines. It has a relatively verbose and nested structure for citations.
+
+The Web Annotation Data Model is primarily used in academic settings, but has richer support for **granular** selectors
+— such as a polygon on an image — that a URL fragment cannot express, and it keeps that structure in typed JSON rather
+than requiring clients to parse every convention out of a URL. It also separates the concept of `Body` (the portion of
+the tool result making the claim) and `Target` (the cited resource).
+
+WADM's granular target selection would also allow for very token efficient verification of cited sources, e.g. only
+reading an element within a slide. However, this would require clients and servers to agree on formats for extreme
+granularity.
+
+In the end, this SEP proposes using Markdown links rather than WADM's `Body` for easy adoption. And similarly,
+`schema.org`'s citation format as it is already commonly used for hovercards.
+
+## Backward Compatibility
+
+Clients that do not understand citations at all or have not implemented certain citation fields can safely ignore
+citation metadata. All fields in this proposal are additive only, and clients are not required to render any or all
+citations.
+
+While clients may generate their own citations, this SEP does not provide a mechanism for them to directly pass them to
+servers. So older servers will not be affected.
+
+## Reference Implementation
+
+I plan to open a PR to [OpenWebUI](https://openwebui.com/) as a reference implementation. That can happen in parallel
+with discussion on this SEP.
+
+As discussed above, there are many bespoke implementations of rich citations, so there is evidence that the pattern is
+useful.
+
+## Security Implications
+
+### Access control for non-public resources
+
+Servers should implement access controls for non-public resources.
+
+### Citation hallucination
+
+Servers often use LLMs to generate tool responses, which can lead to hallucinated quotes or citations. And, malicious
+servers may use citations to make links look authoritative to encourage users to click.
+
+This SEP only suggests clients MAY verify citations before rendering, but most clients will likely not spend the extra
+network bandwidth and/or tokens to do so.
+
+### Prompt injection via cited content
+
+Cited content displayed inline could itself contain prompt injection payloads if a user later quotes the citation back
+to the model. This is the same risk surface as any other tool result.
+
+### Dereferencing citation URIs (SSRF)
+
+Clients dereference server-chosen URIs when rendering citations: `url` on hover, on click, or when re-resolving a
+citation, and `thumbnailUrl` when loading hovercard images. Every such fetch is an outbound request to a URI the server
+chose. A malicious server can therefore point these fields at internal or local endpoints (`file://`,
+`http://localhost`, link-local addresses, cloud-metadata IPs such as `169.254.169.254`), turning the client into an SSRF
+vector. Clients SHOULD restrict automatic dereferencing to an allow-list of schemes (typically `https://` and
+MCP-resolved custom schemes via `resources/read`) and MUST NOT fetch private, loopback, or link-local addresses without
+explicit user action.
+
+Clients MUST NOT attach ambient credentials (cookies, cached auth, or MCP access tokens) when fetching a citation target
+cross-origin; as noted above, MCP tokens are bound to their server and MUST NOT be replayed to arbitrary targets.
+Clients dereferencing `https://` targets MUST validate TLS and refuse downgraded or mixed-content fetches, so a network
+attacker cannot forge the "verified source" a citation appears to confirm.
+
+### Rendering untrusted preview content
+
+The `display: "embedded"` hint asks the client to open a citation in its in-app webview rather than an external browser.
+Because an embedded surface shares more of the client's context, an `embedded` hint MUST raise the sandboxing bar, not
+lower it: the same script-disabling, credential-omission, and no-referrer rules apply, and clients SHOULD isolate the
+webview from the host session. The hint is advisory — clients MUST fall back to an external window when the cited origin
+forbids framing (`X-Frame-Options` / CSP `frame-ancestors`) or the scheme is not web-fetchable.
+
+Conversely, a cited origin may not wish its content re-surfaced as a preview inside arbitrary clients. MCP has no
+embedding-consent signal today (the web analog is CSP `frame-ancestors`), and providing one would require a
+server-declared field rather than client-side policy.
+
+### Content integrity
+
+An earlier version of this proposal included a sha256 field for clients to verify whether content had changed from when
+the citation was generated. However, the sha256 field is not widely used, and it is also hard to know exactly what the
+sha256 is signing: e.g. is it signing the granular content (such as a text snippet) or the wider content.
+
+This SEP punts on a decision to add integrity checks for the future as we see more adoption.
+
+### Thundering herd of link resolution
+
+Because clients MAY re-verify citations against the live source or fetch `url` and `thumbnailUrl`, a response containing
+many citations can generate a burst of outbound requests to attacker-chosen URLs — a denial-of-service-by-proxy and
+tracking-beacon vector against third-party origins. Clients SHOULD rate-limit automatic dereferencing and MAY defer it
+until a user gesture (e.g. hovering a specific citation).
+
+## Open questions
+
+### Should server and clients advertise which citation formats/features?
+
+This SEP defines baseline `citations` / `citations.render` capability flags (see [Capability
+negotiation](#capability-negotiation)). It does not yet specify how clients and servers exchange support for individual
+fragment schemes (text fragments, media fragments, PDF `#page=`, and the vendor bookmark and cell forms).
+
+Similarly, servers could advertise supported `citation` formats in the `_meta` response. That would provide a helpful
+hint for clients who actively generate citations.
+
+### How reliably do models retain citation markers when synthesizing tool responses?
+
+This SEP recommends that MCP clients keep citations even when synthesizing a tool response to retain human verifiability
+of information. However, we will need to see empirical data on how well models retain citations through prompting alone,
+or whether models will need to be fine-tuned to retain citations.
+
+### Should we explicitly constrain to a subset of schema.org's fields?
+
+`schema.org` technically allows nested citations and a myriad of fields through its hierarchy of classes, e.g.:
+
+```json
+{
+  "@context": "https://schema.org/",
+  "@type": "DigitalDocument",
+  "@id": "https://example.com",
+  "name": "Annual Geological Analysis 2026",
+  "encodingFormat": "application/pdf",
+  "url": "https://example.com",
+  "hasPart": {
+    "@type": "ImageObject",
+    "@id": "https://example.com#page=14&img=01",
+    "name": "Satellite Mapping of Sector 7",
+    "description": "High-resolution satellite topography view on page 14.",
+    "embeddedTextCaption": "Figure 4.2: Sector 7 Topography Overview.",
+    "thumbnailUrl": "https://example.com/thumbs/sector-7.png",
+    "hasPart": {
+      "@type": "ImageObject",
+      "@id": "https://example.com#page=14&img=01&xywh=percent:42,15,48,21",
+      "name": "Fault Line Delta-9",
+      "description": "The region of the figure highlighting the active fault line displacement."
+    }
+  }
+}
+```
+
+Similar to search engines, MCP clients will likely support a narrow portion of the spec, likely just enough to render a
+clickable hovercard. We may want to narrow the spec to just common fields, or just detach from schema.org entirely.
+
+### Further security analysis
+
+HTTP and web browsers have put decades of thought into sandboxing, iframes, CORS, and XSRF. We should do a more detailed
+audit of security implications.
+
+## Acknowledgements
+
+Appreciate the feedback from Robert Sanderson, one of the original authors of the Web Annotation Data Model.
+
+Will add more reviewers and collaborators in here throughout the process!
