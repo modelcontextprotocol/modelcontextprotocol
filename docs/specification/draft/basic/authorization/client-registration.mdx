@@ -37,8 +37,9 @@ Key requirements include:
 
 - Clients **MUST** host their metadata document at an HTTPS URL following RFC requirements
 - The `client_id` URL **MUST** use the "https" scheme and contain a path component, e.g. `https://example.com/client.json`
-- The metadata document **MUST** include at least the following properties: `client_id`, `client_name`, `redirect_uris`
+- The metadata document **MUST** include at least the following properties: `client_id`, `client_name`, `redirect_uris`, `token_endpoint_auth_methods_supported`
 - Clients **MUST** ensure the `client_id` value in the metadata matches the document URL exactly
+- Clients **MUST** include `token_endpoint_auth_methods_supported`, a JSON array of one or more token endpoint authentication method names drawn from the [OAuth Token Endpoint Authentication Methods registry](https://www.iana.org/assignments/oauth-parameters/oauth-parameters.xhtml#token-endpoint-auth-method) ([RFC 7591 Section 4.2](https://datatracker.ietf.org/doc/html/rfc7591#section-4.2)), in no particular order of preference. The array **MUST NOT** include `client_secret_post`, `client_secret_basic`, `client_secret_jwt`, or any other method based around a shared symmetric secret.
 - Clients **MAY** use `private_key_jwt` for client authentication (e.g., for requests to the token endpoint) with appropriate JWKS configuration as described in [Section 6.2 of Client ID Metadata Document](https://www.ietf.org/archive/id/draft-ietf-oauth-client-id-metadata-document-00.html#section-6.2)
 
 **For Authorization Servers:**
@@ -48,6 +49,7 @@ Key requirements include:
 - **SHOULD** cache metadata respecting HTTP cache headers
 - **MUST** validate redirect URIs presented in an authorization request against those in the metadata document
 - **MUST** validate the document structure is valid JSON and contains required fields
+- **MUST** validate the client uses an accepted authentication method from `token_endpoint_auth_methods_supported`
 - **SHOULD** follow the security considerations in [Section 6 of Client ID Metadata Document](https://www.ietf.org/archive/id/draft-ietf-oauth-client-id-metadata-document-00.html#section-6) and in [Client ID Metadata Document Security](/specification/draft/basic/authorization/security-considerations#client-id-metadata-document-security)
 
 ### Example Metadata Document
@@ -64,7 +66,7 @@ Key requirements include:
   ],
   "grant_types": ["authorization_code"],
   "response_types": ["code"],
-  "token_endpoint_auth_method": "none"
+  "token_endpoint_auth_methods_supported": ["none"]
 }
 ```
 
