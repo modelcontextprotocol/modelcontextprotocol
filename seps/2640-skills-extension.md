@@ -597,7 +597,6 @@ Per [SEP-2133], an Extensions Track SEP requires at least one reference implemen
 
 **SDK implementations:**
 
-- TypeScript SDK convenience wrappers (`@server.skill()`, `client.listSkills()`, `client.readSkillUri()`): [experimental-ext-skills#71](https://github.com/modelcontextprotocol/experimental-ext-skills/pull/71)
 - Python SDK: [python-sdk#3485](https://github.com/modelcontextprotocol/python-sdk/pull/3485)
 - C# SDK: [csharp-sdk#1856](https://github.com/modelcontextprotocol/csharp-sdk/pull/1856)
 - Go SDK: [go-sdk#1238](https://github.com/modelcontextprotocol/go-sdk/pull/1238)
