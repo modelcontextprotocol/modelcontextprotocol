@@ -62,7 +62,8 @@
                     "group": "Security",
                     "pages": [
                       "docs/2026-07-28/tutorials/security/authorization",
-                      "docs/2026-07-28/tutorials/security/security_best_practices"
+                      "docs/2026-07-28/tutorials/security/security_best_practices",
+                      "docs/2026-07-28/tutorials/security/local-server-security"
                     ]
                   }
                 ]
@@ -360,7 +361,8 @@
                     "group": "Security",
                     "pages": [
                       "docs/draft/tutorials/security/authorization",
-                      "docs/draft/tutorials/security/security_best_practices"
+                      "docs/draft/tutorials/security/security_best_practices",
+                      "docs/draft/tutorials/security/local-server-security"
                     ]
                   }
                 ]
