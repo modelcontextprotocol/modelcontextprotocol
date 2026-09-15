@@ -83,9 +83,9 @@ The eight `Status` values, also defined on the [SEP index](/seps):
 | `withdrawn`  | Withdrawn by the author                                                         | Author or sponsor                           |
 | `final`      | All artifacts complete and the PR merged                                        | Sponsor                                     |
 | `superseded` | Replaced by a newer SEP                                                         | Sponsor                                     |
-| `dormant`    | No sponsor after 180 days, PR closed, may be revived                            | Automation, on behalf of Core Maintainers   |
+| `dormant`    | No sponsor after 180 days, PR closed, may be revived                            | Core Maintainers                            |
 
-Automation pings the author after 90 days without a sponsor and, after 180 days, marks the PR `dormant` and closes it. Dormant is not rejected: a dormant SEP is revived by finding a sponsor and reopening the PR, which returns it to `draft`.
+A SEP that has no sponsor after 180 days is marked `dormant` and its PR is closed. Dormant is not rejected: a dormant SEP is revived by finding a sponsor and reopening the PR, which returns it to `draft`.
 
 ## Sponsors
 

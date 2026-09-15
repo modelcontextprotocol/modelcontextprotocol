@@ -949,10 +949,6 @@
       "destination": "/community/working-groups/agents"
     },
     {
-      "source": "/community/apps/charter",
-      "destination": "/community/working-groups/apps"
-    },
-    {
       "source": "/community/security",
       "destination": "/community/policies"
     },
