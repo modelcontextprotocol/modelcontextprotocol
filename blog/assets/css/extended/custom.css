@@ -233,27 +233,22 @@
 }
 
 /* ─── Footer ─────────────────────────────────────────────────────────────── */
-/* PaperMod's .footer is max-width constrained to the content column. The
-   ::before rule escapes that box via the 100vw-centered trick so the
-   separator spans the full viewport like the header's does. */
+/* PaperMod's .footer is max-width constrained to the content column, so the
+   full-viewport separator lives on a full-width wrapper div (added in the
+   footer partial) as a plain border. The old approach — a ::before escaping
+   the column via the 100vw-centered trick — overflowed the page by half the
+   scrollbar width on browsers with classic scrollbars (100vw includes the
+   scrollbar; clientWidth doesn't), causing a horizontal scrollbar. */
 /* width:100% — same flex-item fix as .main below. PaperMod's margin:auto +
    max-width shrinks to content as a flex item; explicit width restores the
    block-flow "cap at max-width, center" behavior. */
-.footer {
-    position: relative;
-    padding-top: 24px;
-    width: 100%;
+.footer-wrap {
+    border-top: 1px solid var(--hairline);
 }
 
-.footer::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 100vw;
-    height: 1px;
-    background: var(--hairline);
+.footer {
+    padding-top: 24px;
+    width: 100%;
 }
 
 /* PaperMod sets white-space:nowrap on .footer span:last-child for its short
@@ -375,6 +370,14 @@ body {
 }
 
 /* ─── Page chrome ────────────────────────────────────────────────────────── */
+/* GIF-style demo videos in post content size to the prose column the same
+   way images do. The width/height attributes on the element keep the
+   aspect ratio reserved before load, so no layout shift. */
+.post-content video {
+    max-width: 100%;
+    height: auto;
+}
+
 /* Override list page background to white in light mode */
 .list {
     background: var(--theme);

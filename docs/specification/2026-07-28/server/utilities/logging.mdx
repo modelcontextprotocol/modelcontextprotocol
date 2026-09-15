@@ -1,0 +1,132 @@
+---
+title: Logging
+---
+
+<div id="enable-section-numbers" />
+
+<Warning>
+  **Deprecated**: The Logging feature is deprecated as of protocol version
+  `2026-07-28`
+  ([SEP-2577](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2577)).
+  Under the [feature lifecycle policy](/community/feature-lifecycle), it remains
+  in the specification for at least twelve months after this revision's release
+  before it becomes eligible for removal. New implementations **SHOULD NOT**
+  adopt it; existing implementations **SHOULD** migrate to logging to `stderr`
+  for stdio transports, or to [OpenTelemetry](https://opentelemetry.io/) for
+  structured observability. See the [deprecated features
+  registry](/specification/2026-07-28/deprecated).
+</Warning>
+
+The Model Context Protocol (MCP) provides a standardized way for servers to send
+structured log messages to clients. Clients control logging verbosity per-request via
+`_meta`, with servers sending notifications containing severity levels, optional logger
+names, and arbitrary JSON-serializable data.
+
+## User Interaction Model
+
+Implementations are free to expose logging through any interface pattern that suits their
+needs&mdash;the protocol itself does not mandate any specific user interaction model.
+
+## Capabilities
+
+Servers that emit log message notifications **MUST** declare the `logging` capability:
+
+```json
+{
+  "capabilities": {
+    "logging": {}
+  }
+}
+```
+
+## Log Levels
+
+The protocol follows the standard syslog severity levels specified in
+[RFC 5424](https://datatracker.ietf.org/doc/html/rfc5424#section-6.2.1):
+
+| Level     | Description                      | Example Use Case           |
+| --------- | -------------------------------- | -------------------------- |
+| debug     | Detailed debugging information   | Function entry/exit points |
+| info      | General informational messages   | Operation progress updates |
+| notice    | Normal but significant events    | Configuration changes      |
+| warning   | Warning conditions               | Deprecated feature usage   |
+| error     | Error conditions                 | Operation failures         |
+| critical  | Critical conditions              | System component failures  |
+| alert     | Action must be taken immediately | Data corruption detected   |
+| emergency | System is unusable               | Complete system failure    |
+
+## Requesting Log Messages
+
+### Per-request log level
+
+To receive log messages for a specific request, include
+`io.modelcontextprotocol/logLevel` in the request's `_meta`. The server **MUST NOT**
+emit `notifications/message` for a request that does not include this field.
+
+When the field is present, the server **MAY** send `notifications/message`
+notifications at or above the requested level on the response stream of that
+request, before the final response. `notifications/message` is request-scoped:
+the server **MUST NOT** deliver it on a
+[`subscriptions/listen`](/specification/2026-07-28/basic/patterns/subscriptions)
+stream or on any stream other than the one carrying the response to the request
+that set the log level.
+
+## Protocol Messages
+
+### Log Message Notifications
+
+Servers send log messages using `notifications/message` notifications:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "notifications/message",
+  "params": {
+    "level": "error",
+    "logger": "database",
+    "data": {
+      "error": "Connection failed",
+      "details": {
+        "host": "localhost",
+        "port": 5432
+      }
+    }
+  }
+}
+```
+
+## Error Handling
+
+If the `io.modelcontextprotocol/logLevel` value carried in a request's `_meta`
+is not a recognized [log level](#log-levels), the server **SHOULD** reject that
+request with a standard JSON-RPC error:
+
+- Invalid log level: `-32602` (Invalid params)
+- Internal errors: `-32603` (Internal error)
+
+## Implementation Considerations
+
+1. Servers **SHOULD**:
+   - Rate limit log messages
+   - Include relevant context in data field
+   - Use consistent logger names
+   - Remove sensitive information
+
+2. Clients **MAY**:
+   - Present log messages in the UI
+   - Implement log filtering/search
+   - Display severity visually
+   - Persist log messages
+
+## Security
+
+1. Log messages **MUST NOT** contain:
+   - Credentials or secrets
+   - Personal identifying information
+   - Internal system details that could aid attacks
+
+2. Implementations **SHOULD**:
+   - Rate limit messages
+   - Validate all data fields
+   - Control log access
+   - Monitor for sensitive content

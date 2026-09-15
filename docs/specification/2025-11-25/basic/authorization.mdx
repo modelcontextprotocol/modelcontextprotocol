@@ -643,7 +643,7 @@ Authorization servers fetching metadata documents **SHOULD** consider
 Client ID Metadata Documents cannot prevent `localhost` URL impersonation by themselves. An attacker can claim to be any client by:
 
 1. Providing the legitimate client's metadata URL as their `client_id`
-2. Binding to the any `localhost` port, and providing that address as the redirect_uri
+2. Binding to any `localhost` port, and providing that address as the redirect_uri
 3. Receiving the authorization code via the redirect when the user approves
 
 The server will see the legitimate client's metadata document and the user will see the legitimate client's name, making attack detection difficult.

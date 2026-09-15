@@ -72,15 +72,9 @@ If there are no security implications, state that explicitly.
 
 ## Reference Implementation
 
-Link to or describe a reference implementation. A reference implementation is required before any SEP can be given "Final" status.
+Link to a working prototype demonstrating the proposal, such as an SDK branch or fork, a standalone proof of concept, or a reference server or client. A prototype is required before a SEP can be accepted and does not need to be production-ready. See [Prototype Requirements](https://modelcontextprotocol.io/community/sep-guidelines#prototype-requirements) for what qualifies.
 
-The principle of "rough consensus and running code" is useful when resolving discussions of protocol details.
-
-Include:
-
-- Links to prototype code or pull requests
-- Pointers to example usage
-- Test results or validation
+Before a SEP can reach "Final" status, the reference implementation must be complete and any required [conformance test](https://modelcontextprotocol.io/community/sep-guidelines#conformance-test-requirement) merged. Include links to the implementation and test results as they become available.
 
 ---
 

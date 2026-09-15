@@ -57,6 +57,23 @@ To get started building MCP Apps, see the [quickstart guide](/extensions/apps/bu
 | --------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
 | [MCP Tasks](/extensions/tasks/overview) | Asynchronous task execution for long-running operations, with polling, mid-flight input, and durable handles. |
 
+### Skills over MCP
+
+<Card
+  title="modelcontextprotocol/ext-skills"
+  icon="github"
+  href="https://github.com/modelcontextprotocol/ext-skills"
+>
+  Discover and read Agent Skills from MCP servers.
+</Card>
+
+| Extension                                      | Description                                                                     |
+| ---------------------------------------------- | ------------------------------------------------------------------------------- |
+| [Skills over MCP](/extensions/skills/overview) | Discover workflow instructions and read supporting files through MCP resources. |
+
+See the [Skills overview](/extensions/skills/overview) to get started and the
+[client matrix](/extensions/client-matrix) for implementation support.
+
 ## Experimental Extensions
 
 Experimental extensions provide an incubation pathway for [Working Groups and Interest Groups](/community/working-interest-groups) to prototype ideas and collaborate on extension concepts before formal SEP submission.
@@ -113,32 +130,35 @@ A **breaking change** is any modification that would cause existing implementati
 
 ## Negotiation
 
-Clients and servers advertise their support for extensions in the `extensions` field within their respective capabilities during the [initialization handshake](/specification/latest/basic/lifecycle).
+Clients and servers advertise their support for extensions in the `extensions` field within their respective capability declarations.
 
 ### Client Capabilities
 
-Clients advertise extension support in the `initialize` request:
+Clients advertise extension support in `_meta["io.modelcontextprotocol/clientCapabilities"]` within each request:
 
 ```json
 {
   "jsonrpc": "2.0",
   "id": 1,
-  "method": "initialize",
+  "method": "tools/call",
   "params": {
-    "protocolVersion": "2025-06-18",
-    "capabilities": {
-      "roots": {
-        "listChanged": true
-      },
-      "extensions": {
-        "io.modelcontextprotocol/ui": {
-          "mimeTypes": ["text/html;profile=mcp-app"]
-        }
-      }
+    "name": "get_weather",
+    "arguments": {
+      "location": "New York"
     },
-    "clientInfo": {
-      "name": "ExampleClient",
-      "version": "1.0.0"
+    "_meta": {
+      "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+      "io.modelcontextprotocol/clientCapabilities": {
+        "extensions": {
+          "io.modelcontextprotocol/ui": {
+            "mimeTypes": ["text/html;profile=mcp-app"]
+          }
+        }
+      },
+      "io.modelcontextprotocol/clientInfo": {
+        "name": "ExampleClient",
+        "version": "1.0.0"
+      }
     }
   }
 }
@@ -146,24 +166,29 @@ Clients advertise extension support in the `initialize` request:
 
 ### Server Capabilities
 
-Servers advertise extension support in the `initialize` response:
+Servers advertise extension support in the `server/discover` response:
 
 ```json
 {
   "jsonrpc": "2.0",
   "id": 1,
   "result": {
-    "protocolVersion": "2025-06-18",
+    "resultType": "complete",
+    "supportedVersions": ["2026-07-28"],
     "capabilities": {
       "tools": {},
       "extensions": {
         "io.modelcontextprotocol/ui": {}
       }
     },
-    "serverInfo": {
-      "name": "ExampleServer",
-      "version": "1.0.0"
-    }
+    "_meta": {
+      "io.modelcontextprotocol/serverInfo": {
+        "name": "ExampleServer",
+        "version": "1.0.0"
+      }
+    },
+    "ttlMs": 3600000,
+    "cacheScope": "public"
   }
 }
 ```

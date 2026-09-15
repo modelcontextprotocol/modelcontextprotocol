@@ -1,0 +1,498 @@
+---
+title: Overview
+---
+
+<div id="enable-section-numbers" />
+
+The Model Context Protocol consists of several key components that work together:
+
+- **Base Protocol**: Core JSON-RPC message types
+- **Versioning and Compatibility**: Protocol version negotiation, extension negotiation, and interoperability with earlier protocol revisions
+- **Message Patterns**: Messaging patterns supported by the core protocol including request and response, multi round-trip requests (MRTR), and subscribe and notify
+- **Authorization**: Authentication and authorization framework for HTTP-based transports
+- **Server Features**: Resources, prompts, and tools exposed by servers
+- **Client Features**: Elicitation, sampling and root directory lists provided by clients
+- **Utilities**: Cross-cutting concerns like logging and argument completion
+
+All implementations **MUST** support the base protocol, versioning,
+and the message patterns. Other components **MAY** be implemented based on the specific needs of the
+application.
+
+These protocol layers establish clear separation of concerns while enabling rich
+interactions between clients and servers. The modular design allows implementations to
+support exactly the features they need.
+
+## Messages
+
+All messages between MCP clients and servers **MUST** follow the
+[JSON-RPC 2.0](https://www.jsonrpc.org/specification) specification. The protocol defines
+these types of messages:
+
+### Requests
+
+[Requests](/specification/2026-07-28/schema#jsonrpcrequest) are sent from the client to the server, to initiate an operation.
+
+```typescript
+{
+  jsonrpc: "2.0";
+  id: string | number;
+  method: string;
+  params?: {
+    [key: string]: unknown;
+  };
+}
+```
+
+- Requests **MUST** include a string or integer ID.
+- Unlike base JSON-RPC, the ID **MUST NOT** be `null`.
+- The request ID **MUST NOT** match the ID of any other request the sender has issued and
+  not yet received a response for.
+
+### Responses
+
+Responses are sent in reply to requests, containing either the result or error of the operation.
+
+#### Result Responses
+
+[Result responses](/specification/2026-07-28/schema#jsonrpcresultresponse) are sent when the operation completes successfully.
+
+```typescript
+{
+  jsonrpc: "2.0";
+  id: string | number;
+  result: {
+    resultType: string;
+    [key: string]: unknown;
+  };
+}
+```
+
+- Result responses **MUST** include the same ID as the request they correspond to.
+- Result responses **MUST** include a `result` field.
+- The `result` **MAY** follow any JSON object structure.
+- The `result` **MUST** include a `resultType` field to indicate the type of the result.
+
+##### ResultType
+
+The `resultType` field in a result indicates the type of the result being returned. MCP supports polymorphic result types,
+allowing servers to return different structures based on the outcome of the request. The `resultType` field is a string that clients
+can use to determine how to parse and handle the `result` object.
+
+- A `resultType` of `"complete"` indicates the request completed successfully and the result contains the final content.
+- A `resultType` of `"input_required"` indicates the request is incomplete and more information is needed to process the request. The result contains an [`InputRequiredResult`](/specification/2026-07-28/basic/patterns/mrtr#inputrequiredresult) object with additional information needed.
+- Extensions **MAY** add additional `ResultType` values. The set of supported `ResultType` values **MUST** be created from the set defined in the core protocol and include any additional values of supported extensions that are advertised via capabilities.
+- A `resultType` of any value unrecognized by the client **MUST** be considered invalid.
+- For backward compatibility with servers implementing earlier protocol versions, which do not include `resultType`, clients **MUST** treat an absent `resultType` as `"complete"`.
+
+#### Error Responses
+
+[Error responses](/specification/2026-07-28/schema#jsonrpcerrorresponse) are sent when the operation fails or encounters an error.
+
+```typescript
+{
+  jsonrpc: "2.0";
+  id?: string | number;
+  error: {
+    code: number;
+    message: string;
+    data?: unknown;
+  }
+}
+```
+
+- Error responses **MUST** include the same ID as the request they correspond to (except in error cases where the ID could not be read due a malformed request).
+- Error responses **MUST** include an `error` field with a `code` and `message`.
+- Error codes **MUST** be integers.
+- Error responses **MAY** include a `data` member with additional information of any type, such
+  as nested errors.
+
+#### Error Codes
+
+MCP uses the standard JSON-RPC 2.0 error codes (`-32700`, `-32600` to `-32603`)
+for general protocol failures.
+
+JSON-RPC 2.0 reserves the range `-32000` to `-32099` for implementation-defined
+server errors. MCP partitions this range as follows:
+
+- **`-32000` to `-32019` — legacy.** Codes in this sub-range were allocated by
+  implementations before this policy was introduced. New codes **MUST NOT** be
+  allocated in this sub-range, and new implementations **SHOULD NOT** use codes
+  from this sub-range at all. Apart from `-32002` (see below), receivers
+  **MUST NOT** assume any specific meaning for these codes.
+- **`-32020` to `-32099` — reserved for the MCP specification.** Error codes
+  in this sub-range are defined exclusively by the MCP specification and
+  recorded in the [schema](/specification/2026-07-28/schema). Implementations
+  **MUST NOT** emit any code from this sub-range that is not defined by this
+  specification and **MUST** use defined codes only with their specified
+  meanings.
+
+MCP defines the following error codes:
+
+| Code     | Name                                                                                                       |
+| -------- | ---------------------------------------------------------------------------------------------------------- |
+| `-32020` | [`HeaderMismatch`](/specification/2026-07-28/schema#headermismatcherror)                                   |
+| `-32021` | [`MissingRequiredClientCapability`](/specification/2026-07-28/schema#missingrequiredclientcapabilityerror) |
+| `-32022` | [`UnsupportedProtocolVersion`](/specification/2026-07-28/schema#unsupportedprotocolversionerror)           |
+
+Codes defined by earlier protocol versions remain reserved and will not be
+reused. Implementations of this protocol version **MUST NOT** emit these codes:
+
+- `-32002` — resource not found (2025-11-25 and earlier; replaced by `-32602`).
+  Clients [**SHOULD** still
+  accept `-32002`](/specification/2026-07-28/server/resources#error-handling) from
+  servers implementing earlier versions.
+- `-32042` — URL elicitation required (2025-11-25 only).
+
+Errors that are purely local to an implementation (for example, a request
+timeout raised inside an SDK) are not currently assigned codes by this
+specification. Implementations surfacing local errors in JSON-RPC-shaped
+structures should ensure they cannot be mistaken for errors received from the
+peer. Future versions of the specification may define standard codes for
+common local error conditions in the reserved sub-range.
+
+New error codes for purposes not defined by this specification **SHOULD** be
+allocated outside the JSON-RPC reserved range (`-32768` to `-32000`); the
+remainder of the integer space is available for application-defined errors.
+
+### Notifications
+
+[Notifications](/specification/2026-07-28/schema#jsonrpcnotification) are sent from the client to the server or vice versa, as a one-way message.
+The receiver **MUST NOT** send a response.
+
+```typescript
+{
+  jsonrpc: "2.0";
+  method: string;
+  params?: {
+    [key: string]: unknown;
+  };
+}
+```
+
+- Notifications **MUST NOT** include an ID.
+
+### Message Patterns
+
+The Model Context Protocol (MCP) supports several [Message Patterns](/specification/2026-07-28/basic/patterns) that define how clients and servers interact:
+
+1. **[Request and Response](/specification/2026-07-28/basic/patterns#request-and-response)**: A client sends a request to the server, and the server responds with a result or error.
+2. **[Multi Round-Trip Requests (MRTR)](/specification/2026-07-28/basic/patterns#multi-round-trip-requests)**: A server requires additional client input (sampling, elicitation, or roots) to complete a request.
+3. **[Subscribe and Notify](/specification/2026-07-28/basic/patterns#subscribe-and-notify)**: A client subscribes to a stream of notifications from the server, which are sent as they occur.
+
+## Statelessness
+
+The Model Context Protocol (MCP) is a **stateless protocol**: all the
+information needed to process a request is contained in the request itself.
+A server processes each request independently; no state should be inferred
+from previous requests, even those on the same connection or stream.
+
+Specifically:
+
+- Servers **MUST NOT** rely on prior requests over the same connection to
+  establish context (e.g., capabilities, protocol version, client identity).
+  Every request supplies this metadata in its [`_meta`](#_meta) field.
+- Servers **SHOULD** be prepared to handle requests associated with multiple
+  tasks, threads, or conversations.
+- Servers **SHOULD NOT** require that a client reuse the same connection or process to
+  perform related operations.
+- Clients **SHOULD NOT** use an individual task, thread, or conversation as the
+  lifetime boundary for the stdio process.
+- State that needs to span multiple requests (e.g., long-running tasks,
+  application-level handles) **MUST** be referenced by an explicit identifier
+  the client passes on each request.
+
+<Note>
+  This implies that an open connection, such as a STDIO process, is not a
+  conversation or session: clients may interleave unrelated requests on the same
+  transport, and a server must not treat connection or process identity as a
+  proxy for conversation or session continuity.
+</Note>
+
+Long-lived requests like
+[`subscriptions/listen`](/specification/2026-07-28/basic/patterns/subscriptions)
+remain request/response; the response is just an open stream of notifications.
+Their state is scoped to the request itself, not to the connection underneath.
+
+<Info>
+  For a walkthrough of how the per-request model maps to SDK code, see the
+  [Architecture guide](/docs/2026-07-28/learn/architecture#example).
+</Info>
+
+## Auth
+
+MCP provides an [Authorization](/specification/2026-07-28/basic/authorization) framework for use with HTTP.
+Implementations using an HTTP-based transport **SHOULD** conform to this specification,
+whereas implementations using STDIO transport **SHOULD NOT** follow this specification,
+and instead retrieve credentials from the environment.
+
+Additionally, clients and servers **MAY** negotiate their own custom authentication and
+authorization strategies.
+
+For further discussions and contributions to the evolution of MCP's auth mechanisms, join
+us in
+[GitHub Discussions](https://github.com/modelcontextprotocol/specification/discussions)
+to help shape the future of the protocol!
+
+## Schema
+
+The full specification of the protocol is defined as a
+[TypeScript schema](https://github.com/modelcontextprotocol/specification/blob/main/schema/2026-07-28/schema.ts).
+This is the source of truth for all protocol messages and structures.
+
+There is also a
+[JSON Schema](https://github.com/modelcontextprotocol/specification/blob/main/schema/2026-07-28/schema.json),
+which is automatically generated from the TypeScript source of truth, for use with
+various automated tooling.
+
+## JSON Schema Usage
+
+The Model Context Protocol uses JSON Schema for validation throughout the protocol. This section clarifies how JSON Schema should be used within MCP messages.
+
+### Schema Dialect
+
+MCP supports JSON Schema with the following rules:
+
+1. **Default dialect**: When a schema does not include a `$schema` field, it defaults to [JSON Schema 2020-12](https://json-schema.org/draft/2020-12/schema)
+1. **Explicit dialect**: Schemas MAY include a `$schema` field to specify a different dialect
+1. **Supported dialects**: Implementations MUST support at least 2020-12 and SHOULD document which additional dialects they support
+1. **Recommendation**: Implementors are RECOMMENDED to use JSON Schema 2020-12.
+
+### Example Usage
+
+#### Default dialect (2020-12):
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "name": { "type": "string" },
+    "age": { "type": "integer", "minimum": 0 }
+  },
+  "required": ["name"]
+}
+```
+
+#### Explicit dialect (draft-07):
+
+```json
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "name": { "type": "string" },
+    "age": { "type": "integer", "minimum": 0 }
+  },
+  "required": ["name"]
+}
+```
+
+### Implementation Requirements
+
+- Clients and servers **MUST** support JSON Schema 2020-12 for schemas without an explicit `$schema` field
+- Clients and servers **MUST** validate schemas according to their declared or default dialect. They **MUST** handle unsupported dialects gracefully by returning an appropriate error indicating the dialect is not supported.
+- Clients and servers **SHOULD** document which schema dialects they support
+
+### Schema Validation
+
+- Schemas **MUST** be valid according to their declared or default dialect
+
+### `$ref` Resolution
+
+JSON Schema 2020-12 permits `$ref` to point at an absolute URI. Implementations **MUST NOT**
+automatically dereference `$ref` values that resolve to a network URI.
+
+Implementations **MAY** offer an opt-in mode that fetches non-local `$ref`s but it
+**MUST** be disabled by default and **SHOULD** enforce an allowlist of hosts or at
+minimum reject loopback, link-local, and private network addresses, apply timeouts and
+size limits, and log dereferenced URIs.
+
+Schemas that fail to validate due to an unresolved external `$ref` **SHOULD** be rejected
+rather than silently treated as permissive.
+
+### Composition-Keyword Resource Use
+
+Composition keywords (`anyOf`, `oneOf`, `allOf`, `if`/`then`/`else`) and `$defs` enable
+expressive schemas but can be expensive to validate. Implementations **SHOULD** apply
+reasonable bounds, such as a maximum schema depth, a cap on the total number of subschemas,
+or a per-validation time budget, to prevent a malicious schema from acting as a Denial-of-Service
+vector against the validator.
+
+## General fields
+
+### `_meta`
+
+The `_meta` property/parameter is used by MCP to allow clients and servers
+to attach additional metadata to their interactions.
+
+Certain key names are reserved by MCP for protocol-level metadata, as specified below;
+implementations **MUST NOT** make assumptions about values at these keys.
+
+**Key name format:** valid `_meta` key names have two segments: an optional **prefix**, and a **name**.
+
+**Prefix:**
+
+- If specified, MUST be a series of labels separated by dots (`.`), followed by a slash (`/`).
+  - Labels MUST start with a letter and end with a letter or digit; interior characters can be letters, digits, or hyphens (`-`).
+  - Implementations SHOULD use reverse DNS notation (e.g., `com.example/` rather than `example.com/`).
+- Any prefix where the second label is `modelcontextprotocol` or `mcp` is **reserved** for MCP use.
+  - For example: `io.modelcontextprotocol/`, `dev.mcp/`, `org.modelcontextprotocol.api/`, and `com.mcp.tools/` are all reserved.
+  - However, `com.example.mcp/` is NOT reserved, as the second label is `example`.
+
+**Name:**
+
+- Unless empty, MUST begin and end with an alphanumeric character (`[a-z0-9A-Z]`).
+- MAY contain hyphens (`-`), underscores (`_`), dots (`.`), and alphanumerics in between.
+
+**Reserved keys:**
+
+The following `_meta` keys are reserved by this specification:
+
+| Key                                          | Description                                                 | Defined in                                                              |
+| -------------------------------------------- | ----------------------------------------------------------- | ----------------------------------------------------------------------- |
+| `progressToken`                              | Opts the request into progress notifications                | [Progress](/specification/2026-07-28/basic/patterns/progress)           |
+| `io.modelcontextprotocol/protocolVersion`    | Protocol version for a request                              | Per-request protocol fields (below)                                     |
+| `io.modelcontextprotocol/clientInfo`         | Client name and version                                     | Per-request protocol fields (below)                                     |
+| `io.modelcontextprotocol/clientCapabilities` | Client capabilities relevant to a request                   | Per-request protocol fields (below)                                     |
+| `io.modelcontextprotocol/logLevel`           | Minimum log level the server should emit for a request      | [Logging](/specification/2026-07-28/server/utilities/logging)           |
+| `io.modelcontextprotocol/subscriptionId`     | Correlates a notification with its originating subscription | [Subscriptions](/specification/2026-07-28/basic/patterns/subscriptions) |
+| `traceparent`, `tracestate`, `baggage`       | OpenTelemetry trace context propagation                     | OpenTelemetry trace context (below)                                     |
+
+Official [extensions](/specification/2026-07-28/basic/versioning#extension-negotiation)
+define additional `_meta` keys under the `io.modelcontextprotocol/` prefix, and
+third-party extensions use their own vendor prefix.
+In both cases the keys are specified in the extension's documentation.
+
+**Per-request protocol fields:**
+
+Client requests carry the following `io.modelcontextprotocol/*` fields in `_meta`;
+fields marked as required **MUST** be included on every request. Servers use these
+to identify the protocol version and capabilities in use without relying on any
+prior connection state. See
+[Versioning and Compatibility][lifecycle] for version negotiation rules.
+
+| Key                                          | Type                 | Required | Description                                               |
+| -------------------------------------------- | -------------------- | -------- | --------------------------------------------------------- |
+| `io.modelcontextprotocol/protocolVersion`    | `string`             | Yes      | Protocol version for this request (e.g., `"2026-07-28"`)  |
+| `io.modelcontextprotocol/clientInfo`         | `Implementation`     | No       | Client name and version                                   |
+| `io.modelcontextprotocol/clientCapabilities` | `ClientCapabilities` | Yes      | Client capabilities relevant to this request              |
+| `io.modelcontextprotocol/logLevel`           | `LoggingLevel`       | No       | Minimum log level the server should emit for this request |
+
+A request missing any required field is malformed; the server **MUST** reject it with
+JSON-RPC error code `-32602` (Invalid params). On HTTP, the response status **MUST** be
+`400 Bad Request`.
+
+Clients **SHOULD** include `io.modelcontextprotocol/clientInfo` on every request
+unless specifically configured not to do so.
+
+A server **MUST NOT** rely on capabilities the client has not declared. If
+processing a request requires a capability the client did not include in
+`io.modelcontextprotocol/clientCapabilities`, the server **MUST** return a
+[`MissingRequiredClientCapabilityError`](/specification/2026-07-28/schema#missingrequiredclientcapabilityerror)
+(`-32021`) whose `data.requiredCapabilities` lists the missing capabilities. On
+HTTP, the response status **MUST** be `400 Bad Request`.
+
+**Per-response protocol fields:**
+
+Servers **SHOULD** include the following `io.modelcontextprotocol/*` field in
+every result's `_meta`, unless specifically configured not to do so, to
+identify themselves without relying on any prior connection state:
+
+| Key                                  | Type             | Required | Description             |
+| ------------------------------------ | ---------------- | -------- | ----------------------- |
+| `io.modelcontextprotocol/serverInfo` | `Implementation` | No       | Server name and version |
+
+<Note>
+  `io.modelcontextprotocol/clientInfo` and `io.modelcontextprotocol/serverInfo`
+  are self-reported by the sender and are not verified by the protocol. They are
+  intended for display, logging, and debugging. Implementations **SHOULD NOT**
+  use them to change the behavior of the client or server, and **SHOULD NOT**
+  rely on them for security decisions.
+</Note>
+
+On notifications delivered via a [`subscriptions/listen`][subscriptions-listen] stream,
+the server **MUST** include `io.modelcontextprotocol/subscriptionId` in `_meta` so the
+client can correlate the notification with the originating subscription request.
+
+[lifecycle]: /specification/2026-07-28/basic/versioning
+[subscriptions-listen]: /specification/2026-07-28/basic/patterns/subscriptions
+
+**OpenTelemetry trace context:**
+
+As an exception to the prefix requirement above, the keys `traceparent`, `tracestate`, and
+`baggage` are reserved for [OpenTelemetry](https://opentelemetry.io/) trace context propagation.
+When present, their values MUST follow [W3C Trace Context](https://www.w3.org/TR/trace-context/)
+and [W3C Baggage](https://www.w3.org/TR/baggage/) formats respectively.
+
+This exception exists to maintain compatibility with existing implementations and
+[OpenTelemetry semantic conventions for MCP](https://opentelemetry.io/docs/specs/semconv/gen-ai/mcp/).
+
+Non-normative example of trace context in `_meta`:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 2,
+  "method": "tools/call",
+  "params": {
+    "name": "get_weather",
+    "arguments": {
+      "location": "New York"
+    },
+    "_meta": {
+      "traceparent": "00-0af7651916cd43dd8448eb211c80319c-00f067aa0ba902b7-01"
+    }
+  }
+}
+```
+
+### `icons`
+
+The `icons` property provides a standardized way for servers to expose visual identifiers for their resources, tools, prompts, and implementations. Icons enhance user interfaces by providing visual context and improving the discoverability of available functionality.
+
+Icons are represented as an array of `Icon` objects, where each icon includes:
+
+- `src`: A URI pointing to the icon resource (required). This can be:
+  - An HTTP/HTTPS URL pointing to an image file
+  - A data URI with base64-encoded image data
+- `mimeType`: Optional MIME type if the server's type is missing or generic
+- `sizes`: Optional array of size specifications (e.g., `["48x48"]`, `["any"]` for scalable formats like SVG, or `["48x48", "96x96"]` for multiple sizes)
+- `theme`: Optional theme preference (`light` or `dark`) for the icon background
+
+**Required MIME type support:**
+
+Clients that support rendering icons **MUST** support at least the following MIME types:
+
+- `image/png` - PNG images (safe, universal compatibility)
+- `image/jpeg` (and `image/jpg`) - JPEG images (safe, universal compatibility)
+
+Clients that support rendering icons **SHOULD** also support:
+
+- `image/svg+xml` - SVG images (scalable but requires security precautions as noted below)
+- `image/webp` - WebP images (modern, efficient format)
+
+**Security considerations:**
+
+Consumers of icon metadata **MUST** take appropriate security precautions when handling icons to prevent compromise:
+
+- Treat icon metadata and icon bytes as untrusted inputs and defend against network, privacy, and parsing risks.
+- Ensure that the icon URI is either a HTTPS or `data:` URI. Clients **MUST** reject icon URIs that use unsafe schemes and redirects, such as `javascript:`, `file:`, `ftp:`, `ws:`, or local app URI schemes.
+  - Disallow scheme changes and redirects to hosts on different origins.
+- Be resilient against resource exhaustion attacks stemming from oversized images, large dimensions, or excessive frames (e.g., in GIFs).
+  - Consumers **MAY** set limits for image and content size.
+- Fetch icons without credentials. Do not send cookies, `Authorization` headers, or client credentials.
+- Verify that icon URIs are from the same origin as the server. This minimizes the risk of exposing data or tracking information to third-parties.
+- Exercise caution when fetching and rendering icons as the payload **MAY** contain executable content (e.g., SVG with [embedded JavaScript](https://www.w3.org/TR/SVG11/script.html) or [extended capabilities](https://www.w3.org/TR/SVG11/extend.html)).
+  - Consumers **MAY** choose to disallow specific file types or otherwise sanitize icon files before rendering.
+- Validate MIME types and file contents before rendering. Treat the MIME type information as advisory. Detect content type via magic bytes; reject on mismatch or unknown types.
+  - Maintain a strict allowlist of image types.
+
+**Usage:**
+
+Icons can be attached to:
+
+- `Implementation`: Visual identifier for the MCP server/client implementation
+- `Tool`: Visual representation of the tool's functionality
+- `Prompt`: Icon to display alongside prompt templates
+- `Resource`: Visual indicator for different resource types
+
+Multiple icons can be provided to support different display contexts and resolutions. Clients should select the most appropriate icon based on their UI requirements.

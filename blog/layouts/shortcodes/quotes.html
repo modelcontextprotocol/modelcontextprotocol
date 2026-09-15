@@ -1,0 +1,153 @@
+{{- /*
+  Testimonial quote row. Wraps one or more inner `quote` shortcodes in a
+  scroll-snap carousel. Nav controls stay hidden unless the quotes overflow
+  one view, so 1-3 quotes render as a plain static row.
+
+  Usage:
+    {{< quotes >}}
+      {{< quote name="Ada Person" title="CTO" company="Acme" logo="acme.svg" >}}
+      Quote text, markdown allowed.
+      {{< /quote >}}
+    {{< /quotes >}}
+*/ -}}
+{{- $label := .Get "label" | default "Testimonials" -}}
+<div class="mcp-quotes">
+  <div class="mcp-quotes-track" tabindex="0" role="region" aria-label="{{ $label }}">
+    {{ .Inner }}
+  </div>
+  <div class="mcp-quotes-nav" hidden>
+    <button type="button" class="mcp-quotes-btn mcp-quotes-prev" aria-label="Previous quotes">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <div class="mcp-quotes-dots"></div>
+    <button type="button" class="mcp-quotes-btn mcp-quotes-next" aria-label="Next quotes">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
+    </button>
+  </div>
+</div>
+{{- if not (.Page.Store.Get "mcp-quotes-js") -}}
+{{- .Page.Store.Set "mcp-quotes-js" true }}
+<script>
+  (function () {
+    var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+    function init(root) {
+      var track = root.querySelector(".mcp-quotes-track");
+      var nav = root.querySelector(".mcp-quotes-nav");
+      if (!track || !nav) return;
+      var prev = nav.querySelector(".mcp-quotes-prev");
+      var next = nav.querySelector(".mcp-quotes-next");
+      var dotsBox = nav.querySelector(".mcp-quotes-dots");
+      var dots = [];
+      /* Target of an in-flight arrow or dot scroll. Clicks that land
+         mid-animation step from it instead of the stale scrollLeft, so
+         rapid clicks keep advancing. It clears once the scroll arrives,
+         or shortly after scroll events stop, which covers a swipe
+         interrupting the animation. */
+      var pending = null;
+      var settle = 0;
+
+      /* All position math works in whole cards. Scroll targets are card
+         starts, which are the snap points: with scroll-snap mandatory
+         the browser re-snaps any other target to the nearest card start,
+         and near the end of the track that basin is the end position
+         itself, which made backward nav from the last page a no-op. The
+         page index is derived back from scrollLeft in card units too.
+         Deriving it from clientWidth pages drifted, because card starts
+         fall short of page-width multiples (by 44px per page on phone
+         widths), so after a few pages the derived index dropped below
+         the real one and the next arrow recomputed the position it was
+         already at. Rounding to a card index also absorbs the fractional
+         scrollLeft values reported at non-integer device pixel ratios. */
+      function step() {
+        var card = track.querySelector(".mcp-quote");
+        return card ? card.getBoundingClientRect().width : track.clientWidth;
+      }
+
+      function perPage() {
+        return Math.max(1, Math.floor(track.clientWidth / step() + 0.001));
+      }
+
+      function pageCount() {
+        var cards = track.querySelectorAll(".mcp-quote").length;
+        return Math.max(1, Math.ceil(cards / perPage()));
+      }
+
+      function position() {
+        return pending === null ? track.scrollLeft : pending;
+      }
+
+      function current() {
+        var max = track.scrollWidth - track.clientWidth;
+        if (max <= 0) return 0;
+        if (position() >= max - 2) return pageCount() - 1;
+        return Math.round(position() / step() / perPage());
+      }
+
+      function goTo(i) {
+        var max = track.scrollWidth - track.clientWidth;
+        var left = Math.max(0, Math.min(Math.round(i * perPage() * step()), max));
+        pending = left;
+        track.scrollTo({
+          left: left,
+          behavior: reduceMotion.matches ? "auto" : "smooth",
+        });
+        update();
+      }
+
+      function update() {
+        var i = current();
+        var max = track.scrollWidth - track.clientWidth;
+        prev.disabled = position() <= 2;
+        next.disabled = position() >= max - 2;
+        dots.forEach(function (dot, j) {
+          dot.setAttribute("aria-current", j === i ? "true" : "false");
+        });
+      }
+
+      function build() {
+        var n = pageCount();
+        pending = null;
+        nav.hidden = n < 2;
+        dotsBox.textContent = "";
+        dots = [];
+        for (var i = 0; i < n; i++) {
+          var dot = document.createElement("button");
+          dot.type = "button";
+          dot.className = "mcp-quotes-dot";
+          dot.setAttribute("aria-label", "Go to quotes page " + (i + 1));
+          dot.addEventListener("click", goTo.bind(null, i));
+          dotsBox.appendChild(dot);
+          dots.push(dot);
+        }
+        update();
+      }
+
+      prev.addEventListener("click", function () { goTo(current() - 1); });
+      next.addEventListener("click", function () { goTo(current() + 1); });
+      track.addEventListener("scroll", function () {
+        if (pending !== null && Math.abs(track.scrollLeft - pending) <= 2) pending = null;
+        clearTimeout(settle);
+        settle = setTimeout(function () {
+          pending = null;
+          update();
+        }, 150);
+        requestAnimationFrame(update);
+      });
+      window.addEventListener("resize", build);
+      build();
+    }
+
+    /* This script is emitted with the first quotes block, before later
+       blocks on the page exist, so wait for the full DOM. */
+    function initAll() {
+      document.querySelectorAll(".mcp-quotes").forEach(init);
+    }
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", initAll);
+    } else {
+      initAll();
+    }
+  })();
+</script>
+{{- end -}}

@@ -1,0 +1,117 @@
+---
+title: Filesystems Charter
+description: Charter for the MCP Filesystems Working Group.
+---
+
+## Group Type
+
+**Working Group**
+
+## Mission Statement
+
+The Filesystems Working Group exists to make MCP Resources bidirectional, so that an agent can write a result back to
+the server it reads its inputs from. Agent platforms are converging on presenting services to models as filesystems, and
+Resources already addresses content by URI under a [`file://` scheme the specification defines as identifying "resources
+that behave like a filesystem"](/specification/draft/server/resources#common-uri-schemes). Currently, Resources carries
+that surface in the read direction. The WG will produce a single Extensions Track SEP covering write operations,
+optimistic concurrency control, and the interaction with change notification and caching.
+
+## Scope
+
+### In Scope
+
+- **Specification Work**: One Extensions Track SEP, provisionally titled Filesystem Operations for Resources, covering:
+  1. **Operations.** Define create, update, delete, and a metadata read (`stat`) that answers existence, size and
+     last-modified for one URI without fetching the body.
+  2. **Optimistic concurrency control.** Specify how two writers avoid a lost update, and how a client creates a
+     resource under a create-if-absent precondition.
+  3. **Change notification and caching.** Specify how a write interacts with `notifications/resources/updated`, the
+     time-to-live and cache scope fields `ttlMs` and `cacheScope`, and the `lastModified` annotation.
+- **Cross-Cutting Concerns**: Reconcile the proposals that extend this primitive into one coherent design.
+  [SEP-2571, Resource Submission for Agent Coordination](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2571)
+  proposes `resources/create` and `resources/delete`.
+  [SEP-2532, Resource Streaming for Binary Content Delivery](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2532)
+  proposes `resources/stream`.
+  [SEP-1708, MCP Client-Brokered Filesystem Access](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1708)
+  proposed a `files/*` method family standing beside Resources, and closed on 23 January 2026.
+- **Documentation**: Document the new operations in the specification, and give server authors guidance on choosing
+  between a resource write path and a tool-based one.
+
+### Out of Scope
+
+- A parallel `files/*` primitive standing beside Resources. The WG broadens the existing Resources primitive.
+- Host-side sandbox and local-disk semantics. The WG standardizes the client and server wire format. How a host
+  materializes resources into a filesystem for the model stays a host concern.
+- Authorization policy for writes, beyond stating where the existing MCP authorization specification applies.
+
+### Related Groups
+
+- **File Uploads WG.** Both groups transfer content to a server. Coordination needed on where an upload-oriented flow
+  ends and a resource write operation begins.
+- **Skills Over MCP WG.** Filesystem dependency, including questions about write access, was an agenda item at the
+  office hours of 24 March 2026 and remains open.
+- **Agents WG.** Multi-agent and job orchestration systems are the motivating consumers of a shared write path.
+
+## Leadership
+
+| Role | Name            | Organization | GitHub                                               | Term    |
+| ---- | --------------- | ------------ | ---------------------------------------------------- | ------- |
+| Lead | Sambhav Kothari | Bloomberg    | [@sambhav](https://github.com/sambhav)               | Initial |
+| Lead | Ola Hungerford  | Nordstrom    | [@olaservo](https://github.com/olaservo)             | Initial |
+| Lead | Daniel Temesgen | Bloomberg    | [@DanielTemesgen](https://github.com/DanielTemesgen) | Initial |
+
+## Authority & Decision Rights
+
+| Decision Type                       | Authority Level                                        |
+| ----------------------------------- | ------------------------------------------------------ |
+| Meeting logistics & scheduling      | WG Leads (autonomous)                                  |
+| Proposal prioritization within WG   | WG Leads (autonomous)                                  |
+| SEP triage & closure (in scope)     | WG Leads (autonomous, with documented rationale)       |
+| Technical design within scope       | WG consensus                                           |
+| Spec changes (additive)             | WG consensus → Core Maintainer approval                |
+| Spec changes (breaking/fundamental) | WG consensus → Core Maintainer approval + wider review |
+| Scope expansion                     | Core Maintainer approval required                      |
+| WG Member approval                  | WG Member sponsors                                     |
+
+## Membership
+
+| Name          | Organization | GitHub                                           | Discord | Level     |
+| ------------- | ------------ | ------------------------------------------------ | ------- | --------- |
+| Michael Cheah | Bloomberg    | [@michaelcheah](https://github.com/michaelcheah) |         | WG Member |
+
+## Operations
+
+| Meeting         | Frequency | Duration   | Purpose                               |
+| --------------- | --------- | ---------- | ------------------------------------- |
+| Working Session | Biweekly  | 60 minutes | Technical discussion, proposal review |
+
+Discord: `#filesystems-wg`.
+
+**Note** The cadence above is provisional. This is subject to change once the first working session sets it.
+
+## Deliverables & Success Metrics
+
+### Active Work Items
+
+| Item                                     | Status   | Target Date | Champion |
+| ---------------------------------------- | -------- | ----------- | -------- |
+| SEP: Filesystem Operations for Resources | Ideating |             | TBD      |
+| Take up SEP-2571 with its author         | Ideating |             | TBD      |
+
+The group's first act is to take up SEP-2571 with its author, since it already covers create and delete.
+
+### Success Criteria
+
+- An accepted Extensions Track SEP covering create, update, delete and `stat`, with a defined optimistic concurrency
+  control mechanism and a specified interaction with `notifications/resources/updated`, `ttlMs`, `cacheScope` and
+  `lastModified`.
+- Each proposal in this space resolved. SEP-2571 and SEP-2532 are open at time of writing, and each should end up folded
+  in, superseded, or explicitly scoped out.
+- Reference implementations in at least two Tier 1 SDKs.
+- Two independent server implementations exercising the write path against a common client.
+
+## Changelog
+
+| Date       | Change          |
+| ---------- | --------------- |
+| 2026-08-24 | Initial charter |

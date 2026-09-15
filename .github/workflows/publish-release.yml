@@ -19,7 +19,7 @@ jobs:
       startsWith(github.event.head_commit.message, 'Add ')
       && contains(github.event.head_commit.message, ' MCP specification')
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Derive version from merged release branch
         id: v
