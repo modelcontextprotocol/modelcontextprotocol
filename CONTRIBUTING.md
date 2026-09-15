@@ -53,6 +53,10 @@ npm run check:schema:ts
 npm run generate:schema
 ```
 
+### Schema examples
+
+JSON examples live in `schema/draft/examples/<TypeName>/<example-name>.json`. Each file is validated against the schema type named by its directory, and is pulled into the schema reference through an `@includeCode` tag in `schema.ts`. Adding an example for a type that has none is a useful small contribution; run `npm run check:schema` to validate it.
+
 ### Resolving merge conflicts in generated files
 
 If your branch conflicts with `main` in generated files (`schema/*/schema.json`, `docs/specification/*/schema.mdx`, `docs/seps/*.mdx`), do not resolve them by hand. Merge `main`, resolve any conflicts in the source files (e.g. `schema/draft/schema.ts`), then regenerate and commit:
