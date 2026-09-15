@@ -1,5 +1,6 @@
 {
   "mode": "url",
-  "url": "https://mcp.example.com/ui/set_api_key",
-  "message": "Please provide your API key to continue."
+  "elicitationId": "api-key-elicitation-1",
+  "message": "Please provide your API key to continue.",
+  "url": "https://mcp.example.com/ui/set_api_key"
 }
