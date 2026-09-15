@@ -3,19 +3,17 @@ title: Design Principles
 description: The core design principles that guide the development of the Model Context Protocol.
 ---
 
-These principles guide how we evaluate protocol proposals, weigh tradeoffs, and evolve MCP. They reflect lessons from building and maintaining the project. They are meant as guidance by and for the community when developing [Spec Enhancement Proposals](/community/sep-guidelines) (SEPs) and [extensions](/extensions/overview).
+These principles guide how we evaluate protocol proposals, weigh tradeoffs, and evolve MCP. They apply to [Specification Enhancement Proposals](/community/sep-guidelines) (SEPs) and [extensions](/extensions/overview), and are distinct from the specification's [architectural design principles](/specification/latest/architecture#design-principles), which describe how servers and clients are built. Core Maintainers cite them when accepting or rejecting SEPs. A proposal that cuts against a principle should say so and argue why. When two principles conflict, they are weighed against each other, not ranked.
 
 ## Convergence over choice
 
-There should be one way to solve a problem in MCP. Rather than supporting multiple approaches that fragment the ecosystem, we choose a single well-designed path — accepting harder decisions upfront to deliver a more cohesive protocol.
+There should be one way to solve a problem in MCP. Rather than supporting multiple approaches that fragment the ecosystem, we choose a single well-designed path, accepting harder decisions upfront to deliver a more cohesive protocol.
 
 [Extensions](/extensions/overview) are where convergence gets tested; the specification is where it gets committed.
 
 ## Composability over specificity
 
-MCP provides foundational primitives: resources, tools, and prompts. We don't add protocol features for use cases that can be constructed from these existing building blocks. This keeps the surface area small and implementations simple.
-
-When someone asks why MCP doesn't support a feature directly, the answer is usually that it can be built from what MCP already provides. Extensions like [MCP Apps](/extensions/apps/overview) and [Tasks](/extensions/tasks/overview) capture the patterns that emerge.
+MCP provides foundational primitives: resources, tools, and prompts. We don't add protocol features for use cases that can be constructed from these existing building blocks. This keeps the surface area small and implementations simple. Extensions like [MCP Apps](/extensions/apps/overview) and [Tasks](/extensions/tasks/overview) capture the patterns that emerge.
 
 ## Interoperability over optimization
 
@@ -23,19 +21,17 @@ MCP runs across clients, servers, and models of widely varying sophistication. W
 
 ## Stability over velocity
 
-Adding to a protocol as widely adopted as MCP is easy. Removing from it is nearly impossible. Every addition is a permanent commitment and a cost for client implementers to support. We move deliberately, knowing that "no" today leaves the door open while "yes" closes it forever.
-
-Contributors accustomed to rapid shipping may find this pace frustrating, but sustainable standards require sustainable decision-making. We optimize for decades, not quarters.
+Adding to a protocol as widely adopted as MCP is easy. Removing from it is nearly impossible. Every addition is a permanent commitment and a cost for client implementers to support. We move deliberately, knowing that "no" today leaves the door open while "yes" closes it forever. We optimize for decades, not quarters. Removal, when it happens, follows [Feature Lifecycle and Deprecation](/community/feature-lifecycle).
 
 ## Capability over compensation
 
-Models improve faster than protocols evolve. We avoid adding permanent structure to work around limitations that are likely temporary — the limitation fades, but the complexity remains.
+Models improve faster than protocols evolve. We avoid adding permanent structure to work around limitations that are likely temporary: the limitation fades, but the complexity remains.
 
 This is not license to ignore today's reality. Optional context that weaker models lean on and stronger ones ignore costs nothing. But when a proposal exists primarily because current models struggle without it, we ask whether they will outgrow the need before we can shed the weight.
 
 ## Demonstration over deliberation
 
-MCP values working implementations over theoretical debates. When evaluating proposals, we prioritize evidence from real usage over hypothetical arguments. We encourage contributors to prototype, experiment, and demonstrate rather than design by committee. Implementation reveals what discussion cannot.
+MCP values working implementations over theoretical debates, and evidence from real usage over hypothetical arguments. We encourage contributors to prototype rather than design by committee. A SEP needs a working [prototype](/community/sep-guidelines#prototype-requirements) before it can be accepted.
 
 ## Pragmatism over purity
 
@@ -43,6 +39,4 @@ MCP makes practical tradeoffs in service of adoption and usability. We don't pur
 
 ## Standardization over innovation
 
-MCP standardizes patterns that have already proven valuable. We look for conventions that work across multiple implementations and codify them, rather than inventing new paradigms and hoping they'll be adopted.
-
-We encourage the use of [MCP extensions](/extensions/overview) as a way to experiment with new patterns that may eventually lead to standardization.
+MCP standardizes patterns that have already proven valuable. We look for conventions that work across multiple implementations and codify them, rather than inventing new paradigms and hoping they'll be adopted. New patterns are best tried in [extensions](/extensions/overview) first.
