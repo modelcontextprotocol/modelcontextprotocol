@@ -209,6 +209,12 @@ Capability objects can describe sub-capabilities like:
   tools)
 - `subscribe`: Support for subscribing to individual items' changes (resources only)
 
+#### Extension Negotiation
+
+Clients and servers can also advertise optional [extensions](/extensions/overview) in `capabilities.extensions` in the `initialize` request and response. This field is defined by [SEP-2133](/seps/2133-extensions#negotiation), although it is absent from this version's published `ClientCapabilities` and `ServerCapabilities` schemas. Extension support is not required for core protocol conformance.
+
+See [extension negotiation for initialization-based versions](/extensions/overview#initialization-based-versions) for examples and SDK compatibility considerations.
+
 ### Operation
 
 During the operation phase, the client and server exchange messages according to the
