@@ -16,22 +16,27 @@ emerged from discussion on [SEP-2076 — Agent Skills as a First-Class MCP Primi
 which raised open questions about whether existing MCP primitives suffice or what
 conventions to standardize. The WG produces specification extensions, reference
 implementations, and coordination artifacts because solutions touch the protocol spec,
-registry schema, SDK implementations, and client behavior. The WG's current direction
-is captured in [SEP-2640 — Skills Extension](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2640)
-(Resources-based, Extensions Track).
+registry schema, SDK implementations, and client behavior.
+
+[SEP-2640 — Skills Extension](/seps/2640-skills-extension) is Final. The WG maintains
+the official [Skills extension](/extensions/skills/overview)
+(`io.modelcontextprotocol/skills`) in
+[modelcontextprotocol/ext-skills](https://github.com/modelcontextprotocol/ext-skills).
+Current work focuses on implementation support, interoperability, and evolution
+of the published extension.
 
 ## Scope
 
 ### In Scope
 
-- **Specification Work**: SEPs defining how skills are represented, discovered, and
-  consumed within MCP — including the Skills Extension (Extensions Track) and related
-  protocol changes
+- **Specification Work**: Maintain and evolve the Skills extension, with changes
+  tracked in the [decision log](https://github.com/modelcontextprotocol/ext-skills/blob/main/docs/decisions.md);
+  propose related core protocol changes through the SEP process
 - **Reference Implementations**: SDK components and reference servers demonstrating
   skill discovery and consumption patterns
 - **Cross-Cutting Concerns**: Coordination with Registry WG (skills discovery/distribution,
   registry schema changes), Agents WG (skill activation, server metadata consumption),
-  Primitive Grouping WG (progressive disclosure patterns), and external projects including
+  Primitive Grouping IG (progressive disclosure patterns), and external projects including
   the [Agent Skills](https://agentskills.io/) spec (content format and well-known URI
   discovery), FastMCP, and PydanticAI
 - **Documentation**: Specification sections and guidance covering skill authoring,
@@ -51,7 +56,7 @@ is captured in [SEP-2640 — Skills Extension](https://github.com/modelcontextpr
 
 - **Agents WG** — How agents consume server metadata, skill activation
 - **Registry WG** — Skills discovery/distribution, registry schema changes
-- **Primitive Grouping WG** — Progressive disclosure patterns
+- **Primitive Grouping IG** — Progressive disclosure patterns
 
 ## Leadership
 
@@ -110,27 +115,37 @@ Discord: [#skills-over-mcp-wg](https://discord.com/channels/1358869848138059966/
 
 ## Resources
 
-- Experimental findings and reference implementations: [modelcontextprotocol/experimental-ext-skills](https://github.com/modelcontextprotocol/experimental-ext-skills)
+- [Skills extension overview](/extensions/skills/overview) and [Final SEP-2640](/seps/2640-skills-extension)
+- Specification and WG documents: [modelcontextprotocol/ext-skills](https://github.com/modelcontextprotocol/ext-skills)
+- [Implementations](https://github.com/modelcontextprotocol/ext-skills/blob/main/docs/implementations.md) and [client support](/extensions/client-matrix)
+- [Decision log](https://github.com/modelcontextprotocol/ext-skills/blob/main/docs/decisions.md) and [archived design work](https://github.com/modelcontextprotocol/ext-skills/tree/main/docs/archive)
 - Project board: [Skills Over MCP WG](https://github.com/orgs/modelcontextprotocol/projects/38/views/1)
 
 ## Deliverables & Success Metrics
 
+### Completed Milestones
+
+- [SEP-2640](/seps/2640-skills-extension) is **Final**, merged on September 13, 2026.
+- The official specification is published in [ext-skills](https://github.com/modelcontextprotocol/ext-skills/blob/main/specification/stable/skills.mdx), with a [website overview](/extensions/skills/overview).
+- [Skills conformance scenarios](https://github.com/modelcontextprotocol/conformance/pull/330) were merged on September 11, 2026.
+
 ### Active Work Items
 
-Full live tracking is on the [Skills Over MCP WG project board](https://github.com/orgs/modelcontextprotocol/projects/38/views/1). Headline workstreams:
+Full live tracking is on the [Skills Over MCP WG project board](https://github.com/orgs/modelcontextprotocol/projects/38/views/1).
+SDK implementations and host support are tracked in the [implementations list](https://github.com/modelcontextprotocol/ext-skills/blob/main/docs/implementations.md);
+publication of the specification does not imply support in every SDK or client.
 
-| Item                                                                                                              | Status      | Target Date | Champion                                                                                     |
-| ----------------------------------------------------------------------------------------------------------------- | ----------- | ----------- | -------------------------------------------------------------------------------------------- |
-| [Skills Extension SEP](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2640) (Extensions Track) | In Review   |             | [@pja-ant](https://github.com/pja-ant)                                                       |
-| Skills Extension reference implementation                                                                         | In Review   |             | [@olaservo](https://github.com/olaservo)                                                     |
-| Agent Skills spec coordination                                                                                    | In Progress |             | [@jonathanhefner](https://github.com/jonathanhefner), [@pja-ant](https://github.com/pja-ant) |
-| Registry skills.json proposal                                                                                     | In Progress |             | [@JAORMX](https://github.com/JAORMX)                                                         |
+| Item                                               | Status      | Target Date | Champion                                                                                     |
+| -------------------------------------------------- | ----------- | ----------- | -------------------------------------------------------------------------------------------- |
+| Skills Extension SDK and reference implementations | In Progress |             | [@olaservo](https://github.com/olaservo)                                                     |
+| Agent Skills spec coordination                     | In Progress |             | [@jonathanhefner](https://github.com/jonathanhefner), [@pja-ant](https://github.com/pja-ant) |
+| Registry skills.json proposal                      | In Progress |             | [@JAORMX](https://github.com/JAORMX)                                                         |
 
 ### Success Criteria
 
-- **Short-term**: Documented consensus on requirements and evaluation of existing approaches
-- **Medium-term**: Clear recommendation (convention vs. protocol extension vs. both) — the draft Skills Extension SEP represents the WG's current direction: a formal extension using existing Resources primitives
-- **Long-term**: Interoperable skill distribution across MCP servers and clients
+- **Specification**: A published Resources-based Skills extension — achieved with Final SEP-2640.
+- **Implementation**: SDK and host implementations that pass the applicable conformance scenarios.
+- **Interoperability**: Independent MCP servers and clients that discover and load skills consistently.
 
 ## Changelog
 
