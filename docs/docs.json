@@ -767,6 +767,12 @@
             "pages": [
               "extensions/tasks/overview"
             ]
+          },
+          {
+            "group": "Skills",
+            "pages": [
+              "extensions/skills/overview"
+            ]
           }
         ]
       },
@@ -843,6 +849,7 @@
               "seps/2575-stateless-mcp",
               "seps/2577-deprecate-roots-sampling-and-logging",
               "seps/2596-spec-feature-lifecycle-and-deprecation",
+              "seps/2640-skills-extension",
               "seps/2663-tasks-extension"
             ]
           }
@@ -884,6 +891,7 @@
             "pages": [
               "community/working-groups/agents",
               "community/working-groups/file-uploads",
+              "community/working-groups/filesystems",
               "community/working-groups/inspector-v2",
               "community/working-groups/interceptors",
               "community/working-groups/registry",
