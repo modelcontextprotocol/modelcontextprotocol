@@ -896,6 +896,7 @@
               "community/working-groups/agents",
               "community/working-groups/file-uploads",
               "community/working-groups/filesystems",
+              "community/working-groups/infrastructure",
               "community/working-groups/inspector-v2",
               "community/working-groups/interceptors",
               "community/working-groups/registry",
