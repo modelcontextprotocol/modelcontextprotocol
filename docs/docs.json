@@ -17,6 +17,10 @@
       {
         "label": "GitHub",
         "href": "https://github.com/modelcontextprotocol"
+      },
+      {
+        "label": "Discord",
+        "href": "https://discord.gg/6CSzBmMkjX"
       }
     ]
   },
@@ -930,7 +934,8 @@
   },
   "footer": {
     "socials": {
-      "github": "https://github.com/modelcontextprotocol"
+      "github": "https://github.com/modelcontextprotocol",
+      "discord": "https://discord.gg/6CSzBmMkjX"
     }
   },
   "redirects": [
