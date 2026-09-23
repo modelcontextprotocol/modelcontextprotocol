@@ -899,6 +899,7 @@
               "community/working-groups/infrastructure",
               "community/working-groups/inspector-v2",
               "community/working-groups/interceptors",
+              "community/working-groups/progressive-disclosure",
               "community/working-groups/registry",
               "community/working-groups/sdk",
               "community/working-groups/server-card",
@@ -914,7 +915,6 @@
               "community/interest-groups/enterprise",
               "community/interest-groups/enterprise-managed-authorization",
               "community/interest-groups/financial-services",
-              "community/interest-groups/primitive-grouping",
               "community/interest-groups/security",
               "community/interest-groups/tool-annotations"
             ]
@@ -940,6 +940,10 @@
     }
   },
   "redirects": [
+    {
+      "source": "/community/interest-groups/primitive-grouping",
+      "destination": "/community/working-groups/progressive-disclosure"
+    },
     {
       "source": "/clients",
       "destination": "/docs/2026-07-28/getting-started/intro"

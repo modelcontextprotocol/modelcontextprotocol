@@ -210,10 +210,11 @@ This document lists current maintainers in the Model Context Protocol project.
 - [Liad Yosef](https://github.com/liady)
 - [Ido Salomon](https://github.com/idosal)
 
-### Primitive Grouping Interest Group
+### Progressive Disclosure Working Group
 
 - [Tapan Chugh](https://github.com/chughtapan)
 - [Sam Morrow](https://github.com/SamMorrowDrums)
+- [Kurtis Van Gent](https://github.com/kurtisvg)
 
 ### Tool Annotations Interest Group
 
