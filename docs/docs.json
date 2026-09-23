@@ -1249,6 +1249,174 @@
     {
       "source": "/specification/2026-07-28/basic/security_best_practices",
       "destination": "/docs/2026-07-28/tutorials/security/security_best_practices"
+    },
+    {
+      "source": "/seps/414",
+      "destination": "/seps/414-request-meta"
+    },
+    {
+      "source": "/seps/932",
+      "destination": "/seps/932-model-context-protocol-governance"
+    },
+    {
+      "source": "/seps/973",
+      "destination": "/seps/973-expose-additional-metadata-for-implementations-res"
+    },
+    {
+      "source": "/seps/985",
+      "destination": "/seps/985-align-oauth-20-protected-resource-metadata-with-rf"
+    },
+    {
+      "source": "/seps/986",
+      "destination": "/seps/986-specify-format-for-tool-names"
+    },
+    {
+      "source": "/seps/990",
+      "destination": "/seps/990-enable-enterprise-idp-policy-controls-during-mcp-o"
+    },
+    {
+      "source": "/seps/991",
+      "destination": "/seps/991-enable-url-based-client-registration-using-oauth-c"
+    },
+    {
+      "source": "/seps/994",
+      "destination": "/seps/994-shared-communication-practicesguidelines"
+    },
+    {
+      "source": "/seps/1024",
+      "destination": "/seps/1024-mcp-client-security-requirements-for-local-server-"
+    },
+    {
+      "source": "/seps/1034",
+      "destination": "/seps/1034--support-default-values-for-all-primitive-types-in"
+    },
+    {
+      "source": "/seps/1036",
+      "destination": "/seps/1036-url-mode-elicitation-for-secure-out-of-band-intera"
+    },
+    {
+      "source": "/seps/1046",
+      "destination": "/seps/1046-support-oauth-client-credentials-flow-in-authoriza"
+    },
+    {
+      "source": "/seps/1302",
+      "destination": "/seps/1302-formalize-working-groups-and-interest-groups-in-mc"
+    },
+    {
+      "source": "/seps/1303",
+      "destination": "/seps/1303-input-validation-errors-as-tool-execution-errors"
+    },
+    {
+      "source": "/seps/1319",
+      "destination": "/seps/1319-decouple-request-payload-from-rpc-methods-definiti"
+    },
+    {
+      "source": "/seps/1330",
+      "destination": "/seps/1330-elicitation-enum-schema-improvements-and-standards"
+    },
+    {
+      "source": "/seps/1577",
+      "destination": "/seps/1577--sampling-with-tools"
+    },
+    {
+      "source": "/seps/1613",
+      "destination": "/seps/1613-establish-json-schema-2020-12-as-default-dialect-f"
+    },
+    {
+      "source": "/seps/1686",
+      "destination": "/seps/1686-tasks"
+    },
+    {
+      "source": "/seps/1699",
+      "destination": "/seps/1699-support-sse-polling-via-server-side-disconnect"
+    },
+    {
+      "source": "/seps/1730",
+      "destination": "/seps/1730-sdks-tiering-system"
+    },
+    {
+      "source": "/seps/1850",
+      "destination": "/seps/1850-pr-based-sep-workflow"
+    },
+    {
+      "source": "/seps/1865",
+      "destination": "/seps/1865-mcp-apps-interactive-user-interfaces-for-mcp"
+    },
+    {
+      "source": "/seps/2085",
+      "destination": "/seps/2085-governance-succession-and-amendment"
+    },
+    {
+      "source": "/seps/2106",
+      "destination": "/seps/2106-json-schema-2020-12"
+    },
+    {
+      "source": "/seps/2133",
+      "destination": "/seps/2133-extensions"
+    },
+    {
+      "source": "/seps/2148",
+      "destination": "/seps/2148-contributor-ladder"
+    },
+    {
+      "source": "/seps/2149",
+      "destination": "/seps/2149-working-group-charter-template"
+    },
+    {
+      "source": "/seps/2164",
+      "destination": "/seps/2164-resource-not-found-error"
+    },
+    {
+      "source": "/seps/2207",
+      "destination": "/seps/2207-oidc-refresh-token-guidance"
+    },
+    {
+      "source": "/seps/2243",
+      "destination": "/seps/2243-http-standardization"
+    },
+    {
+      "source": "/seps/2260",
+      "destination": "/seps/2260-Require-Server-requests-to-be-associated-with-Client-requests"
+    },
+    {
+      "source": "/seps/2322",
+      "destination": "/seps/2322-MRTR"
+    },
+    {
+      "source": "/seps/2468",
+      "destination": "/seps/2468-recommend-issuer-claim-for-auth"
+    },
+    {
+      "source": "/seps/2484",
+      "destination": "/seps/2484-conformance-tests-required-for-final-seps"
+    },
+    {
+      "source": "/seps/2549",
+      "destination": "/seps/2549-TTL-for-list-results"
+    },
+    {
+      "source": "/seps/2567",
+      "destination": "/seps/2567-sessionless-mcp"
+    },
+    {
+      "source": "/seps/2575",
+      "destination": "/seps/2575-stateless-mcp"
+    },
+    {
+      "source": "/seps/2577",
+      "destination": "/seps/2577-deprecate-roots-sampling-and-logging"
+    },
+    {
+      "source": "/seps/2596",
+      "destination": "/seps/2596-spec-feature-lifecycle-and-deprecation"
+    },
+    {
+      "source": "/seps/2640",
+      "destination": "/seps/2640-skills-extension"
+    },
+    {
+      "source": "/seps/2663",
+      "destination": "/seps/2663-tasks-extension"
     }
   ],
   "contextual": {
