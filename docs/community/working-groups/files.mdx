@@ -9,44 +9,32 @@ description: Charter for the MCP Files Working Group.
 
 ## Mission Statement
 
-The Files Working Group exists to define how file content moves between MCP clients and servers, in both
-directions, and how the Resources primitive exposes write operations. Two efforts currently cover this ground
-separately: declarative file inputs with an out-of-band transfer flow
-([SEP-2631](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2631)), and write operations on
-Resources ([SEP-2532](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2532), and the now-closed
-[SEP-2571](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2571)). Both need the same mechanism
-for moving content that is too large to travel inline in JSON-RPC, and both must agree on whether that content is
-addressed as a Resource. This WG brings the work into one group so the transfer mechanism is designed once and the
-addressing question is settled once. It supersedes the File Uploads WG (chartered 2026-04-23) and the Filesystems
-WG (chartered 2026-08-24).
+The Files Working Group defines how file content moves between MCP clients and servers, and how Resources support
+writes. Uploads, downloads, and resource writes all need a way to move content that does not fit inline in JSON-RPC,
+and all need one answer to whether that content is addressed as a Resource. The WG owns both questions and the SEPs
+that follow from them, replacing the File Uploads and Filesystems Working Groups.
 
 ## Scope
 
 ### In Scope
 
-Work is organized into three workstreams that share one design surface.
+The WG runs three workstreams.
 
 - **Specification Work**:
-  1. **Content transfer.** How clients and servers move file content that should not travel inline in JSON-RPC:
-     authorizing an upload or a download, out-of-band delivery, content digests, size limits, and streaming. This
-     workstream serves the other two and does not define its own addressing model. Current inputs: the transfer
-     portion of SEP-2631, and SEP-2532 (`resources/stream`).
+  1. **Content transfer.** Moving file content that should not travel inline in JSON-RPC: authorizing an upload or
+     download, out-of-band delivery, content digests, size limits, and streaming. The other two workstreams build on
+     this one. Inputs: the transfer portion of SEP-2631, and SEP-2532 (`resources/stream`).
   2. **Resource write operations.** One Extensions Track SEP covering create, update, delete, and a metadata read
-     (`stat`) for Resources; optimistic concurrency control, including create-if-absent; and the interaction of
-     writes with `notifications/resources/updated`, the `ttlMs` and `cacheScope` fields, and the `lastModified`
-     annotation. Hierarchical listing and range reads of resources are follow-on items once the write operations
-     are settled. Current input: the create and delete operations proposed in SEP-2571, which closed on 2026-09-22
-     with its author directed to this WG.
-  3. **File inputs.** Declaring on tool input schemas and elicitation request schemas that a field takes a file,
-     so hosts can present native file pickers, and the value a host substitutes for the picked file. Current
-     inputs: the declarative file input model of
-     [SEP-2356](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2356), which closed on 2026-06-26
-     in favor of SEP-2631, and the file value type in SEP-2631.
-- **Cross-Cutting Concerns**: The WG's first design decision is whether a transferred file is addressed as a
-  Resource URI. That decision determines whether a separate `files/*` method family is needed or whether every
-  operation lives under `resources/*`, and it is made once for all three workstreams. The WG reconciles SEP-2631
-  and SEP-2532, together with the proposals in the closed SEP-2356 and SEP-2571, into one coherent set; each open
-  SEP ends up folded in, superseded, or explicitly scoped out.
+     (`stat`) for Resources; optimistic concurrency control, including create-if-absent; and how writes interact with
+     `notifications/resources/updated`, `ttlMs`, `cacheScope`, and `lastModified`. Hierarchical listing and range
+     reads follow once writes are settled. Input: the create and delete operations from SEP-2571 (closed 2026-09-22).
+  3. **File inputs.** Marking a field on a tool input schema or elicitation request schema as taking a file, so hosts
+     can show a native file picker, and the value the host substitutes for the picked file. Inputs: the file input
+     model from [SEP-2356](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2356) (closed
+     2026-06-26) and the file value type in SEP-2631.
+- **Cross-Cutting Concerns**: The first decision is whether a transferred file is addressed as a Resource URI. The
+  answer determines whether a `files/*` method family exists alongside `resources/*`, and it binds all three
+  workstreams. SEP-2631 and SEP-2532 each end up folded in, superseded, or scoped out.
 - **Reference Implementations**: SDK types and helpers for file input declaration and transfer authorization; the
   write operations in at least two Tier 1 SDKs; a sample host flow covering picker, transfer, and tool call; and
   conformance tests for each new schema element and method.
@@ -135,7 +123,7 @@ Discord: `#files-wg`.
 
 ### Success Criteria
 
-- One transfer mechanism, specified in accepted SEP text, shared by uploads, downloads, and resource writes.
+- One transfer mechanism, in accepted SEP text, shared by uploads, downloads, and resource writes.
 - An accepted SEP for file input declaration, and at least one production host rendering a native file picker
   from it.
 - An accepted Extensions Track SEP for resource create, update, delete, and `stat`, with a defined optimistic
