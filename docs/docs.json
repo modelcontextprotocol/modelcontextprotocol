@@ -894,8 +894,7 @@
             "group": "Working Group Charters",
             "pages": [
               "community/working-groups/agents",
-              "community/working-groups/file-uploads",
-              "community/working-groups/filesystems",
+              "community/working-groups/files",
               "community/working-groups/infrastructure",
               "community/working-groups/inspector-v2",
               "community/working-groups/interceptors",
@@ -958,7 +957,15 @@
     },
     {
       "source": "/community/file-uploads/charter",
-      "destination": "/community/working-groups/file-uploads"
+      "destination": "/community/working-groups/files"
+    },
+    {
+      "source": "/community/working-groups/file-uploads",
+      "destination": "/community/working-groups/files"
+    },
+    {
+      "source": "/community/working-groups/filesystems",
+      "destination": "/community/working-groups/files"
     },
     {
       "source": "/community/inspector-v2/charter",
