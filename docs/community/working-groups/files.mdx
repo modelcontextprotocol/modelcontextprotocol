@@ -25,9 +25,10 @@ The WG runs three workstreams.
      download, out-of-band delivery, content digests, size limits, and streaming. The other two workstreams build on
      this one. Inputs: the transfer portion of SEP-2631, and SEP-2532 (`resources/stream`).
   2. **Resource write operations.** One Extensions Track SEP covering create, update, delete, and a metadata read
-     (`stat`) for Resources; optimistic concurrency control, including create-if-absent; and how writes interact with
-     `notifications/resources/updated`, `ttlMs`, `cacheScope`, and `lastModified`. Hierarchical listing and range
-     reads follow once writes are settled. Input: the create and delete operations from SEP-2571 (closed 2026-09-22).
+     (`stat`) for Resources, with optimistic concurrency control (including create-if-absent) and defined
+     interactions with `notifications/resources/updated`, `ttlMs`, `cacheScope`, and `lastModified`. Hierarchical
+     listing and range reads follow once writes are settled. Input: the create and delete operations from SEP-2571
+     (closed 2026-09-22).
   3. **File inputs.** Marking a field on a tool input schema or elicitation request schema as taking a file, so hosts
      can show a native file picker, and the value the host substitutes for the picked file. Inputs: the file input
      model from [SEP-2356](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2356) (closed
@@ -35,12 +36,12 @@ The WG runs three workstreams.
 - **Cross-Cutting Concerns**: The first decision is whether a transferred file is addressed as a Resource URI. The
   answer determines whether a `files/*` method family exists alongside `resources/*`, and it binds all three
   workstreams. SEP-2631 and SEP-2532 each end up folded in, superseded, or scoped out.
-- **Reference Implementations**: SDK types and helpers for file input declaration and transfer authorization; the
-  write operations in at least two Tier 1 SDKs; a sample host flow covering picker, transfer, and tool call; and
+- **Reference Implementations**: SDK types and helpers for file input declaration and transfer authorization. The
+  write operations in at least two Tier 1 SDKs. A sample host flow from picker to transfer to tool call, and
   conformance tests for each new schema element and method.
-- **Documentation**: Specification sections for each workstream; guidance for server authors on choosing between
-  a resource write path and a tool-based one; and a migration guide for servers that currently ask for base64
-  content in prose.
+- **Documentation**: Specification sections for each workstream, guidance for server authors on choosing between a
+  resource write path and a tool-based one, and a migration guide for servers that currently ask for base64 content
+  in prose.
 
 ### Out of Scope
 
@@ -49,16 +50,16 @@ The WG runs three workstreams.
 - Authorization policy for uploads and writes, beyond stating where the existing MCP authorization specification
   applies.
 - Changes to the transport layer or session model. Transfer work uses out-of-band channels alongside the existing
-  transports; it does not define new transports.
+  transports and does not define new ones.
 
 ### Related Groups
 
-- **[MCP Apps WG](/community/working-groups/apps).** Embedded app UIs may surface their own file pickers; the file
+- **[MCP Apps WG](/community/working-groups/apps).** Embedded app UIs may surface their own file pickers, so the file
   input declaration should be reusable there.
 - **[Security IG](/community/interest-groups/security).** Host-side validation requirements for user-supplied file
   content, and the threat model for out-of-band transfer URLs.
 - **[Skills Over MCP WG](/community/working-groups/skills-over-mcp).** The published Skills extension reads skill
-  files through Resources and defines an optional directory read; coordinate on any resource operation that affects
+  files through Resources and defines an optional directory read. Coordinate on any resource operation that affects
   skills.
 - **[Agents WG](/community/working-groups/agents).** Multi-agent and job orchestration systems are the motivating
   consumers of a shared write path.
