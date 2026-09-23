@@ -74,7 +74,7 @@ MCP's tool calling interface has served well. However, `tools/call` allows retur
 - **Progressive discovery**: Core Primitives WG. Clients learn a server's tools and resources as they need them instead of ingesting the full catalog up front, with a defined interaction with the caching work under [HTTP-Native Transport Unification and Hardening](#2-http-native-transport-unification-and-hardening).
 - **Primitive annotations**: Core Primitives WG. [Content annotations](/specification/2026-07-28/server/resources#annotations) in the specification declare a piece of content's intended audience and priority. Applying them to tool results and resources could resolve the visibility confusion described in [SEP-2200](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2200), but most implementers haven't adopted these annotations and may not be aware of their purpose. If they aren't useful, we should consider deprecating them.
 
-In addition, the [File Uploads WG](/community/working-groups/file-uploads) continues on scoped file operations and filesystem-like resource semantics (range reads, hierarchical listing).
+In addition, the [Files WG](/community/working-groups/files), which consolidates the former File Uploads and Filesystems WGs, continues on file transfer, resource write operations, and filesystem-like resource semantics (range reads, hierarchical listing).
 
 ### 5. Improved SDK Developer Experience
 

@@ -1,0 +1,153 @@
+---
+title: Files Charter
+description: Charter for the MCP Files Working Group.
+---
+
+## Group Type
+
+**Working Group**
+
+## Mission Statement
+
+The Files Working Group exists to define how file content moves between MCP clients and servers, in both
+directions, and how the Resources primitive exposes write operations. Two efforts currently cover this ground
+separately: declarative file inputs with an out-of-band transfer flow
+([SEP-2631](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2631)), and write operations on
+Resources ([SEP-2532](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2532), and the now-closed
+[SEP-2571](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2571)). Both need the same mechanism
+for moving content that is too large to travel inline in JSON-RPC, and both must agree on whether that content is
+addressed as a Resource. This WG brings the work into one group so the transfer mechanism is designed once and the
+addressing question is settled once. It supersedes the File Uploads WG (chartered 2026-04-23) and the Filesystems
+WG (chartered 2026-08-24).
+
+## Scope
+
+### In Scope
+
+Work is organized into three workstreams that share one design surface.
+
+- **Specification Work**:
+  1. **Content transfer.** How clients and servers move file content that should not travel inline in JSON-RPC:
+     authorizing an upload or a download, out-of-band delivery, content digests, size limits, and streaming. This
+     workstream serves the other two and does not define its own addressing model. Current inputs: the transfer
+     portion of SEP-2631, and SEP-2532 (`resources/stream`).
+  2. **Resource write operations.** One Extensions Track SEP covering create, update, delete, and a metadata read
+     (`stat`) for Resources; optimistic concurrency control, including create-if-absent; and the interaction of
+     writes with `notifications/resources/updated`, the `ttlMs` and `cacheScope` fields, and the `lastModified`
+     annotation. Hierarchical listing and range reads of resources are follow-on items once the write operations
+     are settled. Current input: the create and delete operations proposed in SEP-2571, which closed on 2026-09-22
+     with its author directed to this WG.
+  3. **File inputs.** Declaring on tool input schemas and elicitation request schemas that a field takes a file,
+     so hosts can present native file pickers, and the value a host substitutes for the picked file. Current
+     inputs: the declarative file input model of
+     [SEP-2356](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2356), which closed on 2026-06-26
+     in favor of SEP-2631, and the file value type in SEP-2631.
+- **Cross-Cutting Concerns**: The WG's first design decision is whether a transferred file is addressed as a
+  Resource URI. That decision determines whether a separate `files/*` method family is needed or whether every
+  operation lives under `resources/*`, and it is made once for all three workstreams. The WG reconciles SEP-2631
+  and SEP-2532, together with the proposals in the closed SEP-2356 and SEP-2571, into one coherent set; each open
+  SEP ends up folded in, superseded, or explicitly scoped out.
+- **Reference Implementations**: SDK types and helpers for file input declaration and transfer authorization; the
+  write operations in at least two Tier 1 SDKs; a sample host flow covering picker, transfer, and tool call; and
+  conformance tests for each new schema element and method.
+- **Documentation**: Specification sections for each workstream; guidance for server authors on choosing between
+  a resource write path and a tool-based one; and a migration guide for servers that currently ask for base64
+  content in prose.
+
+### Out of Scope
+
+- Host-side sandbox and local-disk semantics. How a host materializes resources into a filesystem for the model
+  is a host concern.
+- Authorization policy for uploads and writes, beyond stating where the existing MCP authorization specification
+  applies.
+- Changes to the transport layer or session model. Transfer work uses out-of-band channels alongside the existing
+  transports; it does not define new transports.
+
+### Related Groups
+
+- **[MCP Apps WG](/community/working-groups/apps).** Embedded app UIs may surface their own file pickers; the file
+  input declaration should be reusable there.
+- **[Security IG](/community/interest-groups/security).** Host-side validation requirements for user-supplied file
+  content, and the threat model for out-of-band transfer URLs.
+- **[Skills Over MCP WG](/community/working-groups/skills-over-mcp).** The published Skills extension reads skill
+  files through Resources and defines an optional directory read; coordinate on any resource operation that affects
+  skills.
+- **[Agents WG](/community/working-groups/agents).** Multi-agent and job orchestration systems are the motivating
+  consumers of a shared write path.
+- **[Tool Annotations IG](/community/interest-groups/tool-annotations).** File input declarations are
+  input-parameter metadata and should stay consistent with the broader annotation taxonomy.
+
+## Leadership
+
+| Role | Name            | Organization | GitHub                                               | Term    |
+| ---- | --------------- | ------------ | ---------------------------------------------------- | ------- |
+| Lead | Den Delimarsky  | Anthropic    | [@localden](https://github.com/localden)             | Initial |
+| Lead | Sambhav Kothari | Bloomberg    | [@sambhav](https://github.com/sambhav)               | Initial |
+| Lead | Ola Hungerford  | Nordstrom    | [@olaservo](https://github.com/olaservo)             | Initial |
+| Lead | Daniel Temesgen | Bloomberg    | [@DanielTemesgen](https://github.com/DanielTemesgen) | Initial |
+
+Sponsored by Den Delimarsky ([@localden](https://github.com/localden)).
+
+## Authority & Decision Rights
+
+| Decision Type                       | Authority Level                                        |
+| ----------------------------------- | ------------------------------------------------------ |
+| Meeting logistics & scheduling      | WG Leads (autonomous)                                  |
+| Proposal prioritization within WG   | WG Leads (autonomous)                                  |
+| SEP triage & closure (in scope)     | WG Leads (autonomous, with documented rationale)       |
+| Technical design within scope       | WG consensus                                           |
+| Spec changes (additive)             | WG consensus → Core Maintainer approval                |
+| Spec changes (breaking/fundamental) | WG consensus → Core Maintainer approval + wider review |
+| Scope expansion                     | Core Maintainer approval required                      |
+| WG Member approval                  | WG Member sponsors                                     |
+
+## Membership
+
+| Name           | Organization | GitHub                                           | Discord | Level     |
+| -------------- | ------------ | ------------------------------------------------ | ------- | --------- |
+| Nick Cooper    | OpenAI       | [@nickcoai](https://github.com/nickcoai)         |         | WG Member |
+| Olivier Chafik | Anthropic    | [@ochafik](https://github.com/ochafik)           |         | WG Member |
+| Michael Cheah  | Bloomberg    | [@michaelcheah](https://github.com/michaelcheah) |         | WG Member |
+
+## Operations
+
+| Meeting         | Frequency | Duration   | Purpose                               |
+| --------------- | --------- | ---------- | ------------------------------------- |
+| Working Session | Biweekly  | 60 minutes | Technical discussion, proposal review |
+
+Discord: `#files-wg`.
+
+**Note** The cadence above is provisional and will be confirmed at the first working session.
+
+## Deliverables & Success Metrics
+
+### Active Work Items
+
+| Item                                                                                                          | Status   | Target Date | Champion                                           |
+| ------------------------------------------------------------------------------------------------------------- | -------- | ----------- | -------------------------------------------------- |
+| Decision: are transferred files addressed as Resource URIs                                                    | Open     |             | WG Leads                                           |
+| [SEP-2631: File Objects and Transfer](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2631) | Draft    |             | [@caseychow-oai](https://github.com/caseychow-oai) |
+| SEP: Filesystem Operations for Resources (create, update, delete, `stat`)                                     | Ideating |             | TBD                                                |
+| SEP: Declarative file inputs (successor to SEP-2356)                                                          | Ideating |             | TBD                                                |
+| Reconcile [SEP-2532](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2532) with the above   | Ideating |             | TBD                                                |
+| TypeScript SDK reference implementation                                                                       | —        |             | [@ochafik](https://github.com/ochafik)             |
+| Reference implementation in a second Tier 1 SDK                                                               | —        |             | TBD                                                |
+
+### Success Criteria
+
+- One transfer mechanism, specified in accepted SEP text, shared by uploads, downloads, and resource writes.
+- An accepted SEP for file input declaration, and at least one production host rendering a native file picker
+  from it.
+- An accepted Extensions Track SEP for resource create, update, delete, and `stat`, with a defined optimistic
+  concurrency control mechanism and a specified interaction with change notification and caching.
+- SEP-2631 and SEP-2532 each resolved: folded in, superseded, or explicitly scoped out.
+- Reference implementations in at least two Tier 1 SDKs, two independent server implementations exercising the
+  write path against a common client, and conformance coverage for every new schema element and method.
+
+## Changelog
+
+| Date       | Change                                                         |
+| ---------- | -------------------------------------------------------------- |
+| 2026-04-23 | Initial File Uploads WG charter                                |
+| 2026-08-24 | Initial Filesystems WG charter                                 |
+| 2026-09-23 | Consolidated the File Uploads and Filesystems WGs into this WG |
