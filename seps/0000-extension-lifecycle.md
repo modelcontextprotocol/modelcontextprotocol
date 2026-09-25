@@ -5,7 +5,7 @@
 - **Created**: 2026-09-25
 - **Author(s)**: Peter Alexander (@pja-ant)
 - **Sponsor**: @pja-ant
-- **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/0000
+- **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/3392
 
 ## Abstract
 
