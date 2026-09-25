@@ -1,4 +1,4 @@
-# SEP-0000: Extension Lifecycle
+# SEP-3392: Extension Lifecycle
 
 - **Status**: Draft
 - **Type**: Process
