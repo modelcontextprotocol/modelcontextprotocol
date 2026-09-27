@@ -85,7 +85,6 @@ SDKs **MUST** let applications enable multiple independently packaged extensions
 Extensions declare support in the `ClientCapabilities.extensions` and `ServerCapabilities.extensions` maps defined by SEP-2133, keyed by extension identifier. An empty settings object declares support.
 
 - SDKs **MUST** let an extension declare its entry and settings as part of registration, under its extension identifier.
-- SDKs **MUST** preserve unrelated capability entries and **MUST** reject conflicting local settings for the same identifier.
 - SDKs **MUST** let extension code read the peer capabilities available for an operation through their existing discovery, initialization, or request-context APIs. In `2026-07-28`, clients get server capabilities through [discovery](https://modelcontextprotocol.io/specification/2026-07-28/server/discover), and servers read client capabilities from the [current request](https://modelcontextprotocol.io/specification/2026-07-28/basic#statelessness).
 
 #### Dependencies
@@ -102,7 +101,7 @@ const requires = {
 
 An empty object requires presence; a boolean requires `true`. SDKs **MAY** use native types instead. Dependency declarations are local: they add no wire fields and do not advertise support to peers.
 
-- SDKs **MUST** check each extension's dependencies, transitively, against the final configuration, including capabilities enabled by application code after the extension was registered.
+- SDKs **MUST** check each extension's dependencies against the final configuration, including capabilities enabled by application code after the extension was registered.
 - An extension's handlers and middleware **MUST NOT** run until its dependencies have been checked and met. SDKs choose when the check runs, and **SHOULD** run it at startup where they can.
 - An unmet dependency **MUST** produce an error naming the extension and the requirement.
 
@@ -110,7 +109,7 @@ These checks do not install packages or enable capabilities. Applications and pa
 
 ### 2. Custom methods
 
-SDKs **MUST** provide public APIs to register handlers for custom requests and notifications, and to send them, with parameter and result types and, where needed, schemas or codecs. SDKs **MUST** document whether handlers receive parameters, a request object, or a separate context.
+SDKs **MUST** provide public APIs to register handlers for custom requests and notifications, and to send them, with parameter and result types and, where needed, schemas or codecs.
 
 ```typescript
 // Called for each server that enables search.
@@ -138,11 +137,9 @@ await session.notify("com.example/search-selected", { query: "invoices" });
 Registering a method fixes its name and types:
 
 - SDKs **MUST** reject a registration that reuses a registered method name, whether as a request or a notification, including core method names.
-- SDKs **MUST NOT** offer an API that changes a registered method's types.
+- SDKs **MUST NOT** offer an API, including middleware, that changes a registered method's types. The SDK owns the envelope and request correlation.
 
 Changing what a method does, through middleware or an SDK's existing handler-replacement API, is permitted within those types.
-
-Custom messages **MUST** use the SDK's normal dispatch, request correlation, error handling, cancellation, and middleware.
 
 ### 3. Middleware
 
@@ -166,7 +163,6 @@ Middleware can run logic before and after downstream processing, modify messages
 #### Messages and metadata
 
 - SDKs **MUST** let middleware modify or replace a payload, or return early, with any outcome the method contract allows, including supported intermediate results and follow-up exchanges.
-- SDK middleware APIs **MUST NOT** offer a way to change a message's method or registered types. The SDK owns the envelope and request correlation.
 - SDKs **MUST** let middleware add, update, and remove `_meta` entries, including on nested objects, without changing generated core types and within the protocol's rules for reserved keys. Changes **MUST** reach downstream middleware and the recipient. Typed APIs and serialization **MUST** preserve unknown `_meta` entries.
 - SDKs **MUST** give middleware the context they already expose through public APIs, such as authentication, cancellation, or peer capabilities. This local context is not serialized into the message.
 
@@ -174,7 +170,7 @@ Middleware can run logic before and after downstream processing, modify messages
 
 Notifications pass through the same chains. Calling `next` forwards the notification; skipping it suppresses that notification, where the protocol permits, without ending the surrounding stream or operation.
 
-SDKs **MUST** let middleware observe and modify each protocol message on a stream as it is produced or consumed. Wrapping only the final result is insufficient. With middleware installed, SDKs **MUST** preserve incremental delivery, message order, flow control, cancellation, and errors, and **MUST NOT** require middleware to buffer the stream. SDKs **MAY** expose this through iterators, stream wrappers, writers, or callbacks. This covers protocol messages, not transport frames.
+SDKs **MUST** let middleware observe and modify each protocol message on a stream as it is produced or consumed. Wrapping only the final result is insufficient. With middleware installed, SDKs **MUST** preserve incremental delivery, message order, cancellation, and errors, and **MUST NOT** require middleware to buffer the stream. SDKs **MAY** expose this through iterators, stream wrappers, writers, or callbacks. This covers protocol messages, not transport frames.
 
 #### Ordering
 
