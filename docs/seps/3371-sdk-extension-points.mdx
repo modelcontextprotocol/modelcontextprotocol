@@ -188,7 +188,6 @@ Middleware can run logic before and after downstream processing, modify messages
 - SDK middleware APIs **MUST NOT** offer a way to change a message's method or registered types. The SDK owns the envelope and request correlation.
 - SDKs **MUST** let middleware add, update, and remove `_meta` entries, including on nested objects, without changing generated core types and within the protocol's rules for reserved keys. Changes **MUST** reach downstream middleware and the recipient. Typed APIs and serialization **MUST** preserve unknown `_meta` entries.
 - SDKs **MUST** give middleware the context they already expose through public APIs, such as authentication, cancellation, or peer capabilities. This local context is not serialized into the message.
-- SDKs **MUST NOT** share request-local objects between independent calls, so middleware that changes one call's metadata cannot change another's. Shared state that applications or extensions introduce is their own responsibility.
 
 #### Notifications and streams
 
