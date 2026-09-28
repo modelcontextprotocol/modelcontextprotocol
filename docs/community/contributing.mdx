@@ -8,6 +8,15 @@ community. This guide walks you through everything you need to get started.
 
 ## Before You Begin
 
+### Join the Community
+
+You don't need to have a change ready to get involved. Join the
+[MCP Contributor Discord](https://discord.gg/6CSzBmMkjX) to connect with contributors and
+maintainers, ask questions, and find out where help is needed. See the
+[Contributor Communication](/community/communication) guide for all channels - including
+[live calls](https://meet.modelcontextprotocol.io/) and GitHub Discussions - and when to use
+each one, or jump to [Getting Help](#getting-help) below.
+
 ### Prerequisites
 
 Before contributing, ensure you have the following installed and ready:
@@ -365,12 +374,49 @@ lot of time on a spec proposal, make sure to follow these best practices.
   <Step title="Find a sponsor">
     A maintainer from the [maintainer
     list](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/MAINTAINERS.md)
-    who will champion your proposal.
+    who will champion your proposal. See [Finding a Sponsor for
+    SEPs](#finding-a-sponsor-for-seps) below.
   </Step>
   <Step title="Write the SEP">
     Follow the [SEP Guidelines](/community/sep-guidelines).
   </Step>
 </Steps>
+
+### Finding a Sponsor for SEPs
+
+A **sponsor** is a Core Maintainer or Maintainer who champions your SEP through the review
+process. They provide feedback, help refine your proposal, and present it at Core Maintainer
+meetings.
+
+<Warning>
+  Every SEP needs a sponsor to move forward. SEPs that don't find a sponsor
+  within 6 months are marked as **dormant**. Dormant SEPs aren't rejected
+  outright - they can be revived later if a sponsor is found or the proposal is
+  re-assessed to be needed.
+</Warning>
+
+To find a sponsor:
+
+<Steps>
+  <Step title="Find relevant maintainers">
+    Look at the [maintainer
+    list](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/MAINTAINERS.md)
+    to find maintainers working in your area.
+  </Step>
+  <Step title="Tag maintainers in your PR">
+    Tag 1-2 relevant maintainers (don't spam everyone).
+  </Step>
+  <Step title="Share in Discord">
+    Post your PR in the relevant Discord channel to increase visibility.
+  </Step>
+  <Step title="Follow up if needed">
+    If no response after 2 weeks, ask in `#general` or reach out to a Core
+    Maintainer.
+  </Step>
+</Steps>
+
+Maintainers review open proposals regularly, but response time varies based on complexity and
+availability.
 
 ## Working with the SDK Repositories
 
@@ -468,8 +514,6 @@ Before diving into code, follow these steps.
 
 ## Getting Help
 
-### Communication Channels
-
 Got questions or need guidance? The MCP community is here to help.
 
 - **[Discord](/community/communication#discord)** - Real-time discussion with contributors and
@@ -489,42 +533,6 @@ documentation.
 For protocol discussions, join [Working Group](/community/working-interest-groups) channels like
 `#auth-wg` or `#server-identity-wg`. For SDK help, find your language's channel (e.g.,
 `#typescript-sdk-dev`).
-
-### Finding a Sponsor for SEPs
-
-A **sponsor** is a Core Maintainer or Maintainer who champions your SEP through the review
-process. They provide feedback, help refine your proposal, and present it at Core Maintainer
-meetings.
-
-<Warning>
-  Every SEP needs a sponsor to move forward. SEPs that don't find a sponsor
-  within 6 months are marked as **dormant**. Dormant SEPs aren't rejected
-  outright - they can be revived later if a sponsor is found or the proposal is
-  re-assessed to be needed.
-</Warning>
-
-To find a sponsor:
-
-<Steps>
-  <Step title="Find relevant maintainers">
-    Look at the [maintainer
-    list](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/MAINTAINERS.md)
-    to find maintainers working in your area.
-  </Step>
-  <Step title="Tag maintainers in your PR">
-    Tag 1-2 relevant maintainers (don't spam everyone).
-  </Step>
-  <Step title="Share in Discord">
-    Post your PR in the relevant Discord channel to increase visibility.
-  </Step>
-  <Step title="Follow up if needed">
-    If no response after 2 weeks, ask in `#general` or reach out to a Core
-    Maintainer.
-  </Step>
-</Steps>
-
-Maintainers review open proposals regularly, but response time varies based on complexity and
-availability.
 
 ## Troubleshooting
 
@@ -554,6 +562,8 @@ Common causes:
 1. Make sure your idea has been discussed in Discord or an Interest Group first
 2. Proposals with demonstrated community interest are more likely to find sponsors
 3. Consider whether your change might be too large - could it be split into smaller SEPs?
+
+See [Finding a Sponsor for SEPs](#finding-a-sponsor-for-seps) for the full process.
 
 ### My SEP was rejected
 

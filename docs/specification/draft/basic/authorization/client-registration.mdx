@@ -60,7 +60,7 @@ Key requirements include:
   "logo_uri": "https://app.example.com/logo.png",
   "redirect_uris": [
     "http://127.0.0.1:3000/callback",
-    "http://localhost:3000/callback"
+    "http://[::1]:3000/callback"
   ],
   "grant_types": ["authorization_code"],
   "response_types": ["code"],
@@ -83,7 +83,7 @@ sequenceDiagram
     Note over Client,Metadata: Client hosts metadata at<br/>https://app.example.com/oauth/metadata.json
 
     User->>Client: Initiates connection to MCP Server
-    Client->>Server: Authorization Request<br/>client_id=https://app.example.com/oauth/metadata.json<br/>redirect_uri=http://localhost:3000/callback
+    Client->>Server: Authorization Request<br/>client_id=https://app.example.com/oauth/metadata.json<br/>redirect_uri=http://127.0.0.1:3000/callback
 
     Server->>User: Authentication prompt
     User->>Server: Provides credentials
