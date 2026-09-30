@@ -28,11 +28,11 @@ description: "Release Cycle Updates"
 
 ## Abstract
 
-This proposal establishes a predictable release cycle for the Model Context Protocol (MCP). Specification releases occur every six months, in March and September. Each release has an eight-month cycle: two months of planning, a defined Core Maintainer review window, and stabilization before publication. Successive cycles overlap by two months.
+This proposal establishes a predictable release cycle for the Model Context Protocol (MCP). Specification releases occur every six months, generally on the last Tuesday of March and September. Each release has an eight-month cycle: two months of planning, a defined Core Maintainer review window, and stabilization before publication. Successive cycles overlap by two months.
 
 A Working Group or the Core Maintainer group sponsors each SEP. Proposal development continues year-round, and all SEP types use the scheduled Core Maintainer review window. Release-bound proposals must be Final and merged by soft freeze. SDK implementation begins after acceptance. Unfinished proposals move to a later cycle without moving the release date.
 
-A primary and secondary release manager coordinate each cycle, with the secondary becoming primary for the following release. The proposed transition moves the December 2026 release target to March 2027, followed by the recurring March/September cadence.
+A primary and secondary release manager coordinate each cycle, with the secondary becoming primary for the following release. The proposed transition moves the December 2026 release target to late March 2027, followed by the recurring cadence.
 
 ## Motivation
 
@@ -46,7 +46,7 @@ The Core Maintainers established this proposed process during the latest Core Ma
 
 ### Release Cadence Overview
 
-MCP publishes specification releases in March and September. Each cycle begins eight calendar months before its target release date. The first two months are dedicated to planning, and the final two months overlap planning for the following release.
+MCP generally publishes specification releases on the last Tuesday of March and September. Release managers confirm the exact date in each cycle's published calendar. Each cycle begins eight calendar months before its target release date. The first two months are dedicated to planning, and the final two months overlap planning for the following release.
 
 All release milestones are expressed in calendar months before release, including half-month intervals. These offsets set the planning targets; the published release calendar defines the exact dates and deadlines.
 
@@ -60,7 +60,7 @@ All release milestones are expressed in calendar months before release, includin
 | Hard freeze         | 1 month               | Restrict specification changes to emergencies.                    |
 | Release             | 0 months              | Publish the specification, release notes, and readiness guidance. |
 
-The two cycles below share one month axis. **January–March is the two-month overlap:** the March release is stabilizing while planning for the September release is underway. The diagram illustrates the recurring cadence; its dates are schematic, and the published release calendar supplies exact deadlines.
+The two cycles below share one month axis. **Late January through late March is the two-month overlap:** the March release is stabilizing while planning for the September release is underway. The diagram illustrates the recurring cadence; its dates are schematic, and the published release calendar supplies exact deadlines.
 
 ```mermaid
 ---
@@ -77,21 +77,21 @@ gantt
     todayMarker off
 
     section March release
-    Planning      :march_plan, 2027-07-01, 2027-09-01
-    CM review     :march_review, 2027-09-01, 2027-12-15
-    Stabilization :march_stabilize, 2027-12-15, 2028-03-01
+    Planning      :march_plan, 2027-07-28, 2027-09-28
+    CM review     :march_review, 2027-09-28, 2028-01-13
+    Stabilization :march_stabilize, 2028-01-13, 2028-03-28
 
     section September release
-    Planning      :september_plan, 2028-01-01, 2028-03-01
-    CM review     :september_review, 2028-03-01, 2028-06-15
-    Stabilization :september_stabilize, 2028-06-15, 2028-09-01
+    Planning      :september_plan, 2028-01-28, 2028-03-28
+    CM review     :september_review, 2028-03-28, 2028-07-12
+    Stabilization :september_stabilize, 2028-07-12, 2028-09-26
 
     section Releases
-    March         :milestone, march_release, 2028-03-01, 0d
-    September     :milestone, september_release, 2028-09-01, 0d
+    March         :milestone, march_release, 2028-03-28, 0d
+    September     :milestone, september_release, 2028-09-26, 0d
 ```
 
-The following cycle's planning ends and its CM review window opens on the current release day. For a September release, the same overlap occurs in July–September while the following March cycle begins planning. SDK beta and freeze timings are listed in the milestone table above.
+The following cycle's planning ends and its CM review window opens on the current release day. For a September release, the same overlap runs from late July through late September while the following March cycle begins planning. SDK beta and freeze timings are listed in the milestone table above.
 
 ### Release Management
 
@@ -147,7 +147,7 @@ Core Maintainers continue meeting every two weeks. For each formal review:
 3. **At the meeting:** The author, WG lead, or designated CM presents the proposal, remaining questions, and available implementation feedback.
 4. **After the presentation:** Open the recorded vote described below, then publish the outcome and required follow-up on the SEP PR and in the queue.
 
-Formal reviews must be scheduled early enough for the full voting period to finish before the window closes. Release-bound proposals also need time to satisfy finalization and merge requirements before soft freeze. Queue placement guarantees neither review time nor release inclusion.
+Scheduled votes must conclude and pass before the applicable soft or hard freeze. Release-bound SEPs must be Final and merged before soft freeze; subsequent corrections must be merged before hard freeze. All applicable requirements, including conformance tests, must be met before merging. Changes after hard freeze require emergency approval. Queue placement guarantees neither review time nor release inclusion.
 
 #### Voting and Recorded Outcomes
 
@@ -155,7 +155,9 @@ After presentation, the named maintainer sponsor opens a recorded seven-calendar
 
 Acceptance requires affirmative votes from more than half of all eligible voters. Abstentions and absences do not count as approval, and a majority of those attending a meeting alone is insufficient. A majority voting to reject produces a rejection; otherwise a proposal that does not reach the acceptance threshold returns for revision or later review. The sponsor records the tally, decision, rationale, and follow-up on the SEP PR and updates its status under the existing guidelines.
 
-The voting period remains open for all seven days. A material change to the proposal during that period returns it for review rather than being accepted under votes cast on the earlier revision. A vote that cannot conclude before the review window closes is deferred to the next window without a partial result counting as acceptance.
+The voting period remains open for all seven days, except for shortened emergency votes under [Hard Freeze](#hard-freeze--1-month-before-release). A material change to the proposal during that period returns it for review rather than being accepted under votes cast on the earlier revision. A vote that cannot conclude before the review window closes is deferred to the next window without a partial result counting as acceptance.
+
+The rules in effect when a vote concludes apply, even if voting began before a freeze. After soft freeze, only corrections within the frozen scope can proceed; after hard freeze, changes must meet the emergency criteria and full CM voting requirements. Approval does not exempt a change from the freeze rules in effect when it is merged.
 
 Existing [Lead Maintainer authority](https://modelcontextprotocol.io/community/governance#roles) remains in effect. Where a proposal amends governance, the stricter proposal, comment-period, and approval requirements of [SEP-2085](https://modelcontextprotocol.io/seps/2085-governance-succession-and-amendment) apply.
 
@@ -200,7 +202,9 @@ The primary release manager coordinates each exception through the normal PR wor
 3. Obtain review from affected implementation maintainers and run relevant regression and conformance checks before merging. Where observable protocol behavior changes, update applicable conformance coverage.
 4. Record the vote, decision, validation results, and any changed implementation guidance. Notify affected SDK maintainers and update the readiness summary and release notes.
 
-Emergency votes may take place and conclude outside the CM review window. The voter eligibility, approval thresholds, voting period, and Lead Maintainer authority in [Voting and Recorded Outcomes](#voting-and-recorded-outcomes) still apply. Approval and validation must be complete before merging. If a defect cannot be corrected safely in time, removing the affected new feature and its dependent changes also requires a qualifying emergency and approval through the same full CM vote. The remaining specification proceeds on schedule.
+Emergency votes may take place and conclude outside the CM review window. The primary release manager may shorten the seven-day voting period when needed, notifying all eligible CMs of the deadline and reason. Approval still requires affirmative votes from more than half of all eligible CMs. Voter eligibility and Lead Maintainer authority follow [Voting and Recorded Outcomes](#voting-and-recorded-outcomes).
+
+Approval and validation must be complete before merging. If a defect cannot be corrected safely in time, removing the affected new feature and its dependent changes also requires a qualifying emergency and approval through the same full CM vote. The remaining specification proceeds on schedule.
 
 Security-sensitive details follow the existing [security reporting and disclosure process](https://modelcontextprotocol.io/community/security). Keep the decision and validation record in the restricted channel during an embargo and publish it when disclosure permits.
 
@@ -212,11 +216,11 @@ On release day, publish the dated specification, release notes, implementation a
 
 ### Transition and Adoption
 
-This SEP proposes moving the release previously targeted for December 2026 to March 2027. The last specification release was July 28, 2026. The first cycle uses the planning completed in August 2026.
+This SEP proposes moving the release previously targeted for December 2026 to March 30, 2027, the last Tuesday of March, subject to confirmation in the transition calendar. The last specification release was July 28, 2026. The first cycle uses the planning completed in August 2026.
 
 Within two weeks of adoption, Core Maintainers select the initial primary and secondary through the nomination and voting process above, and those managers publish the transition calendar, review meetings, and exact freeze, beta, and release deadlines. The first primary need not have served a preceding secondary cycle. The transition calendar opens the first review window when the process becomes operational and closes it at the March release's calculated soft freeze. Only meetings that allow the full agenda lead time and voting period are scheduled.
 
-Planning for September 2027 begins in January 2027. Planning for March 2028 begins in July 2027. Subsequent cycles follow the full recurring calendar.
+Planning for September 2027 begins in late January 2027. Planning for March 2028 begins in late July 2027. Subsequent cycles follow the full recurring calendar.
 
 Existing upstream SEP PRs remain valid and retain their numbers, discussions, and completed decisions. Before their next formal review, proposals obtain sponsorship from a WG or the Core Maintainer group and enter the queue; authors do not need to close and recreate their PRs in a WG repository. Already accepted proposals retain acceptance and must meet release-readiness requirements. This SEP itself is considered under the process in force before its adoption.
 
@@ -246,7 +250,7 @@ Full Core Maintainer votes keep changes to frozen release scope accountable to t
 
 ### Rotation and Transition
 
-Serving as secondary prepares a release manager to lead the next cycle. Naming responsibility for each overlapping cycle avoids an ambiguous handoff. Moving the upcoming target to March 2027 creates time to introduce the calendar and readiness milestones while crediting planning already performed.
+Serving as secondary prepares a release manager to lead the next cycle. Naming responsibility for each overlapping cycle avoids an ambiguous handoff. Moving the upcoming target to late March 2027 creates time to introduce the calendar and readiness milestones while crediting planning already performed.
 
 ## Backward Compatibility
 
@@ -270,8 +274,3 @@ For this Process SEP, implementation consists of contributor documentation and o
 4. Publish a release checklist covering freeze scope, emergency approvals, SDK milestones, publication, and handoff.
 
 Link the documentation changes, calendar, queue, and assignments here as they become available. Process SEPs are exempt from protocol conformance-test requirements; existing release tooling can continue to perform publication.
-
-## Open Questions
-
-- **Next release date:** What exact date should we target for the next specification release, and how should it align with AgentCon NA 2027? March 2027 remains the proposed target month; the release date and corresponding milestones still need to be confirmed.
-- **Emergency votes close to release:** How should qualifying emergencies be handled when fewer than seven days remain before release? Can the voting period be shortened while retaining a full Core Maintainer vote, and what happens if a safe change cannot be approved in time?
