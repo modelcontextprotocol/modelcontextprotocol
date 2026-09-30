@@ -48,11 +48,11 @@ Examples use concise TypeScript and follow a single catalog-search extension. Na
 
 ### General requirements
 
-These apply to all three extension points.
+These apply to all three extension points. Each requirement states an outcome; how an SDK provides it, through builders, interfaces, types, attributes, macros, or existing hooks, is its choice.
 
-- External packages **MUST** be able to use them through documented public APIs, without an SDK fork, an SDK-owned allowlist, or an organisation-managed namespace or publishing access.
-- SDKs **MUST** let applications and extension setup code inspect the configuration, including registered extensions and middleware order, before messages are processed. A read-only view is sufficient.
-- If registering an extension or any of its contributions fails, the SDK **MUST** report an error and **MUST NOT** process messages with that extension partially installed. SDKs **MAY** reject a conflict as soon as it is registered.
+- External packages **MUST** be able to use the extension points through documented public APIs, without an SDK fork, an SDK-owned allowlist, or an organisation-managed namespace or publishing access.
+- Applications and extension setup code **MUST** be able to tell which extensions are registered before messages are processed.
+- If an extension or any of its contributions cannot be registered, the SDK **MUST** report an error and **MUST NOT** process messages with that extension partially installed.
 - SDKs **MAY** limit registration to configuration time. Runtime installation and removal are **OPTIONAL**.
 
 ### 1. Extension registration
@@ -64,7 +64,7 @@ An extension package bundles its capability declarations, dependencies, custom m
 function searchExtension() {
   return new Extension("com.example/search", {
     capabilities: { selectionNotifications: true },
-    requires: { resources: {} },
+    requires: (config) => config.has("resources"),
     setup: registerSearchMethods,
     middleware: [searchMiddleware],
   });
@@ -78,38 +78,28 @@ server.addResource("catalog", { handler: readCatalog }); // enables resources
 await server.start(); // this SDK checks dependencies here
 ```
 
-SDKs **MUST** let applications enable multiple independently packaged extensions on the same client or server. Registration **MUST** reject a duplicate extension identifier.
+SDKs **MUST** let applications enable multiple independently packaged extensions on the same client or server, and **MUST** reject a duplicate extension identifier.
 
 #### Capabilities
 
-Extensions declare support in the `ClientCapabilities.extensions` and `ServerCapabilities.extensions` maps defined by SEP-2133, keyed by extension identifier. An empty settings object declares support.
+Extensions declare support in the `ClientCapabilities.extensions` and `ServerCapabilities.extensions` maps defined by SEP-2133, keyed by extension identifier.
 
-- SDKs **MUST** let an extension declare its entry and settings as part of registration, under its extension identifier.
-- SDKs **MUST** let extension code read the peer capabilities available for an operation through their existing discovery, initialization, or request-context APIs. In `2026-07-28`, clients get server capabilities through [discovery](https://modelcontextprotocol.io/specification/2026-07-28/server/discover), and servers read client capabilities from the [current request](https://modelcontextprotocol.io/specification/2026-07-28/basic#statelessness).
+- An extension **MUST** be able to declare its entry and settings in that map as part of registration.
+- Extension code **MUST** be able to read the peer's capabilities wherever the SDK already makes them available, such as discovery, initialization, or request context.
 
 #### Dependencies
 
-An extension can require local capabilities or other registered extensions:
+An extension can depend on the local configuration: core capabilities and their sub-features, or other registered extensions. The SDK decides how dependencies are expressed, for example as a predicate over the configuration, a declarative map, or types. The rules for what counts as a match belong to the SDK and the extension, not to this SEP. Dependencies are local: they add no wire fields and do not advertise support to peers.
 
-```typescript
-const requires = {
-  resources: {},
-  tools: { listChanged: true },
-  extensions: { "com.example/search": {} },
-};
-```
+- The SDK **MUST** evaluate dependencies against the final configuration, so registration order does not matter.
+- An extension's handlers and middleware **MUST NOT** run unless its dependencies are met. SDKs choose when the check runs and **SHOULD** run it before serving where they can.
+- An unmet dependency **MUST** produce an error that identifies the extension and what is missing. If the check runs while handling a peer's message, the SDK **SHOULD** answer with an internal error (`-32603`), since the fault is local configuration.
 
-An empty object requires presence; a boolean requires `true`. SDKs **MAY** use native types instead. Dependency declarations are local: they add no wire fields and do not advertise support to peers.
-
-- SDKs **MUST** check each extension's dependencies against the final configuration, including capabilities enabled by application code after the extension was registered.
-- An extension's handlers and middleware **MUST NOT** run until its dependencies have been checked and met. SDKs choose when the check runs, and **SHOULD** run it at startup where they can.
-- An unmet dependency **MUST** produce an error naming the extension and the requirement.
-
-These checks do not install packages or enable capabilities. Applications and packages manage package version compatibility.
+These checks do not install packages or enable capabilities.
 
 ### 2. Custom methods
 
-SDKs **MUST** provide public APIs to register handlers for custom requests and notifications, and to send them, with parameter and result types and, where needed, schemas or codecs.
+SDKs **MUST** let extensions register handlers for custom requests and notifications, and send them, with typed or validated parameters and results in whatever form fits the language.
 
 ```typescript
 // Called for each server that enables search.
@@ -136,14 +126,14 @@ await session.notify("com.example/search-selected", { query: "invoices" });
 
 Registering a method fixes its name and types:
 
-- SDKs **MUST** reject a registration that reuses a registered method name, whether as a request or a notification, including core method names.
-- SDKs **MUST NOT** offer an API, including middleware, that changes a registered method's types. The SDK owns the envelope and request correlation.
+- SDKs **MUST** reject an extension's registration that reuses a registered method name, whether as a request or a notification, including core method names.
+- The extension points in this SEP **MUST NOT** let an extension change a registered method's types. The SDK owns the envelope and request correlation.
 
 Changing what a method does, through middleware or an SDK's existing handler-replacement API, is permitted within those types.
 
 ### 3. Middleware
 
-SDKs **MUST** let applications and extensions add middleware covering core and custom requests, responses, and notifications, when sending and when receiving. Adding middleware does not register a method or declare a capability.
+Middleware is code that wraps the processing of messages. SDKs **MUST** let applications and extensions add middleware that covers core and custom requests, responses, and notifications, in both directions. Adding middleware does not register a method or declare a capability. The shape is the SDK's choice: wrapped handlers, layers, filters, interceptors, or callbacks all work if they meet the requirements below.
 
 ```typescript
 function searchMiddleware(next: Handler): Handler {
@@ -158,32 +148,42 @@ function searchMiddleware(next: Handler): Handler {
 }
 ```
 
-Middleware can run logic before and after downstream processing, modify messages, or return early without calling `next`. Errors use the language's normal mechanisms and the SDK's existing error path. The SDK **MUST** run middleware cleanup, such as closing active iterators, whether processing completes, fails, is cancelled, or stops early.
+This example uses an async generator. Other SDKs can use their own streaming or callback mechanisms.
 
-#### Messages and metadata
+#### What middleware can do
 
-- SDKs **MUST** let middleware modify or replace a payload, or return early, with any outcome the method contract allows, including supported intermediate results and follow-up exchanges.
-- SDKs **MUST** let middleware add, update, and remove `_meta` entries, including on nested objects, without changing generated core types and within the protocol's rules for reserved keys. Changes **MUST** reach downstream middleware and the recipient. Typed APIs and serialization **MUST** preserve unknown `_meta` entries.
-- SDKs **MUST** give middleware the context they already expose through public APIs, such as authentication, cancellation, or peer capabilities. This local context is not serialized into the message.
+- Act before and after downstream processing, or return early without calling it.
+- Modify or replace a payload, with any outcome the method contract allows, including supported intermediate results and follow-up exchanges.
+- Add, update, and remove `_meta` entries, including on nested objects, within the protocol's rules for reserved keys. Changes **MUST** reach downstream middleware and the recipient, and the SDK **MUST** preserve `_meta` entries it does not recognise.
+- Use the context the SDK already exposes, such as authentication, cancellation, or peer capabilities. This context is local and is not serialized.
+- Forward or suppress a notification, where the protocol permits, without ending the surrounding operation.
 
-#### Notifications and streams
+SDKs **MUST** provide each of these.
 
-Notifications pass through the same chains. Calling `next` forwards the notification; skipping it suppresses that notification, where the protocol permits, without ending the surrounding stream or operation.
+#### Streams
 
-SDKs **MUST** let middleware observe and modify each protocol message on a stream as it is produced or consumed. Wrapping only the final result is insufficient. With middleware installed, SDKs **MUST** preserve incremental delivery, message order, cancellation, and errors, and **MUST NOT** require middleware to buffer the stream. SDKs **MAY** expose this through iterators, stream wrappers, writers, or callbacks. This covers protocol messages, not transport frames.
+Some methods produce more than one message. Middleware **MUST** be able to act on each message as it is produced or consumed, not only on a final result. Adding middleware **MUST NOT** change delivery order, cancellation, or error propagation, or force buffering of the whole stream. This covers protocol messages, not transport frames.
+
+In the sending direction, middleware wraps what the SDK sends and what comes back. Where outbound messages are already part of the response to a received message, as on `2026-07-28` servers, the receiving chain can satisfy this.
+
+#### Errors and cleanup
+
+Errors follow the language's normal mechanisms and the SDK's existing error path. When processing completes, fails, is cancelled, or stops early, the SDK **MUST** end middleware through the language's normal cleanup mechanisms rather than detaching or leaking it. SDKs do not need to guarantee cleanup the language itself does not guarantee after cancellation.
 
 #### Ordering
 
-For `A(B(handler))`, a message passes through A, then B, then the handler. Results and errors return through B, then A. If B returns early, the handler is skipped and A receives B's outcome.
+Middleware composes in layers. A message passes through outer layers before inner ones, and results and errors return in reverse. A layer that returns early skips the layers inside it.
 
-- Applications **MUST** be able to control the relative order of middleware from application code and from each extension, including placing middleware between two contributions from the same extension.
-- SDKs **MUST** document how order is determined and where middleware runs relative to parsing, validation, dispatch, and serialization.
+- Applications **MUST** have a way to determine the relative order of middleware from application code and from each extension. Any mechanism is sufficient: registration order, an explicit list, numeric priorities, before/after anchors, or order fixed statically in code.
+- The resulting order **MUST** be deterministic and documented, including how ties are broken and where middleware runs relative to parsing, validation, dispatch, and serialization.
+- An extension's own middleware keeps the order the extension declares. An extension **MUST NOT** be able to remove or reorder another extension's or the application's middleware.
+- SDKs **MAY** let an extension expose named insertion points within its middleware. Where an extension does, applications **MUST** be able to place middleware at those points. [Appendix C](#appendix-c-example-design-for-stacking-middleware) sketches one design.
 
-How applications express order is up to the SDK. An explicit list, numeric priorities, or before/after anchors all work; SDKs using priorities should document how ties are broken. Sending and receiving chains **MAY** have separate orders. Dependencies do not determine order.
+Inspecting the order at runtime is **OPTIONAL**. Sending and receiving **MAY** use separate orders. Dependencies do not determine order.
 
 ### Packaging
 
-SDKs **SHOULD** document how to package an extension, declare SDK compatibility, and enable it in an application. A package can be as simple as a function that calls the registration APIs above.
+SDKs **SHOULD** document how to package an extension, declare SDK compatibility, and enable it in an application. A package can be as simple as a function that calls the registration APIs above. These are public APIs, so each SDK's versioning policy covers changes to them.
 
 ### Extension rules
 
@@ -208,7 +208,9 @@ Working group discussions and the survey in [Appendix B](#appendix-b-extension-r
 
 This SEP adds no wire fields or methods. Applications that enable no extensions or middleware see no change in protocol behaviour.
 
-Some SDKs will need API changes, such as rejecting duplicate method registrations. Existing handler-replacement APIs can remain. Maintainers choose the migration approach, and rollout of the Tier 1 requirement is agreed through SDK governance, with the [tiering documentation](https://modelcontextprotocol.io/community/sdk-tiers) updated accordingly.
+Some SDKs will need API changes, such as adding a checked registration path for extension methods. Existing handler-replacement APIs can remain. Maintainers choose the migration approach.
+
+As with other SEPs, the Tier 1 requirement and its conformance scenarios take effect with the first specification release after this SEP reaches Final, and the [tiering documentation](https://modelcontextprotocol.io/community/sdk-tiers) is updated accordingly. SDKs **MAY** implement earlier.
 
 ## Security Implications
 
@@ -224,7 +226,7 @@ A complete reference implementation is still needed; the APIs in [Appendix A](#a
 
 The same composition pattern appears in [Django](https://docs.djangoproject.com/en/5.2/topics/http/middleware/#middleware-order-and-layering), [Koa](https://koajs.com/#cascading), [ASP.NET Core](https://learn.microsoft.com/en-us/aspnet/core/fundamentals/middleware/?view=aspnetcore-10.0), and [Tower](https://docs.rs/tower/0.5.3/tower/struct.ServiceBuilder.html#order). Earlier [extension integration discussions](https://github.com/modelcontextprotocol/go-sdk/issues/954#issuecomment-4792634369) describe the cost of bundling experimental implementations and combining independently maintained forks.
 
-Assessed on 2026-09-18 against the linked revisions; tiers follow the [official SDK listing](https://modelcontextprotocol.io/docs/2026-07-28/sdk) at that time.
+Assessed on 2026-09-18 against the linked revisions; tiers follow the [official SDK listing](https://modelcontextprotocol.io/docs/2026-07-28/sdk), updated for Ruby's move to Tier 1 ([#3248](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/3248)).
 
 **Legend:** ✅ public API exists for the stated scope; ❌ confirmed gap; ? not verified. Registration entries show extension-ID registration / capability-map support. Middleware counts only if it operates on MCP messages. Ratings describe available APIs, not conformance with this SEP.
 
@@ -235,8 +237,8 @@ Assessed on 2026-09-18 against the linked revisions; tiers follow the [official 
 | C# (1)         |            ? / ✅             |       ✅       |      ✅ server      |
 | Go (1)         |            ? / ✅             |  ✅ requests¹  |         ✅          |
 | Rust (1)       |            ? / ✅             |       ✅       |     ✅ wrappers     |
+| Ruby (1)       |            ? / ✅             |  ✅ requests¹  |          ?          |
 | Java (2)       |            ? / ❌             | ✅ session API | ✅ handler wrappers |
-| Ruby (2)       |            ? / ✅             |  ✅ requests¹  |          ?          |
 | PHP (3)        |            ✅ / ✅            |       ✅       |          ?          |
 | Kotlin (3)     |            ? / ✅             |       ✅       |          ?          |
 | Swift (3)      |            ? / ❌             |       ✅       |          ?          |
@@ -248,8 +250,8 @@ Assessed on 2026-09-18 against the linked revisions; tiers follow the [official 
 - **C#:** [request registration](https://github.com/modelcontextprotocol/csharp-sdk/blob/324ccd83c357acf611e1cf3a6935a945ee600442/src/ModelContextProtocol.Core/Server/McpServerOptions.cs) is experimental and can override built-ins; [filters](https://github.com/modelcontextprotocol/csharp-sdk/blob/324ccd83c357acf611e1cf3a6935a945ee600442/docs/concepts/filters.md) cover notifications and early returns.
 - **Go:** [registration](https://github.com/modelcontextprotocol/go-sdk/blob/3b917b466cc540079b82bcd0fecdc46a2ba13644/mcp/server.go) rejects core names but replaces duplicate custom handlers; [middleware](https://github.com/modelcontextprotocol/go-sdk/blob/3b917b466cc540079b82bcd0fecdc46a2ba13644/mcp/client.go) uses nested sending and receiving chains.
 - **Rust:** [dispatch](https://github.com/modelcontextprotocol/rust-sdk/blob/fd7811fdaa9fefa1c8034534b4d7a31c97204f89/crates/rmcp/src/handler/server.rs) has no extension registry; [service wrappers](https://github.com/modelcontextprotocol/rust-sdk/blob/fd7811fdaa9fefa1c8034534b4d7a31c97204f89/crates/rmcp/src/service.rs) wrap received calls, and both directions need adapters.
-- **Java:** [public session handler maps](https://github.com/modelcontextprotocol/java-sdk/blob/183935bf80dcb5c70bc13cd7b1eef99ce7053ec3/mcp-core/src/main/java/io/modelcontextprotocol/spec/McpServerSession.java) allow wrapping; [capability records](https://github.com/modelcontextprotocol/java-sdk/blob/183935bf80dcb5c70bc13cd7b1eef99ce7053ec3/mcp-core/src/main/java/io/modelcontextprotocol/spec/McpSchema.java) lack `extensions`.
 - **Ruby:** [registration](https://github.com/modelcontextprotocol/ruby-sdk/blob/f22ce86e976be6c71b15c386d5b42c12e5f32ee0/lib/mcp/server.rb) rejects existing names; [extension capabilities](https://github.com/modelcontextprotocol/ruby-sdk/blob/f22ce86e976be6c71b15c386d5b42c12e5f32ee0/docs/_extensions/capability-extensions.md) exist.
+- **Java:** [public session handler maps](https://github.com/modelcontextprotocol/java-sdk/blob/183935bf80dcb5c70bc13cd7b1eef99ce7053ec3/mcp-core/src/main/java/io/modelcontextprotocol/spec/McpServerSession.java) allow wrapping; [capability records](https://github.com/modelcontextprotocol/java-sdk/blob/183935bf80dcb5c70bc13cd7b1eef99ce7053ec3/mcp-core/src/main/java/io/modelcontextprotocol/spec/McpSchema.java) lack `extensions`.
 - **PHP:** [extension registration](https://github.com/modelcontextprotocol/php-sdk/blob/16836d4e9a0f96831789ac6e64d5ec5238d2c833/src/Server/Builder.php) permits some built-in overrides; [custom handlers](https://github.com/modelcontextprotocol/php-sdk/blob/16836d4e9a0f96831789ac6e64d5ec5238d2c833/docs/advanced/custom-handlers.md) replace rather than wrap.
 - **Kotlin:** [handlers](https://github.com/modelcontextprotocol/kotlin-sdk/blob/1d04427cff47b31932409b90959869aa2934d680/kotlin-sdk-core/src/commonMain/kotlin/io/modelcontextprotocol/kotlin/sdk/shared/Protocol.kt) replace existing ones; [capability models](https://github.com/modelcontextprotocol/kotlin-sdk/blob/1d04427cff47b31932409b90959869aa2934d680/kotlin-sdk-core/src/commonMain/kotlin/io/modelcontextprotocol/kotlin/sdk/types/capabilities.kt) include extension maps.
 - **Swift:** [handlers](https://github.com/modelcontextprotocol/swift-sdk/blob/a0ae212ebf6eab5f754c3129608bc5557637e605/Sources/MCP/Server/Server.swift) replace methods and append notification handlers; [client APIs](https://github.com/modelcontextprotocol/swift-sdk/blob/a0ae212ebf6eab5f754c3129608bc5557637e605/Sources/MCP/Client/Client.swift) have no general middleware, and capability models lack `extensions`.
@@ -285,3 +287,58 @@ Assessed on 2026-09-18 against the linked revisions.
 - **Grouping:** not yet specified enough to assess.
 
 Any interface changes to Tasks or Action metadata are for their working groups. Authorization extensions and Server Card need transport integration beyond this proposal.
+
+## Appendix C: Example design for stacking middleware
+
+This appendix is non-normative. It sketches one way an SDK could let several extensions stack middleware and expose [insertion points](#ordering). SDKs are free to use other designs.
+
+Each extension contributes its middleware as one or more ordered groups. The SDK keeps the order inside a group, and applications can place middleware between groups but not inside one, so the gaps between groups act as insertion points. Most extensions need a single group. An extension that acts at two depths, such as verifying a request near the outside of the chain and redacting results close to the handler, contributes two.
+
+```typescript
+// The auth extension contributes two groups, each with a default priority.
+function authExtension() {
+  return new Extension("com.example/auth", {
+    middleware: [
+      { group: "verify", priority: 100, chain: [verifyToken] },
+      { group: "redact", priority: -100, chain: [redactSecrets] },
+    ],
+  });
+}
+
+// Without an explicit order, this SDK sorts groups by priority.
+// Here the application overrides that order.
+const server = new Server({
+  extensions: [authExtension(), searchExtension(), auditExtension()],
+  middlewareOrder: [
+    "com.example/auth#verify",
+    "com.example/audit",
+    "com.example/search",
+    "com.example/auth#redact",
+  ],
+});
+// Receiving chain: verify, audit, search, redact, then the handler.
+```
+
+Choices an SDK following this design would make:
+
+- Extensions suggest a default position for each group, such as a priority or an anchor relative to another extension, and the application's order takes precedence.
+- With no order from the application, groups stack in the order extensions were enabled, first outermost, and each extension's groups keep their declared order.
+- Conflicting anchors are reported as a configuration error.
+- Middleware can be limited to particular methods or one direction, and passes other messages through unchanged.
+
+Named stages, as in the Go sketch below, are an equivalent design: each stage marks a boundary where applications can insert middleware.
+
+```go
+var (
+	BeforeAuth = mcp.NewReceivingStage("com.example/search", "before-auth")
+	AfterAuth  = mcp.NewReceivingStage("com.example/search", "after-auth")
+)
+
+func (Ext) ProvidesMiddleware() []mcp.Middleware {
+	return []mcp.Middleware{BeforeAuth, authMiddleware, AfterAuth, rewriteMiddleware}
+}
+
+// Application setup.
+s.AddExtension(search.New())
+s.AddReceivingMiddlewareAt(searchext.AfterAuth, auditMW, redactMW)
+```
