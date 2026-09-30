@@ -1,11 +1,11 @@
-# SEP-0000: Conformance-Driven SDK Tiers
+# SEP-3405: Conformance-Driven SDK Tiers
 
 - **Status**: Draft
 - **Type**: Process
 - **Created**: 2026-09-30
 - **Author(s)**: Felix Weinberger (@felixweinberger)
 - **Sponsor**: Paul Carleton
-- **PR**: none yet
+- **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/3405
 - **Supersedes**: SEP-1730 (SDKs Tiering System)
 
 ## Abstract
