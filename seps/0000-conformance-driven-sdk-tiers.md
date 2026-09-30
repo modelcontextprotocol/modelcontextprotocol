@@ -1,0 +1,134 @@
+# SEP-0000: Conformance-Driven SDK Tiers
+
+- **Status**: Draft
+- **Type**: Process
+- **Created**: 2026-09-30
+- **Author(s)**: Felix Weinberger (@felixweinberger)
+- **Sponsor**: Paul Carleton
+- **PR**: none yet
+- **Supersedes**: SEP-1730 (SDKs Tiering System)
+
+## Abstract
+
+An SDK's tier is decided only by the conformance scenarios it passes. Three things decide it: which scenarios, on which spec versions, and by when. Process requirements no longer affect a tier. Nobody applies for a tier and nobody reviews an application. An automated run computes every tier.
+
+|                            | Today (SEP-1730)                                                                        | This SEP                                                                                                                                  |
+| -------------------------- | --------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| **Tier 1**                 | 100% of applicable tests, on a spec version the SDK chooses, plus process requirements  | Every required scenario, on the three most recent spec versions. Due on the spec release date.                                            |
+| **Tier 2**                 | Any 80% of applicable tests, plus process requirements                                  | Every required scenario except the Tier 2 exclusions, on the two most recent spec versions. Due three months after the spec release date. |
+| **Tier 3**                 | No minimum                                                                              | No minimum                                                                                                                                |
+| **Process requirements**   | Triage time, critical bug resolution, labels, documentation, roadmap, dependency policy | Not part of a tier                                                                                                                        |
+| **How a tier is assigned** | An application issue, reviewed by the SDK Working Group                                 | Computed by an automated run                                                                                                              |
+| **Losing a tier**          | After four weeks of failing tests, or two months of unaddressed issues                  | When the latest results stop meeting the rule                                                                                             |
+
+To be listed, an SDK needs a stable release and a published security policy.
+
+This takes effect at the next spec release. Until then, SEP-1730 applies and published tiers stay as they are. From then, an SDK that does not meet the Tier 2 rule is listed as Tier 3 until it does.
+
+## Motivation
+
+Two assessment rounds have run under SEP-1730. They showed the following.
+
+- **Conformance decided every tier.** Tier decisions depended on whether conformance results could be reproduced. We found none that depended on a process requirement.
+- **Process requirements were hard to measure.** Triage time, critical bug resolution and documentation coverage could not be measured the same way across repositories.
+- **A percentage does not show what is missing.** Some scenarios hold one assertion and some cover a whole feature area. An SDK can pass 80% of scenarios and still lack a core feature.
+- **No spec version is required.** SEP-1730 scores "the specification version the SDK targets". SEP-2596, the feature lifecycle policy, identified this gap and left it to an amendment of SEP-1730.
+- **The suite changed during assessment.** SDKs were assessed against different versions of the conformance suite.
+- **Manual review does not scale.** Submissions waited for reviewers. Submissions from community SDKs were declined because there were not enough reviewers.
+
+## Specification
+
+### Terms
+
+- **Scenario**: one named test in the conformance suite.
+- **Required set**: the scenarios a spec version requires. The conformance repository lists them by name in one requirements file per spec version.
+- **Pass**: an SDK passes a scenario when at least one check succeeded and none failed. Warnings are reported and do not affect a tier.
+- **Spec release date**: the day a spec version is released. A release candidate is not a spec version.
+- **Lock date**: the day the required set for an upcoming spec version is locked.
+
+### Tiers
+
+| Tier       | Scenarios passed                                                 | Spec versions         | Due                                            |
+| ---------- | ---------------------------------------------------------------- | --------------------- | ---------------------------------------------- |
+| **Tier 1** | Every scenario in the required set                               | The three most recent | On the spec release date of the newest version |
+| **Tier 2** | Every scenario in the required set, except the Tier 2 exclusions | The two most recent   | Three months after that spec release date      |
+| **Tier 3** | No minimum                                                       | None                  | None                                           |
+
+1. An SDK holds a tier on any day its latest results meet that tier's rule. It loses the tier when they do not and regains it when they do.
+2. A spec version counts toward a tier from its due date. Until then, the tier is computed on the versions before it.
+3. A Tier 1 SDK that misses a due date is listed as Tier 2 if it meets the Tier 2 rule, and as Tier 3 if not.
+4. Results for a spec version come from a run that uses that version of the protocol.
+5. Results come from the SDK's stable release with the highest version number. Pre-releases do not count.
+6. Tier 1 has no exceptions. A feature that is deprecated, or removed in a later spec version, still counts on every version in which it exists.
+
+### Required sets
+
+1. Every scenario for a spec version is required, unless the requirements file marks it as not required and gives a reason.
+2. Scenarios for extensions and experimental features are never required. They still run and are reported.
+3. An SDK is tested as a client and as a server. Authorization server behaviour is never required.
+4. An SDK's own list of expected failures does not change what is required.
+
+### Tier 2 exclusions
+
+1. A feature that is Deprecated or Removed in the newest spec version is excluded on every version tested.
+2. Completions and SSE polling are also excluded on every version tested.
+3. The conformance repository lists which scenarios each exclusion covers.
+4. Adding or removing a named exclusion requires SDK Working Group consensus and Core Maintainer approval. It does not require a SEP.
+
+### Timing
+
+1. A version of the conformance suite ships with the release candidate. The suite keeps changing after that, while the spec takes feedback.
+2. The lock date is at least 14 days before the spec release date. It is announced with the release candidate.
+3. Scenarios published by the lock date are due as the Tiers table says.
+4. A scenario published or changed after the lock date is still required. It is announced with its own due date. That date is at least 14 days after the scenario is published and is the same for every SDK. The Core Maintainers set it. Until that date the scenario runs and is reported, and does not count.
+5. After the spec release date, no scenario is added to that version's required set and none is made stricter. A scenario that is wrong can be relaxed or withdrawn at any time.
+
+### Computing and publishing tiers
+
+1. An automated run of the conformance suite against each listed SDK computes the tiers.
+2. The automated run and its results are public. Anyone can reproduce them.
+3. The SDK Working Group maintains the automated run and decides disputes. A dispute is a claim that a scenario is wrong or that a result cannot be reproduced. A disputed scenario counts until it is relaxed or withdrawn.
+4. The conformance repository defines how the automated run works, when it runs and how results reach the SDKs page. This SEP does not.
+
+### Listing
+
+1. To be listed, an SDK has a published security policy with a contact, and at least one stable release.
+2. The SDKs page lists official SDKs and community SDKs in separate sections. Official SDKs are those in the `modelcontextprotocol` organization. Tiers are computed the same way for both. A community listing is not an endorsement.
+3. How an SDK becomes official is out of scope.
+
+### No longer part of a tier
+
+1. Issue triage time, critical bug resolution time, required labels, documentation, roadmap, dependency policy and the per-release timeline for new protocol features no longer affect a tier.
+2. SEP-2596 requires Tier 1 SDKs to mark deprecated features in their API, and makes that a condition of Tier 1 status. This SEP removes it as a condition of any tier. It remains an expectation on official SDKs.
+
+## Rationale
+
+- **Three spec versions.** Older versions are covered so an SDK can talk to peers that still run them. At the current release pace, three versions span more than the twelve-month deprecation window in SEP-2596.
+- **A lock instead of a date on every scenario.** We considered giving each scenario its own notice period. One lock date is simpler to follow. It leaves the time between release candidate and release free for spec changes.
+- **Late changes stay required.** A spec change after the lock date is part of the release. SDKs get more time for it, not an exemption.
+- **Only failures count.** A warning marks a SHOULD in the spec. The spec allows an SDK to skip a SHOULD, so it does not cost a tier. This changes current conformance guidance, which asks Tier 1 SDKs to satisfy every SHOULD.
+- **One automated run.** Each SDK's own CI pins its own version of the suite. One run on one version makes results comparable.
+
+## Backward Compatibility
+
+1. Until the next spec release, SEP-1730 applies and published tiers stay as they are. Nobody re-applies.
+2. From that spec release, this SEP computes every tier. Tier 1 then covers three versions: the new one, `2026-07-28` and `2025-11-25`.
+3. The required sets for `2026-07-28` and `2025-11-25` already exist. No scenario is added to them.
+4. Tier 2 becomes stricter on conformance. A Tier 2 SDK that passes 80% today may be listed as Tier 3 until it passes the required set.
+5. A tier can drop on the first failing run. SEP-1730 allowed four weeks.
+
+## Security Implications
+
+The automated run builds and executes SDK code. It runs without access to secrets.
+
+## Reference Implementation
+
+The conformance repository already holds a requirements file for each spec version (`requirements/<version>.yaml`) and can run exactly that set (`--requirements <version>`). Still to build: the Tier 2 exclusion list, due dates for scenarios published after the lock date, and the automated run.
+
+## Open Questions
+
+1. Are 14 days for the lock and three months for Tier 2 the right lengths?
+2. Should Tier 1 cover three spec versions, or every version released in the last N months? Both give the same result today.
+3. Can an SDK that implements only one role, client or server, hold Tier 1 or Tier 2?
+4. Should a tier drop on the first failing run, or only after the failure has lasted some days?
+5. Should an SDK without a stable release be listed as Tier 3? SEP-1730 allowed it.
