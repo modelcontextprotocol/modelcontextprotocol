@@ -1,11 +1,11 @@
-# SEP-0000: Release Cycle Updates
+# SEP-3398: Release Cycle Updates
 
 - **Status**: Draft
 - **Type**: Process
 - **Created**: 2026-09-17
 - **Author(s)**: Kurtis Van Gent (@kurtisvg)
 - **Sponsor**: Kurtis Van Gent (@kurtisvg), on behalf of the Core Maintainers
-- **PR**: Unassigned
+- **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/3398
 
 ## Abstract
 
