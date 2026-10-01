@@ -9,6 +9,8 @@ jobs:
   discord-reminder:
     runs-on: ubuntu-latest
     if: github.repository == 'modelcontextprotocol/modelcontextprotocol'
+    # DISCORD_MAINTAINER_WEBHOOK is an environment secret; dispatch from `main`.
+    environment: sep-automation - production
     steps:
       - name: Post Discord reminder
         run: |

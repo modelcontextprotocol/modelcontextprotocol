@@ -57,6 +57,10 @@ jobs:
     needs: check-sep
     if: needs.check-sep.outputs.should_run == 'true'
     runs-on: ubuntu-latest
+    # APP_PRIVATE_KEY and DISCORD_WEBHOOK_URL are environment secrets (deployment
+    # branches: `main` only), so feature-branch workflows cannot read them. All
+    # triggers above run at the default-branch ref.
+    environment: sep-automation - production
     permissions:
       contents: read
       issues: write

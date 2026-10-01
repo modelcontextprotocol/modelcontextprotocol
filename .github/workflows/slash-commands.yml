@@ -24,6 +24,11 @@ jobs:
       (github.event_name == 'check_suite' &&
        startsWith(github.event.check_suite.head_branch, 'dependabot/'))
     runs-on: ubuntu-latest
+    # The app credentials are environment secrets, not repository secrets, so
+    # a workflow pushed to a feature branch cannot read them. The environment's
+    # deployment-branch policy allows `main` only; every trigger above runs at
+    # the default-branch ref, so it always qualifies.
+    environment: slash-commands
     steps:
       - uses: actions/create-github-app-token@v3
         id: app-token
