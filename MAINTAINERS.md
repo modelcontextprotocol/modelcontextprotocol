@@ -2,7 +2,7 @@
 
 This document lists current maintainers in the Model Context Protocol project.
 
-**Last updated:** August 5, 2026
+**Last updated:** October 1, 2026
 
 ## Lead Maintainers
 
@@ -143,6 +143,12 @@ This document lists current maintainers in the Model Context Protocol project.
 - [Tadas Antanavicius](https://github.com/tadasant)
 - [Shaun Smith](https://github.com/evalstate)
 - [Jonathan Hefner](https://github.com/jonathanhefner)
+
+### Conformance
+
+- [Paul Carleton](https://github.com/pcarleton)
+- [Felix Weinberger](https://github.com/felixweinberger)
+- [Takashi Norimatsu](https://github.com/tnorimat)
 
 ## Community Moderators
 
