@@ -13,6 +13,7 @@ import {
   type SEPItem,
   type ActionResult,
   type SEPState,
+  type StaleAnalysis,
 } from "./types.js";
 
 /** Summary data collected during processing */
@@ -95,10 +96,14 @@ export class SEPProcessor {
     }
 
     // Check staleness
-    const stalenessResult = await this.checkStaleness(sep);
-    if (stalenessResult) {
-      results.push(stalenessResult);
-      this.updateSummaryFromStaleness(stalenessResult, sep, summaryData);
+    const stalenessAction = await this.checkStaleness(sep);
+    if (stalenessAction) {
+      results.push(stalenessAction.result);
+      await this.updateSummaryFromStaleness(
+        stalenessAction.result,
+        stalenessAction.analysis,
+        summaryData,
+      );
     }
 
     // Check maintainer accountability
@@ -155,14 +160,20 @@ export class SEPProcessor {
   /**
    * Check for staleness and take appropriate action
    */
-  private async checkStaleness(sep: SEPItem): Promise<ActionResult | null> {
+  private async checkStaleness(
+    sep: SEPItem,
+  ): Promise<{ result: ActionResult; analysis: StaleAnalysis } | null> {
     const analysis = await this.analyzer.analyze(sep);
 
     if (!analysis.shouldPing && !analysis.shouldMarkDormant) {
       return null;
     }
 
-    return this.pingHandler.executePing(analysis, this.config.dryRun);
+    const result = await this.pingHandler.executePing(
+      analysis,
+      this.config.dryRun,
+    );
+    return { result, analysis };
   }
 
   /**
@@ -218,14 +229,14 @@ export class SEPProcessor {
    */
   private async updateSummaryFromStaleness(
     result: ActionResult,
-    sep: SEPItem,
+    analysis: StaleAnalysis,
     summary: SummaryData,
   ): Promise<void> {
     if (!result.success) {
       return;
     }
 
-    const analysis = await this.analyzer.analyze(sep);
+    const { item: sep } = analysis;
 
     switch (result.action.type) {
       case ActionType.NeedsSponsor:
