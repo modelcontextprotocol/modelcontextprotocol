@@ -132,6 +132,8 @@ A **breaking change** is any modification that would cause existing implementati
 
 Clients and servers advertise their support for extensions in the `extensions` field within their respective capability declarations.
 
+The examples below use protocol version `2026-07-28` and later. For `2025-11-25` and earlier, see [Initialization-Based Versions](#initialization-based-versions).
+
 ### Client Capabilities
 
 Clients advertise extension support in `_meta["io.modelcontextprotocol/clientCapabilities"]` within each request:
@@ -194,6 +196,69 @@ Servers advertise extension support in the `server/discover` response:
 ```
 
 Each extension specifies the schema of its settings object; an empty object indicates no settings.
+
+### Initialization-Based Versions
+
+For protocol version `2025-11-25` and earlier, clients and servers advertise extensions during the [`initialize` handshake](/specification/2025-11-25/basic/lifecycle#initialization), using `params.capabilities.extensions` in the request and `result.capabilities.extensions` in the response. The extension identifiers and settings objects follow the same rules as above.
+
+<Note>
+
+[SEP-2133](/seps/2133-extensions#negotiation) defines this optional `extensions` field for both `ClientCapabilities` and `ServerCapabilities`, although it is absent from the published schemas for these protocol versions. Extension support is not required for core protocol conformance. Check that your SDK can send and receive this field, and that the extension supports the negotiated protocol version.
+
+</Note>
+
+**Client request**
+
+Clients advertise extension support in the `initialize` request:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "initialize",
+  "params": {
+    "protocolVersion": "2025-11-25",
+    "capabilities": {
+      "roots": {
+        "listChanged": true
+      },
+      "extensions": {
+        "io.modelcontextprotocol/ui": {
+          "mimeTypes": ["text/html;profile=mcp-app"]
+        }
+      }
+    },
+    "clientInfo": {
+      "name": "ExampleClient",
+      "version": "1.0.0"
+    }
+  }
+}
+```
+
+**Server response**
+
+Servers advertise extension support in the `initialize` response:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    "protocolVersion": "2025-11-25",
+    "capabilities": {
+      "tools": {},
+      "extensions": {
+        "io.modelcontextprotocol/ui": {}
+      }
+    },
+    "serverInfo": {
+      "name": "ExampleServer",
+      "version": "1.0.0"
+    }
+  }
+}
+```
 
 ### Graceful Degradation
 
