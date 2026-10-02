@@ -82,13 +82,13 @@ Authorization servers **SHOULD** only automatically redirect the user agent if i
 ## Client ID Metadata Document Security
 
 When implementing [Client ID Metadata Documents](/specification/2026-07-28/basic/authorization/client-registration#client-id-metadata-documents), authorization servers **MUST** consider the security implications
-detailed in [OAuth Client ID Metadata Document, Section 6](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-client-id-metadata-document-00#name-security-considerations).
+detailed in [OAuth Client ID Metadata Document, Section 8](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-client-id-metadata-document-02#section-8).
 Key considerations include:
 
 ### Authorization Server Abuse Protection
 
 Authorization servers fetching metadata documents **SHOULD** consider
-[Server-Side Request Forgery (SSRF)](https://developer.mozilla.org/docs/Web/Security/Attacks/SSRF) risks, as described in [OAuth Client ID Metadata Document: Server Side Request Forgery (SSRF) Attacks](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-client-id-metadata-document-00#name-server-side-request-forgery).
+[Server-Side Request Forgery (SSRF)](https://developer.mozilla.org/docs/Web/Security/Attacks/SSRF) risks, as described in [OAuth Client ID Metadata Document: Server Side Request Forgery (SSRF) Attacks](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-client-id-metadata-document-02#section-8.6).
 
 ### Localhost Redirect URI Risks
 
@@ -102,7 +102,7 @@ Authorization servers:
 
 ### Trust Policies
 
-Authorization servers **MAY** implement domain-based trust policies for accepting Client ID Metadata Documents, as described in [Section 6.4](https://www.ietf.org/archive/id/draft-ietf-oauth-client-id-metadata-document-00.html#section-6.4) and [Section 6.8](https://www.ietf.org/archive/id/draft-ietf-oauth-client-id-metadata-document-00.html#section-6.8) of the Client ID Metadata Document specification.
+Authorization servers **MAY** implement domain-based trust policies for accepting Client ID Metadata Documents, as described in [Section 8.5](https://www.ietf.org/archive/id/draft-ietf-oauth-client-id-metadata-document-02.html#section-8.5) and [Section 8.9](https://www.ietf.org/archive/id/draft-ietf-oauth-client-id-metadata-document-02.html#section-8.9) of the Client ID Metadata Document specification.
 
 ## Confused Deputy Problem
 
