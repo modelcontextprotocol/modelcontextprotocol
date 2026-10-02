@@ -856,6 +856,12 @@
               "seps/2640-skills-extension",
               "seps/2663-tasks-extension"
             ]
+          },
+          {
+            "group": "Draft",
+            "pages": [
+              "seps/3371-sdk-extension-points"
+            ]
           }
         ]
       },
@@ -1418,6 +1424,10 @@
     {
       "source": "/seps/2663",
       "destination": "/seps/2663-tasks-extension"
+    },
+    {
+      "source": "/seps/3371",
+      "destination": "/seps/3371-sdk-extension-points"
     }
   ],
   "contextual": {
