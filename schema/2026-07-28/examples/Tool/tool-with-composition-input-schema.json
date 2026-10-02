@@ -4,25 +4,16 @@
   "description": "Find a resource by ID or name",
   "inputSchema": {
     "type": "object",
-    "oneOf": [
-      {
-        "properties": {
-          "id": {
-            "type": "string",
-            "description": "Resource ID"
-          }
-        },
-        "required": ["id"]
+    "properties": {
+      "id": {
+        "type": "string",
+        "description": "Resource ID"
       },
-      {
-        "properties": {
-          "name": {
-            "type": "string",
-            "description": "Resource name"
-          }
-        },
-        "required": ["name"]
+      "name": {
+        "type": "string",
+        "description": "Resource name"
       }
-    ]
+    },
+    "oneOf": [{ "required": ["id"] }, { "required": ["name"] }]
   }
 }
