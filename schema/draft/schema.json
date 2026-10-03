@@ -150,6 +150,20 @@
             ],
             "type": "object"
         },
+        "CallToolErrorMetaObject": {
+            "description": "Extends {@link ResultMetaObject} with the tool-failure classification\ncarried by a {@link CallToolResult} when `isError` is `true`.",
+            "properties": {
+                "io.modelcontextprotocol/serverInfo": {
+                    "$ref": "#/$defs/Implementation",
+                    "description": "Identifies the server software producing the response. Servers SHOULD\ninclude this field on every response unless specifically configured not\nto do so.\n\nThe {@link Implementation} schema requires `name` and `version`; other\nfields are optional.\n\nThe value is self-reported by the server and is not verified by the\nprotocol. It is intended for display, logging, and debugging. Clients\nSHOULD NOT use it to change their behavior, and SHOULD NOT rely on it for\nsecurity decisions."
+                },
+                "io.modelcontextprotocol/toolFailure": {
+                    "$ref": "#/$defs/ToolFailure",
+                    "description": "Structured classification of the failure. Present only on error\nresults (`isError: true`) from servers that implement this extension."
+                }
+            },
+            "type": "object"
+        },
         "CallToolRequest": {
             "description": "Used by the client to invoke a tool provided by the server.",
             "properties": {
@@ -208,7 +222,7 @@
             "description": "The result returned by the server for a {@link CallToolRequesttools/call} request.",
             "properties": {
                 "_meta": {
-                    "$ref": "#/$defs/ResultMetaObject"
+                    "$ref": "#/$defs/CallToolErrorMetaObject"
                 },
                 "content": {
                     "description": "A list of content objects that represent the unstructured result of the tool call.",
@@ -3718,6 +3732,50 @@
                 }
             },
             "type": "object"
+        },
+        "ToolFailure": {
+            "description": "Structured, machine-readable classification of a tool execution failure,\ncarried in {@link CallToolResult}'s `_meta` under the\n`io.modelcontextprotocol/toolFailure` key when `isError` is `true`.\n\nThis is additive: servers that do not implement it continue to report\nfailures via `content` and `isError` alone, per existing behavior.\n\n`code` is an open, extensible string rather than a closed enum so servers\ncan define new codes without a spec change. The following baseline\nvocabulary is RECOMMENDED, grouped by `class`:\n\n- `capability`: `capability_unsupported`, `resource_not_found`,\n  `invalid_input`\n- `reliability`: `retryable_transient_error`\n- `governance`: `auth_required`, `permission_denied`, `policy_blocked`,\n  `user_action_required`",
+            "properties": {
+                "agentGuidance": {
+                    "description": "A short instruction for the calling model describing how to proceed\n(e.g. \"ask the user to re-authenticate\"), kept separate from verbose\ndiagnostic detail in `content` so it doesn't waste context.",
+                    "type": "string"
+                },
+                "class": {
+                    "$ref": "#/$defs/ToolFailureClass",
+                    "description": "The broad behavioral class of this failure."
+                },
+                "code": {
+                    "description": "A specific, machine-readable failure code (e.g. `\"auth_required\"`).\nSHOULD be one of the baseline vocabulary above when applicable;\notherwise a server-defined value consistent with `class`.",
+                    "type": "string"
+                },
+                "correlationId": {
+                    "description": "A server-generated identifier correlating this failure with the\nserver's own logs, for operator troubleshooting. REQUIRED so operators\ncan reliably match a user-reported failure to server-side diagnostics;\nintermediaries relaying this result MUST preserve it unchanged.",
+                    "type": "string"
+                },
+                "retryNotBefore": {
+                    "description": "Earliest time (Unix epoch milliseconds) at which a retry is likely to\nsucceed. A \"not before\" hint, not a guarantee. Only meaningful when\n`retryable` is `true`.",
+                    "type": "integer"
+                },
+                "retryable": {
+                    "description": "Whether a client MAY retry this exact call. Only meaningful for\n`class: \"reliability\"`; MUST be absent or `false` otherwise.\n\nAuto-retry eligibility also depends on the tool's declared\n`idempotentHint` — a client MUST NOT auto-retry a non-idempotent tool\neven when `retryable` is `true`.",
+                    "type": "boolean"
+                }
+            },
+            "required": [
+                "class",
+                "code",
+                "correlationId"
+            ],
+            "type": "object"
+        },
+        "ToolFailureClass": {
+            "description": "Broad behavioral class of a tool failure, controlling how a client should\nreact independent of the specific {@link ToolFailure.code}:\n\n- `capability`: the operation itself cannot succeed as requested (e.g. an\n  unsupported feature, missing permission). Stop and surface to the user\n  or agent for a different approach — retrying as-is will not help.\n- `reliability`: a transient condition. Safe to retry, honoring\n  `retryable`/`retryNotBefore` and the tool's declared `idempotentHint`.\n- `governance`: refused by policy (auth, approval, audit). Requires\n  out-of-band action (e.g. a human approval), not a retry.",
+            "enum": [
+                "capability",
+                "governance",
+                "reliability"
+            ],
+            "type": "string"
         },
         "ToolListChangedNotification": {
             "description": "An optional notification from the server to the client, informing it that the list of tools it offers has changed. This is only delivered on a {@link SubscriptionsListenRequestsubscriptions/listen} stream when the client requested it via the `toolsListChanged` filter field.",
