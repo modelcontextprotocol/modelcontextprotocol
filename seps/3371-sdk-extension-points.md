@@ -91,11 +91,14 @@ Extensions declare support in the `ClientCapabilities.extensions` and `ServerCap
 
 An extension can depend on the local configuration: core capabilities and their sub-features, or other registered extensions. The SDK decides how dependencies are expressed, for example as a predicate over the configuration, a declarative map, or types. The rules for what counts as a match belong to the SDK and the extension, not to this SEP. Dependencies are local: they add no wire fields and do not advertise support to peers.
 
-- The SDK **MUST** evaluate dependencies against the final configuration, so registration order does not matter.
-- An extension's handlers and middleware **MUST NOT** run unless its dependencies are met. SDKs choose when the check runs and **SHOULD** run it before serving where they can.
-- An unmet dependency **MUST** produce an error that identifies the extension and what is missing. If the check runs while handling a peer's message, the SDK **SHOULD** answer with an internal error (`-32603`), since the fault is local configuration.
+- A dependency **MUST NOT** be considered unmet solely because it was registered or enabled after the extension that requires it.
+- An extension's handlers and middleware **MUST NOT** run unless its dependencies are satisfied by the local configuration applicable to that execution.
+- SDKs choose when to check dependencies and **SHOULD** check before serving where possible. A configuration-time check is sufficient when the relevant configuration cannot change. Where it can change or vary by request, the SDK **MUST** ensure the dependencies remain satisfied before running the extension.
+- An unmet dependency **MUST** produce an error that identifies the extension and the failed requirement. For a boolean predicate, the SDK can use an extension-provided description of that requirement; the predicate need not return structured diagnostics. If the check runs while handling a peer's request, the SDK **SHOULD** answer with an internal error (`-32603`), since the fault is local configuration. A notification has no response; the SDK reports the failure through its existing local error path without running the extension.
 
 These checks do not install packages or enable capabilities.
+
+For example, a hypothetical catalog-search extension might require a separately packaged catalog-index extension. An application can register them in either order. Before search handlers run, the SDK checks that the catalog-index extension is available with the features search requires. This check neither installs nor enables the dependency. Dependencies do not determine middleware order.
 
 ### 2. Custom methods
 
@@ -164,7 +167,7 @@ SDKs **MUST** provide each of these.
 
 Some methods produce more than one message. Middleware **MUST** be able to act on each message as it is produced or consumed, not only on a final result. Adding middleware **MUST NOT** change delivery order, cancellation, or error propagation, or force buffering of the whole stream. This covers protocol messages, not transport frames.
 
-In the sending direction, middleware wraps what the SDK sends and what comes back. Where outbound messages are already part of the response to a received message, as on `2026-07-28` servers, the receiving chain can satisfy this.
+In the sending direction, middleware acts on an outgoing message before it is sent and on any messages returned by that operation. For a client request, this covers the outgoing request and the peer's response messages, including supported intermediate results. An outgoing notification has no response of its own. A notification emitted on a `subscriptions/listen` stream can be handled as a yielded message in the receiving chain for that request. A separate sending chain is not required when the receiving chain already covers those outbound messages. SDKs choose the API shape; the generator above illustrates receiving middleware, not a required signature for every direction.
 
 #### Errors and cleanup
 
@@ -201,7 +204,7 @@ Working group discussions and the survey in [Appendix B](#appendix-b-extension-r
 
 - **Common behaviour, language-specific APIs.** A shared plugin interface would constrain SDK design without improving interoperability between peers.
 - **Types are fixed at registration; behaviour composes.** If a later registration could redefine a method, its types would depend on registration order. Fixing types while letting behaviour be wrapped or replaced lets independent packages combine safely and keeps existing replacement APIs working.
-- **Dependencies are checked against the final configuration.** Applications often enable a capability after registering the extension that needs it, for example by adding the first resource. Checking the final configuration removes ordering constraints, and leaving timing to the SDK fits both build-time and per-request designs.
+- **Dependencies are independent of registration order.** Applications often enable a capability after registering the extension that needs it, for example by adding the first resource. Dependencies must be satisfied by the configuration applicable when the extension runs, which can be fixed at startup or vary by request. Leaving check timing to the SDK supports both designs without requiring a globally final configuration.
 - **Ordering is required; the mechanism is not.** Applications need to interleave middleware across extensions, but SDKs already express order in different ways ([Appendix A](#appendix-a-prior-art-and-sdk-support)).
 
 ## Backward Compatibility
@@ -322,7 +325,7 @@ const server = new Server({
 Choices an SDK following this design would make:
 
 - Extensions suggest a default position for each group, such as a priority or an anchor relative to another extension, and the application's order takes precedence.
-- With no order from the application, groups stack in the order extensions were enabled, first outermost, and each extension's groups keep their declared order.
+- With no explicit order from the application, this example SDK sorts groups by descending priority, first outermost. Equal priorities are resolved by extension registration order, then group declaration order. Order within each group is preserved.
 - Conflicting anchors are reported as a configuration error.
 - Middleware can be limited to particular methods or one direction, and passes other messages through unchanged.
 
