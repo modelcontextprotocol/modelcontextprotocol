@@ -44,7 +44,7 @@ Requirements are stated for SDKs. They apply as written to Tier 1 SDKs; for othe
 
 This SEP specifies behaviour, not API shape. Existing APIs, builder options, interfaces, or wrappers can satisfy it; a new plugin framework is not required. Protocol and extension specifications continue to define message formats, capability negotiation, and method contracts. Transports and package loading are out of scope.
 
-Examples use concise TypeScript and follow a single catalog-search extension. Names, types, and signatures are illustrative. They are not required APIs and do not describe any existing SDK. Imports, schemas, and handler bodies are omitted.
+Examples follow a hypothetical catalog-search extension. Each code block is illustrative pseudocode, using TypeScript or Go syntax, rather than a runnable program or an existing SDK API. The main examples show package setup, custom method registration and peer usage, then receiving middleware. Appendix C shows optional composition designs. Imports, schema definitions, and supporting functions are omitted.
 
 ### General requirements
 
@@ -59,12 +59,16 @@ These apply to all three extension points. Each requirement states an outcome; h
 
 An extension package bundles its capability declarations, dependencies, custom methods, and middleware. Applications enable it through the SDK's normal configuration mechanism.
 
+**Illustrative pseudocode — registering an extension.** The package contributes capabilities, a local dependency, methods, and middleware. The application enables resource support after registering the extension; in this example, the SDK checks dependencies at startup.
+
 ```typescript
+// Pseudocode: invented SDK APIs; not a runnable example.
 // Defined by the search package.
 function searchExtension() {
   return new Extension("com.example/search", {
     capabilities: { selectionNotifications: true },
     requires: (config) => config.has("resources"),
+    requirementDescription: "local resource support",
     setup: registerSearchMethods,
     middleware: [searchMiddleware],
   });
@@ -75,8 +79,10 @@ const server = new Server({
   extensions: [searchExtension(), auditExtension()],
 });
 server.addResource("catalog", { handler: readCatalog }); // enables resources
-await server.start(); // this SDK checks dependencies here
+await server.start(); // checks after addResource has enabled resources
 ```
+
+If the application omits `addResource` and otherwise leaves resource support disabled, startup reports that `com.example/search` requires local resource support. Its handlers and middleware do not run. Other SDKs can check at a different point while providing the same dependency guarantees.
 
 SDKs **MUST** let applications enable multiple independently packaged extensions on the same client or server, and **MUST** reject a duplicate extension identifier.
 
@@ -104,7 +110,10 @@ For example, a hypothetical catalog-search extension might require a separately 
 
 SDKs **MUST** let extensions register handlers for custom requests and notifications, and send them, with typed or validated parameters and results in whatever form fits the language.
 
+**Illustrative pseudocode — defining and calling custom methods.** The search request takes `{ query: string }` and returns `{ matches: string[] }`; the selection notification takes `{ query: string }` and has no response. The named schemas below validate those shapes.
+
 ```typescript
+// Pseudocode: invented SDK APIs; schema and handler definitions omitted.
 // Called for each server that enables search.
 function registerSearchMethods(server: Server) {
   server.registerRequestHandler("com.example/search", {
@@ -118,14 +127,17 @@ function registerSearchMethods(server: Server) {
   });
 }
 
-// Peer usage.
+// On a peer whose session exposes these illustrative APIs.
 const result = await session.call(
   "com.example/search",
   { query: "invoices" },
   { resultSchema: SearchResultSchema },
 );
+// For example, result is { matches: ["invoices-2026"] }.
 await session.notify("com.example/search-selected", { query: "invoices" });
 ```
+
+Registration supplies the request and result types; sending supplies the parameters and expected result type. The notification is dispatched to `onSearchSelected` without producing a JSON-RPC response. A second extension attempting to register `com.example/search` on the same server is rejected by the checked extension path.
 
 Registering a method fixes its name and types:
 
@@ -138,20 +150,36 @@ Changing what a method does, through middleware or an SDK's existing handler-rep
 
 Middleware is code that wraps the processing of messages. SDKs **MUST** let applications and extensions add middleware that covers core and custom requests, responses, and notifications, in both directions. Adding middleware does not register a method or declare a capability. The shape is the SDK's choice: wrapped handlers, layers, filters, interceptors, or callbacks all work if they meet the requirements below.
 
+**Illustrative pseudocode — adding request metadata without buffering responses.** This receiving middleware annotates catalog-search requests and passes other messages through. It preserves existing metadata and yields downstream messages one at a time.
+
 ```typescript
+// Pseudocode: Handler is an invented message-stream interface.
 function searchMiddleware(next: Handler): Handler {
   return async function* (request) {
-    // Inspect or modify the request, or return early.
-    for await (const message of next(request)) {
-      // Inspect or modify each response or notification.
+    if (request.method !== "com.example/search") {
+      yield* next(request);
+      return;
+    }
+
+    const annotated = {
+      ...request,
+      params: {
+        ...request.params,
+        _meta: {
+          ...request.params?._meta,
+          "com.example/search-source": "catalog",
+        },
+      },
+    };
+
+    for await (const message of next(annotated)) {
       yield message;
     }
-    // Run after normal completion.
   };
 }
 ```
 
-This example uses an async generator. Other SDKs can use their own streaming or callback mechanisms.
+Downstream middleware and the handler see the added `_meta` entry. The JSON-RPC envelope is unchanged, and unrelated metadata is preserved. There is no collection of the response stream into an array. This fragment illustrates metadata mutation and incremental forwarding; it does not demonstrate every required middleware behaviour. Other SDKs can use their own streaming or callback mechanisms.
 
 #### What middleware can do
 
@@ -297,7 +325,10 @@ This appendix is non-normative. It sketches one way an SDK could let several ext
 
 Each extension contributes its middleware as one or more ordered groups. The SDK keeps the order inside a group, and applications can place middleware between groups but not inside one, so the gaps between groups act as insertion points. Most extensions need a single group. An extension that acts at two depths, such as verifying a request near the outside of the chain and redacting results close to the handler, contributes two.
 
+**Illustrative pseudocode — ordering middleware groups.** This configuration fragment shows an application placing audit and search middleware between an extension's exposed verification and redaction groups. The supporting functions and resource configuration are omitted.
+
 ```typescript
+// Pseudocode: invented SDK APIs; an optional composition design.
 // The auth extension contributes two groups, each with a default priority.
 function authExtension() {
   return new Extension("com.example/auth", {
@@ -331,7 +362,10 @@ Choices an SDK following this design would make:
 
 Named stages, as in the Go sketch below, are an equivalent design: each stage marks a boundary where applications can insert middleware.
 
+**Illustrative pseudocode — inserting middleware at named stages.** This Go fragment shows the same insertion-point concept with explicit stage markers; these names do not describe existing Go SDK APIs.
+
 ```go
+// Pseudocode: invented SDK APIs; supporting declarations omitted.
 var (
 	BeforeAuth = mcp.NewReceivingStage("com.example/search", "before-auth")
 	AfterAuth  = mcp.NewReceivingStage("com.example/search", "after-auth")
