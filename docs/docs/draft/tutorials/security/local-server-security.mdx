@@ -55,14 +55,14 @@ the rest of this guide is about.
 
 Most local servers use the stdio transport: your client spawns the server as
 a subprocess, and the two communicate over stdin and stdout. That design
-carries an assumption worth stating plainly: **the client and a stdio server
-share one trust domain.** They run side by side with the same privileges,
-and neither the protocol nor the SDKs defend one against the other — a
-server already has code execution on your machine by virtue of being
-launched, so there is no boundary between the two processes for a transport
-to enforce. This is by design: the SDKs assume full trust between stdio
-peers, and any isolation or security fencing around a local server is the
-responsibility of the host application and of whoever operates the machine.
+carries an important assumption: **the client and a stdio server share one
+trust domain.** They run side by side with the same privileges, and neither
+the protocol nor the SDKs defend one against the other — a server already
+has code execution on your machine by virtue of being launched, so there is
+no boundary between the two processes for a transport to enforce. This is by
+design: the SDKs assume full trust between stdio peers, and any isolation or
+security fencing around a local server is the responsibility of the host
+application and of whoever operates the machine.
 
 Two practical consequences:
 
@@ -122,6 +122,31 @@ decision; containment decides what a bad one costs. Each section gives a
 baseline, an optional "going further" step, and a default if you are
 unsure.
 
+## Ask Whether It Needs to Run Locally
+
+The cheapest way to shrink a blast radius is not to create one. Before you
+install a server as a local process, ask what it actually needs from your
+machine. Reading your working tree, driving a local tool, or reaching
+hardware are reasons to run locally. Wrapping a remote API is not: a server
+that only talks to a service on the internet gains nothing from running on
+your laptop, while you take on everything else in this guide for no benefit.
+
+- **Prefer the remote version where one exists.** A server offered over
+  [Streamable HTTP](/specification/draft/basic/transports/streamable-http)
+  runs no code on your machine, uses the protocol's authorization flow
+  instead of a token in a local config file, and is patched in one place.
+  The protocol threat model (linked above) applies to it instead of this
+  one.
+- **Treat an unnecessary local install as a signal.** When a third-party
+  server needs no local access yet ships only as a stdio process, ask why.
+  It may just be the author's path of least resistance, but it is also
+  exactly how a malicious or overcollecting server gets onto your machine.
+- **Keep the genuine exceptions.** Some capabilities only exist as a local
+  process. For those, the rest of this guide applies in full.
+
+**If unsure**: when a server needs none of your files, local tools, or local
+network, use its remote version and skip the local install entirely.
+
 ## Check Provenance Before You Install
 
 A listing on a registry is not an endorsement. Docker Hub, ghcr.io, npm,
@@ -143,6 +168,11 @@ Before installing a server:
   auto-update. Pair the pin with a deliberate update habit: when a security
   advisory lands for something you pinned, the pin is what keeps you
   vulnerable.
+- **Know what the pin covers.** Pinning a package version with a launcher
+  such as `npx` or `uvx` fixes only the top-level package; its transitive
+  dependencies are typically resolved fresh at install time, which is
+  exactly where a compromised dependency arrives. Pinning a container image
+  by digest (`image@sha256:...`) freezes the entire dependency tree.
 - **Prefer artifacts with provenance metadata.** Signed artifacts, build
   attestations, and SBOMs (software bills of materials) let you verify who
   built the artifact and what is inside it — including which MCP SDK and
@@ -167,8 +197,11 @@ as instructions — an injection surface that install-time review does not
 cover.
 
 - **Read the tool list before you rely on a server.** Most clients can show
-  each tool's description. If a description contains instructions that have
-  nothing to do with the tool's job, remove the server.
+  each tool's description, and the
+  [MCP Inspector](/docs/draft/tools/inspector) lists every tool a
+  server exposes without a model in the loop. If a description contains
+  instructions that have nothing to do with the tool's job, remove the
+  server.
 - **Prefer clients that pin tool definitions.** Some clients record tool
   definitions when you first approve a server and ask again when they
   change. The protocol does not require this, so it is a property worth
@@ -177,7 +210,7 @@ cover.
   model's context, every server you add extends the surface the others are
   exposed to.
 
-**If unsure**: install few servers, skim their tool descriptions once, and
+**If unsure**: install a few servers, skim their tool descriptions once, and
 favor a client that re-prompts when a tool definition changes.
 
 ## Run Servers in an Isolated Environment
@@ -185,7 +218,7 @@ favor a client that re-prompts when a tool definition changes.
 Process isolation is the single highest-leverage mitigation in this guide.
 It turns "this server can read my SSH keys" into "this server can read an
 empty directory", and it protects you even when provenance checks fail —
-against all three threats above at once.
+against all the threats above at once.
 
 - **Baseline**: run third-party servers inside a container (for example with
   Docker or Podman) with no volume mounts beyond what the server needs.
@@ -200,18 +233,21 @@ A container is not an impenetrable boundary, but it removes the default
 access to your environment, your files, and your keychain — which is what
 the common attacks rely on.
 
-**Going further**: run servers under a microVM or in a separate user
-account, and combine isolation with the network controls below so the
-sandbox also cannot exfiltrate what little it can see.
+**Going further**: harden the container itself — a seccomp profile limits
+the system calls it can make, and a Linux security module such as AppArmor
+or SELinux limits what it can reach, often by doing no more than enabling
+your distribution's defaults. Beyond that, run servers under a microVM or in
+a separate user account, and combine isolation with the network controls
+below so the sandbox also cannot exfiltrate what little it can see.
 
 **If unsure**: run every third-party server in a container with nothing
 mounted except the directory it is meant to work on.
 
 ## Isolate Credentials
 
-A locally launched server inherits the environment of whatever launched it.
-If your shell profile exports cloud credentials and API tokens globally,
-every server you run can read all of them.
+A locally launched server may inherit the environment of whatever launched
+it. If your shell profile exports cloud credentials and API tokens globally,
+every server you run can potentially read all of them.
 
 - **Pass secrets per server, not globally.** Use the per-server environment
   configuration in your client's config file rather than exporting secrets
@@ -241,7 +277,9 @@ servers.
 
 Many useful servers legitimately need file access. The question is how much.
 
-- **Grant the narrowest root that works.** Configure filesystem-oriented servers with a specific project directory, passed explicitly through the server's configuration or tool parameters — never your home directory.
+- **Grant the narrowest root that works.** Configure filesystem-oriented
+  servers with a specific project directory, passed explicitly through the
+  server's configuration or tool parameters — never your home directory.
 - **Prefer read-only.** If the server's job is to read code or documents,
   mount or grant the directory read-only.
 - **Be suspicious of breadth.** A server that asks for a broad root
@@ -319,10 +357,11 @@ A workable starting posture:
   managed machines — for example, "third-party servers run in containers
   with no home-directory mounts" — rather than leaving isolation to each
   user's initiative.
-- **Deploy centrally where local access is not required.** A server that
-  only wraps a SaaS API does not need to run on every laptop; a centrally
-  managed remote deployment gives you one instance to patch, audit, and
-  control instead of hundreds.
+- **Deploy centrally where local access is not required.** The question
+  from the top of this guide applies fleet-wide: a server that only wraps a
+  SaaS API does not need to run on every laptop. A centrally managed remote
+  deployment gives you one instance to patch, audit, and control instead of
+  hundreds.
 - **Inventory continuously.** Client configuration files live in known
   locations on each platform. Your endpoint management tooling can collect
   them, giving you a live answer to "who is running what, at which version,
@@ -352,30 +391,32 @@ outside both as you would any unapproved software.
 For your own machine:
 
 - I know every server in my client's configuration, and I removed the
-  ones I don't use
+  ones I don't use.
+- Servers that need nothing from my machine run remotely, not as a local
+  process.
 - Each server came from an identifiable publisher, and its version is
-  pinned
+  pinned.
 - Third-party servers run isolated (container, sandbox, or VM), not as
-  bare processes
+  bare processes.
 - Each server gets only its own narrowly scoped credentials via
-  per-server config — nothing inherited from my shell, nothing reused
+  per-server config — nothing inherited from my shell, nothing reused.
 - Filesystem access is limited to specific directories, read-only where
-  possible
+  possible.
 - Servers without a network need run with egress disabled; the rest have
-  a known list of destinations
+  a known list of destinations.
 - I have skimmed each server's tool descriptions, and my client re-prompts
-  when a tool definition changes
+  when a tool definition changes.
 
 For a fleet:
 
 - We maintain an allowlist of approved servers with published acceptance
-  criteria
+  criteria.
 - We continuously inventory MCP client configurations on managed
-  machines
-- We have a documented default isolation posture for local servers
-- We keep audit logs of MCP activity on managed machines
+  machines.
+- We have a documented default isolation posture for local servers.
+- We keep audit logs of MCP activity on managed machines.
 - We can block a specific server's egress and rotate its credentials
-  across the fleet
+  across the fleet.
 
 ## Next Steps
 
