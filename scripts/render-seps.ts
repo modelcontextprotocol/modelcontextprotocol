@@ -7,6 +7,8 @@
  * 2. Parses their metadata (title, status, type, authors, etc.)
  * 3. Generates an index page with a tabular overview
  * 4. Generates individual MDX files for each SEP in docs/seps/
+ * 5. Updates docs/docs.json with the SEPs navigation tab and a /seps/{number}
+ *    redirect for each SEP
  *
  * Usage: npx tsx scripts/render-seps.ts [--check]
  *   --check: Verify generated files are up to date (exit 1 if not)
@@ -212,6 +214,8 @@ description: Index of all MCP Specification Enhancement Proposals
 
 Specification Enhancement Proposals (SEPs) are the primary mechanism for proposing major changes to the Model Context Protocol. Each SEP provides a concise technical specification and rationale for proposed features.
 
+Each SEP is reachable by number at \`/seps/<number>\` (for example, [/seps/1850](/seps/1850)).
+
 <Card title="Submit a SEP" icon="file-plus" href="/community/sep-guidelines">
   Learn how to submit your own Specification Enhancement Proposal
 </Card>
@@ -302,7 +306,13 @@ function groupSepsByStatus(seps: SEPMetadata[]): Record<string, SEPMetadata[]> {
 }
 
 /**
- * Update docs.json to include SEPs as a top-level tab, grouped by status
+ * Matches the short SEP redirect sources managed by this script (e.g. "/seps/1850").
+ */
+const SEP_SHORT_LINK_SOURCE = /^\/seps\/\d+$/;
+
+/**
+ * Update docs.json to include SEPs as a top-level tab, grouped by status,
+ * and a /seps/{number} redirect to each SEP page
  */
 function updateDocsJson(seps: SEPMetadata[]): string {
   const docsJson = JSON.parse(fs.readFileSync(DOCS_JSON_PATH, "utf-8"));
@@ -351,6 +361,18 @@ function updateDocsJson(seps: SEPMetadata[]): string {
       docsJson.navigation.tabs.push(sepsTab);
     }
   }
+
+  // Replace the managed /seps/{number} redirects, leaving hand-written redirects untouched
+  const otherRedirects = (docsJson.redirects ?? []).filter(
+    (redirect: { source: string }) => !SEP_SHORT_LINK_SOURCE.test(redirect.source)
+  );
+  const sepRedirects = [...seps]
+    .sort((a, b) => parseInt(a.number) - parseInt(b.number))
+    .map((sep) => ({
+      source: `/seps/${sep.number}`,
+      destination: `/seps/${sep.number}-${sep.slug}`,
+    }));
+  docsJson.redirects = [...otherRedirects, ...sepRedirects];
 
   return JSON.stringify(docsJson, null, 2) + "\n";
 }
