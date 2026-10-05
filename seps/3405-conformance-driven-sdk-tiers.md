@@ -70,10 +70,9 @@ Two assessment rounds have run under SEP-1730. They showed the following.
 
 ### Tier 2 exclusions
 
-1. A feature that is Deprecated or Removed in the newest spec version is excluded on every version tested.
-2. Completions and SSE polling are also excluded on every version tested.
-3. The conformance repository lists which scenarios each exclusion covers.
-4. Adding or removing a named exclusion requires SDK Working Group consensus and Core Maintainer approval. It does not require a SEP.
+1. The conformance repository marks which scenarios are excluded for Tier 2. It is the source of truth for what Tier 2 requires.
+2. This SEP does not list the exclusions. Examples of what may be excluded are deprecated features, completions and SSE polling.
+3. Changing the exclusions requires SDK Working Group consensus and Core Maintainer approval. It does not require a SEP.
 
 ### Timing
 
