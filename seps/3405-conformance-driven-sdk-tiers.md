@@ -42,7 +42,7 @@ Two assessment rounds have run under SEP-1730. They showed the following.
 
 - **Scenario**: one named test in the conformance suite.
 - **Required set**: the scenarios a spec version requires. The conformance repository lists them by name in one requirements file per spec version.
-- **Pass**: an SDK passes a scenario when at least one check succeeded and none failed. Warnings are reported and do not affect a tier.
+- **Pass**: an SDK passes a scenario when the conformance suite reports that scenario as passed. The conformance repository defines what that means, including how warnings are treated.
 - **Spec release date**: the day a spec version is released. A release candidate is not a spec version.
 - **Lock date**: the day the required set for an upcoming spec version is locked.
 
@@ -105,7 +105,6 @@ Two assessment rounds have run under SEP-1730. They showed the following.
 - **Three spec versions.** Older versions are covered so an SDK can talk to peers that still run them. At the current release pace, three versions span more than the twelve-month deprecation window in SEP-2596.
 - **A lock instead of a date on every scenario.** We considered giving each scenario its own notice period. One lock date is simpler to follow. It leaves the time between release candidate and release free for spec changes.
 - **Late changes stay required.** A spec change after the lock date is part of the release. SDKs get more time for it, not an exemption.
-- **Only failures count.** A warning marks a SHOULD in the spec. The spec allows an SDK to skip a SHOULD, so it does not cost a tier. This changes current conformance guidance, which asks Tier 1 SDKs to satisfy every SHOULD.
 - **One automated run.** Each SDK's own CI pins its own version of the suite. One run on one version makes results comparable.
 
 ## Backward Compatibility
