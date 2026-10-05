@@ -28,7 +28,7 @@ description: "Conformance-Driven SDK Tiers"
 
 ## Abstract
 
-An SDK's tier is decided only by the conformance scenarios it passes. Three things decide it: which scenarios, on which spec versions, and by when. Process requirements no longer affect a tier. Nobody applies for a tier and nobody reviews an application. An automated run computes every tier.
+An SDK's tier is decided only by the conformance scenarios it passes. Three things decide it: which scenarios, on which spec versions, and by when. Process requirements no longer affect a tier. Nobody applies for a tier and nobody reviews an application. An automated run computes every tier. A maintainer confirms each tier change before it is published.
 
 |                            | Today (SEP-1730)                                                                        | This SEP                                                                                                                                  |
 | -------------------------- | --------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
@@ -36,8 +36,8 @@ An SDK's tier is decided only by the conformance scenarios it passes. Three thin
 | **Tier 2**                 | Any 80% of applicable tests, plus process requirements                                  | Every required scenario except the Tier 2 exclusions, on the two most recent spec versions. Due three months after the spec release date. |
 | **Tier 3**                 | No minimum                                                                              | No minimum                                                                                                                                |
 | **Process requirements**   | Triage time, critical bug resolution, labels, documentation, roadmap, dependency policy | Not part of a tier                                                                                                                        |
-| **How a tier is assigned** | An application issue, reviewed by the SDK Working Group                                 | Computed by an automated run                                                                                                              |
-| **Losing a tier**          | After four weeks of failing tests, or two months of unaddressed issues                  | When the latest results stop meeting the rule                                                                                             |
+| **How a tier is assigned** | An application issue, reviewed by the SDK Working Group                                 | Computed by an automated run. A maintainer confirms each change.                                                                          |
+| **Losing a tier**          | After four weeks of failing tests, or two months of unaddressed issues                  | When the automated run shows the SDK no longer passes what the tier requires, and a maintainer confirms it.                               |
 
 To be listed, an SDK needs a stable release and a published security policy.
 
@@ -72,7 +72,7 @@ Two assessment rounds have run under SEP-1730. They showed the following.
 | **Tier 2** | Every scenario in the required set, except the Tier 2 exclusions | The two most recent   | Three months after the spec release date of the newest version |
 | **Tier 3** | No minimum                                                       | None                  | None                                                           |
 
-1. An SDK holds Tier 1 or Tier 2 on any day its latest results pass everything that tier requires. It loses the tier when they do not and regains it when they do.
+1. An SDK holds Tier 1 or Tier 2 while its latest results pass everything that tier requires. When they stop passing, the SDK moves down. When they pass again, it moves back up. A maintainer confirms each move before it is published.
 2. A new spec version counts toward Tier 1 from its spec release date. It counts toward Tier 2 from three months after its spec release date. Before that, the tier is computed on the earlier spec versions.
 3. A Tier 1 SDK that misses a due date is listed as Tier 2 if it passes everything Tier 2 requires, and as Tier 3 if not.
 4. Results for a spec version come from a run that uses that version of the protocol.
@@ -103,9 +103,11 @@ Two assessment rounds have run under SEP-1730. They showed the following.
 ### Computing and publishing tiers
 
 1. An automated run of the conformance suite against each listed SDK computes the tiers.
-2. The automated run and its results are public. Anyone can reproduce them.
-3. The SDK Working Group maintains the automated run and decides disputes. A dispute is a claim that a scenario is wrong or that a result cannot be reproduced. A disputed scenario counts until it is relaxed or withdrawn.
-4. The conformance repository defines how the automated run works, when it runs and how results reach the SDKs page. This SEP does not.
+2. The automated run proposes each tier change. An SDK Working Group maintainer confirms the change before it is published.
+3. A run that could not build or start an SDK is not a result. It does not change a tier.
+4. The automated run and its results are public. Anyone can reproduce them.
+5. The SDK Working Group maintains the automated run and decides disputes. A dispute is a claim that a scenario is wrong or that a result cannot be reproduced. A disputed scenario counts until it is relaxed or withdrawn.
+6. The conformance repository defines how the automated run works, when it runs and how results reach the SDKs page. This SEP does not.
 
 ### Listing
 
@@ -124,6 +126,7 @@ Two assessment rounds have run under SEP-1730. They showed the following.
 - **A lock instead of a date on every scenario.** We considered giving each scenario its own notice period. One lock date is simpler to follow. It leaves the time between release candidate and release free for spec changes.
 - **Late changes stay required.** A spec change after the lock date is part of the release. SDKs get more time for it, not an exemption.
 - **One automated run.** Each SDK's own CI pins its own version of the suite. One run on one version makes results comparable.
+- **A maintainer confirms each change.** A broken build or an unstable run should not move a tier. Confirming a change is a check on the run. It is not a review of the SDK.
 
 ## Backward Compatibility
 
@@ -131,7 +134,7 @@ Two assessment rounds have run under SEP-1730. They showed the following.
 2. From the next spec release, this SEP computes every tier. Tier 1 then covers three versions: the new one, `2026-07-28` and `2025-11-25`.
 3. The required sets for `2026-07-28` and `2025-11-25` already exist. No scenario is added to them.
 4. Tier 2 becomes stricter on conformance. A Tier 2 SDK that passes 80% today may be listed as Tier 3 until it passes the required set.
-5. A tier can drop on the first failing run. SEP-1730 allowed four weeks.
+5. SEP-1730 allowed four weeks of failing tests before a tier dropped. This SEP sets no waiting period. A maintainer confirms each change instead.
 
 ## Security Implications
 
@@ -146,5 +149,4 @@ The conformance repository already holds a requirements file for each spec versi
 1. Are 14 days for the lock and three months for Tier 2 the right lengths?
 2. Should Tier 1 cover three spec versions, or every version released in the last N months? Both give the same result today.
 3. Can an SDK that implements only one role, client or server, hold Tier 1 or Tier 2?
-4. Should a tier drop on the first failing run, or only after the failure has lasted some days?
-5. Should an SDK without a stable release be listed as Tier 3? SEP-1730 allowed it.
+4. Should an SDK without a stable release be listed as Tier 3? SEP-1730 allowed it.
