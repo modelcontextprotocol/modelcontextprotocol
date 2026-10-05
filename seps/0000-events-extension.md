@@ -1,4 +1,4 @@
-# SEP-0000: Events Extension
+# SEP-3415: Events Extension
 
 - **Status**: Draft
 - **Type**: Extensions Track
@@ -6,7 +6,7 @@
 - **Author(s)**: Peter Alexander (@pja-ant)
 - **Sponsor**: @pja-ant
 - **Extension Identifier**: `io.modelcontextprotocol/events`
-- **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/{NUMBER}
+- **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/3415
 
 ## Abstract
 
