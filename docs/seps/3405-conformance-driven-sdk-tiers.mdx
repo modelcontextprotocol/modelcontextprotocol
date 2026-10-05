@@ -66,15 +66,15 @@ Two assessment rounds have run under SEP-1730. They showed the following.
 
 ### Tiers
 
-| Tier       | Scenarios passed                                                 | Spec versions         | Due                                            |
-| ---------- | ---------------------------------------------------------------- | --------------------- | ---------------------------------------------- |
-| **Tier 1** | Every scenario in the required set                               | The three most recent | On the spec release date of the newest version |
-| **Tier 2** | Every scenario in the required set, except the Tier 2 exclusions | The two most recent   | Three months after that spec release date      |
-| **Tier 3** | No minimum                                                       | None                  | None                                           |
+| Tier       | Scenarios passed                                                 | Spec versions         | Due                                                            |
+| ---------- | ---------------------------------------------------------------- | --------------------- | -------------------------------------------------------------- |
+| **Tier 1** | Every scenario in the required set                               | The three most recent | On the spec release date of the newest version                 |
+| **Tier 2** | Every scenario in the required set, except the Tier 2 exclusions | The two most recent   | Three months after the spec release date of the newest version |
+| **Tier 3** | No minimum                                                       | None                  | None                                                           |
 
-1. An SDK holds a tier on any day its latest results meet that tier's rule. It loses the tier when they do not and regains it when they do.
-2. A spec version counts toward a tier from its due date. Until then, the tier is computed on the versions before it.
-3. A Tier 1 SDK that misses a due date is listed as Tier 2 if it meets the Tier 2 rule, and as Tier 3 if not.
+1. An SDK holds Tier 1 or Tier 2 on any day its latest results pass everything that tier requires. It loses the tier when they do not and regains it when they do.
+2. A new spec version counts toward Tier 1 from its spec release date. It counts toward Tier 2 from three months after its spec release date. Before that, the tier is computed on the earlier spec versions.
+3. A Tier 1 SDK that misses a due date is listed as Tier 2 if it passes everything Tier 2 requires, and as Tier 3 if not.
 4. Results for a spec version come from a run that uses that version of the protocol.
 5. Results come from the SDK's stable release with the highest version number. Pre-releases do not count.
 6. Tier 1 has no exceptions. A feature that is deprecated, or removed in a later spec version, still counts on every version in which it exists.
@@ -96,8 +96,8 @@ Two assessment rounds have run under SEP-1730. They showed the following.
 
 1. A version of the conformance suite ships with the release candidate. The suite keeps changing after that, while the spec takes feedback.
 2. The lock date is at least 14 days before the spec release date. It is announced with the release candidate.
-3. Scenarios published by the lock date are due as the Tiers table says.
-4. A scenario published or changed after the lock date is still required. It is announced with its own due date. That date is at least 14 days after the scenario is published and is the same for every SDK. The Core Maintainers set it. Until that date the scenario runs and is reported, and does not count.
+3. A scenario published by the lock date is due on the spec release date for Tier 1. It is due three months after the spec release date for Tier 2.
+4. A scenario published or changed after the lock date is still required. For Tier 1 it is announced with its own due date. That date is at least 14 days after the scenario is published and is the same for every SDK. The Core Maintainers set it. Until that date the scenario runs and is reported, and does not count. For Tier 2 it is due three months after the spec release date, like every other scenario.
 5. After the spec release date, no scenario is added to that version's required set and none is made stricter. A scenario that is wrong can be relaxed or withdrawn at any time.
 
 ### Computing and publishing tiers
@@ -129,7 +129,7 @@ Two assessment rounds have run under SEP-1730. They showed the following.
 ## Backward Compatibility
 
 1. Until the next spec release, SEP-1730 applies and published tiers stay as they are. Nobody re-applies.
-2. From that spec release, this SEP computes every tier. Tier 1 then covers three versions: the new one, `2026-07-28` and `2025-11-25`.
+2. From the next spec release, this SEP computes every tier. Tier 1 then covers three versions: the new one, `2026-07-28` and `2025-11-25`.
 3. The required sets for `2026-07-28` and `2025-11-25` already exist. No scenario is added to them.
 4. Tier 2 becomes stricter on conformance. A Tier 2 SDK that passes 80% today may be listed as Tier 3 until it passes the required set.
 5. A tier can drop on the first failing run. SEP-1730 allowed four weeks.
