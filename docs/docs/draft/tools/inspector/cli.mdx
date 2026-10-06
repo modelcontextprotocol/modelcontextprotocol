@@ -9,6 +9,13 @@ Each CLI run connects to a server, invokes the single request you name with `--m
 npx @modelcontextprotocol/inspector --cli node build/index.js --method tools/list
 ```
 
+<Tip>
+  Running several commands against the same server, or a flow that spans one
+  session (tasks, subscriptions, elicitation)? The [mcpdo connection
+  client](/docs/draft/tools/inspector/mcpdo) connects once and keeps the
+  connection open between commands.
+</Tip>
+
 The examples below use the installed `mcp-inspector` binary. Without a global install, prefix each command with `npx @modelcontextprotocol/inspector` instead, as above.
 
 ## Choosing a server
