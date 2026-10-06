@@ -21,7 +21,7 @@ What the token does and does not protect:
 - **The token is the real guard for non-browser clients.** The origin allow-list (`ALLOWED_ORIGINS`) stops other web pages from driving the backend, but a request that arrives with **no** `Origin` header (curl, a script, any non-browser client) skips that check entirely.
 - **`GET /` discloses the token.** The backend injects it into the served HTML so that a reload or a bookmark keeps working. Anyone who can load the page can therefore read the token, which is why the bind address matters more than the token's value. Pinning your own `MCP_INSPECTOR_API_TOKEN` does not change this, since a custom token is disclosed exactly like a generated one.
 - **`DANGEROUSLY_OMIT_AUTH=true` removes the guard completely.** Anything that can reach the port can then spawn processes as you and use any OAuth token the Inspector holds. Only `true` or `1` turns auth off; any other value, including `false`, keeps it on.
-- **`GET /healthz` is the one unauthenticated route.** It returns only `{"status":"ok"}`, for container and orchestrator probes.
+- **Only `/api/*` is gated.** The page itself, its static assets and `GET /healthz` are served without the token. `/healthz` returns only `{"status":"ok"}`, for container and orchestrator probes.
 
 ### Where the backend listens
 
@@ -58,8 +58,9 @@ Supply the key as a file with `MCP_INSPECTOR_SECRET_KEY_FILE` (a Docker or Compo
 
 The Inspector keeps credentials out of `mcp.json`, `client.json` and `oauth.json` so that sharing, committing or syncing those files does not leak them. These are stored as secrets:
 
-- acquired OAuth tokens (access, refresh and IdP session tokens), subject to [`MCP_INSPECTOR_PERSIST_TOKENS`](/docs/2026-07-28/tools/inspector/configuration#secret-store-variables);
+- acquired OAuth tokens (access, refresh and ID tokens), subject to [`MCP_INSPECTOR_PERSIST_TOKENS`](/docs/2026-07-28/tools/inspector/configuration#secret-store-variables), and IdP session tokens from enterprise-managed authorization;
 - each server's OAuth client secret, and the enterprise IdP client secret;
+- dynamically registered client secrets and their registration access tokens;
 - each stdio server's `env:` values.
 
 **`headers` are not secrets.** They are saved in `mcp.json` exactly as written, so a header that carries a credential (an API key, a static `Authorization` value) stays in the file.
@@ -141,7 +142,7 @@ The directory is chosen in this order: `MCP_INSPECTOR_DAEMON_DIR`, then `MCP_STO
 
 Every request must carry a bearer token. There is no unauthenticated request path.
 
-- **Shared mode (the default):** the daemon generates a random 256-bit token at startup and publishes it to `mcpdod.token` (mode `0600`) in the daemon directory, so that any `mcpdo` command run by the same user can read it. Filesystem permissions on that file are the trust boundary, which is the same same-user boundary the socket has.
+- **Shared mode (the default):** the `mcpdo` command that starts the daemon generates a random 256-bit token and passes it to the daemon in its environment. The daemon publishes it to `mcpdod.token` (mode `0600`) in the daemon directory, so that any `mcpdo` command run by the same user can read it. Filesystem permissions on that file are the trust boundary, which is the same same-user boundary the socket has.
 - **Private mode:** `eval "$(mcpdo private)"` creates a fresh `0700` directory under `$TMPDIR/mcp-conn-<uid>/` and exports `MCP_INSPECTOR_DAEMON_DIR` and `MCP_INSPECTOR_DAEMON_TOKEN` into that shell, so the shell gets its own daemon and its own connections. The parent `mcp-conn-<uid>` directory is checked for ownership and symlinks before use, because `$TMPDIR` can be shared.
 
 Tokens are compared in constant time. A request line larger than 1 MiB is rejected. A command presenting the wrong token to a live daemon fails loudly. It never replaces that daemon.
@@ -162,7 +163,7 @@ For as long as it runs, the daemon holds, for each open connection:
 - the OAuth tokens in use for HTTP connections, which it also re-reads from the store to re-dial a dropped transport;
 - any elicitation a non-interactive command left parked, until it is answered or expires after 10 minutes.
 
-The daemon is started with the environment of the `mcpdo` command that spawned it. It inherits that shell's variables (including `MCP_INSPECTOR_SECRET_KEY`, if set there) and keeps them for its whole lifetime, even after you change them in your shell. stdio servers it starts still receive only the allowlist above plus their `env:`, snapshotted from the shell that ran `mcpdo connect`.
+The daemon is started with the environment of the `mcpdo` command that spawned it. It inherits that shell's variables (including `MCP_INSPECTOR_SECRET_KEY`, if set there, and its own IPC token in `MCP_INSPECTOR_DAEMON_TOKEN`) and keeps them for its whole lifetime, even after you change them in your shell. stdio servers it starts still receive only the allowlist above plus their `env:`, snapshotted from the shell that ran `mcpdo connect`.
 
 On a keychain-less host, mcpdo never uses the memory store as its automatic fallback. Its front-end commands and the daemon are separate processes, so a per-process store could not carry a token from one to the other. mcpdo uses the **shared `secrets.json` file** instead, with the same plaintext-unless-keyed caveat as above. `MCP_INSPECTOR_SECRET_STORE=memory` set explicitly still wins. mcpdo prints the store warning once per `connect` rather than on every command.
 

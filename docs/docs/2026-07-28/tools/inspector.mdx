@@ -34,7 +34,7 @@ npx @modelcontextprotocol/inspector node path/to/server/index.js
 npx @modelcontextprotocol/inspector
 ```
 
-The command prints a URL containing a one-time session token; open it in your browser. See [Web client](/docs/2026-07-28/tools/inspector/web).
+The command prints a URL carrying a per-launch API token and opens it in your browser (set `MCP_AUTO_OPEN_ENABLED=false` to stop it opening). See [Web client](/docs/2026-07-28/tools/inspector/web).
 
   </Tab>
   <Tab title="CLI">
@@ -123,10 +123,10 @@ mcp-inspector --cli node server.js --cli   # mode is CLI; the trailing --cli goe
 </Note>
 
 <Note>
-  `--help` behaves differently with and without a mode flag. Bare `mcp-inspector
-  --help` prints the launcher's help and exits. With a mode flag it is
-  forwarded, so `mcp-inspector --cli --help` prints the CLI's full flag
-  reference instead.
+  `--help` behaves differently with and without a mode flag. Without one,
+  `-h`/`--help` anywhere on the command line (even after a server command)
+  prints the launcher's help and exits. With a mode flag it is forwarded, so
+  `mcp-inspector --cli --help` prints the CLI's full flag reference instead.
 </Note>
 
 ## Where to go next
