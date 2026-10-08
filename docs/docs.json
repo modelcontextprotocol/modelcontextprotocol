@@ -863,6 +863,12 @@
               "seps/2640-skills-extension",
               "seps/2663-tasks-extension"
             ]
+          },
+          {
+            "group": "Draft",
+            "pages": [
+              "seps/3405-conformance-driven-sdk-tiers"
+            ]
           }
         ]
       },
@@ -1425,6 +1431,10 @@
     {
       "source": "/seps/2663",
       "destination": "/seps/2663-tasks-extension"
+    },
+    {
+      "source": "/seps/3405",
+      "destination": "/seps/3405-conformance-driven-sdk-tiers"
     }
   ],
   "contextual": {
