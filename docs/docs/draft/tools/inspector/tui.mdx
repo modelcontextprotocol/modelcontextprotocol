@@ -18,37 +18,51 @@ npx @modelcontextprotocol/inspector --tui node build/index.js   # with an ad-hoc
 Unlike the CLI, the TUI has no `--server <name>` flag for picking one entry: it reads its servers from a catalog or config file, loads every server in it, and lets you pick from an on-screen list:
 
 ```bash
-mcp-inspector --tui --catalog mcp.json   # writable catalog, seeded empty if missing (unlike the web client)
+mcp-inspector --tui --catalog mcp.json   # writable catalog, seeded empty if missing
 mcp-inspector --tui --config mcp.json    # read-only session, errors if absent
 ```
 
 With neither `--catalog` nor `--config`, and no [ad-hoc target](/docs/draft/tools/inspector/configuration#ad-hoc-targets), it uses the default writable catalog `~/.mcp-inspector/mcp.json`. See [Configuration and flags](/docs/draft/tools/inspector/configuration).
 
+The TUI also takes the [shared server-selection flags](/docs/draft/tools/inspector/configuration#shared-server-selection-flags) (`--server-url`, `--transport`, `--header`, `-e`, `--cwd`) plus `--protocol-era` for an ad-hoc server, and the [OAuth client flags](/docs/draft/tools/inspector/configuration#cli-and-tui-oauth-client-flags) (`--client-id`, `--client-secret`, `--client-metadata-url`, `--client-config`, `--callback-url`).
+
 ## Tabs
 
-| Tab           | Key | What it shows                                                                               |
-| ------------- | --- | ------------------------------------------------------------------------------------------- |
-| **Info**      | `i` | Server info, capabilities, and negotiated protocol details.                                 |
-| **Auth**      | `a` | OAuth state for the selected server, plus a **Clear OAuth state** action.                   |
-| **Resources** | `r` | Browse and read resources.                                                                  |
-| **Prompts**   | `m` | List prompts and render them with arguments.                                                |
-| **Tools**     | `t` | View tools and execute them with form-like inputs.                                          |
-| **Protocol**  | `p` | JSON-RPC request/response/notification history.                                             |
-| **Network**   | `n` | HTTP traffic for SSE and [Streamable HTTP](/specification/latest/basic/transports) servers. |
-| **Console**   | `o` | `stderr` from a connected stdio server process.                                             |
+| Tab               | Key | What it shows                                                                                                                         |
+| ----------------- | --- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| **Info**          | `i` | Server configuration, name, version and instructions, plus the roots the client advertises (press `e` to edit them).                  |
+| **Auth**          | `a` | OAuth state for the selected HTTP or SSE server, plus a **Clear OAuth State** action (`s`), which also disconnects a live connection. |
+| **Resources**     | `r` | Browse and read resources.                                                                                                            |
+| **Subscriptions** | `u` | Subscribe to and unsubscribe from resources (servers that support resource subscriptions).                                            |
+| **Prompts**       | `m` | List prompts and render them with arguments.                                                                                          |
+| **Skills**        | `k` | List a server's skills and verify their digests and frontmatter (servers that declare the skills extension).                          |
+| **Tools**         | `t` | View tools and execute them with form-like inputs.                                                                                    |
+| **Tasks**         | `s` | List tasks, fetch their results, cancel them, and clear finished ones (servers that support Tasks).                                   |
+| **Protocol**      | `p` | JSON-RPC request/response/notification history.                                                                                       |
+| **Network**       | `n` | HTTP traffic for SSE and [Streamable HTTP](/specification/latest/basic/transports) servers.                                           |
+| **Console**       | `o` | `stderr` from a connected stdio server process.                                                                                       |
 
-The accelerators avoid collisions rather than always taking the first letter: **P**rotocol takes `p` so Pro**m**pts takes `m`, and **C**onsole takes `o` because `c` is the global Connect action.
+The accelerators avoid collisions rather than always taking the first letter: **P**rotocol takes `p` so Pro**m**pts takes `m`, and **C**onsole takes `o` because `c` is the global Connect action. Ta**s**ks takes `s`, its only free letter, so Subscriptions takes `u` and Skills takes `k`.
+
+Auth, Network, and Console appear only for the transports they apply to; Subscriptions, Skills, and Tasks appear only once a connected server supports them.
 
 ## Navigation
 
-| Key                              | Action                                              |
-| -------------------------------- | --------------------------------------------------- |
-| `Left` / `Right` arrows or `Tab` | Switch tabs                                         |
-| `Up` / `Down` arrows             | Move through the current list                       |
-| `Enter`                          | Select an item, execute a tool, or fetch a resource |
-| `c`                              | Connect to the selected server                      |
-| `d`                              | Disconnect                                          |
-| `Esc` or `Ctrl+C`                | Exit                                                |
+| Key                                                          | Action                                                                                     |
+| ------------------------------------------------------------ | ------------------------------------------------------------------------------------------ |
+| `Tab` / `Shift+Tab`                                          | Move focus: server list → tab bar → list → details                                         |
+| `Left` / `Right` arrows (tab bar focused), or a tab's letter | Switch tabs                                                                                |
+| `Up` / `Down` arrows                                         | Select a server, move through a list, or scroll details, depending on which pane has focus |
+| `Enter`                                                      | Select an item, execute a tool, or fetch a resource                                        |
+| `c`                                                          | Connect to the selected server                                                             |
+| `d`                                                          | Disconnect                                                                                 |
+| `/`                                                          | Filter the current list (`Enter` keeps the filter, `Esc` clears it)                        |
+| `+`                                                          | Open the details pane full screen                                                          |
+| `y` / `w`                                                    | In a details dialog: copy the value, or save it to a file (`w` also saves a tool's result) |
+| `?`                                                          | Show or hide the keybinding help                                                           |
+| `Esc` or `Ctrl+C`                                            | Exit (`Esc` closes an open dialog first)                                                   |
+
+Press **`?`** whenever no dialog is open for the full keybinding reference, including the keys specific to the active tab.
 
 ## Authorizing an HTTP server
 
@@ -70,7 +84,7 @@ Per-server OAuth fields in the catalog (static client id/secret, scopes, the ent
 
 See [Authorization](/docs/draft/tools/inspector/authorization) for the full picture.
 
-<Frame caption="The Auth tab. It shows the same OAuth fields as the web client's Connection Info, or reports that the server needs no authorization.">
+<Frame caption="The Auth tab. It shows the same OAuth fields as the web client's Connection Info or, before any authorization has happened, says there is no OAuth information yet.">
   <img src="/images/inspector/tui-auth.png" />
 </Frame>
 

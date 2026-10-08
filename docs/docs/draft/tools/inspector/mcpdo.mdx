@@ -1,0 +1,173 @@
+---
+title: mcpdo connection client
+description: Connect to an MCP server once, then run many commands against that named connection
+---
+
+`mcpdo` is an **experimental** command-line client that ships in the `@modelcontextprotocol/inspector` package alongside `mcp-inspector`. Where the [CLI client](/docs/draft/tools/inspector/cli) connects, runs one `--method` and disconnects, `mcpdo` **connects once** and keeps the connection open, so you can run many commands against it from any shell, the way `ssh-agent` keeps keys loaded.
+
+|               | `mcp-inspector --cli`                | `mcpdo`                                                                                                   |
+| ------------- | ------------------------------------ | --------------------------------------------------------------------------------------------------------- |
+| **Lifecycle** | Connect, one `--method`, disconnect  | Connect once, many commands                                                                               |
+| **State**     | None between runs                    | Named connections held by a daemon                                                                        |
+| **Best for**  | CI assertions, one JSON blob per run | Exploring a server, agent tool use, multi-step flows over one session (tasks, subscriptions, elicitation) |
+
+Connections are held by a local background daemon, `mcpdod`, which `mcpdo` starts on demand and stops after its last connection closes. You never start it by hand. What it exposes, and how it is protected, is described under [The mcpdo connection daemon](/docs/draft/tools/inspector/security#the-mcpdo-connection-daemon).
+
+Watch the [mcpdo tutorial video](https://www.youtube.com/watch?v=_a6eG0y156k).
+
+## Install
+
+`mcpdo` is a second bin in the same package, so install the package globally, or run it through `npx -p`:
+
+```bash
+npm install -g @modelcontextprotocol/inspector
+mcpdo --help
+
+# or without installing
+npx -p @modelcontextprotocol/inspector mcpdo --help
+```
+
+## Quickstart
+
+```bash
+mcpdo servers/list                            # catalog entries you can connect
+mcpdo connect my-server                       # connect a catalog entry
+mcpdo @my-server tools/list
+mcpdo @my-server tools/call echo message:=hi
+mcpdo @my-server resources/read file:///tmp/notes.txt
+mcpdo connections/list                        # what's open
+mcpdo disconnect my-server
+```
+
+`mcpdo help`, or `mcpdo <command> --help`, prints the full, authoritative list of commands and flags.
+
+## Choosing what to connect
+
+`connect` takes a catalog entry name or an ad-hoc target:
+
+```bash
+mcpdo connect my-server                        # from the default catalog
+mcpdo connect my-server --config ./mcp.json    # from a read-only config file
+mcpdo connect https://example.com/mcp          # ad-hoc HTTP/SSE server
+mcpdo connect node build/index.js              # ad-hoc stdio server
+```
+
+The catalog and `--config` behave exactly as for the other clients (see [Configuration and flags](/docs/draft/tools/inspector/configuration#choosing-servers)): the default catalog is `~/.mcp-inspector/mcp.json`, overridable with `--catalog` or `MCP_CATALOG_PATH`. `servers/list` and `servers/show <name>` read entries from disk. `connections/*` shows what the daemon currently holds. There are no commands to edit the catalog; edit the file directly.
+
+A stdio server runs with the working directory and command resolution of the shell that ran `connect`, not of the daemon, so relative paths and bare command names mean what you would expect.
+
+## Addressing a connection
+
+A catalog connection is named after its entry. An ad-hoc one is named after its first token (`node`, `docker`, or the URL itself) unless you name it at connect time with `@name`:
+
+```bash
+mcpdo connect @api https://example.com/mcp
+```
+
+Name the connection on each command with `@name`, or with `--connection <name>` (shorthand `--conn`). A connection named after a URL can only be addressed with `--conn <url>`, since `@name` takes only letters, digits, `_`, `.` and `-`:
+
+```bash
+mcpdo @my-server tools/list
+mcpdo --conn my-server tools/list
+```
+
+Omitting the name falls back to the most recently used connection, but only on an interactive TTY. From a script or an agent, where stdin is not a TTY, an unqualified command is an error, so that a background job never acts on whichever server you last used. Set `MCP_ALLOW_DEFAULT_CONNECTION=1` to allow the fallback anyway.
+
+Connections **self-heal**: a dropped transport (an expired HTTP session, an exited stdio child) is re-dialed transparently on next use with the stored credentials. Only an `auth_required` error needs you to run `connect` again.
+
+A connection runs **one call at a time**. Commands against it from other shells queue behind the call in flight, and while a call is parked on an [elicitation](#elicitation), new calls on that connection are refused until it is answered. A long call does not block other connections.
+
+## Tasks
+
+A tool that requires task support is refused by a plain `tools/call`; add `--task` to make a task-augmented call. It still **blocks** until the task finishes, then prints the final result:
+
+```bash
+mcpdo @my-server tools/call --task start_job size:=large
+```
+
+If the task reaches `input_required`, its question is handled like any other [elicitation](#elicitation).
+
+## Output
+
+| Flag                      | Output                                                                             |
+| ------------------------- | ---------------------------------------------------------------------------------- |
+| `--format text` (default) | Human-readable, with ANSI styling on a TTY unless `--plain` or `NO_COLOR` is set.  |
+| `--format json`           | The pretty-printed payload, with no `{ result }` envelope. For scripts and agents. |
+
+The global flags are `--format`, `--plain`, `--connection` / `--conn`, `--catalog` / `--config`, and `--stored-auth-only`. They may go before or after the subcommand, but before any `--`. The `@name` shorthand must come before the subcommand.
+
+Terminal-bound text (results, elicitation prompts, daemon errors) has control characters stripped, so a server cannot rewrite your terminal. `--format json` stays verbatim.
+
+## Authorization
+
+`mcpdo` shares `oauth.json` and the secret store with the other Inspector clients, so a server you have already authorized elsewhere connects without a prompt. OAuth runs at **connect time**. Mid-session step-up is handled by the one-shot CLI, not by `mcpdo`.
+
+| Command                                                        | Effect                                                                                                                                   |
+| -------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `mcpdo connect <name> --relogin` (`-r`)                        | Clear this server's stored tokens before connecting (HTTP/SSE only), so it signs in fresh if the server requires auth.                   |
+| `mcpdo disconnect <name> --clear-auth` (`-c`)                  | Close the connection **and** clear its stored tokens, so the next `connect` signs in fresh.                                              |
+| `mcpdo auth/list`                                              | Stored credentials, each annotated with the catalog or connection names it is "known as", and `● live` when an open connection holds it. |
+| `mcpdo auth/clear <url-or-name>`                               | Clear one stored credential, by store URL or friendly name. `--all --yes` clears every one.                                              |
+| `mcpdo auth/ema-login` / `auth/ema-status` / `auth/ema-logout` | Enterprise-managed authorization: sign in to the IdP once, then connect to EMA servers silently.                                         |
+
+When a browser sign-in is needed and neither stdin nor stderr is a TTY (and `MCP_AUTO_OPEN_ENABLED` is not forced on), `connect` exits `0` immediately with `pendingAuth: true` and an `authUrl`. Relay that URL to whoever will sign in. The connection completes on its own once they do: the next real command against it finishes the connection, and `connections/list` reports `pendingAuthSignedIn` in the meantime. Don't reconnect to fix a pending sign-in.
+
+On a host with no OS keychain, `mcpdo` stores tokens in the shared `secrets.json` file, never in memory, because its commands and the daemon are separate processes. That file is plaintext unless you supply a key; see [Where secrets are stored](/docs/draft/tools/inspector/configuration#where-secrets-are-stored).
+
+## Elicitation
+
+When a server asks a question mid-call (a legacy `elicitation/create`, a modern MRTR round, or a task that reaches `input_required`):
+
+- **On an interactive TTY**, `mcpdo` prompts inline. Form mode renders one prompt per field with a review step. URL mode prints the URL and waits for you to confirm you finished.
+- **From a script or agent** (`--format json`, or no TTY), the command returns `elicitationPending` with an `elicitationId`, and the call stays **parked** on the daemon. Answer it from any shell:
+
+```bash
+mcpdo elicitation/respond <elicitationId> approved:=true   # form fields as key:=value or JSON
+mcpdo elicitation/respond <elicitationId> --done           # URL mode: I finished
+mcpdo elicitation/respond <elicitationId> --decline        # form mode only
+mcpdo elicitation/respond <elicitationId> --cancel         # either mode
+```
+
+A parked elicitation is cancelled after 10 minutes, and a connection holds one at a time; until it is answered, other calls on that connection are refused. URL mode is never auto-accepted. To keep a server from asking at all, connect with `--elicit off`. `--elicit url`, `form` or `both` (the default) choose which modes are advertised.
+
+## Protocol eras
+
+`mcpdo` negotiates the same [protocol eras](/docs/draft/tools/inspector/protocol-eras) as the other clients. `connect --era legacy|auto|modern` overrides a catalog entry's `protocolEra`, and is the only way to set it for an ad-hoc target. `connections/list` tags each connection `[legacy]` or `[modern]`, and `connections/show <name>` gives the negotiated version, server info, capabilities, and the supported-versions list when the server was probed.
+
+## The daemon
+
+| Command                   | Effect                                                               |
+| ------------------------- | -------------------------------------------------------------------- |
+| `mcpdo daemon status`     | Whether a daemon is running, and its connections and idle countdown. |
+| `mcpdo daemon stop`       | Close every connection and stop the daemon.                          |
+| `eval "$(mcpdo private)"` | Give this shell its own daemon and connections.                      |
+
+By default every shell you run `mcpdo` from shares one daemon, so a connection opened in one terminal is usable in another. `mcpdo private` exports `MCP_INSPECTOR_DAEMON_DIR` and `MCP_INSPECTOR_DAEMON_TOKEN` so the current shell gets a separate daemon. That keeps connections apart; it is not a security boundary against other processes running as you.
+
+The daemon exits about a minute after its last connection closes. A daemon started before an upgrade keeps running the old code until then, so run `mcpdo daemon stop` after upgrading the package.
+
+## Isolating untrusted stdio servers
+
+The daemon's token controls who can **command** the daemon, not what a server can **do**. A stdio server runs with your full user privileges. To contain one you don't fully trust, make the stdio command a container:
+
+```bash
+mcpdo connect @sandboxed -- docker run -i --rm --network none -v "$PWD:/work:ro" <server-image>
+```
+
+Without `@sandboxed`, the connection would be named `docker`.
+
+Adjust the network and mount flags to what the server needs. HTTP and SSE servers run no local code, so they need no process isolation.
+
+## Environment variables
+
+`mcpdo` reads the same catalog, storage and secret-store variables as the other clients (see [Environment variables](/docs/draft/tools/inspector/configuration#environment-variables)), plus these:
+
+| Variable                       | Effect                                                                                                                                                                                 |
+| ------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `MCP_INSPECTOR_DAEMON_DIR`     | Directory holding the daemon's socket, lock, token and log. Defaults to `MCP_STORAGE_DIR` when set, else `~/.mcp-inspector`. Set by `mcpdo private`.                                   |
+| `MCP_INSPECTOR_DAEMON_TOKEN`   | IPC token to present to, or start, the daemon. Unset, the `mcpdo` command that starts the daemon generates one, and the daemon publishes it to `mcpdod.token`. Set by `mcpdo private`. |
+| `MCP_ALLOW_DEFAULT_CONNECTION` | `1` lets a command without `@name` / `--connection` use the most recently used connection even when stdin is not a TTY.                                                                |
+
+## Using mcpdo from a coding agent
+
+The package ships an agent skill that teaches an agent to drive `mcpdo`: connections it holds then extend the agent's toolset, and it knows to relay sign-in URLs and answer parked elicitations. `mcpdo agent-help` prints the guide, `mcpdo agent-help --skill-path` prints the path of the installable skill file, and `mcpdo agent-help --instructions` prints a block to append to a project's `CLAUDE.md` or `AGENTS.md`.
