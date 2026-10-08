@@ -9,6 +9,13 @@ Each CLI run connects to a server, invokes the single request you name with `--m
 npx @modelcontextprotocol/inspector --cli node build/index.js --method tools/list
 ```
 
+<Tip>
+  Running several commands against the same server, or a flow that spans one
+  session (tasks, subscriptions, elicitation)? The [mcpdo connection
+  client](/docs/2026-07-28/tools/inspector/mcpdo) connects once and keeps the
+  connection open between commands.
+</Tip>
+
 The examples below use the installed `mcp-inspector` binary. Without a global install, prefix each command with `npx @modelcontextprotocol/inspector` instead, as above.
 
 ## Choosing a server
@@ -32,42 +39,49 @@ Later examples abbreviate whichever of these forms you use, along with its `--tr
 
 <Note>
   **The config file is the only durable way to give a run its
-  [roots](/specification/draft/client/roots):** there is no roots flag, and
-  `--method roots/set` applies only to that one short-lived connection. Roots
-  configured for a server are advertised at connect, so a server that calls
-  `roots/list` (as `@modelcontextprotocol/server-filesystem` does, to learn its
-  allowed directories) gets them.
+  [roots](/specification/draft/client/roots):** there is no roots flag, and the
+  CLI has no `roots/set` method. Roots configured for a server are advertised at
+  connect, so a server that calls `roots/list` (as
+  `@modelcontextprotocol/server-filesystem` does, to learn its allowed
+  directories) gets them.
 </Note>
 
 See [Configuration and flags](/docs/2026-07-28/tools/inspector/configuration) for `--catalog` vs. `--config`, the `--` separator, and the shared server-selection flags.
 
 ## Methods
 
-| `--method`                     | Required companions                                   | Notes                                                                            |
-| ------------------------------ | ----------------------------------------------------- | -------------------------------------------------------------------------------- |
-| `initialize`                   | None                                                  | Connect-only probe: `{serverInfo, protocolVersion, capabilities, instructions}`. |
-| `tools/list`                   | None                                                  |                                                                                  |
-| `tools/call`                   | `--tool-name`, plus `--tool-arg` / `--tool-args-json` |                                                                                  |
-| `resources/list`               | None                                                  |                                                                                  |
-| `resources/read`               | `--uri`                                               |                                                                                  |
-| `resources/templates/list`     | None                                                  |                                                                                  |
-| `prompts/list`                 | None                                                  |                                                                                  |
-| `prompts/get`                  | `--prompt-name`, `--prompt-args`                      |                                                                                  |
-| `logging/setLevel`             | `--log-level`                                         | Legacy era only; modern servers opt in per request instead.                      |
-| `servers/list`, `servers/show` | None                                                  | Read the catalog **without connecting** to anything.                             |
+| `--method`                 | Required companions                                            | Notes                                                                                   |
+| -------------------------- | -------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| `initialize`               | None                                                           | Connect-only probe: `{serverInfo, protocolVersion, capabilities, instructions}`.        |
+| `tools/list`               | None                                                           | `--strict` turns its schema portability check into a gate (see [CI gates](#ci-gates)).  |
+| `tools/call`               | `--tool-name`, plus optional `--tool-arg` / `--tool-args-json` |                                                                                         |
+| `resources/list`           | None                                                           |                                                                                         |
+| `resources/read`           | `--uri`                                                        |                                                                                         |
+| `resources/templates/list` | None                                                           |                                                                                         |
+| `resources/directory/read` | `--uri`, plus optional `--cursor`                              | One page at a time; pass back the previous page's `nextCursor`.                         |
+| `prompts/list`             | None                                                           |                                                                                         |
+| `prompts/get`              | `--prompt-name`, plus optional `--prompt-args`                 |                                                                                         |
+| `logging/setLevel`         | `--log-level`                                                  | Legacy era only; modern servers opt in per request instead.                             |
+| `skills/list`              | None                                                           | `--verify` checks the skills returned (see [CI gates](#ci-gates)).                      |
+| `skills/get`               | `--uri`                                                        | Same `--verify` option.                                                                 |
+| `servers/list`             | None                                                           | Read the catalog **without connecting** to anything.                                    |
+| `servers/show`             | `--server`                                                     | Same, for one entry.                                                                    |
+| `servers/add`              | `--server`, plus a positional target or `--server-url`         | Write the catalog without connecting (see [Editing the catalog](#editing-the-catalog)). |
+| `servers/edit`             | `--server`, plus what to change                                | Same.                                                                                   |
+| `servers/remove`           | `--server`                                                     | Same.                                                                                   |
 
 Stream- or session-only methods (`logging/tail`, for example) are rejected, since a process that exits can't hold a stream open.
 
 ### Passing arguments
 
-`--tool-arg` takes `key=value` and **coerces** values by JSON-parsing them, so `count=1` becomes a number and `"012"` becomes `12`:
+`--tool-arg` takes `key=value` and **coerces** each value by JSON-parsing it when it parses, so `count=1` and `zip=10001` both send numbers. A value that is not valid JSON (`zip=012`, a bare word) is sent as a string, and a string is then converted to the type the tool's input schema declares for that property, so `zip=012` against a numeric `zip` still sends `12`:
 
 ```bash
 mcp-inspector --cli <server> --method tools/call --tool-name mytool \
   --tool-arg key=value --tool-arg count=1 --tool-arg 'options={"format":"json"}'
 ```
 
-`--tool-args-json` takes the whole argument object at once and passes it **verbatim**, with no coercion, so `"012"` stays the string `012`. The two are mutually exclusive:
+`--tool-args-json` takes the whole argument object at once and skips the `key=value` parsing, so `{"zip":"10001"}` sends the string `"10001"` rather than a number. The schema conversion still applies to string values, so this only keeps a string a string when the schema types that property as a string (or doesn't declare it). The two flags are mutually exclusive:
 
 ```bash
 mcp-inspector --cli <server> --method tools/call --tool-name mytool \
@@ -97,6 +111,8 @@ mcp-inspector --cli <server> --method tools/list --app-info | jq -c 'select(.has
 
 Exit codes distinguish the outcomes: a tool with an app exits `0`, one with no app exits `2`, and a missing tool exits `5`, so a typo isn't mistaken for "no app". A probe failure (unreadable UI resource, malformed `resourceUri`) is reported in a `resourceError` field rather than aborting, so one bad tool never kills a whole listing.
 
+The CLI can't render an App, so by default it doesn't advertise the MCP Apps extension at `initialize`. A server that exposes its App tools only to clients claiming App support will then look app-less (exit `2`). Add `--advertise-apps` to claim the extension for that run.
+
 <Note>
   `tools/list --app-info` always emits NDJSON (one line per tool) regardless of
   `--format`; `--format json` reshapes only the single-tool output of
@@ -107,14 +123,18 @@ Exit codes distinguish the outcomes: a tool with an app exits `0`, one with no a
 
 Every non-zero exit maps to a stable failure class, so a caller can branch on _why_ without scraping prose:
 
-| Code | Meaning                                                                      |
-| ---- | ---------------------------------------------------------------------------- |
-| `0`  | Success.                                                                     |
-| `1`  | Usage or unexpected error (the catch-all).                                   |
-| `2`  | No MCP App found on the tool (`--app-info` probe).                           |
-| `3`  | Server requires authentication (401/403, `WWW-Authenticate`, OAuth).         |
-| `4`  | Server unreachable (DNS, connection refused, timeout, `fetch failed`).       |
-| `5`  | Tool error: `tools/call` returned `isError: true`, or the tool wasn't found. |
+| Code | Meaning                                                                                              |
+| ---- | ---------------------------------------------------------------------------------------------------- |
+| `0`  | Success.                                                                                             |
+| `1`  | Usage or unexpected error (the catch-all), including an unreadable secret store or OAuth state file. |
+| `2`  | No MCP App found on the tool (`--app-info` probe).                                                   |
+| `3`  | Server requires authentication (HTTP 401/403, or an SDK authorization error).                        |
+| `4`  | Server unreachable (DNS, connection refused, timeout, `fetch failed`).                               |
+| `5`  | Tool error: `tools/call` returned `isError: true`, or the tool wasn't found.                         |
+| `6`  | `--strict` found an error-severity tool-schema portability problem.                                  |
+| `7`  | `--verify` found a skill that violates SEP-2640 (conformance, digest, or size mismatch).             |
+| `8`  | `--verify` couldn't check every skill within its read bounds.                                        |
+| `9`  | `--verify --require-digests` found a skill that advertises no digests.                               |
 
 On any non-zero exit the CLI also writes a **single JSON line to stderr**:
 
@@ -129,6 +149,8 @@ On any non-zero exit the CLI also writes a **single JSON line to stderr**:
 }
 ```
 
+The envelope carries `code` and `message` always, plus `cause` (the underlying error, such as a DNS failure), `status` (the HTTP status) and `url` when known. Query-string secrets in a URL are redacted. `code` is a stable name for the failure: `auth_required`, `unreachable`, `tool_not_found`, `tool_is_error`, `no_app`, `schema_unportable`, `store_unavailable`, `oauth_state_unrecognized`, or the catch-all `error`, among others.
+
 Because it's one line, a caller can parse it with `2>&1 | tail -1 | jq .error`.
 
 A `tools/call` that returns `isError: true` still prints its payload, but exits `5`, so an `&&` chain doesn't proceed on a failed call.
@@ -138,7 +160,7 @@ A `tools/call` that returns `isError: true` still prints its payload, but exits 
 By default the CLI runs the same loopback OAuth flow as the TUI: it opens a browser and waits on a localhost callback that a CI job can't complete. Two flags make non-interactive runs predictable:
 
 - `--stored-auth-only`: never start interactive OAuth or step-up, and never auto-open a browser. Use tokens from the shared store if present, otherwise fail immediately with `auth_required`. This is the flag CI wants.
-- `--use-stored-auth`: reuse a token that the web Inspector already obtained on this machine, refreshing it first when a refresh token is stored.
+- `--use-stored-auth`: reuse a token that the web Inspector already obtained on this machine, refreshing it first when a refresh token is stored. It looks the token up by URL, so it requires `--server-url`.
 
 Without either, and with no TTY on stdin or stderr, the CLI fails fast with `auth_required` rather than hanging for fifteen minutes on a callback nobody will complete.
 
@@ -155,6 +177,19 @@ set -euo pipefail
 mcp-inspector --cli --config ./ci-servers.json --server my-server \
   --stored-auth-only --method tools/list --format json \
   | jq -e '.result.tools | map(.name) | index("get_weather")' > /dev/null
+```
+
+### CI gates
+
+Three flags turn a check into a non-zero exit, each with its own code so a job can tell the failures apart:
+
+- `--strict` (with `tools/list`): reports tool-schema portability problems in full on stderr (path, issue, suggested fix) and exits `6` if any is error-severity. Without it, `tools/list` prints only a one-line count. Under `--format json` the findings are folded into the output as `schemaFindings`.
+- `--verify` (with `skills/list` or `skills/get`): runs the SEP-2640 conformance and digest checks, writes one JSON report per skill on stdout, and exits `7` on a violation or `8` when the read bounds stopped it before every skill was checked. `--skill-catalog-max-skills` and `--skill-catalog-max-bytes` set those bounds.
+- `--require-digests` (with `--verify`): exits `9` for a skill that advertises no digests, instead of reporting it as unverifiable and exiting `0`.
+
+```bash
+mcp-inspector --cli <server> --method tools/list --strict > /dev/null
+mcp-inspector --cli <server> --method skills/list --verify --require-digests
 ```
 
 ### Branch on the failure class
@@ -191,6 +226,23 @@ mcp-inspector --cli --catalog ~/.mcp-inspector/mcp.json --method servers/show --
   server `url` (userinfo or query tokens) or in stdio `args`. Treat raw URL and
   `detail` fields as sensitive before pasting them into an issue.
 </Warning>
+
+### Editing the catalog
+
+`servers/add`, `servers/edit`, and `servers/remove` write the catalog without connecting to anything. They go through the same code as the web client's server list, so `env` values and client secrets land in the [secret store](/docs/2026-07-28/tools/inspector/configuration#where-secrets-are-stored) exactly as they would from the UI, and a running web client picks up the change.
+
+```bash
+# Add: the positional target or --server-url describes the entry, not a server to connect to
+mcp-inspector --cli node build/index.js -e API_KEY=secret --method servers/add --server my-server
+
+# Edit: change the target, -e, --cwd, --header, or --protocol-era, or rename it
+mcp-inspector --cli --method servers/edit --server my-server --rename my-renamed-server
+
+# Remove the entry and its stored secrets
+mcp-inspector --cli --method servers/remove --server my-renamed-server
+```
+
+Only the writable catalog (`--catalog`, `MCP_CATALOG_PATH`, or the default) can be written; `--config` is refused. With an in-memory secret store, a write that supplies `-e` values (and a `--rename`) is refused, since the secrets would be lost when the run exits.
 
 ## Proxies
 

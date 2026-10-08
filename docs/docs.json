@@ -82,10 +82,12 @@
                       "docs/2026-07-28/tools/inspector/web",
                       "docs/2026-07-28/tools/inspector/cli",
                       "docs/2026-07-28/tools/inspector/tui",
+                      "docs/2026-07-28/tools/inspector/mcpdo",
                       "docs/2026-07-28/tools/inspector/configuration",
                       "docs/2026-07-28/tools/inspector/authorization",
                       "docs/2026-07-28/tools/inspector/protocol-eras",
-                      "docs/2026-07-28/tools/inspector/recipes"
+                      "docs/2026-07-28/tools/inspector/recipes",
+                      "docs/2026-07-28/tools/inspector/security"
                     ]
                   },
                   "docs/2026-07-28/tools/debugging"
@@ -381,10 +383,12 @@
                       "docs/draft/tools/inspector/web",
                       "docs/draft/tools/inspector/cli",
                       "docs/draft/tools/inspector/tui",
+                      "docs/draft/tools/inspector/mcpdo",
                       "docs/draft/tools/inspector/configuration",
                       "docs/draft/tools/inspector/authorization",
                       "docs/draft/tools/inspector/protocol-eras",
-                      "docs/draft/tools/inspector/recipes"
+                      "docs/draft/tools/inspector/recipes",
+                      "docs/draft/tools/inspector/security"
                     ]
                   },
                   "docs/draft/tools/debugging"
