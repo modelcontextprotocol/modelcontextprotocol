@@ -41,6 +41,9 @@
                 },
                 "mimeType": {
                     "description": "The MIME type of the audio. Different providers may support different audio types.",
+                    "format": "mime-type",
+                    "maxLength": 256,
+                    "minLength": 1,
                     "type": "string"
                 },
                 "type": {
@@ -60,10 +63,14 @@
             "properties": {
                 "name": {
                     "description": "Intended for programmatic or logical use, but used as a display name in past specs or fallback (if title isn't present).",
+                    "maxLength": 256,
                     "type": "string"
                 },
                 "title": {
                     "description": "Intended for UI and end-user contexts — optimized to be human-readable and easily understood,\neven by those unfamiliar with domain-specific terminology.\n\nIf not provided, the name should be used for display (except for {@link Tool},\nwhere `annotations.title` should be given precedence over using `name`,\nif present).",
+                    "format": "text",
+                    "maxLength": 256,
+                    "minLength": 1,
                     "type": "string"
                 }
             },
@@ -84,11 +91,16 @@
                 },
                 "mimeType": {
                     "description": "The MIME type of this resource, if known.",
+                    "format": "mime-type",
+                    "maxLength": 256,
+                    "minLength": 1,
                     "type": "string"
                 },
                 "uri": {
                     "description": "The URI of this resource.",
                     "format": "uri",
+                    "maxLength": 8192,
+                    "minLength": 1,
                     "type": "string"
                 }
             },
@@ -104,9 +116,17 @@
                     "type": "boolean"
                 },
                 "description": {
+                    "description": "A human-readable description, intended for display to a person (e.g. in a UI).",
+                    "format": "text",
+                    "maxLength": 1024,
+                    "minLength": 1,
                     "type": "string"
                 },
                 "title": {
+                    "description": "A human-readable display title, intended for a person (e.g. in a UI).",
+                    "format": "text",
+                    "maxLength": 256,
+                    "minLength": 1,
                     "type": "string"
                 },
                 "type": {
@@ -139,6 +159,7 @@
                 },
                 "ttlMs": {
                     "description": "A hint from the server indicating how long (in milliseconds) the\nclient MAY cache this response before re-fetching. Semantics are\nanalogous to HTTP Cache-Control max-age.\n\n- If 0, The response SHOULD be considered immediately stale,\n  The client MAY re-fetch every time the result is needed.\n- If positive, the client SHOULD consider the result fresh for this many\n  milliseconds after receiving the response.",
+                    "maximum": 86400000,
                     "minimum": 0,
                     "type": "integer"
                 }
@@ -192,6 +213,7 @@
                 },
                 "name": {
                     "description": "The name of the tool.",
+                    "maxLength": 256,
                     "type": "string"
                 },
                 "requestState": {
@@ -453,6 +475,7 @@
                     "properties": {
                         "name": {
                             "description": "The name of the argument",
+                            "maxLength": 256,
                             "type": "string"
                         },
                         "value": {
@@ -609,12 +632,14 @@
                 },
                 "maxTokens": {
                     "description": "The requested maximum number of tokens to sample (to prevent runaway completions).\n\nThe client MAY choose to sample fewer tokens than the requested maximum.",
+                    "minimum": 1,
                     "type": "integer"
                 },
                 "messages": {
                     "items": {
                         "$ref": "#/$defs/SamplingMessage"
                     },
+                    "maxItems": 1000,
                     "type": "array"
                 },
                 "metadata": {
@@ -629,6 +654,7 @@
                     "items": {
                         "type": "string"
                     },
+                    "maxItems": 50,
                     "type": "array"
                 },
                 "systemPrompt": {
@@ -647,6 +673,7 @@
                     "items": {
                         "$ref": "#/$defs/Tool"
                     },
+                    "maxItems": 128,
                     "type": "array"
                 }
             },
@@ -708,6 +735,14 @@
         },
         "Cursor": {
             "description": "An opaque token used to represent a cursor for pagination.",
+            "maxLength": 8192,
+            "type": "string"
+        },
+        "Description": {
+            "description": "A human-readable description, intended for display to a person (e.g. in a UI).",
+            "format": "text",
+            "maxLength": 1024,
+            "minLength": 1,
             "type": "string"
         },
         "DiscoverRequest": {
@@ -771,6 +806,7 @@
                 },
                 "ttlMs": {
                     "description": "A hint from the server indicating how long (in milliseconds) the\nclient MAY cache this response before re-fetching. Semantics are\nanalogous to HTTP Cache-Control max-age.\n\n- If 0, The response SHOULD be considered immediately stale,\n  The client MAY re-fetch every time the result is needed.\n- If positive, the client SHOULD consider the result fresh for this many\n  milliseconds after receiving the response.",
+                    "maximum": 86400000,
                     "minimum": 0,
                     "type": "integer"
                 }
@@ -884,6 +920,11 @@
         "ElicitRequestURLParams": {
             "description": "The parameters for a request to elicit information from the user via a URL in the client.",
             "properties": {
+                "elicitationId": {
+                    "description": "The ID of the elicitation, which must be unique within the context of the server.\nThe client MUST treat this ID as an opaque value.",
+                    "maxLength": 256,
+                    "type": "string"
+                },
                 "message": {
                     "description": "The message to present to the user explaining why the interaction is needed.",
                     "type": "string"
@@ -896,10 +937,14 @@
                 "url": {
                     "description": "The URL that the user should navigate to.",
                     "format": "uri",
+                    "maxLength": 8192,
+                    "minLength": 1,
+                    "pattern": "^https?://",
                     "type": "string"
                 }
             },
             "required": [
+                "elicitationId",
                 "message",
                 "mode",
                 "url"
@@ -1063,6 +1108,7 @@
                 },
                 "name": {
                     "description": "The name of the prompt or prompt template.",
+                    "maxLength": 256,
                     "type": "string"
                 },
                 "requestState": {
@@ -1083,6 +1129,9 @@
                 },
                 "description": {
                     "description": "An optional description for the prompt.",
+                    "format": "text",
+                    "maxLength": 1024,
+                    "minLength": 1,
                     "type": "string"
                 },
                 "messages": {
@@ -1171,6 +1220,9 @@
             "properties": {
                 "mimeType": {
                     "description": "Optional MIME type override if the source MIME type is missing or generic.\nFor example: `\"image/png\"`, `\"image/jpeg\"`, or `\"image/svg+xml\"`.",
+                    "format": "mime-type",
+                    "maxLength": 256,
+                    "minLength": 1,
                     "type": "string"
                 },
                 "sizes": {
@@ -1178,11 +1230,15 @@
                     "items": {
                         "type": "string"
                     },
+                    "pattern": "^(\\d+x\\d+|any)$",
                     "type": "array"
                 },
                 "src": {
                     "description": "A standard URI pointing to an icon resource. May be an HTTP/HTTPS URL or a\n`data:` URI with Base64-encoded image data.\n\nConsumers SHOULD take steps to ensure URLs serving icons are from the\nsame domain as the client/server or a trusted domain.\n\nConsumers SHOULD take appropriate precautions when consuming SVGs as they can contain\nexecutable JavaScript.",
                     "format": "uri",
+                    "maxLength": 8192,
+                    "minLength": 1,
+                    "pattern": "^(https?://|data:image/)",
                     "type": "string"
                 },
                 "theme": {
@@ -1207,10 +1263,16 @@
                     "items": {
                         "$ref": "#/$defs/Icon"
                     },
+                    "maxItems": 10,
                     "type": "array"
                 }
             },
             "type": "object"
+        },
+        "Identifier": {
+            "description": "A programmatic identifier, intended for machine use rather than display\n(e.g. a resource, prompt, or tool name). Unlike {@link Title}, this is not\nprimarily for human display.",
+            "maxLength": 256,
+            "type": "string"
         },
         "ImageContent": {
             "description": "An image provided to or from an LLM.",
@@ -1229,6 +1291,9 @@
                 },
                 "mimeType": {
                     "description": "The MIME type of the image. Different providers may support different image types.",
+                    "format": "mime-type",
+                    "maxLength": 256,
+                    "minLength": 1,
                     "type": "string"
                 },
                 "type": {
@@ -1248,6 +1313,9 @@
             "properties": {
                 "description": {
                     "description": "An optional human-readable description of what this implementation does.\n\nThis can be used by clients or servers to provide context about their purpose\nand capabilities. For example, a server might describe the types of resources\nor tools it provides, while a client might describe its intended use case.",
+                    "format": "text",
+                    "maxLength": 1024,
+                    "minLength": 1,
                     "type": "string"
                 },
                 "icons": {
@@ -1255,23 +1323,31 @@
                     "items": {
                         "$ref": "#/$defs/Icon"
                     },
+                    "maxItems": 10,
                     "type": "array"
                 },
                 "name": {
                     "description": "Intended for programmatic or logical use, but used as a display name in past specs or fallback (if title isn't present).",
+                    "maxLength": 256,
                     "type": "string"
                 },
                 "title": {
                     "description": "Intended for UI and end-user contexts — optimized to be human-readable and easily understood,\neven by those unfamiliar with domain-specific terminology.\n\nIf not provided, the name should be used for display (except for {@link Tool},\nwhere `annotations.title` should be given precedence over using `name`,\nif present).",
+                    "format": "text",
+                    "maxLength": 256,
+                    "minLength": 1,
                     "type": "string"
                 },
                 "version": {
                     "description": "The version of this implementation.",
+                    "maxLength": 64,
                     "type": "string"
                 },
                 "websiteUrl": {
                     "description": "An optional URL of the website for this implementation.",
                     "format": "uri",
+                    "maxLength": 8192,
+                    "minLength": 1,
                     "type": "string"
                 }
             },
@@ -1580,6 +1656,10 @@
                     "type": "string"
                 },
                 "description": {
+                    "description": "A human-readable description, intended for display to a person (e.g. in a UI).",
+                    "format": "text",
+                    "maxLength": 1024,
+                    "minLength": 1,
                     "type": "string"
                 },
                 "enum": {
@@ -1596,6 +1676,10 @@
                     "type": "array"
                 },
                 "title": {
+                    "description": "A human-readable display title, intended for a person (e.g. in a UI).",
+                    "format": "text",
+                    "maxLength": 256,
+                    "minLength": 1,
                     "type": "string"
                 },
                 "type": {
@@ -1651,6 +1735,7 @@
                 },
                 "nextCursor": {
                     "description": "An opaque token representing the pagination position after the last returned result.\nIf present, there may be more results available.",
+                    "maxLength": 8192,
                     "type": "string"
                 },
                 "prompts": {
@@ -1665,6 +1750,7 @@
                 },
                 "ttlMs": {
                     "description": "A hint from the server indicating how long (in milliseconds) the\nclient MAY cache this response before re-fetching. Semantics are\nanalogous to HTTP Cache-Control max-age.\n\n- If 0, The response SHOULD be considered immediately stale,\n  The client MAY re-fetch every time the result is needed.\n- If positive, the client SHOULD consider the result fresh for this many\n  milliseconds after receiving the response.",
+                    "maximum": 86400000,
                     "minimum": 0,
                     "type": "integer"
                 }
@@ -1740,6 +1826,7 @@
                 },
                 "nextCursor": {
                     "description": "An opaque token representing the pagination position after the last returned result.\nIf present, there may be more results available.",
+                    "maxLength": 8192,
                     "type": "string"
                 },
                 "resourceTemplates": {
@@ -1754,6 +1841,7 @@
                 },
                 "ttlMs": {
                     "description": "A hint from the server indicating how long (in milliseconds) the\nclient MAY cache this response before re-fetching. Semantics are\nanalogous to HTTP Cache-Control max-age.\n\n- If 0, The response SHOULD be considered immediately stale,\n  The client MAY re-fetch every time the result is needed.\n- If positive, the client SHOULD consider the result fresh for this many\n  milliseconds after receiving the response.",
+                    "maximum": 86400000,
                     "minimum": 0,
                     "type": "integer"
                 }
@@ -1829,6 +1917,7 @@
                 },
                 "nextCursor": {
                     "description": "An opaque token representing the pagination position after the last returned result.\nIf present, there may be more results available.",
+                    "maxLength": 8192,
                     "type": "string"
                 },
                 "resources": {
@@ -1843,6 +1932,7 @@
                 },
                 "ttlMs": {
                     "description": "A hint from the server indicating how long (in milliseconds) the\nclient MAY cache this response before re-fetching. Semantics are\nanalogous to HTTP Cache-Control max-age.\n\n- If 0, The response SHOULD be considered immediately stale,\n  The client MAY re-fetch every time the result is needed.\n- If positive, the client SHOULD consider the result fresh for this many\n  milliseconds after receiving the response.",
+                    "maximum": 86400000,
                     "minimum": 0,
                     "type": "integer"
                 }
@@ -1954,6 +2044,7 @@
                 },
                 "nextCursor": {
                     "description": "An opaque token representing the pagination position after the last returned result.\nIf present, there may be more results available.",
+                    "maxLength": 8192,
                     "type": "string"
                 },
                 "resultType": {
@@ -1968,6 +2059,7 @@
                 },
                 "ttlMs": {
                     "description": "A hint from the server indicating how long (in milliseconds) the\nclient MAY cache this response before re-fetching. Semantics are\nanalogous to HTTP Cache-Control max-age.\n\n- If 0, The response SHOULD be considered immediately stale,\n  The client MAY re-fetch every time the result is needed.\n- If positive, the client SHOULD consider the result fresh for this many\n  milliseconds after receiving the response.",
+                    "maximum": 86400000,
                     "minimum": 0,
                     "type": "integer"
                 }
@@ -2052,6 +2144,7 @@
                 },
                 "logger": {
                     "description": "An optional name of the logger issuing this message.",
+                    "maxLength": 256,
                     "type": "string"
                 }
             },
@@ -2060,6 +2153,13 @@
                 "level"
             ],
             "type": "object"
+        },
+        "MIMEType": {
+            "description": "A Multipurpose Internet Mail Extensions (MIME) type, as defined in RFC 2045.",
+            "format": "mime-type",
+            "maxLength": 256,
+            "minLength": 1,
+            "type": "string"
         },
         "MetaObject": {
             "description": "Represents the contents of a `_meta` field, which clients and servers use to attach additional metadata to their interactions.\n\nCertain key names are reserved by MCP for protocol-level metadata; implementations MUST NOT make assumptions about values at these keys. Additionally, specific schema definitions may reserve particular names for purpose-specific metadata, as declared in those definitions.\n\nValid keys have two segments:\n\n**Prefix:**\n- Optional — if specified, MUST be a series of _labels_ separated by dots (`.`), followed by a slash (`/`).\n- Labels MUST start with a letter and end with a letter or digit. Interior characters may be letters, digits, or hyphens (`-`).\n- Implementations SHOULD use reverse DNS notation (e.g., `com.example/` rather than `example.com/`).\n- Any prefix where the second label is `modelcontextprotocol` or `mcp` is **reserved** for MCP use. For example: `io.modelcontextprotocol/`, `dev.mcp/`, `org.modelcontextprotocol.api/`, and `com.mcp.tools/` are all reserved. However, `com.example.mcp/` is NOT reserved, as the second label is `example`.\n\n**Name:**\n- Unless empty, MUST start and end with an alphanumeric character (`[a-z0-9A-Z]`).\n- Interior characters may be alphanumeric, hyphens (`-`), underscores (`_`), or dots (`.`).",
@@ -2136,6 +2236,13 @@
             ],
             "type": "object"
         },
+        "ModelDescription": {
+            "description": "A description intended to inform how an LLM understands or uses the\ndescribed object. Unlike {@link Description}, this is not primarily for\nhuman display — it can be thought of like a \"hint\" to the model.",
+            "format": "text",
+            "maxLength": 1024,
+            "minLength": 1,
+            "type": "string"
+        },
         "ModelHint": {
             "description": "Hints to use for model selection.\n\nKeys not declared here are currently left unspecified by the spec and are up\nto the client to interpret.",
             "properties": {
@@ -2160,6 +2267,7 @@
                     "items": {
                         "$ref": "#/$defs/ModelHint"
                     },
+                    "maxItems": 10,
                     "type": "array"
                 },
                 "intelligencePriority": {
@@ -2227,6 +2335,10 @@
                     "type": "number"
                 },
                 "description": {
+                    "description": "A human-readable description, intended for display to a person (e.g. in a UI).",
+                    "format": "text",
+                    "maxLength": 1024,
+                    "minLength": 1,
                     "type": "string"
                 },
                 "maximum": {
@@ -2236,6 +2348,10 @@
                     "type": "number"
                 },
                 "title": {
+                    "description": "A human-readable display title, intended for a person (e.g. in a UI).",
+                    "format": "text",
+                    "maxLength": 256,
+                    "minLength": 1,
                     "type": "string"
                 },
                 "type": {
@@ -2283,6 +2399,7 @@
                 },
                 "cursor": {
                     "description": "An opaque token representing the current pagination position.\nIf provided, the server should return results starting after this cursor.",
+                    "maxLength": 8192,
                     "type": "string"
                 }
             },
@@ -2298,6 +2415,7 @@
                 },
                 "nextCursor": {
                     "description": "An opaque token representing the pagination position after the last returned result.\nIf present, there may be more results available.",
+                    "maxLength": 8192,
                     "type": "string"
                 },
                 "resultType": {
@@ -2395,6 +2513,7 @@
                 },
                 "progress": {
                     "description": "The progress thus far. This should increase every time progress is made, even if the total is unknown.",
+                    "minimum": 0,
                     "type": "number"
                 },
                 "progressToken": {
@@ -2403,6 +2522,7 @@
                 },
                 "total": {
                     "description": "Total number of items to process (or total progress required), if known.",
+                    "minimum": 0,
                     "type": "number"
                 }
             },
@@ -2434,6 +2554,9 @@
                 },
                 "description": {
                     "description": "An optional description of what this prompt provides",
+                    "format": "text",
+                    "maxLength": 1024,
+                    "minLength": 1,
                     "type": "string"
                 },
                 "icons": {
@@ -2441,14 +2564,19 @@
                     "items": {
                         "$ref": "#/$defs/Icon"
                     },
+                    "maxItems": 10,
                     "type": "array"
                 },
                 "name": {
                     "description": "Intended for programmatic or logical use, but used as a display name in past specs or fallback (if title isn't present).",
+                    "maxLength": 256,
                     "type": "string"
                 },
                 "title": {
                     "description": "Intended for UI and end-user contexts — optimized to be human-readable and easily understood,\neven by those unfamiliar with domain-specific terminology.\n\nIf not provided, the name should be used for display (except for {@link Tool},\nwhere `annotations.title` should be given precedence over using `name`,\nif present).",
+                    "format": "text",
+                    "maxLength": 256,
+                    "minLength": 1,
                     "type": "string"
                 }
             },
@@ -2462,10 +2590,14 @@
             "properties": {
                 "description": {
                     "description": "A human-readable description of the argument.",
+                    "format": "text",
+                    "maxLength": 1024,
+                    "minLength": 1,
                     "type": "string"
                 },
                 "name": {
                     "description": "Intended for programmatic or logical use, but used as a display name in past specs or fallback (if title isn't present).",
+                    "maxLength": 256,
                     "type": "string"
                 },
                 "required": {
@@ -2474,6 +2606,9 @@
                 },
                 "title": {
                     "description": "Intended for UI and end-user contexts — optimized to be human-readable and easily understood,\neven by those unfamiliar with domain-specific terminology.\n\nIf not provided, the name should be used for display (except for {@link Tool},\nwhere `annotations.title` should be given precedence over using `name`,\nif present).",
+                    "format": "text",
+                    "maxLength": 256,
+                    "minLength": 1,
                     "type": "string"
                 }
             },
@@ -2524,10 +2659,14 @@
             "properties": {
                 "name": {
                     "description": "Intended for programmatic or logical use, but used as a display name in past specs or fallback (if title isn't present).",
+                    "maxLength": 256,
                     "type": "string"
                 },
                 "title": {
                     "description": "Intended for UI and end-user contexts — optimized to be human-readable and easily understood,\neven by those unfamiliar with domain-specific terminology.\n\nIf not provided, the name should be used for display (except for {@link Tool},\nwhere `annotations.title` should be given precedence over using `name`,\nif present).",
+                    "format": "text",
+                    "maxLength": 256,
+                    "minLength": 1,
                     "type": "string"
                 },
                 "type": {
@@ -2582,6 +2721,8 @@
                 "uri": {
                     "description": "The URI of the resource. The URI can use any protocol; it is up to the server how to interpret it.",
                     "format": "uri",
+                    "maxLength": 8192,
+                    "minLength": 1,
                     "type": "string"
                 }
             },
@@ -2624,6 +2765,7 @@
                 },
                 "ttlMs": {
                     "description": "A hint from the server indicating how long (in milliseconds) the\nclient MAY cache this response before re-fetching. Semantics are\nanalogous to HTTP Cache-Control max-age.\n\n- If 0, The response SHOULD be considered immediately stale,\n  The client MAY re-fetch every time the result is needed.\n- If positive, the client SHOULD consider the result fresh for this many\n  milliseconds after receiving the response.",
+                    "maximum": 86400000,
                     "minimum": 0,
                     "type": "integer"
                 }
@@ -2740,6 +2882,9 @@
                 },
                 "description": {
                     "description": "A description of what this resource represents.\n\nThis can be used by clients to improve the LLM's understanding of available resources. It can be thought of like a \"hint\" to the model.",
+                    "format": "text",
+                    "maxLength": 1024,
+                    "minLength": 1,
                     "type": "string"
                 },
                 "icons": {
@@ -2747,27 +2892,38 @@
                     "items": {
                         "$ref": "#/$defs/Icon"
                     },
+                    "maxItems": 10,
                     "type": "array"
                 },
                 "mimeType": {
                     "description": "The MIME type of this resource, if known.",
+                    "format": "mime-type",
+                    "maxLength": 256,
+                    "minLength": 1,
                     "type": "string"
                 },
                 "name": {
                     "description": "Intended for programmatic or logical use, but used as a display name in past specs or fallback (if title isn't present).",
+                    "maxLength": 256,
                     "type": "string"
                 },
                 "size": {
                     "description": "The size of the raw resource content, in bytes (i.e., before base64 encoding or any tokenization), if known.\n\nThis can be used by Hosts to display file sizes and estimate context window usage.",
+                    "minimum": 0,
                     "type": "integer"
                 },
                 "title": {
                     "description": "Intended for UI and end-user contexts — optimized to be human-readable and easily understood,\neven by those unfamiliar with domain-specific terminology.\n\nIf not provided, the name should be used for display (except for {@link Tool},\nwhere `annotations.title` should be given precedence over using `name`,\nif present).",
+                    "format": "text",
+                    "maxLength": 256,
+                    "minLength": 1,
                     "type": "string"
                 },
                 "uri": {
                     "description": "The URI of this resource.",
                     "format": "uri",
+                    "maxLength": 8192,
+                    "minLength": 1,
                     "type": "string"
                 }
             },
@@ -2785,11 +2941,16 @@
                 },
                 "mimeType": {
                     "description": "The MIME type of this resource, if known.",
+                    "format": "mime-type",
+                    "maxLength": 256,
+                    "minLength": 1,
                     "type": "string"
                 },
                 "uri": {
                     "description": "The URI of this resource.",
                     "format": "uri",
+                    "maxLength": 8192,
+                    "minLength": 1,
                     "type": "string"
                 }
             },
@@ -2810,6 +2971,9 @@
                 },
                 "description": {
                     "description": "A description of what this resource represents.\n\nThis can be used by clients to improve the LLM's understanding of available resources. It can be thought of like a \"hint\" to the model.",
+                    "format": "text",
+                    "maxLength": 1024,
+                    "minLength": 1,
                     "type": "string"
                 },
                 "icons": {
@@ -2817,22 +2981,31 @@
                     "items": {
                         "$ref": "#/$defs/Icon"
                     },
+                    "maxItems": 10,
                     "type": "array"
                 },
                 "mimeType": {
                     "description": "The MIME type of this resource, if known.",
+                    "format": "mime-type",
+                    "maxLength": 256,
+                    "minLength": 1,
                     "type": "string"
                 },
                 "name": {
                     "description": "Intended for programmatic or logical use, but used as a display name in past specs or fallback (if title isn't present).",
+                    "maxLength": 256,
                     "type": "string"
                 },
                 "size": {
                     "description": "The size of the raw resource content, in bytes (i.e., before base64 encoding or any tokenization), if known.\n\nThis can be used by Hosts to display file sizes and estimate context window usage.",
+                    "minimum": 0,
                     "type": "integer"
                 },
                 "title": {
                     "description": "Intended for UI and end-user contexts — optimized to be human-readable and easily understood,\neven by those unfamiliar with domain-specific terminology.\n\nIf not provided, the name should be used for display (except for {@link Tool},\nwhere `annotations.title` should be given precedence over using `name`,\nif present).",
+                    "format": "text",
+                    "maxLength": 256,
+                    "minLength": 1,
                     "type": "string"
                 },
                 "type": {
@@ -2842,6 +3015,8 @@
                 "uri": {
                     "description": "The URI of this resource.",
                     "format": "uri",
+                    "maxLength": 8192,
+                    "minLength": 1,
                     "type": "string"
                 }
             },
@@ -2882,6 +3057,8 @@
                 "uri": {
                     "description": "The URI of the resource. The URI can use any protocol; it is up to the server how to interpret it.",
                     "format": "uri",
+                    "maxLength": 8192,
+                    "minLength": 1,
                     "type": "string"
                 }
             },
@@ -2903,6 +3080,9 @@
                 },
                 "description": {
                     "description": "A description of what this template is for.\n\nThis can be used by clients to improve the LLM's understanding of available resources. It can be thought of like a \"hint\" to the model.",
+                    "format": "text",
+                    "maxLength": 1024,
+                    "minLength": 1,
                     "type": "string"
                 },
                 "icons": {
@@ -2910,18 +3090,26 @@
                     "items": {
                         "$ref": "#/$defs/Icon"
                     },
+                    "maxItems": 10,
                     "type": "array"
                 },
                 "mimeType": {
                     "description": "The MIME type for all resources that match this template. This should only be included if all resources matching this template have the same type.",
+                    "format": "mime-type",
+                    "maxLength": 256,
+                    "minLength": 1,
                     "type": "string"
                 },
                 "name": {
                     "description": "Intended for programmatic or logical use, but used as a display name in past specs or fallback (if title isn't present).",
+                    "maxLength": 256,
                     "type": "string"
                 },
                 "title": {
                     "description": "Intended for UI and end-user contexts — optimized to be human-readable and easily understood,\neven by those unfamiliar with domain-specific terminology.\n\nIf not provided, the name should be used for display (except for {@link Tool},\nwhere `annotations.title` should be given precedence over using `name`,\nif present).",
+                    "format": "text",
+                    "maxLength": 256,
+                    "minLength": 1,
                     "type": "string"
                 },
                 "uriTemplate": {
@@ -2986,6 +3174,8 @@
                 "uri": {
                     "description": "The URI of the resource that has been updated. This might be a sub-resource of the one that the client actually subscribed to.",
                     "format": "uri",
+                    "maxLength": 8192,
+                    "minLength": 1,
                     "type": "string"
                 }
             },
@@ -3046,6 +3236,9 @@
                 "uri": {
                     "description": "The URI identifying the root. This *must* start with `file://` for now.\nThis restriction may be relaxed in future versions of the protocol to allow\nother URI schemes.",
                     "format": "uri",
+                    "maxLength": 8192,
+                    "minLength": 1,
+                    "pattern": "^file://",
                     "type": "string"
                 }
             },
@@ -3153,11 +3346,11 @@
                     "description": "Present if the server offers any resources to read.",
                     "properties": {
                         "listChanged": {
-                            "description": "Whether this server supports notifications for changes to the resource list.",
+                            "description": "Whether this server supports notifications for changes to the resource list.\n\nIf this is `true`, the server will send notifications whenever the resource list changes.",
                             "type": "boolean"
                         },
                         "subscribe": {
-                            "description": "Whether this server supports subscribing to resource updates.",
+                            "description": "Whether this server supports subscribing to resource updates.\n\nIf this is `true`, the server will send updates whenever a resource changes.",
                             "type": "boolean"
                         }
                     },
@@ -3167,7 +3360,7 @@
                     "description": "Present if the server offers any tools to call.",
                     "properties": {
                         "listChanged": {
-                            "description": "Whether this server supports notifications for changes to the tool list.",
+                            "description": "Whether this server supports notifications for changes to the tool list.\n\nIf this is `true`, the server will send notifications whenever the tool list changes.",
                             "type": "boolean"
                         }
                     },
@@ -3260,6 +3453,10 @@
                     "type": "string"
                 },
                 "description": {
+                    "description": "A human-readable description, intended for display to a person (e.g. in a UI).",
+                    "format": "text",
+                    "maxLength": 1024,
+                    "minLength": 1,
                     "type": "string"
                 },
                 "format": {
@@ -3278,6 +3475,10 @@
                     "type": "integer"
                 },
                 "title": {
+                    "description": "A human-readable display title, intended for a person (e.g. in a UI).",
+                    "format": "text",
+                    "maxLength": 256,
+                    "minLength": 1,
                     "type": "string"
                 },
                 "type": {
@@ -3302,6 +3503,7 @@
                     "items": {
                         "type": "string"
                     },
+                    "maxItems": 1000,
                     "type": "array"
                 },
                 "resourcesListChanged": {
@@ -3483,6 +3685,9 @@
                 },
                 "mimeType": {
                     "description": "The MIME type of this resource, if known.",
+                    "format": "mime-type",
+                    "maxLength": 256,
+                    "minLength": 1,
                     "type": "string"
                 },
                 "text": {
@@ -3492,6 +3697,8 @@
                 "uri": {
                     "description": "The URI of this resource.",
                     "format": "uri",
+                    "maxLength": 8192,
+                    "minLength": 1,
                     "type": "string"
                 }
             },
@@ -3500,6 +3707,13 @@
                 "uri"
             ],
             "type": "object"
+        },
+        "Title": {
+            "description": "A human-readable display title, intended for a person (e.g. in a UI).",
+            "format": "text",
+            "maxLength": 256,
+            "minLength": 1,
+            "type": "string"
         },
         "TitledMultiSelectEnumSchema": {
             "description": "Schema for multiple-selection enumeration with display titles for each option.",
@@ -3513,6 +3727,9 @@
                 },
                 "description": {
                     "description": "Optional description for the enum field.",
+                    "format": "text",
+                    "maxLength": 1024,
+                    "minLength": 1,
                     "type": "string"
                 },
                 "items": {
@@ -3528,6 +3745,9 @@
                                     },
                                     "title": {
                                         "description": "Display title for this option.",
+                                        "format": "text",
+                                        "maxLength": 256,
+                                        "minLength": 1,
                                         "type": "string"
                                     }
                                 },
@@ -3555,6 +3775,9 @@
                 },
                 "title": {
                     "description": "Optional title for the enum field.",
+                    "format": "text",
+                    "maxLength": 256,
+                    "minLength": 1,
                     "type": "string"
                 },
                 "type": {
@@ -3577,6 +3800,9 @@
                 },
                 "description": {
                     "description": "Optional description for the enum field.",
+                    "format": "text",
+                    "maxLength": 1024,
+                    "minLength": 1,
                     "type": "string"
                 },
                 "oneOf": {
@@ -3589,6 +3815,9 @@
                             },
                             "title": {
                                 "description": "Display label for this option.",
+                                "format": "text",
+                                "maxLength": 256,
+                                "minLength": 1,
                                 "type": "string"
                             }
                         },
@@ -3602,6 +3831,9 @@
                 },
                 "title": {
                     "description": "Optional title for the enum field.",
+                    "format": "text",
+                    "maxLength": 256,
+                    "minLength": 1,
                     "type": "string"
                 },
                 "type": {
@@ -3627,6 +3859,9 @@
                 },
                 "description": {
                     "description": "A human-readable description of the tool.\n\nThis can be used by clients to improve the LLM's understanding of available tools. It can be thought of like a \"hint\" to the model.",
+                    "format": "text",
+                    "maxLength": 1024,
+                    "minLength": 1,
                     "type": "string"
                 },
                 "icons": {
@@ -3634,6 +3869,7 @@
                     "items": {
                         "$ref": "#/$defs/Icon"
                     },
+                    "maxItems": 10,
                     "type": "array"
                 },
                 "inputSchema": {
@@ -3655,6 +3891,7 @@
                 },
                 "name": {
                     "description": "Intended for programmatic or logical use, but used as a display name in past specs or fallback (if title isn't present).",
+                    "maxLength": 256,
                     "type": "string"
                 },
                 "outputSchema": {
@@ -3669,6 +3906,9 @@
                 },
                 "title": {
                     "description": "Intended for UI and end-user contexts — optimized to be human-readable and easily understood,\neven by those unfamiliar with domain-specific terminology.\n\nIf not provided, the name should be used for display (except for {@link Tool},\nwhere `annotations.title` should be given precedence over using `name`,\nif present).",
+                    "format": "text",
+                    "maxLength": 256,
+                    "minLength": 1,
                     "type": "string"
                 }
             },
@@ -3699,6 +3939,9 @@
                 },
                 "title": {
                     "description": "A human-readable title for the tool.",
+                    "format": "text",
+                    "maxLength": 256,
+                    "minLength": 1,
                     "type": "string"
                 }
             },
@@ -3763,6 +4006,7 @@
                 },
                 "toolUseId": {
                     "description": "The ID of the tool use this result corresponds to.\n\nThis MUST match the ID from a previous {@link ToolUseContent}.",
+                    "maxLength": 256,
                     "type": "string"
                 },
                 "type": {
@@ -3786,6 +4030,7 @@
                 },
                 "id": {
                     "description": "A unique identifier for this tool use.\n\nThis ID is used to match tool results to their corresponding tool uses.",
+                    "maxLength": 256,
                     "type": "string"
                 },
                 "input": {
@@ -3795,6 +4040,7 @@
                 },
                 "name": {
                     "description": "The name of the tool to call.",
+                    "maxLength": 256,
                     "type": "string"
                 },
                 "type": {
@@ -3809,6 +4055,13 @@
                 "type"
             ],
             "type": "object"
+        },
+        "URI": {
+            "description": "A Uniform Resource Identifier (URI), as defined by RFC 3986.",
+            "format": "uri",
+            "maxLength": 8192,
+            "minLength": 1,
+            "type": "string"
         },
         "UnsupportedProtocolVersionError": {
             "description": "Returned when the request's protocol version is unknown to the server or\nunsupported (e.g., a known experimental or draft version the server has\nchosen not to implement). For HTTP, the response status code MUST be\n`400 Bad Request`.",
@@ -3879,6 +4132,9 @@
                 },
                 "description": {
                     "description": "Optional description for the enum field.",
+                    "format": "text",
+                    "maxLength": 1024,
+                    "minLength": 1,
                     "type": "string"
                 },
                 "items": {
@@ -3912,6 +4168,9 @@
                 },
                 "title": {
                     "description": "Optional title for the enum field.",
+                    "format": "text",
+                    "maxLength": 256,
+                    "minLength": 1,
                     "type": "string"
                 },
                 "type": {
@@ -3934,6 +4193,9 @@
                 },
                 "description": {
                     "description": "Optional description for the enum field.",
+                    "format": "text",
+                    "maxLength": 1024,
+                    "minLength": 1,
                     "type": "string"
                 },
                 "enum": {
@@ -3945,6 +4207,9 @@
                 },
                 "title": {
                     "description": "Optional title for the enum field.",
+                    "format": "text",
+                    "maxLength": 256,
+                    "minLength": 1,
                     "type": "string"
                 },
                 "type": {
