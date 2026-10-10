@@ -4,7 +4,7 @@
 - **Type**: Standards Track
 - **Created**: 2026-09-18
 - **Author(s)**: Sambhav Kothari (@sambhav)
-- **Sponsor**: Felix Weinberger (@felixweinberger)
+- **Sponsor**: Felix Weinberger (@felixweinberger), on behalf of the SDK Working Group (SDK WG)
 - **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/3371
 
 ## Abstract
@@ -20,7 +20,7 @@ This SEP requires Tier 1 Model Context Protocol (MCP) SDKs to provide four exten
 
 Transport middleware and hooks let authorization extensions and Server Card ship as packages.
 
-SDKs also document these extension points and expose the set they support as a local constant, so extension packages and applications can check for them. SDKs should document how to package extensions as a unit, so extension authors can publish independent packages that applications enable when they configure a client or server. This SEP adds no wire fields or methods.
+SDKs also document the extension points they support using common identifiers. A public API for querying support is optional; extension packages declare compatible SDK versions through normal package mechanisms. SDKs should document how to package extensions as a unit, so extension authors can publish independent packages that applications enable when they configure a client or server. This SEP adds no wire fields or methods.
 
 ## Terminology
 
@@ -32,7 +32,7 @@ SDKs also document these extension points and expose the set they support as a l
 | Middleware           | Code that wraps a step in sending or receiving. Applies to clients and servers, in the two categories below.           |
 | JSON-RPC middleware  | Middleware that operates on JSON-RPC messages, independent of transport.                                               |
 | Transport middleware | Middleware that wraps a transport's own units, such as HTTP requests and responses, outside JSON-RPC processing.       |
-| Transport hook       | A contribution to a transport that does not wrap message processing, such as an HTTP route or stdio launch setting.    |
+| Transport hook       | A contribution such as an HTTP route or stdio launch setting, implemented through documented SDK or host APIs.         |
 | Payload              | Message parameters or results, including `_meta`.                                                                      |
 | Envelope             | The JSON-RPC fields that identify and correlate messages: `jsonrpc`, `id`, and `method`.                               |
 
@@ -50,7 +50,7 @@ The key words **MUST**, **MUST NOT**, **SHOULD**, **SHOULD NOT**, **MAY**, and *
 
 Requirements are stated for SDKs. They apply as written to Tier 1 SDKs; for other SDKs, each **MUST** and **MUST NOT** is a **SHOULD** and **SHOULD NOT**. They apply to protocol version `2026-07-28` and later. SDKs **MAY** offer the same extension points on earlier versions.
 
-This SEP specifies behaviour, not API shape. Existing APIs, builder options, interfaces, or wrappers can satisfy it; a new plugin framework is not required. Protocol and extension specifications continue to define message formats, capability negotiation, and method contracts. Defining new transports and package loading are out of scope; [transport middleware](#32-transport-middleware) and [transport hooks](#4-transport-hooks) cover the existing Streamable HTTP and stdio transports.
+The scope of this SEP is a set of requirements for SDKs to provide public API functionality that allows most protocol extensions to be implemented as independent packages. The exact API shape and language-specific design are left to SDK maintainers. Existing APIs, builder options, interfaces, or wrappers can satisfy these requirements; a new plugin framework is not required. Changes to protocol or extension specifications, new transports, and package loading are out of scope. Protocol and extension specifications continue to define message formats, capability negotiation, and method contracts; [transport middleware](#32-transport-middleware) and [transport hooks](#4-transport-hooks) cover the existing Streamable HTTP and stdio transports.
 
 Examples follow a hypothetical catalog-search extension. Each code block is illustrative pseudocode, using TypeScript or Go syntax, rather than a runnable program or an existing SDK API. The main examples show package setup, custom method registration and peer usage, then receiving middleware. Appendix C shows optional composition designs. Imports, schema definitions, and supporting functions are omitted.
 
@@ -58,10 +58,19 @@ Examples follow a hypothetical catalog-search extension. Each code block is illu
 
 These apply to all four extension points. Each requirement states an outcome; how an SDK provides it, through builders, interfaces, types, attributes, macros, or existing hooks, is its choice.
 
+#### Extensibility requirements
+
 - External packages **MUST** be able to use the extension points through documented public APIs, without an SDK fork, an SDK-owned allowlist, or an organisation-managed namespace or publishing access.
+
+#### Lifecycle requirements
+
 - Applications and extension setup code **MUST** be able to tell which extensions are registered before messages are processed.
 - If an extension or any of its contributions cannot be registered, the SDK **MUST** report an error and **MUST NOT** process messages with that extension partially installed.
 - SDKs **MAY** limit registration to configuration time. Runtime installation and removal are **OPTIONAL**.
+
+#### API stability requirements
+
+- These extension points **MUST** follow the SDK's existing public API stability and versioning policies. This SEP does not introduce a separate stability policy.
 - An SDK that offers both synchronous and asynchronous APIs **MAY** provide each extension point once and adapt it to the other style, provided extensions contributed once apply to both.
 
 ### 1. Extension registration
@@ -93,29 +102,37 @@ await server.start(); // checks after addResource has enabled resources
 
 If the application omits `addResource` and otherwise leaves resource support disabled, startup reports that `com.example/search` requires local resource support. Its handlers and middleware do not run. Other SDKs can check at a different point while providing the same dependency guarantees.
 
+#### Requirements
+
+An extension package **MAY** configure SDK services, methods, or filters separately from host middleware and routes, through documented configuration APIs. Setup failures **MUST** prevent the affected extension from becoming active.
+
 SDKs **MUST** let applications enable multiple independently packaged extensions on the same client or server, and **MUST** reject a duplicate extension identifier.
 
-#### Capabilities
+##### Capabilities
 
 Extensions declare support in the `ClientCapabilities.extensions` and `ServerCapabilities.extensions` maps defined by SEP-2133, keyed by extension identifier.
 
 - An extension **MUST** be able to declare its entry and settings in that map as part of registration.
 - Extension code **MUST** be able to read the peer's capabilities wherever the SDK already makes them available, such as discovery, initialization, or request context.
 
-#### Dependencies
+##### Dependencies
 
-An extension can depend on the local configuration: core capabilities and their sub-features, or other registered extensions. The SDK decides how dependencies are expressed, for example as a predicate over the configuration, a declarative map, or types. The rules for what counts as a match belong to the SDK and the extension, not to this SEP. Dependencies are local: they add no wire fields and do not advertise support to peers.
+SDKs **MUST** provide public APIs for extensions to declare dependencies and **MUST** verify those dependencies before the extension runs. Dependencies can concern local core capabilities and their sub-features, or other registered extensions. The SDK decides how dependencies are expressed, for example as a predicate over the configuration, a declarative map, or types. The rules for what counts as a match belong to the SDK and the extension, not to this SEP. Dependencies are local: they add no wire fields and do not advertise support to peers.
 
 - A dependency **MUST NOT** be considered unmet solely because it was registered or enabled after the extension that requires it.
 - An extension's handlers and middleware **MUST NOT** run unless its dependencies are satisfied by the local configuration applicable to that execution.
 - SDKs choose when to check dependencies and **SHOULD** check before serving where possible. A configuration-time check is sufficient when the relevant configuration cannot change. Where it can change or vary by request, the SDK **MUST** ensure the dependencies remain satisfied before running the extension.
 - An unmet dependency **MUST** produce an error that identifies the extension and the failed requirement. For a boolean predicate, the SDK can use an extension-provided description of that requirement; the predicate need not return structured diagnostics. If the check runs while handling a peer's request, the SDK **SHOULD** answer with an internal error (`-32603`), since the fault is local configuration. A notification has no response; the SDK reports the failure through its existing local error path without running the extension.
 
-These checks do not install packages or enable capabilities.
+These checks do not install packages or enable capabilities. For fixed configuration, the SDK can verify dependencies at startup.
+
+For example, a client extension may select an enhanced mode from the peer's advertised capabilities. If that mode requires another local extension, the SDK verifies the dependency after the mode is selected and before it runs.
 
 For example, a hypothetical catalog-search extension might require a separately packaged catalog-index extension. An application can register them in either order. Before search handlers run, the SDK checks that the catalog-index extension is available with the features search requires. This check neither installs nor enables the dependency. Dependencies do not determine middleware order.
 
 ### 2. Custom methods
+
+#### Requirements
 
 SDKs **MUST** let extensions register handlers for custom requests and notifications, and send them, with typed or validated parameters and results in whatever form fits the language.
 
@@ -157,6 +174,10 @@ Changing what a method does, through middleware or an SDK's existing handler-rep
 
 ### 3. Middleware
 
+#### Requirements
+
+SDKs **MUST** provide the JSON-RPC and applicable HTTP middleware capabilities specified below. Existing host-framework composition can satisfy HTTP requirements without an SDK-owned HTTP framework.
+
 Middleware comes in two categories, which compose as layers:
 
 | Category                                         | Wraps                                  | Applies to      | Typical uses                                        |
@@ -166,23 +187,27 @@ Middleware comes in two categories, which compose as layers:
 
 Transport middleware runs outside JSON-RPC middleware. An inbound HTTP request passes through transport middleware before its messages are parsed and reach JSON-RPC middleware; outbound messages pass through JSON-RPC middleware before they are serialized and handed to transport middleware. Transport middleware passes information inward as local [context](#context-between-layers). An extension can contribute middleware in either or both categories.
 
-JSON-RPC middleware is the default. Transport middleware is a lower-level tool for behaviour that JSON-RPC middleware cannot express:
+When both JSON-RPC and HTTP middleware can express the same behaviour, extensions **SHOULD** prefer JSON-RPC middleware so that the behaviour works across transports. Transport middleware is needed for behaviour that JSON-RPC middleware cannot express, including:
 
 - Behaviour that depends on HTTP status codes or headers rather than messages.
 - Behaviour that must run before a message is parsed or accepted, such as rejecting an unauthenticated HTTP request.
 
-Extensions **SHOULD** use JSON-RPC middleware wherever it suffices, so that they work the same way over every transport, and **SHOULD** limit transport middleware to the parts that need it. For example, an authorization extension uses transport middleware to verify credentials and answer with `401`, while a policy that inspects tool calls uses JSON-RPC middleware and reads the resulting identity from [context](#context-between-layers). Contributions that do not wrap processing, such as HTTP routes, are [transport hooks](#4-transport-hooks) rather than middleware.
+Extensions **SHOULD** use JSON-RPC middleware wherever it suffices, so that they work the same way over every transport, and **SHOULD** limit transport middleware to the parts that need it. For example, an authorization extension uses transport middleware to verify credentials and answer with `401`, while a policy that inspects tool calls uses JSON-RPC middleware and reads the resulting identity from [context](#context-between-layers). Contributing HTTP routes is a [transport hook](#4-transport-hooks) capability; an SDK or host framework may implement it through middleware or routing APIs.
 
 Within JSON-RPC middleware, SDKs **MAY** also offer [typed middleware](#typed-middleware) for individual methods, layered on the same chain.
 
 ### 3.1 JSON-RPC middleware
+
+#### Requirements
 
 JSON-RPC middleware wraps the processing of JSON-RPC messages; in this section, "middleware" means JSON-RPC middleware. SDKs **MUST** let applications and extensions add middleware that covers core and custom requests, responses, and notifications, in both directions. Adding middleware does not register a method or declare a capability. The shape is the SDK's choice: wrapped handlers, layers, filters, interceptors, or callbacks all work if they meet the requirements below.
 
 **Illustrative pseudocode — adding request metadata without buffering responses.** This receiving middleware annotates catalog-search requests and passes other messages through. It preserves existing metadata and yields downstream messages one at a time.
 
 ```typescript
-// Pseudocode: Handler is an invented message-stream interface.
+// Pseudocode: Handler is an invented interface for JSON-RPC messages and
+// local context, yielding zero or more complete messages. Its shape is
+// illustrative; SDKs use language-native handlers, filters, or callbacks.
 function searchMiddleware(next: Handler): Handler {
   return async function* (request) {
     if (request.method !== "com.example/search") {
@@ -210,7 +235,7 @@ function searchMiddleware(next: Handler): Handler {
 
 Downstream middleware and the handler see the added `_meta` entry. The JSON-RPC envelope is unchanged, and unrelated metadata is preserved. There is no collection of the response stream into an array. This fragment illustrates metadata mutation and incremental forwarding; it does not demonstrate every required middleware behaviour. Other SDKs can use their own streaming or callback mechanisms.
 
-#### What middleware can do
+##### What middleware can do
 
 - Act before and after downstream processing, or return early without calling it.
 - Modify or replace a payload, with any outcome the method contract allows, including supported intermediate results and follow-up exchanges.
@@ -220,17 +245,17 @@ Downstream middleware and the handler see the added `_meta` entry. The JSON-RPC 
 
 SDKs **MUST** provide each of these.
 
-#### Streams
+##### Streams
 
 Some methods produce more than one message. Middleware **MUST** be able to act on each message as it is produced or consumed, not only on a final result. Adding middleware **MUST NOT** change delivery order, cancellation, or error propagation, or force buffering of the whole stream. This covers protocol messages, not transport frames.
 
 In the sending direction, middleware acts on an outgoing message before it is sent and on any messages returned by that operation. For a client request, this covers the outgoing request and the peer's response messages, including supported intermediate results. An outgoing notification has no response of its own. A notification emitted on a `subscriptions/listen` stream can be handled as a yielded message in the receiving chain for that request. A separate sending chain is not required when the receiving chain already covers those outbound messages. SDKs choose the API shape; the generator above illustrates receiving middleware, not a required signature for every direction.
 
-#### Errors and cleanup
+##### Errors and cleanup
 
 Errors follow the language's normal mechanisms and the SDK's existing error path. When processing completes, fails, is cancelled, or stops early, the SDK **MUST** end middleware through the language's normal cleanup mechanisms rather than detaching or leaking it. SDKs do not need to guarantee cleanup the language itself does not guarantee after cancellation.
 
-#### Ordering
+##### Ordering
 
 Middleware composes in layers. A message passes through outer layers before inner ones, and results and errors return in reverse. A layer that returns early skips the layers inside it.
 
@@ -241,13 +266,15 @@ Middleware composes in layers. A message passes through outer layers before inne
 
 Inspecting the order at runtime is **OPTIONAL**. Sending and receiving **MAY** use separate orders. Dependencies do not determine order.
 
-#### Typed middleware
+##### Typed middleware
 
-The requirements above apply to a layer that sees every message as JSON-RPC, which suits cross-cutting concerns but is awkward for code that targets one method. Typed middleware for individual core and custom methods, with the method's parameter and result types, built on the same chain, is **OPTIONAL**. Where an SDK offers it, typed middleware **MUST** meet the requirements of this section and **MUST** run in a documented position relative to untyped JSON-RPC middleware. For example, the C# SDK pairs message filters for all JSON-RPC messages with request filters such as `AddCallToolFilter` ([Appendix D](#appendix-d-implementability-across-sdk-languages)).
+The requirements above apply to a layer that sees every message as JSON-RPC, which suits cross-cutting concerns but is awkward for code that targets one method. SDKs **MAY** also provide middleware scoped to individual core and custom methods, with typed or validated parameters and results in the form appropriate to the language. Method-specific middleware exposes the method's parameters and results; general JSON-RPC middleware supports cross-cutting behaviour such as metadata mutation. Both forms compose on the same chain, using the SDK's language-native APIs. Where an SDK offers it, typed middleware **MUST** meet the requirements of this section and **MUST** run in a documented position relative to untyped JSON-RPC middleware. For example, the C# SDK pairs message filters for all JSON-RPC messages with request filters such as `AddCallToolFilter` ([Appendix D](#appendix-d-implementability-across-sdk-languages)).
 
 ### 3.2 Transport middleware
 
 Some extensions act on HTTP requests rather than on JSON-RPC messages. Authorization extensions attach and verify credentials and answer with `401` and `WWW-Authenticate` before any MCP message is accepted ([Appendix B](#appendix-b-extension-requirements)). JSON-RPC middleware cannot express this, because it runs after the HTTP request has been accepted and parsed.
+
+#### Requirements
 
 These requirements apply to the Streamable HTTP transport. A stdio frame is one newline-delimited JSON-RPC message with no headers or status codes, so JSON-RPC middleware already sees everything that crosses a stdio connection, and stdio has no transport middleware; hooks on raw stdio frames or the server's standard error stream are **OPTIONAL**. SDKs **MAY** offer transport middleware for other transports, including custom ones. The [ordering](#ordering) and [errors and cleanup](#errors-and-cleanup) requirements apply to transport middleware.
 
@@ -311,15 +338,17 @@ Authorization takes place before initialization or discovery, so an extension th
 
 #### Host frameworks
 
-An SDK **MAY** meet the transport middleware and [transport hook](#4-transport-hooks) requirements through the host's HTTP stack, such as ASP.NET Core middleware and endpoints, Express or Hono, ASGI, `net/http` handlers and round trippers, Tower layers and routers, or servlet filters, if it exposes its HTTP handler and HTTP client as composable units and documents how to pass context into message processing. A dedicated MCP API is not required where the host's mechanism suffices, but an extension package **MUST** be able to contribute its transport middleware and hooks through the same registration as its other contributions or through documented host composition.
+An SDK **MAY** meet the transport middleware and [transport hook](#4-transport-hooks) requirements through the host's HTTP stack, such as ASP.NET Core middleware and endpoints, Express or Hono, ASGI, `net/http` handlers and round trippers, Tower layers and routers, or servlet filters, if it exposes its HTTP handler and HTTP client as composable units and documents how to pass context into message processing. A dedicated MCP API is not required where the host's mechanism suffices, but an extension package **MUST** be able to contribute its transport middleware and hooks through documented SDK or host composition. Its package **MAY** configure host middleware and routes separately from SDK services and filters. Setup failures **MUST** prevent the affected extension from becoming active.
 
 ### 4. Transport hooks
 
-Transport hooks let extensions add to a transport without wrapping message processing. They are not middleware: an HTTP route handles its own requests rather than calling the next layer, and a launch setting configures a process rather than intercepting messages. As with transport middleware, extensions use them only for behaviour that cannot be expressed on JSON-RPC messages.
+Transport hooks let extensions contribute HTTP routes and stdio launch settings. Route contribution can use transport middleware or routing APIs that expose the host router's registration, matching, and conflict handling. Launch settings configure a process before it starts.
 
-#### HTTP routes
+#### Requirements
 
-Server Card serves a document beneath the MCP endpoint, and authorization extensions serve protected resource metadata at well-known paths, both outside the MCP endpoint's JSON-RPC processing.
+##### HTTP routes
+
+Server Card serves a document beneath the MCP endpoint, and authorization extensions serve protected resource metadata at well-known paths, both outside the MCP endpoint's JSON-RPC processing. File-upload extensions may also need HTTP endpoints outside JSON-RPC processing.
 
 - SDKs **MUST** let applications and extensions serve additional HTTP routes, for any HTTP method including `OPTIONS`, with full control of status, headers, and body. Most SDKs mount the MCP endpoint in a host framework, and documented [host composition](#host-frameworks) that lets an extension package add its routes satisfies this.
 - Routes **MUST** be possible both beneath the MCP endpoint path, such as `<mcp-endpoint>/server-card`, and at origin-level paths such as `/.well-known/oauth-protected-resource` and `/.well-known/ai-catalog.json`.
@@ -327,7 +356,7 @@ Server Card serves a document beneath the MCP endpoint, and authorization extens
 - Applications **MUST** be able to serve routes without transport middleware applying to them, so that public metadata remains reachable when authorization middleware protects the MCP endpoint.
 - Route handlers **SHOULD** be able to read the server's local configuration, such as its implementation information, endpoint, and supported protocol versions, so documents like a Server Card can be generated from it.
 
-#### stdio launch configuration
+##### stdio launch configuration
 
 A client launches a stdio server with a command, arguments, and environment, and the [authorization specification](https://modelcontextprotocol.io/specification/draft/basic/authorization) directs stdio implementations to retrieve credentials from the environment rather than through HTTP authorization.
 
@@ -360,8 +389,8 @@ Grant types, token validation, and discovery logic stay in the extension package
 Extension packages and applications need to know which extension points an SDK supports before relying on them, both in documentation and in code.
 
 - SDKs **MUST** document each extension point that they support, with the APIs that provide it and their ordering rules, in one place reachable from the SDK's main documentation.
-- SDKs **MUST** expose, through a public API, the set of extension points in this SEP that they support, for each role, client and server, they implement. An identifier is included only if the SDK meets every requirement for that extension point in that role.
-- The set **MUST** use the versioned identifiers below, so extension authors can rely on the same names across SDKs. Code reading the set **MUST** ignore identifiers and versions it does not recognise.
+- SDKs **MAY** expose, through a public API, the set of extension points in this SEP that they support, for each role, client and server, they implement. An identifier is included only if the SDK meets every requirement for that extension point in that role.
+- Where a public support set is provided, it **MUST** use the versioned identifiers below, so extension authors can rely on the same names across SDKs. Code reading the set **MUST** ignore identifiers and versions it does not recognise.
 - The set is local. SDKs **MUST NOT** send it to peers.
 
 | Identifier                           | Extension point                                                      |
@@ -381,9 +410,9 @@ Each identifier has the form `name@sep-NNNN`, where `NNNN` is the number of the 
 - New extension points take new names, versioned by the SEP that introduces them.
 - SDK documentation **SHOULD** list the supported identifiers with links to their SEPs, so support can be compared across SDKs.
 
-The form is the SDK's choice: a constant collection, an enum set, or a function such as `supports(point)` backed by one. A collection is preferred to a function alone because it can be listed and compared in documentation and tests.
+A runtime support API is **OPTIONAL**. Extension packages can rely on compatible SDK package versions and documented support instead. Where provided, its form is the SDK's choice: a constant collection, an enum set, or a function such as `supports(point)` backed by one. A collection is preferred to a function alone because it can be listed and compared in documentation and tests.
 
-For Tier 1 SDKs most identifiers are always present, but the set still matters. Other SDKs implement these requirements as recommendations, roles can differ within one SDK, earlier SDK releases predate this SEP, and transport middleware and hooks depend on the transport. An extension package can check the set when enabled and report a clear error, or enable optional behaviour only where it is supported. In this example, an audit extension requires JSON-RPC middleware and adds an HTTP route only where HTTP routes are available:
+An optional support set can distinguish support across SDK versions, roles, and transports. Other SDKs implement these requirements as recommendations, roles can differ within one SDK, earlier SDK releases predate this SEP, and transport middleware and hooks depend on the transport. An extension package can check the set when enabled and report a clear error, or enable optional behaviour only where it is supported. In this example, using an SDK that provides the optional support API, an audit extension requires JSON-RPC middleware and adds an HTTP route only where HTTP routes are available:
 
 ```python
 # Pseudocode: invented SDK APIs.
@@ -418,10 +447,10 @@ Working group discussions and the survey in [Appendix B](#appendix-b-extension-r
 - **Common behaviour, language-specific APIs.** A shared plugin interface would constrain SDK design without improving interoperability between peers.
 - **Types are fixed at registration; behaviour composes.** If a later registration could redefine a method, its types would depend on registration order. Fixing types while letting behaviour be wrapped or replaced lets independent packages combine safely and keeps existing replacement APIs working.
 - **Dependencies are independent of registration order.** Applications often enable a capability after registering the extension that needs it, for example by adding the first resource. Dependencies must be satisfied by the configuration applicable when the extension runs, which can be fixed at startup or vary by request. Leaving check timing to the SDK supports both designs without requiring a globally final configuration.
-- **Middleware is split into JSON-RPC and transport categories, with JSON-RPC as the default.** HTTP authorization runs before a message is accepted and can answer with HTTP status codes that JSON-RPC cannot express, while JSON-RPC middleware must work identically over every transport. Keeping the layers separate, with context passed from one to the other, matches how SDKs already work: every SDK surveyed has an HTTP seam, usually from its host framework ([Appendix D](#appendix-d-implementability-across-sdk-languages)). Allowing host frameworks to satisfy the transport requirements avoids SDKs reimplementing them. Transport middleware is tied to one transport and sees transport details such as credentials, so extensions are steered to JSON-RPC middleware and use transport middleware only where they must.
-- **Routes and launch settings are hooks, not middleware.** They add to a transport without wrapping message processing, so they are specified separately and do not take part in middleware ordering.
-- **Typed middleware is layered on JSON-RPC middleware.** One JSON-RPC chain gives a single place to define order, cancellation, and streaming. Typed per-method middleware is easier to use for most code and can be built on top, as the C# SDK does, but it is left optional because JSON-RPC middleware already provides every capability extensions need.
-- **Support is advertised as a set of versioned identifiers.** A shared vocabulary lets an extension author check support in the same way in every SDK, and lets documentation, tiering reviews, and conformance refer to the same names. Versioning each identifier by the SEP that defines it lets one extension point change without renaming the others and links each identifier to its normative text. Unlike a specification version, a SEP number is fixed before any SDK implements it, so identifiers never change between implementation and release. Keeping the set local avoids wire changes.
+- **Middleware is split into JSON-RPC and transport categories, with JSON-RPC preferred where either suffices.** HTTP authorization runs before a message is accepted and can answer with HTTP status codes that JSON-RPC cannot express, while JSON-RPC middleware must work identically over every transport. Keeping the layers separate, with context passed from one to the other, matches how SDKs already work: every SDK surveyed has an HTTP seam, usually from its host framework ([Appendix D](#appendix-d-implementability-across-sdk-languages)). Allowing host frameworks to satisfy the transport requirements avoids SDKs reimplementing them. Transport middleware is tied to one transport and sees transport details such as credentials, so extensions are steered to JSON-RPC middleware and use transport middleware only where they must.
+- **Routes and launch settings are specified as contribution capabilities.** Route contribution can be implemented through middleware or routing APIs, depending on the SDK and host framework. Specifying the capability separately avoids assuming that every middleware API can add routes or expose the host router's matching and conflict handling. Launch settings configure the process before it starts. Middleware used to implement route contributions follows the middleware ordering rules.
+- **Typed middleware is layered on JSON-RPC middleware.** One JSON-RPC chain gives a single place to define order, cancellation, and streaming. Method-specific middleware is optional and provides convenient, scoped access to typed or validated parameters and results; general JSON-RPC middleware supports concerns such as metadata mutation across methods. SDKs choose how to express both in their language.
+- **Support uses versioned identifiers in documentation, with optional runtime introspection.** A shared vocabulary lets documentation, tiering reviews, and conformance refer to the same extension points. Versioning each identifier by the SEP that defines it links it to normative requirements and lets one extension point change without renaming the others. The identifiers do not prescribe a shared API shape or replace compatible SDK package versions. A runtime support set can help feature detection where an SDK provides it, but is not required. Keeping the set local avoids wire changes.
 - **The requirements fit every Tier 1 language.** Each requirement was checked against SDKs with dynamic, gradual, nominal, and structural type systems, with and without generic methods ([Appendix D](#appendix-d-implementability-across-sdk-languages)).
 - **Ordering is required; the mechanism is not.** Applications need to interleave middleware across extensions, but SDKs already express order in different ways ([Appendix A](#appendix-a-prior-art-and-sdk-support)).
 
@@ -472,7 +501,7 @@ Assessed on 2026-09-18 against the linked revisions; tiers follow the [official 
 | Rust (1)       |            ? / ✅             |       ✅       |     ✅ wrappers     |
 | Ruby (1)       |            ? / ✅             |  ✅ requests¹  |          ?          |
 | Java (2)       |            ? / ❌             | ✅ session API | ✅ handler wrappers |
-| PHP (3)        |            ✅ / ✅            |       ✅       |          ?          |
+| PHP (3)        |            ✅ / ✅            |       ✅       |         ❌          |
 | Kotlin (3)     |            ? / ✅             |       ✅       |          ?          |
 | Swift (3)      |            ? / ❌             |       ✅       |          ?          |
 
@@ -617,13 +646,13 @@ No requirement was found that a language cannot express; every ❌ is a missing 
 | HTTP client modify, observe, retry | ✅ fetch middleware                   | ✅ `httpx.Auth` flows                     | ✅ `HttpClient` handlers                         | ✅ `RoundTripper`, `OAuthHandler`               | ✅ wrap the client trait; `401`, `403` typed   | ✅ customizers, error handler   |
 | stdio launch configuration         | ⚠️ app-owned `args`, `env`            | ⚠️ app-owned `args`, `env`                | ⚠️ app-owned `Arguments`, `EnvironmentVariables` | ⚠️ app-owned `exec.Cmd`                         | ⚠️ app-owned `Command`                         | ⚠️ app-owned `ServerParameters` |
 | stdio server session context       | ✅ one session per process            | ✅ one session per process                | ✅ one session per process                       | ✅ one session per process                      | ✅ one session per process                     | ✅ one session per process      |
-| Advertisement                      | ❌                                    | ❌                                        | ❌                                               | ❌                                              | ❌                                             | ❌                              |
+| Support introspection (optional)   | ❌                                    | ❌                                        | ❌                                               | ❌                                              | ❌                                             | ❌                              |
 
-Every SDK lets the application set a stdio server's arguments and environment variables, but none yet lets extensions contribute them through registration or detects conflicting contributions, so extensions currently rely on helpers the application calls. The advertisement is new in every SDK and needs only a constant. Neither is discussed further below.
+Every SDK lets the application set a stdio server's arguments and environment variables, but none yet lets extensions contribute them through registration or detects conflicting contributions, so extensions currently rely on helpers the application calls. Runtime support introspection is optional; documentation uses the common identifiers. Neither is discussed further below.
 
 ### Gaps by SDK
 
-Each item is a ❌ above, or a ⚠️ that an extension package cannot rely on, with the idiomatic shape of the missing API. Typed middleware is optional, so its absence is not listed as a gap.
+Each item is a ❌ above, or a ⚠️ that an extension package cannot rely on, with the idiomatic shape of the missing API. Typed middleware is optional, so its absence is not listed as a mandatory gap.
 
 - **TypeScript (Tier 1).** No extension registry, dependency checks, or checked method registration; custom handlers replace existing ones. No JSON-RPC middleware: wrapping the `Transport` passed to `connect` sees raw messages but not request context, and does not apply to the fetch-shaped HTTP handler. Missing shapes: extension objects passed at construction, and `(next) => handler` middleware over JSON-RPC messages below the typed handler layer; optional typed middleware could reuse the method-to-type maps. Server auth context needs an open context beside the bearer-shaped `AuthInfo`.
 - **Python (Tier 1).** No dependency checks, outbound server middleware, or client middleware; interposing on session streams is a workaround. Transport middleware and routes work through ASGI, but identity reaches handlers only as a bearer `AccessToken`. Missing shapes: a dependency predicate on `Extension`, outbound and client `(ctx, call_next)` middleware, and an open context value set by ASGI middleware. Runtime validation through Pydantic suits typed methods; reusable middleware is typed with `Any` because middleware is invariant in the lifespan type.
