@@ -863,6 +863,12 @@
               "seps/2640-skills-extension",
               "seps/2663-tasks-extension"
             ]
+          },
+          {
+            "group": "Draft",
+            "pages": [
+              "seps/3371-sdk-extension-points"
+            ]
           }
         ]
       },
@@ -1359,6 +1365,10 @@
       "destination": "/seps/2106-json-schema-2020-12"
     },
     {
+      "source": "/seps/2127",
+      "destination": "/seps/2127-mcp-server-cards"
+    },
+    {
       "source": "/seps/2133",
       "destination": "/seps/2133-extensions"
     },
@@ -1425,6 +1435,10 @@
     {
       "source": "/seps/2663",
       "destination": "/seps/2663-tasks-extension"
+    },
+    {
+      "source": "/seps/3371",
+      "destination": "/seps/3371-sdk-extension-points"
     }
   ],
   "contextual": {
