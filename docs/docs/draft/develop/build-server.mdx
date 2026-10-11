@@ -566,7 +566,7 @@ The tool execution handler is responsible for actually executing the logic of ea
 
 ```typescript
 // Build a server instance and register its tools. serveStdio calls this
-// once per connection, so every call must return a fresh instance.
+// whenever it needs an instance, so every call must return a fresh one.
 function createServer() {
   const server = new McpServer({
     name: "weather",
