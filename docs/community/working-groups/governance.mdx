@@ -1,0 +1,183 @@
+---
+title: Governance Working Group Charter
+description: Charter for the MCP Governance Working Group.
+---
+
+## Group Type
+
+**Working Group**
+
+## Mission Statement
+
+The Governance Working Group exists to refine, document, and steward MCP's governance processes and community values, providing a single home for revising the project's governance documentation as the project grows. It also serves as an advisory voice channel — surfacing community concerns to Core Maintainers and stewarding the contribution culture that helps people advance through the [contributor ladder](/community/contributor-ladder). Over time the WG aspires to evolve into a standing consultation forum for contested governance decisions and, longer-term, to support representative community participation in the broader MCP organization.
+
+## Scope
+
+### In Scope
+
+- **Governance Documentation Stewardship**: Content under `docs/community/` covering governance, contributor-ladder, sep-guidelines, working-interest-groups, communication, antitrust, and project policies. Editorial revisions land autonomously; substantive revisions go through WG consensus and Core Maintainer approval (see Authority & Decision Rights below). Pages with an owner assigned outside this WG, and the WG and IG charter pages gated to Core Maintainers by CODEOWNERS, are subject to tighter collaboration with the owner: the WG proposes changes to those; it does not land them.
+- **Decision Recording**: Defining what counts as a project decision, who ratifies it, and how it is recorded across meeting notes, GitHub Discussions, and the SEP record.
+- **Code of Conduct Stewardship**: Drafting, revising, and maintaining the Code of Conduct text and adjacent reporting/escalation documentation. Content revisions go through WG consensus → Core Maintainer approval.
+- **Community Values**: Stewardship of MCP's stated community values, including landing the in-progress values workshop as a public artefact under `docs/community/`.
+- **Contribution Culture & Mentorship**: Encouraging mentorship as a culture (not a formal pairings program in v0.1) and stewarding practice for movement across the contributor ladder tiers, in coordination with [SEP-2148](/seps/2148-contributor-ladder).
+- **Voice Channel**: Surfacing community concerns from contributors and observers to Core Maintainers in an advisory, non-binding capacity. Concerns arrive in `#governance-wg` or at the monthly working session; the Lead carries those needing Core Maintainer attention to the monthly Core Maintainer plus WG/IG leads meeting.
+- **Cross-Cutting Coordination**: Coordination with other WGs and IGs on governance processes that affect them. The WG sets the framework; per-group operations remain with the groups themselves.
+
+### Out of Scope
+
+- **Specification authorship**: Protocol changes go through the [SEP process](/community/sep-guidelines) and the relevant spec-producing Working Group. The Governance WG never owns spec sections. It may sponsor a SEP that changes a governance process.
+- **Maintainer selection and succession**: Lead Maintainers appoint Core Maintainers; Core Maintainers approve Maintainers. The WG may recommend process improvements but does not pick people.
+- **Individual Code of Conduct moderation decisions**: Receipt, investigation, and adjudication of individual incident reports are not within this WG's purview. The WG's near-term goal is to receive aggregated, anonymized trend reports from whoever performs incident handling, to inform policy revision.
+- **Per-SDK governance**: Owned by the [SDK Working Group](/community/working-groups/sdk).
+- **Per-WG/IG internal operations**: Each group runs its own meetings, prioritisation, and member coordination; the Governance WG sets framework only.
+- **Maintainer disputes and interpersonal conflict resolution outside the Code of Conduct**: Explicitly out of scope for v0.1. Scoping a possible escalation path is a candidate future deliverable; claiming the role itself is not.
+
+### Related Groups
+
+- **Core Maintainers** — material governance changes, Code of Conduct content revisions, and contributor ladder structural changes require Core Maintainer approval. The Lead represents the WG at the monthly Core Maintainer plus WG/IG leads meeting and surfaces community concerns there in an advisory capacity.
+- **All other Working Groups and Interest Groups** — the WG sets the governance framework that all groups inherit ([charter template](/seps/2149-working-group-charter-template), decision rights, meeting requirements). Per-group operations remain with the groups themselves. Interest groups route governance questions here.
+- **SDK Working Group** — coordination on the boundary between project-wide governance and per-SDK governance, which lives there.
+- **Future Code of Conduct handling body** — once the CoC reporting/handling path is formalised, the body that handles individual incidents will share aggregated, anonymised trend reports with the WG to inform policy revision.
+
+## Leadership
+
+| Role           | Name          | Organization                     | GitHub                                           | Term       |
+| -------------- | ------------- | -------------------------------- | ------------------------------------------------ | ---------- |
+| Lead (Interim) | Sarah Novotny | Independent (contract Anthropic) | [@sarahnovotny](https://github.com/sarahnovotny) | NTE 1-year |
+
+Sponsored by David Soria Parra ([@dsp-ant](https://github.com/dsp-ant)).
+
+### Lead Selection & Succession
+
+The current Lead serves an interim term of no more than one year from the charter approval date
+recorded in the Changelog. When a Lead seat opens — the interim term ends, a Lead steps down, or
+the WG agrees to add a seat — the WG selects future Leads as follows:
+
+- Any WG Member may self-nominate or be nominated by another WG Member.
+- Candidates must meet the Lead requirements in the
+  [Working and Interest Groups](/community/working-interest-groups) documentation, and the group's
+  leadership must retain sponsorship from at least two Core Maintainers or one Lead Maintainer.
+- Selection is by WG consensus using the standard decision-making process (lazy consensus, falling
+  back to a formal vote), then ratified by Core Maintainers as a charter amendment, since the
+  Leadership table is part of this charter.
+- The org-diversity invariant (no more than 2 Leads from any single organisation; see Membership)
+  is enforced at selection time.
+
+## Authority & Decision Rights
+
+| Decision Type                                                                       | Authority Level                                                    |
+| ----------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| Meeting logistics & scheduling                                                      | WG Leads (autonomous)                                              |
+| WG roadmap and review-queue submissions                                             | WG Leads (autonomous)                                              |
+| Proposal prioritisation within WG                                                   | WG Leads (autonomous)                                              |
+| Editorial revisions to existing governance docs (typos, clarifications, link fixes) | WG Leads (autonomous, with documented rationale)                   |
+| Substantive revisions to existing governance docs                                   | WG consensus → Core Maintainer approval                            |
+| New governance policy or new doc under `docs/community/`                            | WG consensus → Core Maintainer approval                            |
+| Changes to a page owned outside this WG                                             | Proposed to that owner; owner decides                              |
+| Code of Conduct content revision                                                    | WG consensus → Core Maintainer approval                            |
+| Code of Conduct individual incident handling                                        | Out of scope (handled elsewhere)                                   |
+| Contributor ladder structural changes                                               | WG consensus → Core Maintainer approval + community comment period |
+| Onboarding & mentorship culture and practice docs                                   | WG consensus (autonomous)                                          |
+| Surfacing community concerns to Core Maintainers                                    | WG consensus (advisory; non-binding)                               |
+| Scope expansion                                                                     | Core Maintainer approval required                                  |
+| Amendments to this charter                                                          | WG consensus → Core Maintainer approval                            |
+| WG Member approval                                                                  | WG Member sponsors (subject to org-diversity cap; see Membership)  |
+
+The "editorial vs. substantive" line is intentionally narrow: typos, clarifications, broken-link fixes, and rewordings that do not change meaning are editorial. Anything that changes the meaning, scope, or applicability of an existing rule is substantive.
+
+Pull request creation on the specification repository is limited to maintainers. WG Members who are
+not maintainers draft governance doc changes from a fork or a WG-owned repository; a maintainer in
+the WG opens the pull request and names the author.
+
+## Membership
+
+Membership eligibility follows the standard WG model defined in the [Working and Interest Groups](/community/working-interest-groups) documentation. To become a WG Member: sustained participation over 3 months, meaningful contributions (for this WG: governance doc drafting, reviews, or discussion facilitation), nomination by an existing WG Member or Lead, and no objections from Leads, Core Maintainers, or Lead Maintainers within 7 days. One additional structural rule applies: **no more than 2 Leads from any single organisation**. This invariant is maintained throughout each term.
+
+| Name                     | Organization                                     | GitHub                                           | Discord       | Level     |
+| ------------------------ | ------------------------------------------------ | ------------------------------------------------ | ------------- | --------- |
+| Sarah Novotny            | Independent (contract Anthropic)                 | [@sarahnovotny](https://github.com/sarahnovotny) | @sarahnovotny | Lead      |
+| Andreas Schlapbach       | TBD                                              | [@schlpbch](https://github.com/schlpbch)         |               | WG Member |
+| Lin Sun                  | Solo.io                                          | [@linsun](https://github.com/linsun)             |               | WG Member |
+| Peder Holdgaard Pedersen | Saxo Bank / MCP Maintainer & Community Moderator | [@PederHP](https://github.com/PederHP)           | @pederhp      | WG Member |
+
+## Operations
+
+| Meeting         | Frequency | Duration | Purpose                                               |
+| --------------- | --------- | -------- | ----------------------------------------------------- |
+| Working Session | Monthly   | 60 min   | Doc work, member coordination, scheduled deliberation |
+
+The monthly working session is a standing slot and is not cancelled for lack of an agenda. Leads
+publish an agenda in `#governance-wg` at least 48 hours ahead when items are known. If three
+consecutive sessions draw neither attendance nor agenda items, the Leads propose a reduced cadence
+or retirement to the Core Maintainers.
+
+Meeting invites are created from a project account, so any attendee can start and record a session.
+
+The WG does not run office hours. Open Q&A happens in `#governance-wg` and at project-wide Core
+Maintainer office hours.
+
+Discord: `#governance-wg`
+
+GitHub Discussions: `Meeting Notes - Governance WG` (category to be created during charter setup).
+Discussions in the specification repository are reserved for meeting notes.
+
+The WG keeps its notes, roadmap, and meeting information in the standard shape expected of every
+group.
+
+## Deliverables & Success Metrics
+
+### Active Work Items
+
+| Item                                                                | Status      | Target Date | Champion      |
+| ------------------------------------------------------------------- | ----------- | ----------- | ------------- |
+| Decision-recording convention: what is decided, who ratifies, where | Planning    | 2027-01-31  | Sarah Novotny |
+| Community values doc public under `docs/community/`                 | In progress | 2027-02-28  | Sarah Novotny |
+| Code of Conduct reporting and handling path formalised              | Planning    | 2027-03-31  | TBD           |
+| Onboarding & mentorship culture doc                                 | Planning    | 2027-04-30  | TBD           |
+| "State of MCP Community" cadence + first published post             | Planning    | 2027-05-31  | TBD           |
+| "Ways to contribute beyond code" page                               | Planning    | 2027-05-31  | TBD           |
+
+### Success Criteria
+
+Horizons run from the charter approval date in the Changelog. The dates below assume approval in
+November 2026.
+
+**Six months (by 2027 Q2):**
+
+- Decision-recording convention adopted and applied to at least 3 recorded meetings.
+- Values doc landed in `docs/community/`, with at least 3 substantive community comments received on the draft beforehand.
+- "Meeting Notes - Governance WG" Discussions category live; notes posted from every monthly working session held.
+- Org-diversity invariant maintained throughout the term: no more than 2 Leads from any single organisation.
+- Lead attended the monthly Core Maintainer plus WG/IG leads meeting at least 4 times.
+
+**Twelve months (by 2027 Q4):**
+
+- Second "State of MCP Community" post published.
+- Onboarding & mentorship culture has produced at least 3 tier-promotion mentions citing the WG's work.
+- WG advisory inputs to Core Maintainers documented in at least 1 contested governance decision.
+- No session cancelled for lack of an agenda in the preceding 6 months, or a documented cadence change.
+
+**Stretch (not required for "success", tracked):**
+
+- Aggregated, anonymised Code of Conduct trend report received from the formalised CoC handling body, informing policy revision.
+
+These criteria are deliberately conservative for v0.1 and may be revised as the group coalesces; revisions are tracked in the Changelog below.
+
+## Charter Updates
+
+This charter is a v0.1 document and is expected to be revised as the group coalesces. Updates
+follow the
+[Charter Amendments](/community/working-interest-groups#charter-amendments) process defined for
+all groups: proposal by a Lead or Core Maintainer, approval by Core Maintainers. Within the WG,
+amendment proposals are treated like any other substantive governance change — WG consensus
+first, then Core Maintainer approval. Editorial fixes (typos, broken links, rewordings that do
+not change meaning) may land autonomously per the editorial/substantive distinction above. All
+amendments are recorded in the Changelog below.
+
+## Changelog
+
+| Date       | Change                                    |
+| ---------- | ----------------------------------------- |
+| 2026-05-06 | Initial charter                           |
+| 2026-10-08 | Aligned with the WG/IG model from 2026-09 |
+| TBD        | Charter approved by Core Maintainers      |
