@@ -39,8 +39,9 @@ Remote MCP servers usually require authorization. The Inspector implements the f
   </Step>
   <Step title="Exchange and retry">
     The code is exchanged for tokens, the tokens are persisted, and the original
-    connect (or, for a [mid-session challenge](#mid-session-re-authorization),
-    the request that was refused) is retried automatically.
+    connect is retried. For a [mid-session
+    challenge](#mid-session-re-authorization), the CLI retries the refused
+    request automatically, and the web client asks you to retry the action.
   </Step>
 </Steps>
 
@@ -52,23 +53,24 @@ Remote MCP servers usually require authorization. The Inspector implements the f
 
 The web app listens for the OAuth callback on its own URL, while the CLI and TUI deliberately share a second one:
 
-| Surface | Default callback                       | Why                                                                                |
-| ------- | -------------------------------------- | ---------------------------------------------------------------------------------- |
-| **Web** | `http://localhost:6274/oauth/callback` | The main app server already has an HTTP listener.                                  |
-| **CLI** | `http://127.0.0.1:6276/oauth/callback` | A dedicated loopback listener, so it doesn't collide with a running web Inspector. |
-| **TUI** | `http://127.0.0.1:6276/oauth/callback` | The same listener as the CLI.                                                      |
+| Surface | Default callback                                                                                         | Why                                                                                                                        |
+| ------- | -------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| **Web** | `<origin you opened the Inspector at>/oauth/callback`, by default `http://127.0.0.1:6274/oauth/callback` | The main app server already has an HTTP listener. Copy the exact value from the **Redirect URI** field in Server Settings. |
+| **CLI** | `http://127.0.0.1:6276/oauth/callback`                                                                   | A dedicated loopback listener, so it doesn't collide with a running web Inspector.                                         |
+| **TUI** | `http://127.0.0.1:6276/oauth/callback`                                                                   | The same listener as the CLI.                                                                                              |
 
 **Register `http://127.0.0.1:6276/oauth/callback`** on any IdP that requires pre-registered redirect URIs before using the CLI or TUI. A predictable default is the point: you register once and reuse it.
 
-Override with `--callback-url` or `MCP_OAUTH_CALLBACK_URL`.
+For the CLI and TUI, override it with `--callback-url` or `MCP_OAUTH_CALLBACK_URL`. The web callback always follows the page's origin, so `localhost` and `127.0.0.1` produce different redirect URIs there too.
 
 <Warning>
   The callback URL **must bind a loopback host**: `localhost`, `127.0.0.0/8`, or
   `[::1]`. The listener receives the authorization code over plaintext `http`,
   so a non-loopback host is rejected with an error and there is no flag to
   override that. If your browser runs on a different machine, forward the
-  callback port to it; `--print-handoff` (below) prints a ready-made
-  `portForwardCmd`.
+  callback port to it, or complete the login in a web Inspector instead:
+  `--print-handoff` (below) prints a `portForwardCmd` for the web Inspector's
+  ports.
 </Warning>
 
 <Note>
@@ -80,13 +82,15 @@ Only one process can hold the default port at a time; a second concurrent flow f
 
 ## Where credentials live
 
-| File                                                                                                            | Contents                                                                                                                               |
-| --------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| `~/.mcp-inspector/storage/oauth.json`                                                                           | Tokens and client information, keyed by canonicalized server URL. Written owner-only.                                                  |
-| `~/.mcp-inspector/storage/client.json`                                                                          | Install-level client settings (client metadata URL, enterprise IdP). The same file the web client's **Client Settings** dialog writes. |
-| The server's `oauth` block in the [catalog file](/docs/draft/tools/inspector/configuration#catalog-file-format) | Per-server client id/secret, scopes, the enterprise-managed flag, and the [step-up](#mid-session-re-authorization) policy.             |
+| File                                                                                                            | Contents                                                                                                                                              |
+| --------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `~/.mcp-inspector/storage/oauth.json`                                                                           | Non-secret OAuth state (discovery metadata, PKCE verifiers, granted scope, public client ids), keyed by canonicalized server URL. Written owner-only. |
+| `~/.mcp-inspector/storage/client.json`                                                                          | Install-level client settings (client metadata URL, enterprise IdP). The same file the web client's **Client Settings** dialog writes.                |
+| The server's `oauth` block in the [catalog file](/docs/draft/tools/inspector/configuration#catalog-file-format) | Per-server client id/secret, scopes, the enterprise-managed flag, and the [step-up](#mid-session-re-authorization) policy.                            |
 
 The path to `oauth.json` is resolved in order: `MCP_INSPECTOR_OAUTH_STATE_PATH`, then `<MCP_STORAGE_DIR>/oauth.json` (see [Environment variables](/docs/draft/tools/inspector/configuration#environment-variables)), then the default above. All three clients resolve it the same way. Command-line `--client-id` / `--client-secret` / `--client-metadata-url` override `client.json`.
+
+The secrets themselves (access and refresh tokens, client secrets, registration access tokens, and IdP session tokens) are not in `oauth.json`. They go to the [secret store](/docs/draft/tools/inspector/configuration#where-secrets-are-stored), which is the OS keychain when one is reachable. `MCP_INSPECTOR_PERSIST_TOKENS` limits which acquired tokens are kept: `all` (default), `access` (no refresh tokens), or `none` (re-authorize every run). See [Secret store variables](/docs/draft/tools/inspector/configuration#secret-store-variables).
 
 ## Mid-session re-authorization
 
@@ -95,7 +99,7 @@ A server can refuse a _single_ request mid-session with a `401` or a `403 insuff
 - **Re-authorization**: the token expired or was revoked. The Inspector parses the `WWW-Authenticate` challenge and re-runs the flow, then retries the failed request.
 - **Step-up**: the request needs scopes the current token doesn't carry. The Inspector re-authorizes for the union of the held and required scopes, so the new token covers everything the old one did plus the newly required scopes.
 
-In the **web** client this surfaces as a re-authorization banner. In the **CLI** it prompts on stderr:
+In the **web** client, re-authorization shows a **Re-authentication required** banner, and step-up opens an **Additional permissions required** dialog listing the scopes, which you confirm with **Authorize**. Each server's **Insufficient-scope response** setting can turn step-up off so the `403` surfaces as an error instead. In the **CLI**, step-up prompts on stderr:
 
 ```
 Proceed with step-up authorization? [y/N]
@@ -119,15 +123,15 @@ mcp-inspector --cli "$URL" --transport http --stored-auth-only --method tools/li
 
 The common case: a human completed OAuth in the web Inspector on this machine, and now a script wants to use that token.
 
-| Flag                    | Behavior                                                                                                                                                                                                                                                          |
-| ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `--use-stored-auth`     | Read the stored auth for `--server-url` and inject `Authorization: Bearer`. When a refresh token is stored, run the refresh grant first and inject the **fresh** token, persisting the rotation. Exits `3` (listing the stored server URLs) when nothing matches. |
-| `--wait-for-auth <sec>` | Poll the state file until a token for `--server-url` appears, then inject it. Times out at `<sec>` with exit `3`. Use after handing a login off to a human.                                                                                                       |
-| `--list-stored-auth`    | Print `{ oauthStatePath, storedServerUrls }` and exit without connecting.                                                                                                                                                                                         |
-| `--print-handoff`       | Print a JSON block (`deepLink`, `portForwardCmd`, `oauthStatePath`, `apiToken`) for `--server-url` and exit; this is everything a remote script needs to drive the browser side.                                                                                  |
-| `--relogin`             | Delete the stored OAuth for this server URL before connecting. HTTP/SSE only.                                                                                                                                                                                     |
+| Flag                    | Behavior                                                                                                                                                                                                                                                                             |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `--use-stored-auth`     | Read the stored auth for `--server-url` and inject `Authorization: Bearer`. When a refresh token is stored, run the refresh grant first and inject the **fresh** token, persisting the rotation. Exits `3` (`no_stored_token`, listing the stored server URLs) when nothing matches. |
+| `--wait-for-auth <sec>` | Poll the state file until a token for `--server-url` appears, then inject it. Times out at `<sec>` with exit `3` (`auth_wait_timeout`). Use after handing a login off to a human.                                                                                                    |
+| `--list-stored-auth`    | Print `{ oauthStatePath, storedServerUrls }` and exit without connecting.                                                                                                                                                                                                            |
+| `--print-handoff`       | Print a JSON block (`deepLink`, `portForwardCmd`, `oauthStatePath`, `apiToken`) for `--server-url` and exit; this is everything a remote script needs to drive the browser side.                                                                                                     |
+| `--relogin`             | Delete the stored OAuth for this server URL before connecting, and revoke the grant at the authorization server (skip with `--no-revoke`). HTTP/SSE only.                                                                                                                            |
 
-A typical remote-VM sequence:
+A typical remote-VM sequence. It assumes a web Inspector is running on the VM with a known `MCP_INSPECTOR_API_TOKEN`, and the same value is exported in the shell below; without it, the handoff's `deepLink` carries no `autoConnect` token and the web client rejects it.
 
 ```bash
 # On the VM: print what the human needs in order to complete OAuth in their browser
@@ -151,6 +155,6 @@ The `deepLink` in the handoff block navigates a browser straight to a _connected
 
 ## Inspecting auth state
 
-- **Web**: the Connection Info panel shows discovery results, the registered client, granted scopes, and token state, and offers **Clear OAuth state** for the active server.
+- **Web**: the Connection Info panel shows the authorization status, the client registration type, the client ID, granted scopes, and the access token, and offers **Clear OAuth state and disconnect** for the active server. Clearing also revokes the grant unless the server's **Revoke tokens on clear** setting is off.
 - **TUI**: the **Auth** tab (`a`) shows the same fields and clears state the same way.
-- **CLI**: `--list-stored-auth` shows what's on disk, and `--relogin` discards it and starts over.
+- **CLI**: `--list-stored-auth` shows what's on disk, and `--relogin` revokes and discards it and starts over.
