@@ -747,6 +747,17 @@ The client owns all subscription state, in all three delivery modes. There is no
 
 For webhook mode, orphaned subscriptions, such as those of a crashed client, are cleaned up by TTL expiry, so no server-side listing is needed. No-expiry subscriptions are the exception. Their cleanup is the granting server's responsibility (failure-based collection, see [Webhook event delivery](#webhook-event-delivery)), which is part of what a server accepts by granting them.
 
+### Streamable HTTP: Routing Headers
+
+When `events/poll`, `events/stream`, `events/subscribe` or `events/unsubscribe` is sent over the Streamable HTTP transport, the client MUST set the `Mcp-Name` header (defined by [SEP-2243](./2243-http-standardization.md)) to the value of `params.name`, which is the event name. This is the same source field the core protocol uses for `tools/call` and `prompts/get`. It lets transport intermediaries and load balancers route and rate-limit by event type without parsing the request body.
+
+The encoding and validation rules of the Streamable HTTP transport apply unchanged:
+
+- An event name that cannot be safely represented as a plain ASCII header value MUST be carried in the Base64 sentinel format.
+- Servers validate the header as the transport's server validation rules describe. A request whose `Mcp-Name` header is missing, or does not match `params.name`, is rejected with HTTP status `400 Bad Request` and `HeaderMismatch` (`-32020`).
+
+`events/list` has no `params.name` and carries no `Mcp-Name` header. The `Mcp-Method` header is set to the JSON-RPC method name, as for every request.
+
 ### Error Handling
 
 | Name                    | Code     | Meaning                                                                                                                                                                                                                                             |
@@ -942,8 +953,6 @@ SEP-2133 requires a reference implementation in an official SDK before an Extens
 6. **Should MCP task state changes be exposed as events?** Clients currently learn of task state transitions by polling `tasks/get`, or through `notifications/tasks` on a live `subscriptions/listen` stream. A reserved `mcp.task.updated` event type (arguments `{taskId}`, payload `{status, progress?, result?}`) would let a client that started a task and disconnected receive the completion by poll or webhook. This serves "kick off a long job, close the laptop, get notified when done". The considerations are the same as in question 2: a reserved `mcp.*` prefix, a migration path, and whether one mechanism subsuming another is worth the coupling. A draft is in [experimental-ext-triggers-events#2](https://github.com/modelcontextprotocol/experimental-ext-triggers-events/pull/2).
 
 7. **Should the error codes be new allocations, or `InvalidParams` with typed `data`?** This SEP requests five general-purpose codes. The core protocol has moved the other way for one case: resource-not-found (`-32002`) was replaced by `-32602`, and the Tasks extension uses `-32602` for an unknown task ID. The codes here also travel inside `terminated` signals, where the client branches on them (`NotFound` and `Unsupported` mean rediscover and resubscribe, `Forbidden` means stop), which is the argument for keeping them distinct.
-
-8. **Should `events/*` requests carry `Mcp-Name` on Streamable HTTP?** `Mcp-Method` is set as for any request. The Tasks extension also sets `Mcp-Name` to the task ID so that intermediaries can route by it. Setting `Mcp-Name` to the event name on `events/poll`, `events/stream`, `events/subscribe` and `events/unsubscribe` would let intermediaries route and rate-limit by event type. This SEP does not define it.
 
 ## Appendix A: SDK Guidance (non-normative)
 
