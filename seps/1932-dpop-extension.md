@@ -40,6 +40,8 @@ MCP clients conforming to this extension MUST obtain DPoP-bound access tokens by
 
 MCP servers MUST reject DPoP proofs whose `iat` claim falls outside ±5 minutes of the server's current time, and MAY enforce a narrower acceptance window. MCP servers that are not capable of keeping state or performing global `jti` tracking MUST rely on this `iat` acceptance window together with standard RFC 9449 claim validation as their DPoP proof replay protection. A stateless MCP server may provide additional replay protection by using a server-supplied nonce as defined in [RFC 9449](https://datatracker.ietf.org/doc/html/rfc9449) (e.g. by encrypting a timestamp using an Authenticated Encryption with Associated Data (AEAD) scheme, which can be decrypted, parsed and verified to be within an acceptable time window when the nonce is returned in a DPoP proof).
 
+A nonce constructed this way is valid for any client during its time window. This is consistent with [RFC 9449 Section 11.1](https://datatracker.ietf.org/doc/html/rfc9449#section-11.1), which permits the same nonce value to be used by multiple clients and accepted multiple times. Replay protection comes from each DPoP proof's key binding and freshness, not from nonce uniqueness. A server MAY nonetheless bind the nonce to a client, for example by encrypting a client identifier together with the timestamp, as additional hardening. The nonce is opaque to clients, so this choice has no interoperability impact.
+
 ### Server-Provided Nonces
 
 Authorization servers and MCP servers MAY require a server-provided nonce in DPoP proofs, as described in [RFC 9449 Section 8](https://datatracker.ietf.org/doc/html/rfc9449#section-8) and [Section 9](https://datatracker.ietf.org/doc/html/rfc9449#section-9).
