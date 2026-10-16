@@ -1364,6 +1364,10 @@
       "destination": "/seps/2106-json-schema-2020-12"
     },
     {
+      "source": "/seps/2127",
+      "destination": "/seps/2127-mcp-server-cards"
+    },
+    {
       "source": "/seps/2133",
       "destination": "/seps/2133-extensions"
     },
