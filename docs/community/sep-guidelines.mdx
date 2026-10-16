@@ -29,7 +29,7 @@ Bug fixes, clarifications, editorial changes, new examples for existing features
 
 Bring the idea to the working or interest group that covers the area first (see [Joining a group](/community/working-interest-groups#joining-a-group)). If no group fits, start a thread in [GitHub Discussions](https://github.com/modelcontextprotocol/modelcontextprotocol/discussions) or in `#general` on Discord, and if interest is sustained consider [forming a group](/community/working-interest-groups#forming-a-group). Check which [roadmap](/development/roadmap) priority area the idea serves, read the [design principles](/community/design-principles), and try the idea as an [extension](/extensions/overview) first where its shape allows. Build a prototype that meets the [Prototype Requirements](#prototype-requirements), then write the SEP.
 
-A SEP that arrives without prior discussion usually sits at "awaiting sponsor". Specification changes are slow by design (see [Stability over velocity](/community/design-principles#stability-over-velocity)).
+Prior discussion is required, and the pull request description must link to it: a Discord thread, meeting notes or a GitHub Discussion. A SEP without a linked prior discussion is not accepted. Specification changes are slow by design (see [Stability over velocity](/community/design-principles#stability-over-velocity)).
 
 ## Workflow
 
@@ -63,11 +63,11 @@ flowchart TD
 ```
 
 1. Copy [`seps/TEMPLATE.md`](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/seps/TEMPLATE.md) to `seps/0000-<slug>.md` and fill it in.
-2. Open a pull request against the [specification repository](https://github.com/modelcontextprotocol/modelcontextprotocol).
+2. Open a pull request against the [specification repository](https://github.com/modelcontextprotocol/modelcontextprotocol). The repository accepts pull requests from collaborators only.
 3. The SEP number is the PR number. Rename the file (PR #1850 becomes `seps/1850-<slug>.md`), update the header, and run `npm run generate:seps`, or the `check:seps` CI job fails.
 4. The PR is labeled `proposal`, meaning awaiting sponsor. `proposal` is a PR label only; the `Status` header in the SEP stays unset.
 5. A [sponsor](#sponsors) assigns themselves to the PR and sets `draft`. Review takes place in PR comments.
-6. When the SEP is ready, the sponsor sets `in-review` and puts it on the Core Maintainer meeting agenda. The author and sponsor may present it.
+6. When the SEP is ready, the sponsor confirms that the prior discussion happened and is linked in the pull request description, sets `in-review`, and puts it on the Core Maintainer meeting agenda. The author and sponsor may present it.
 7. Core Maintainers decide under [Review and acceptance](#review-and-acceptance). The sponsor records the outcome, `accepted` or `rejected`, on the PR and in the SEP header.
 8. For an accepted SEP, the author adds to the same PR: the specification prose, the `schema.ts` changes with regenerated output (see [CONTRIBUTING.md](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/CONTRIBUTING.md#schema-changes)), a changelog entry, and any required documentation edits (for a deprecation, the four edits under [Deprecating a Feature](/community/feature-lifecycle#deprecating-a-feature)). The reference implementation is completed where it lives: an SDK branch, a fork or a standalone repository (see [Prototype Requirements](#prototype-requirements)). For a Standards Track SEP with observable protocol behavior, the conformance scenario and `sep-NNNN.yaml` are merged (see [Conformance Test Requirement](#conformance-test-requirement)). SDK implementations are not required for Final.
 9. The sponsor verifies these artifacts and sets `final`. The PR is then merged.

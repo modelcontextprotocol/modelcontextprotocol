@@ -122,7 +122,7 @@ When contributing to the documentation:
 Specification changes follow the [SEP process](https://modelcontextprotocol.io/community/sep-guidelines).
 Discuss the idea with the relevant working or interest group in Discord and link that discussion in
 the pull request description, as required by the
-[SEP guidelines](https://modelcontextprotocol.io/community/sep-guidelines#step-by-step-process).
+[SEP guidelines](https://modelcontextprotocol.io/community/sep-guidelines#workflow).
 Before drafting a proposal, review the [MCP design principles](https://modelcontextprotocol.io/community/design-principles)
 — proposals that align with these principles move faster through review.
 
