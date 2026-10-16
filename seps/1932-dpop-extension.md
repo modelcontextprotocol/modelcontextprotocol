@@ -36,6 +36,16 @@ This extension requries OAuth 2.0 Demonstrating Proof-of-Possession at the Appli
 
 MCP servers MUST reject DPoP proofs whose `iat` claim falls outside ±5 minutes of the server's current time, and MAY enforce a narrower acceptance window. MCP servers that are not capable of keeping state or performing global `jti` tracking MUST rely on this `iat` acceptance window together with standard RFC 9449 claim validation as their DPoP proof replay protection. A stateless MCP server may provide additional replay protection by using a server-supplied nonce as defined in [RFC 9449](https://datatracker.ietf.org/doc/html/rfc9449) (e.g. by encrypting a timestamp using an Authenticated Encryption with Associated Data (AEAD) scheme, which can be decrypted, parsed and verified to be within an acceptable time window when the nonce is returned in a DPoP proof).
 
+### Server-Provided Nonces
+
+Authorization servers and MCP servers MAY require a server-provided nonce in DPoP proofs, as described in [RFC 9449 Section 8](https://datatracker.ietf.org/doc/html/rfc9449#section-8) and [Section 9](https://datatracker.ietf.org/doc/html/rfc9449#section-9).
+
+When the authorization server responds with `use_dpop_nonce`, the client MUST retry the token request with a DPoP proof that includes the supplied `nonce` ([RFC 9449 Section 8](https://datatracker.ietf.org/doc/html/rfc9449#section-8)).
+
+When the MCP server responds with `use_dpop_nonce`, the client MUST retry the request with a DPoP proof that includes the supplied `nonce` ([RFC 9449 Section 9](https://datatracker.ietf.org/doc/html/rfc9449#section-9)).
+
+RFC 9449 describes the client's retry in non-normative terms ("the client is expected to retry"); this profile tightens it to MUST because a client that cannot complete the nonce flow cannot interoperate with authorization servers or MCP servers that require nonces.
+
 ## Rationale
 
 The purpose of this extension is to define a mechanism to sender constrain OAuth Access Tokens in MCP deployments using OAuth 2.0 Demonstrating Proof-of-Possession at the Application Layer (DPoP) ([RFC 9449](https://datatracker.ietf.org/doc/html/rfc9449)).
