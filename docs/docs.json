@@ -863,6 +863,12 @@
               "seps/2640-skills-extension",
               "seps/2663-tasks-extension"
             ]
+          },
+          {
+            "group": "Draft",
+            "pages": [
+              "seps/1932-dpop-extension"
+            ]
           }
         ]
       },
@@ -1356,12 +1362,20 @@
       "destination": "/seps/1865-mcp-apps-interactive-user-interfaces-for-mcp"
     },
     {
+      "source": "/seps/1932",
+      "destination": "/seps/1932-dpop-extension"
+    },
+    {
       "source": "/seps/2085",
       "destination": "/seps/2085-governance-succession-and-amendment"
     },
     {
       "source": "/seps/2106",
       "destination": "/seps/2106-json-schema-2020-12"
+    },
+    {
+      "source": "/seps/2127",
+      "destination": "/seps/2127-mcp-server-cards"
     },
     {
       "source": "/seps/2133",
