@@ -1,0 +1,88 @@
+{{- /*
+  Override of PaperMod's archives.html: changes <sup>&nbsp;N</sup> to
+  <span>N</span> so the count pill can center the number without fighting
+  a hardcoded leading space and browser <sup> styling.
+*/ -}}
+{{- define "main" }}
+
+<header class="page-header">
+  <h1>
+    {{ .Title }}
+    {{- if (.Param "ShowRssButtonInSectionTermList") }}
+    {{- $rss := (.OutputFormats.Get "rss") }}
+    {{- if (eq .Kind `page`) }}
+    {{- $rss = (.Parent.OutputFormats.Get "rss") }}
+    {{- end }}
+    {{- with $rss }}
+    <a href="{{ .RelPermalink }}" title="RSS" aria-label="RSS">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" height="23">
+        <path d="M4 11a9 9 0 0 1 9 9" />
+        <path d="M4 4a16 16 0 0 1 16 16" />
+        <circle cx="5" cy="19" r="1" />
+      </svg>
+    </a>
+    {{- end }}
+    {{- end }}
+  </h1>
+  {{- if .Description }}
+  <div class="post-description">
+    {{ .Description }}
+  </div>
+  {{- end }}
+</header>
+
+{{- $pages := where site.RegularPages "Type" "in" site.Params.mainSections }}
+
+{{- if site.Params.ShowAllPagesInArchive }}
+{{- $pages = site.RegularPages }}
+{{- end }}
+
+{{- range $pages.GroupByPublishDate "2006" }}
+{{- if ne .Key "0001" }}
+<div class="archive-year">
+  {{- $year := replace .Key "0001" "" }}
+  <h2 class="archive-year-header" id="{{ $year }}">
+    <a class="archive-header-link" href="#{{ $year }}">
+      {{- $year -}}
+    </a>
+    <span class="archive-count">{{ len .Pages }}</span>
+  </h2>
+  {{- range .Pages.GroupByDate "January" }}
+  <div class="archive-month">
+    <h3 class="archive-month-header" id="{{ $year }}-{{ .Key }}">
+      <a class="archive-header-link" href="#{{ $year }}-{{ .Key }}">
+        {{- .Key -}}
+      </a>
+      <span class="archive-count">{{ len .Pages }}</span>
+    </h3>
+    <div class="archive-posts">
+      {{- range .Pages }}
+      {{- if eq .Kind "page" }}
+      <div class="archive-entry">
+        <h3 class="archive-entry-title entry-hint-parent">
+          {{- .Title | markdownify }}
+          {{- if .Draft }}
+          <span class="entry-hint" title="Draft">
+            <svg xmlns="http://www.w3.org/2000/svg" height="15" viewBox="0 -960 960 960" fill="currentColor">
+              <path
+                d="M160-410v-60h300v60H160Zm0-165v-60h470v60H160Zm0-165v-60h470v60H160Zm360 580v-123l221-220q9-9 20-13t22-4q12 0 23 4.5t20 13.5l37 37q9 9 13 20t4 22q0 11-4.5 22.5T862.09-380L643-160H520Zm300-263-37-37 37 37ZM580-220h38l121-122-18-19-19-18-122 121v38Zm141-141-19-18 37 37-18-19Z" />
+            </svg>
+          </span>
+          {{- end }}
+        </h3>
+        <div class="archive-meta">
+          {{- partial "post_meta.html" . -}}
+        </div>
+        <a class="entry-link" aria-label="post link to {{ .Title | plainify }}" href="{{ .Permalink }}"></a>
+      </div>
+      {{- end }}
+      {{- end }}
+    </div>
+  </div>
+  {{- end }}
+</div>
+{{- end }}
+{{- end }}
+
+{{- end }}{{/* end main */}}

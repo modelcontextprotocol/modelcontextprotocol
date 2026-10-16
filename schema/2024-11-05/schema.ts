@@ -1,9 +1,6 @@
 /* JSON-RPC types */
 export type JSONRPCMessage =
-  | JSONRPCRequest
-  | JSONRPCNotification
-  | JSONRPCResponse
-  | JSONRPCError;
+  JSONRPCRequest | JSONRPCNotification | JSONRPCResponse | JSONRPCError;
 
 export const LATEST_PROTOCOL_VERSION = "2024-11-05";
 export const JSONRPC_VERSION = "2.0";
@@ -1096,9 +1093,7 @@ export type ClientResult = EmptyResult | CreateMessageResult | ListRootsResult;
 
 /* Server messages */
 export type ServerRequest =
-  | PingRequest
-  | CreateMessageRequest
-  | ListRootsRequest;
+  PingRequest | CreateMessageRequest | ListRootsRequest;
 
 export type ServerNotification =
   | CancelledNotification

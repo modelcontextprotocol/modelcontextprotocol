@@ -1,0 +1,117 @@
+{{- /*
+  Override of PaperMod's templates/schema_json.html.
+
+  PaperMod's BreadcrumbList builds the trail by string-manipulating
+  permalinks: `replace .Parent.Permalink site.Home.Permalink "" | split "/"`.
+  With --baseURL "/" (CI preview mode) that yields a 1-element list instead
+  of 2, which breaks the comma logic (`ge (len $bc_list) 2`) and the
+  position counter — producing `} {` with no comma and two items both at
+  position 1. Hugo's --minify catches this as a JSON parse error.
+
+  This override uses `.Ancestors.Reverse` (stable regardless of baseURL) and
+  dict+jsonify (escapes correctly, no hand-assembled JSON). The homepage and
+  BlogPosting blocks are carried over unchanged.
+*/ -}}
+
+{{ if .IsHome }}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "{{- ( site.Params.schema.publisherType | default "Organization") | title -}}",
+  "name": {{ site.Title }},
+  "url": {{ site.Home.Permalink }},
+  "description": {{ site.Params.description | plainify | truncate 180 | safeHTML }},
+  {{- if (eq site.Params.schema.publisherType "Person") }}
+  "image": {{ site.Params.assets.favicon | default "favicon.ico" | absURL }},
+  {{- else }}
+  "logo": {{ site.Params.assets.favicon | default "favicon.ico" | absURL }},
+  {{- end }}
+  "sameAs": [
+    {{- if site.Params.schema.sameAs }}
+      {{ range $i, $e := site.Params.schema.sameAs }}{{ if $i }}, {{ end }}{{ trim $e " " }}{{ end }}
+    {{- else}}
+      {{ range $i, $e := site.Params.SocialIcons }}{{ if $i }}, {{ end }}{{ trim $e.url " " | safeURL }}{{ end }}
+    {{- end}}
+  ]
+}
+</script>
+{{- else if (or .IsPage .IsSection) }}
+
+{{- $crumbs := slice -}}
+{{- $pos := 0 -}}
+{{- range .Ancestors.Reverse -}}
+  {{- $pos = add $pos 1 -}}
+  {{- $crumbs = $crumbs | append (dict "@type" "ListItem" "position" $pos "name" .Title "item" .Permalink) -}}
+{{- end -}}
+{{- $pos = add $pos 1 -}}
+{{- $crumbs = $crumbs | append (dict "@type" "ListItem" "position" $pos "name" .Title "item" .Permalink) -}}
+{{- $breadcrumb := dict "@context" "https://schema.org" "@type" "BreadcrumbList" "itemListElement" $crumbs -}}
+<script type="application/ld+json">{{ $breadcrumb | jsonify | safeJS }}</script>
+
+{{- if .IsPage }}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": {{ .Title | plainify}},
+  "name": "{{ .Title | plainify }}",
+  "description": {{ with .Description | plainify }}{{ . }}{{ else }}{{ .Summary | plainify  }}{{ end -}},
+  "keywords": [
+    {{- if .Params.keywords }}
+    {{ range $i, $e := .Params.keywords }}{{ if $i }}, {{ end }}{{ $e }}{{ end }}
+    {{- else }}
+    {{ range $i, $e := .Params.tags }}{{ if $i }}, {{ end }}{{ $e }}{{ end }}
+    {{- end }}
+  ],
+  "articleBody": {{ .Content | safeJS | htmlUnescape | plainify }},
+  "wordCount" : {{ .WordCount }},
+  "inLanguage": {{ .Language.Lang | default "en-us" }},
+  {{ if .Params.cover.image -}}
+  "image":
+    {{- if (ne .Params.cover.relative true) -}}
+    {{ .Params.cover.image | absURL }},
+    {{- else -}}
+    {{ (path.Join .RelPermalink .Params.cover.image ) | absURL }},
+    {{- end}}
+  {{- else }}
+    {{- $images := partial "templates/_funcs/get-page-images" . -}}
+    {{- with index $images 0 -}}
+  "image": {{ .Permalink }},
+    {{- end }}
+  {{- end -}}
+  "datePublished": {{ .PublishDate }},
+  "dateModified": {{ .Lastmod }},
+  {{- with (.Params.author | default site.Params.author) }}
+  "author":
+    {{- if (or (eq (printf "%T" .) "[]string") (eq (printf "%T" .) "[]interface {}")) -}}
+  [{{- range $i, $v := . -}}
+  {{- if $i }}, {{end -}}
+  {
+    "@type": "Person",
+    "name": {{ $v }}
+  }
+  {{- end }}],
+    {{- else -}}
+  {
+    "@type": "Person",
+    "name": {{ . }}
+  },
+    {{- end -}}
+  {{- end }}
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": {{ .Permalink | safeHTML }}
+  },
+  "publisher": {
+    "@type": "{{- ( site.Params.schema.publisherType | default "Organization") | title -}}",
+    "name": {{ site.Title }},
+    "logo": {
+      "@type": "ImageObject",
+      "url": {{ site.Params.assets.favicon | default "favicon.ico" | absURL }}
+    }
+  }
+}
+</script>
+{{- end }}{{/* .IsPage end */}}
+
+{{- end -}}

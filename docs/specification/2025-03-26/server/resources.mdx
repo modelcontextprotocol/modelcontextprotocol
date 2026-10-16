@@ -2,8 +2,6 @@
 title: Resources
 ---
 
-<Info>**Protocol Revision**: 2025-03-26</Info>
-
 The Model Context Protocol (MCP) provides a standardized way for servers to expose
 resources to clients. Resources allow servers to share data that provides context to
 language models, such as files, database schemas, or application-specific information.
@@ -160,6 +158,7 @@ To retrieve resource contents, clients send a `resources/read` request:
 Resource templates allow servers to expose parameterized resources using
 [URI templates](https://datatracker.ietf.org/doc/html/rfc6570). Arguments may be
 auto-completed through [the completion API](/specification/2025-03-26/server/utilities/completion).
+This operation supports [pagination](/specification/2025-03-26/server/utilities/pagination).
 
 **Request:**
 
@@ -167,7 +166,10 @@ auto-completed through [the completion API](/specification/2025-03-26/server/uti
 {
   "jsonrpc": "2.0",
   "id": 3,
-  "method": "resources/templates/list"
+  "method": "resources/templates/list",
+  "params": {
+    "cursor": "optional-cursor-value"
+  }
 }
 ```
 
@@ -185,7 +187,8 @@ auto-completed through [the completion API](/specification/2025-03-26/server/uti
         "description": "Access files in the project directory",
         "mimeType": "application/octet-stream"
       }
-    ]
+    ],
+    "nextCursor": "next-page-cursor"
   }
 }
 ```

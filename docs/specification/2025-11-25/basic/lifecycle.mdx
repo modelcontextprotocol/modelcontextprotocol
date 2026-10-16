@@ -4,8 +4,6 @@ title: Lifecycle
 
 <div id="enable-section-numbers" />
 
-<Info>**Protocol Revision**: 2025-11-25</Info>
-
 The Model Context Protocol (MCP) defines a rigorous lifecycle for client-server
 connections that ensures proper capability negotiation and state management.
 
@@ -58,7 +56,7 @@ The client **MUST** initiate this phase by sending an `initialize` request conta
   "id": 1,
   "method": "initialize",
   "params": {
-    "protocolVersion": "2024-11-05",
+    "protocolVersion": "2025-11-25",
     "capabilities": {
       "roots": {
         "listChanged": true
@@ -104,7 +102,7 @@ The server **MUST** respond with its own capabilities and information:
   "jsonrpc": "2.0",
   "id": 1,
   "result": {
-    "protocolVersion": "2024-11-05",
+    "protocolVersion": "2025-11-25",
     "capabilities": {
       "logging": {},
       "prompts": {

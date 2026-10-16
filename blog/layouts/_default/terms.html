@@ -1,0 +1,32 @@
+{{- /*
+  Override of PaperMod's terms.html: replaces the double-nested
+  <sup><strong><sup>N</sup></strong></sup> count with a plain
+  <span class="archive-count"> so the pill styling from archives applies.
+*/ -}}
+{{- define "main" }}
+
+{{- if .Title }}
+<header class="page-header">
+    <h1>{{ .Title }}</h1>
+    {{- if .Description }}
+    <div class="post-description">
+        {{ .Description }}
+    </div>
+    {{- end }}
+</header>
+{{- end }}
+
+<ul class="terms-tags">
+    {{- $type := .Type }}
+    {{- range $key, $value := .Data.Terms.Alphabetical }}
+    {{- $name := .Name }}
+    {{- $count := .Count }}
+    {{- with site.GetPage (printf "/%s/%s" $type $name) }}
+    <li>
+        <a href="{{ .Permalink }}">{{ .Name }}<span class="archive-count">{{ $count }}</span></a>
+    </li>
+    {{- end }}
+    {{- end }}
+</ul>
+
+{{- end }}{{/* end main */ -}}

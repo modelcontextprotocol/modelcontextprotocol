@@ -1,10 +1,16 @@
-+++
-date = '2025-11-21T00:00:00+00:00'
-publishDate = '2025-11-21T00:00:00+00:00'
-title = 'Adopting the MCP Bundle format (.mcpb) for portable local servers'
-author = 'David Soria Parra (MCP Lead Maintainer), Joan Xie (MCPB Maintainer)'
-tags = ['mcp', 'mcpb', 'bundles']
-+++
+---
+title: Adopting the MCP Bundle format (.mcpb) for portable local servers
+date: "2025-11-21T00:00:00+00:00"
+publishDate: "2025-11-21T00:00:00+00:00"
+description: The MCP Bundle format (.mcpb) joins the MCP project, enabling one-click installation of local servers across any compatible client.
+author:
+  - David Soria Parra (MCP Lead Maintainer)
+  - Joan Xie (MCPB Maintainer)
+tags:
+  - mcp
+  - mcpb
+  - bundles
+---
 
 The [MCP Bundle format](https://github.com/modelcontextprotocol/mcpb) (MCPB) is now part of the [Model Context Protocol project](https://github.com/modelcontextprotocol). This distribution format simplifies how developers package and share local MCP servers, enabling users to install them across any compatible client, including the [Claude desktop app](https://claude.com/download), [Claude Code](https://claude.com/product/claude-code), and [MCP for Windows](https://learn.microsoft.com/windows/ai/mcp/servers/mcp-server-overview).
 

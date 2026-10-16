@@ -4,8 +4,6 @@ title: Pagination
 
 <div id="enable-section-numbers" />
 
-<Info>**Protocol Revision**: draft</Info>
-
 The Model Context Protocol (MCP) supports paginating list operations that may return
 large result sets. Pagination allows servers to yield results in smaller chunks rather
 than all at once.
@@ -13,6 +11,15 @@ than all at once.
 Pagination is especially important when connecting to external services over the
 internet, but also useful for local integrations to avoid performance issues with large
 data sets.
+
+<Note>
+  For brevity, the request examples on this page omit the `_meta` request
+  metadata (`io.modelcontextprotocol/protocolVersion`,
+  `io.modelcontextprotocol/clientInfo`, and
+  `io.modelcontextprotocol/clientCapabilities`). Every request **MUST** include
+  the required `_meta` fields; see
+  [`_meta`](/specification/draft/basic/index#meta).
+</Note>
 
 ## Pagination Model
 
@@ -34,8 +41,11 @@ Pagination starts when the server sends a **response** that includes:
   "jsonrpc": "2.0",
   "id": "123",
   "result": {
+    "resultType": "complete",
     "resources": [...],
-    "nextCursor": "eyJwYWdlIjogM30="
+    "nextCursor": "eyJwYWdlIjogM30=",
+    "ttlMs": 300000,
+    "cacheScope": "public"
   }
 }
 ```
@@ -92,7 +102,9 @@ The following MCP operations support pagination:
 3. Clients **MUST** treat cursors as opaque tokens:
    - Don't make assumptions about cursor format
    - Don't attempt to parse or modify cursors
-   - Don't persist cursors across sessions
+   - Don't make any determination based on cursor value other than whether a
+     non-null value was provided (e.g. an empty string is a valid cursor and
+     thus **MUST NOT** be treated as the end of results)
 
 ## Error Handling
 

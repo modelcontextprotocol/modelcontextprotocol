@@ -4,8 +4,6 @@ title: Tools
 
 <div id="enable-section-numbers" />
 
-<Info>**Protocol Revision**: 2025-11-25</Info>
-
 The Model Context Protocol (MCP) allows servers to expose tools that can be invoked by
 language models. Tools enable models to interact with external systems, such as querying
 databases, calling APIs, or performing computations. Each tool is uniquely identified by
@@ -100,7 +98,10 @@ To discover available tools, clients send a `tools/list` request. This operation
             "mimeType": "image/png",
             "sizes": ["48x48"]
           }
-        ]
+        ],
+        "execution": {
+          "taskSupport": "optional"
+        }
       }
     ],
     "nextCursor": "next-page-cursor"
@@ -193,6 +194,7 @@ A tool definition includes:
 - `name`: Unique identifier for the tool
 - `title`: Optional human-readable name of the tool for display purposes.
 - `description`: Human-readable description of functionality
+- `icons`: Optional array of icons for display in user interfaces
 - `inputSchema`: JSON Schema defining expected parameters
   - Follows the [JSON Schema usage guidelines](/specification/2025-11-25/basic#json-schema-usage)
   - Defaults to 2020-12 if no `$schema` field is present
@@ -204,6 +206,8 @@ A tool definition includes:
   - Follows the [JSON Schema usage guidelines](/specification/2025-11-25/basic#json-schema-usage)
   - Defaults to 2020-12 if no `$schema` field is present
 - `annotations`: Optional properties describing tool behavior
+- `execution`: Optional object describing execution-related properties
+  - `taskSupport`: Indicates whether this tool supports [task-augmented execution](/specification/2025-11-25/basic/utilities/tasks#tool-level-negotiation). Values: `"forbidden"` (default), `"optional"`, or `"required"`
 
 <Warning>
   For trust & safety and security, clients **MUST** consider tool annotations to
@@ -320,6 +324,13 @@ Embedded resources support the same [Resource annotations](/specification/2025-1
 **Structured** content is returned as a JSON object in the `structuredContent` field of a result.
 
 For backwards compatibility, a tool that returns structured content SHOULD also return the serialized JSON in a TextContent block.
+
+<Note>
+
+`structuredContent` is server-produced result data and is unrelated to LLM
+"structured outputs" (schema-constrained model generation).
+
+</Note>
 
 #### Output Schema
 
@@ -452,7 +463,7 @@ Tools use two error reporting mechanisms:
 
 1. **Protocol Errors**: Standard JSON-RPC errors for issues like:
    - Unknown tools
-   - Malformed requests (requests that fail to satisfy [CallToolRequest schema](specification/2025-11-25/schema#calltoolrequest))
+   - Malformed requests (requests that fail to satisfy [CallToolRequest schema](/specification/2025-11-25/schema#calltoolrequest))
    - Server errors
 
 2. **Tool Execution Errors**: Reported in tool results with `isError: true`:

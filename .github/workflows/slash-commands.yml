@@ -1,0 +1,48 @@
+name: Slash Commands
+
+on:
+  issue_comment:
+    types: [created]
+  pull_request_target:
+    types: [opened, reopened, synchronize]
+  # Re-evaluates Dependabot auto-approve once CI finishes on a dependabot/
+  # branch (approval is withheld until every check on the head SHA is green).
+  check_suite:
+    types: [completed]
+
+permissions:
+  contents: read
+
+jobs:
+  # Parse and execute /lgtm, /hold, /unhold, /stageblog comment commands;
+  # invalidate approval when new commits are pushed; auto-approve
+  # narrowly-scoped Dependabot PRs once CI is green.
+  handle:
+    if: >-
+      (github.event_name == 'issue_comment' && github.event.issue.pull_request) ||
+      github.event_name == 'pull_request_target' ||
+      (github.event_name == 'check_suite' &&
+       startsWith(github.event.check_suite.head_branch, 'dependabot/'))
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/create-github-app-token@v3
+        id: app-token
+        with:
+          app-id: ${{ secrets.MCP_COMMANDER_APP_ID }}
+          private-key: ${{ secrets.MCP_COMMANDER_APP_KEY }}
+
+      - uses: modelcontextprotocol/actions/slash-commands@main
+        with:
+          github-token: ${{ steps.app-token.outputs.token }}
+          always-allow-teams: core-maintainers,lead-maintainers
+          stageblog-workflow: stage-blog.yml
+          remove-labels-on-accept: in-review,draft,proposal
+          project-number: 12
+          project-gate-label: SEP
+          # Auto-approve Dependabot PRs that update direct dev dependencies
+          # by a patch/minor version, touch only the files below, carry
+          # verified dependabot-authored commits, and have green CI. Anything
+          # else (prod deps, majors, extra files, human pushes) still needs
+          # a maintainer /lgtm.
+          dependabot-auto-approve: dev-patch-minor
+          dependabot-allowed-files: package.json,package-lock.json

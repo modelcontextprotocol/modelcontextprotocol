@@ -4,8 +4,6 @@ title: Tools
 
 <div id="enable-section-numbers" />
 
-<Info>**Protocol Revision**: 2025-06-18</Info>
-
 The Model Context Protocol (MCP) allows servers to expose tools that can be invoked by
 language models. Tools enable models to interact with external systems, such as querying
 databases, calling APIs, or performing computations. Each tool is uniquely identified by
@@ -226,12 +224,11 @@ Tool results may contain [**structured**](#structured-content) or **unstructured
 {
   "type": "image",
   "data": "base64-encoded-data",
-  "mimeType": "image/png"
+  "mimeType": "image/png",
   "annotations": {
     "audience": ["user"],
     "priority": 0.9
   }
-
 }
 ```
 
@@ -301,6 +298,13 @@ Embedded resources support the same [Resource annotations](/specification/2025-0
 **Structured** content is returned as a JSON object in the `structuredContent` field of a result.
 
 For backwards compatibility, a tool that returns structured content SHOULD also return the serialized JSON in a TextContent block.
+
+<Note>
+
+`structuredContent` is server-produced result data and is unrelated to LLM
+"structured outputs" (schema-constrained model generation).
+
+</Note>
 
 #### Output Schema
 

@@ -4,13 +4,20 @@ title: Resources
 
 <div id="enable-section-numbers" />
 
-<Info>**Protocol Revision**: draft</Info>
-
 The Model Context Protocol (MCP) provides a standardized way for servers to expose
 resources to clients. Resources allow servers to share data that provides context to
 language models, such as files, database schemas, or application-specific information.
 Each resource is uniquely identified by a
 [URI](https://datatracker.ietf.org/doc/html/rfc3986).
+
+<Note>
+  For brevity, the request examples on this page omit the `_meta` request
+  metadata (`io.modelcontextprotocol/protocolVersion`,
+  `io.modelcontextprotocol/clientInfo`, and
+  `io.modelcontextprotocol/clientCapabilities`). Every request **MUST** include
+  the required `_meta` fields; see
+  [`_meta`](/specification/draft/basic/index#meta).
+</Note>
 
 ## User Interaction Model
 
@@ -37,8 +44,8 @@ Servers that support resources **MUST** declare the `resources` capability:
 {
   "capabilities": {
     "resources": {
-      "subscribe": true,
-      "listChanged": true
+      "listChanged": true,
+      "subscribe": true
     }
   }
 }
@@ -46,48 +53,39 @@ Servers that support resources **MUST** declare the `resources` capability:
 
 The capability supports two optional features:
 
-- `subscribe`: whether the client can subscribe to be notified of changes to individual
-  resources.
 - `listChanged`: whether the server will emit notifications when the list of available
   resources changes.
+- `subscribe` : whether the server supports resource-specific update notifications
+  for resources requested through subscriptions/listen using the resourceSubscriptions
+  filter.
 
-Both `subscribe` and `listChanged` are optional&mdash;servers can support neither,
-either, or both:
+Servers may advertise either feature independently, together or neither.
 
-```json
-{
-  "capabilities": {
-    "resources": {} // Neither feature supported
-  }
-}
-```
+Servers that support neither `listChanged` nor `subscribe` may omit it:
 
 ```json
 {
   "capabilities": {
-    "resources": {
-      "subscribe": true // Only subscriptions supported
-    }
+    "resources": {}
   }
 }
 ```
 
-```json
-{
-  "capabilities": {
-    "resources": {
-      "listChanged": true // Only list change notifications supported
-    }
-  }
-}
-```
+Servers that declare the `resources` capability **MUST** respond to `resources/list`
+requests with the set of resources currently available to the requesting client. This set
+**MAY** be empty and **MAY** change over time (see
+[List Changed Notification](#list-changed-notification)), but **MUST NOT** vary
+per-connection or as a side effect of other requests on the connection. The set
+**MAY** vary by the authorization presented on the request — for example, returning
+only the resources the caller's granted scopes permit — since credentials are
+per-request input, not connection state.
 
 ## Protocol Messages
 
 ### Listing Resources
 
 To discover available resources, clients send a `resources/list` request. This operation
-supports [pagination](/specification/draft/server/utilities/pagination).
+supports [pagination](/specification/draft/server/utilities/pagination) and [caching](/specification/draft/server/utilities/caching).
 
 **Request:**
 
@@ -109,6 +107,7 @@ supports [pagination](/specification/draft/server/utilities/pagination).
   "jsonrpc": "2.0",
   "id": 1,
   "result": {
+    "resultType": "complete",
     "resources": [
       {
         "uri": "file:///project/src/main.rs",
@@ -125,14 +124,17 @@ supports [pagination](/specification/draft/server/utilities/pagination).
         ]
       }
     ],
-    "nextCursor": "next-page-cursor"
+    "nextCursor": "next-page-cursor",
+    "ttlMs": 300000,
+    "cacheScope": "public"
   }
 }
 ```
 
 ### Reading Resources
 
-To retrieve resource contents, clients send a `resources/read` request:
+To retrieve resource contents, clients send a `resources/read` request. This operation
+supports [caching](/specification/draft/server/utilities/caching).
 
 **Request:**
 
@@ -154,22 +156,34 @@ To retrieve resource contents, clients send a `resources/read` request:
   "jsonrpc": "2.0",
   "id": 2,
   "result": {
+    "resultType": "complete",
     "contents": [
       {
         "uri": "file:///project/src/main.rs",
         "mimeType": "text/x-rust",
         "text": "fn main() {\n    println!(\"Hello world!\");\n}"
       }
-    ]
+    ],
+    "ttlMs": 60000,
+    "cacheScope": "private"
   }
 }
 ```
+
+Servers **MAY** return multiple resource contents in response to a single
+`resources/read` request. For example, a server could return the contents of
+several files when a directory resource is read.
+
+Servers **MAY** also respond to `resources/read` with an [`InputRequiredResult`](/specification/draft/basic/patterns/mrtr#inputrequiredresult) to indicate that additional input is needed before the resource can be read. This follows the [multi round-trip requests](/specification/draft/basic/patterns/mrtr#multi-round-trip-requests) mechanism. When retrying the request, clients include `inputResponses` and, if provided by the server, `requestState` in the request parameters.
+
+Alternatively, if the scheme of `uri` is `https://`, clients may fetch the resource directly from the web. See the [Common URI Schemes section](#https%3A%2F%2F) for more information.
 
 ### Resource Templates
 
 Resource templates allow servers to expose parameterized resources using
 [URI templates](https://datatracker.ietf.org/doc/html/rfc6570). Arguments may be
 auto-completed through [the completion API](/specification/draft/server/utilities/completion).
+This operation supports [pagination](/specification/draft/server/utilities/pagination) and [caching](/specification/draft/server/utilities/caching).
 
 **Request:**
 
@@ -177,7 +191,10 @@ auto-completed through [the completion API](/specification/draft/server/utilitie
 {
   "jsonrpc": "2.0",
   "id": 3,
-  "method": "resources/templates/list"
+  "method": "resources/templates/list",
+  "params": {
+    "cursor": "optional-cursor-value"
+  }
 }
 ```
 
@@ -188,6 +205,7 @@ auto-completed through [the completion API](/specification/draft/server/utilitie
   "jsonrpc": "2.0",
   "id": 3,
   "result": {
+    "resultType": "complete",
     "resourceTemplates": [
       {
         "uriTemplate": "file:///{path}",
@@ -203,7 +221,10 @@ auto-completed through [the completion API](/specification/draft/server/utilitie
           }
         ]
       }
-    ]
+    ],
+    "nextCursor": "next-page-cursor",
+    "ttlMs": 300000,
+    "cacheScope": "public"
   }
 }
 ```
@@ -222,33 +243,28 @@ capability **SHOULD** send a notification:
 
 ### Subscriptions
 
-The protocol supports optional subscriptions to resource changes. Clients can subscribe
-to specific resources and receive notifications when they change:
-
-**Subscribe Request:**
-
-```json
-{
-  "jsonrpc": "2.0",
-  "id": 4,
-  "method": "resources/subscribe",
-  "params": {
-    "uri": "file:///project/src/main.rs"
-  }
-}
-```
-
-**Update Notification:**
+Clients subscribe to change notifications for specific resources by sending a
+[`subscriptions/listen`][subscriptions-listen] request with the resource URIs listed in
+`notifications.resourceSubscriptions`. The server delivers
+`notifications/resources/updated` on the resulting stream whenever a watched resource
+changes.
 
 ```json
 {
   "jsonrpc": "2.0",
   "method": "notifications/resources/updated",
   "params": {
+    "_meta": { "io.modelcontextprotocol/subscriptionId": 4 },
     "uri": "file:///project/src/main.rs"
   }
 }
 ```
+
+See [Subscriptions][subscriptions] for the full protocol mechanics (acknowledgment,
+`subscriptionId` correlation, and cancellation).
+
+[subscriptions-listen]: /specification/draft/schema#subscriptionslistenrequest
+[subscriptions]: /specification/draft/basic/patterns/subscriptions
 
 ## Message Flow
 
@@ -269,11 +285,11 @@ sequenceDiagram
     Client->>Server: resources/read
     Server-->>Client: Resource contents
 
-    Note over Client,Server: Subscriptions
-    Client->>Server: resources/subscribe
-    Server-->>Client: Subscription confirmed
+    Note over Client,Server: Subscribe to changes
+    Client->>Server: subscriptions/listen (resourceSubscriptions)
+    Server--)Client: notifications/subscriptions/acknowledged
 
-    Note over Client,Server: Updates
+    Note over Client,Server: Resource updated
     Server--)Client: notifications/resources/updated
     Client->>Server: resources/read
     Server-->>Client: Updated contents
@@ -289,6 +305,7 @@ A resource definition includes:
 - `name`: The name of the resource.
 - `title`: Optional human-readable name of the resource for display purposes.
 - `description`: Optional description
+- `icons`: Optional array of icons for display in user interfaces
 - `mimeType`: Optional MIME type
 - `size`: Optional size in bytes
 
@@ -348,7 +365,7 @@ Clients can use these annotations to:
 
 ## Common URI Schemes
 
-The protocol defines several standard URI schemes. This list not
+The protocol defines several standard URI schemes. This list is not
 exhaustive&mdash;implementations are always free to use additional, custom URI schemes.
 
 ### https://
@@ -384,10 +401,13 @@ taking the above guidance in to account.
 
 ## Error Handling
 
-Servers **SHOULD** return standard JSON-RPC errors for common failure cases:
+If the requested resource does not exist, servers **MUST** return a JSON-RPC error with
+code `-32602` (Invalid Params). Servers **SHOULD** return `-32603` for internal errors.
 
-- Resource not found: `-32002`
-- Internal errors: `-32603`
+For backwards compatibility, clients **SHOULD** also accept `-32002` as a
+resource not found error, as earlier protocol versions used this code.
+
+Servers **MUST NOT** return an empty `contents` array for a non-existent resource. An empty array is ambiguous—it could mean the resource exists but has no content, or that it doesn't exist at all.
 
 Example error:
 
@@ -396,7 +416,7 @@ Example error:
   "jsonrpc": "2.0",
   "id": 5,
   "error": {
-    "code": -32002,
+    "code": -32602,
     "message": "Resource not found",
     "data": {
       "uri": "file:///nonexistent.txt"
@@ -411,3 +431,5 @@ Example error:
 2. Access controls **SHOULD** be implemented for sensitive resources
 3. Binary data **MUST** be properly encoded
 4. Resource permissions **SHOULD** be checked before operations
+5. Servers **MUST** sanitize file paths to prevent directory traversal attacks
+   when serving `file://` resources

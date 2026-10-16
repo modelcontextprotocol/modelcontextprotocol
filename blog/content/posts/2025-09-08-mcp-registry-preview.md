@@ -1,9 +1,17 @@
-+++
-date = '2025-09-08T00:00:00Z'
-title = 'Introducing the MCP Registry'
-author = 'David Soria Parra (Lead Maintainer), Adam Jones (Registry Maintainer), Tadas Antanavicius (Registry Maintainer), Toby Padilla (Registry Maintainer), Theodora Chu (MCP PM at Anthropic)'
-tags = ['announcement', 'community']
-+++
+---
+title: Introducing the MCP Registry
+date: "2025-09-08T00:00:00Z"
+description: "Launching the MCP Registry in preview: an open catalog and API for discovering publicly available MCP servers."
+author:
+  - David Soria Parra (Lead Maintainer)
+  - Adam Jones (Registry Maintainer)
+  - Tadas Antanavicius (Registry Maintainer)
+  - Toby Padilla (Registry Maintainer)
+  - Theodora Chu (MCP PM at Anthropic)
+tags:
+  - announcement
+  - community
+---
 
 Today, we're launching the Model Context Protocol (MCP) Registry—an open catalog and API for publicly available MCP servers to improve discoverability and implementation. By standardizing how servers are distributed and discovered, we’re expanding their reach while making it easier for clients to get connected.
 
