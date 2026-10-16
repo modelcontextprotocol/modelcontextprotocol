@@ -30,6 +30,10 @@ This extension is particularly valuable for:
 
 This extension requries OAuth 2.0 Demonstrating Proof-of-Possession at the Application Layer (DPoP) ([RFC 9449](https://datatracker.ietf.org/doc/html/rfc9449)) for use in the Model Context Protocol. This proposal does not define extensions to ([RFC 9449](https://datatracker.ietf.org/doc/html/rfc9449)) to maximise interoperability, simplify implementation and accelerate deployment while preserving the security properties to minimise the risks that arise from token exfiltration and replay required for MCP clients and servers. It does not preclude the use of the extension mechanisms defined in [RFC 9449](https://datatracker.ietf.org/doc/html/rfc9449).
 
+### Obtaining DPoP-Bound Access Tokens
+
+MCP clients conforming to this extension MUST obtain DPoP-bound access tokens by including a DPoP proof in the `DPoP` header of the token request, as defined in [RFC 9449 Section 5](https://datatracker.ietf.org/doc/html/rfc9449#section-5). RFC 9449 is not modified by this profile: token binding and signaling (`cnf`/`jkt`, `token_type: DPoP`, [Section 6](https://datatracker.ietf.org/doc/html/rfc9449#section-6)), refresh-token binding for public clients ([Section 5](https://datatracker.ietf.org/doc/html/rfc9449#section-5)), and error handling at the token endpoint apply as specified there.
+
 ### Stateless DPoP Proof Replay Protection
 
 [RFC 9449 Section 11.1](https://www.rfc-editor.org/rfc/rfc9449.html#name-dpop-proof-replay) provides specific guidance on replay protection mechanisms that adress the risks of a DPoP Proofs being replayed.
