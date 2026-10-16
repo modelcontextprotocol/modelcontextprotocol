@@ -924,7 +924,7 @@ This extension does not mandate specific governance mechanisms, but it is design
 SEP-2133 requires a reference implementation in an official SDK before an Extensions Track SEP is reviewed. That implementation is outstanding. The following exist today:
 
 - **Server, on the official Python SDK.** [`mcp-webhook-events`](https://github.com/s1980amber-commits/mcp-webhook-events) adds `events/list`, `events/subscribe` and signed webhook delivery on top of the Python SDK without forking it. A [field report](https://github.com/modelcontextprotocol/experimental-ext-triggers-events/issues/8) describes it interoperating end to end with a deployed third-party client over webhook delivery, including the verification handshake.
-- **Conformance.** A draft conformance suite for the design sketch was started in [conformance#504](https://github.com/modelcontextprotocol/conformance/pull/504). It is closed and will need to be reopened against this SEP.
+- **Conformance.** Conformance suites for this SEP are open for review: five server scenarios (discovery, poll, push, webhook subscription and webhook delivery) in [conformance#521](https://github.com/modelcontextprotocol/conformance/pull/521), and four client scenarios in [conformance#541](https://github.com/modelcontextprotocol/conformance/pull/541), which is stacked on #521. Each check quotes the requirement of this SEP that it grades.
 - **Field report.** A report on stdio restart recovery is in the Working Group repository ([#6](https://github.com/modelcontextprotocol/experimental-ext-triggers-events/issues/6)).
 
 ## Open Questions
