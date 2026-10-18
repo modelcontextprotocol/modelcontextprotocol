@@ -1,46 +1,133 @@
 ---
 title: Contributing to MCP
-description: The kinds of contribution the MCP project accepts, where each one happens, and the rules that apply to all of them.
+description: How to contribute to the Model Context Protocol specification, docs and SDKs.
 ---
 
-This page describes the kinds of contribution the MCP project accepts, where each one happens, and the ground rules. MCP is developed in the open across the [`modelcontextprotocol`](https://github.com/modelcontextprotocol) GitHub organization: the specification, this documentation and Specification Enhancement Proposals (SEPs) live in [`modelcontextprotocol/modelcontextprotocol`](https://github.com/modelcontextprotocol/modelcontextprotocol), and each SDK and tool has its own repository. If you want to build with MCP rather than change it, see the [server](/docs/develop/build-server) and [client](/docs/develop/build-client) guides, the [SDK list](/docs/sdk) and the [MCP Registry](/registry/about).
+MCP is an open source project that welcomes contributions from the community. You don't need a change ready to get involved.
 
-## Join the work in progress
+You'll find the specification, these docs and Specification Enhancement Proposals (SEPs) in the [specification repository](https://github.com/modelcontextprotocol/modelcontextprotocol). Each SDK and tool has its own repository in the [`modelcontextprotocol`](https://github.com/modelcontextprotocol) organization.
 
-Protocol work is organized in [working groups and interest groups](/community/working-interest-groups). Their meetings are open to anyone and are listed on [meet.modelcontextprotocol.io](https://meet.modelcontextprotocol.io/). [Meetings and channels](/community/working-interest-groups#meetings-and-channels) sets out how a meeting is announced and minuted. No invitation or role is needed to attend or speak at a meeting, to comment on a pull request, or to open an issue or a discussion. Pull request creation on the specification repository is limited to maintainers: share your change as a branch on a fork or in a working group repository and ask in the group's Discord channel for a maintainer to open the pull request and name you as the author. Belonging to a group is not required, though a SEP needs [prior discussion](/community/sep-guidelines#before-you-write) with the relevant group. Every meeting runs under the [Antitrust Policy](/community/antitrust). Read it before attending, especially if you participate on behalf of an employer.
+To build with MCP, start with the [server](/docs/develop/build-server) and [client](/docs/develop/build-client) guides, the [SDK list](/docs/sdk) or the [MCP Registry](/registry/about).
 
 ## Where to start
 
-Issues labeled [`good first issue`](https://github.com/modelcontextprotocol/modelcontextprotocol/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) and `help wanted` in the specification repository are sized for a first change. The SDK repositories use the [same label names](/community/sdk-tiers#issue-triage-labels). Documentation fixes and new schema examples under `schema/draft/examples/<TypeName>/` are also good starting points. [CONTRIBUTING.md](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/CONTRIBUTING.md#schema-examples) explains how to add an example.
+<Steps>
+<Step title="Join Discord">
 
-Review, testing and triage count as much as code. Read and comment on open SEP and draft-specification pull requests, answer questions in GitHub Discussions, reproduce reported bugs, and test SDK release candidates against the draft specification. The [conformance suite](https://github.com/modelcontextprotocol/conformance) needs scenario authors: every Final Standards Track SEP with observable protocol behavior requires one (see [Conformance Test Requirement](/community/sep-guidelines#conformance-test-requirement)).
+Contributors talk about the protocol on [Discord](/community/communication#discord).
 
-## Fix docs or spec text
+</Step>
+<Step title="Find your group">
 
-Open a pull request against the specification repository. For a typo or a single paragraph the GitHub web editor is enough, and CI runs the checks. Clone the repository for larger edits and run `npm run prep` before pushing. Setup and troubleshooting are in [CONTRIBUTING.md](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/CONTRIBUTING.md).
+Pick the [working group](/community/working-interest-groups#current-groups) or Discord channel that covers your area. If none fits, use `#general`.
 
-`schema/draft/schema.ts` is the source of truth for the schema. Do not hand-edit the generated files `schema/draft/schema.json`, `docs/specification/draft/schema.mdx` and `docs/seps/*.mdx`. Released specification revisions are frozen, so fixes go to `draft/`. Keep each pull request to one concern. If a pull request with passing checks has had no response after a week, ping the requested reviewer in a comment, then ask in the group's or project's Discord channel.
+</Step>
+<Step title="Talk to the lead">
+
+Each group's page names its leads. Post what you want to work on in the group's channel.
+
+</Step>
+</Steps>
+
+Anyone can join a group meeting, comment on a pull request or open an issue. Check the [calendar](https://meet.modelcontextprotocol.io/) and read the [Antitrust Policy](/community/antitrust) before you attend.
+
+## Report a problem
+
+[Report a vulnerability](/community/policies#reporting-a-vulnerability) in private.
+
+For a bug, typo or unclear text in the specification or these docs, open an [issue](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/new/choose). For an SDK or tool, open it in that repository.
+
+Please don't post usage questions in the repositories. We stopped taking them there because of spam.
+
+## Change the specification or docs
+
+You need write access to open a pull request on the specification repository. If you don't have it, a maintainer can open one for you.
+
+<Steps>
+<Step title="Raise the change">
+
+Report a bug in an issue. Raise anything else in your group's channel or `#general`.
+
+</Step>
+<Step title="Push a branch">
+
+Push to a fork, or to a working group repository you can write to. Specification fixes go in `draft/`. Keep each change to one concern. [CONTRIBUTING.md](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/CONTRIBUTING.md) covers setup and checks.
+
+</Step>
+<Step title="Ask for a pull request">
+
+Link the branch in that issue or channel and ask a maintainer to open a pull request that credits you.
+
+</Step>
+</Steps>
+
+A change to the protocol itself needs a [SEP](#propose-a-protocol-change).
 
 ## Work on an SDK or tool
 
-Each SDK and each project (Inspector, Registry, the reference servers, the conformance suite, MCPB) has its own repository, maintainers (listed in [MAINTAINERS.md](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/MAINTAINERS.md)) and `CONTRIBUTING.md`, and that file governs contributions there. Processes differ between SDKs, some of which are co-maintained with other organizations. File bugs and pull requests in that repository: the specification repository does not take SDK bugs.
+Inspector and the reference servers accept issues only.
 
-A bug fix that ships with a reproducing test is welcome as a direct pull request. For anything larger, open an issue in that repository first. The SDK list with each SDK's tier is at [/docs/sdk](/docs/sdk); the tier sets the triage and fix latency you can expect (see [SDK Tiers](/community/sdk-tiers)). Coordination happens in the SDK and project channels on [Discord](/community/communication#discord).
+<Steps>
+<Step title="Read the contributing guide">
+
+Each repository sets its own rules, and some close pull requests that have no assigned issue. If a repository has no guide, ask in its channel, such as `#python-sdk-dev`.
+
+</Step>
+<Step title="Pick an issue">
+
+Look for [`good first issue`](https://github.com/search?q=org%3Amodelcontextprotocol+is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22&type=issues) or `help wanted`, or open a new one. Ask to be assigned if the guide requires it.
+
+</Step>
+<Step title="Open a pull request">
+
+For anything larger than a small bug fix, agree on the approach in the issue before you write code.
+
+</Step>
+</Steps>
+
+The [SDK list](/docs/sdk) shows each SDK's [tier](/community/sdk-tiers), which sets its issue triage times.
 
 ## Propose a protocol change
 
-A change to the protocol itself goes through a SEP: a design document submitted as a pull request that adds a file to `seps/`. Bug fixes and clarifications to the specification text do not need one. [When you need a SEP](/community/sep-guidelines#when-you-need-a-sep) lists what does. A SEP needs a working prototype and a [sponsor](/community/sep-guidelines#sponsors), and Core Maintainers judge it against the [roadmap](/development/roadmap) and the [design principles](/community/design-principles).
+Protocol changes go through a [SEP](/community/sep-guidelines). Bug fixes and clarifications [do not need one](/community/sep-guidelines#when-you-need-a-sep).
 
-Raise the idea in the working or interest group that covers the area first. Many ideas should ship as an [extension](/extensions/overview) before they become core protocol. The full procedure is in [SEP Guidelines](/community/sep-guidelines).
+<Steps>
+<Step title="Discuss the idea">
 
-## Where to talk
+Raise it in your group's channel. The SEP pull request [must link to that discussion](/community/sep-guidelines#before-you-write).
 
-[Discord](/community/communication#discord) is for contributors working on the protocol and its projects, not for user support. [GitHub Discussions](https://github.com/modelcontextprotocol/modelcontextprotocol/discussions) is for ideas, questions and announcements. Actionable bugs and scoped tasks go in [GitHub Issues](https://github.com/modelcontextprotocol/modelcontextprotocol/issues), filed through the issue forms; SEPs are pull requests, not issues. Never report a vulnerability in public: see [Reporting a vulnerability](/community/policies#reporting-a-vulnerability). [Communication](/community/communication) lists the channel names, the rules for private channels, and where decisions are recorded.
+</Step>
+<Step title="Build a prototype">
+
+See [Prototype Requirements](/community/sep-guidelines#prototype-requirements). Consider shipping the idea as an [extension](/extensions/overview) where its shape allows.
+
+</Step>
+<Step title="Find a sponsor">
+
+See [Sponsors](/community/sep-guidelines#sponsors).
+
+</Step>
+<Step title="Write the SEP">
+
+Follow the [workflow](/community/sep-guidelines#workflow). Without write access, ask your sponsor to open the pull request.
+
+</Step>
+</Steps>
+
+## Other ways to help
+
+- Review open SEPs and draft specification pull requests.
+- Reproduce reported bugs.
+- Test SDK release candidates against the draft specification.
+- Write [conformance](https://github.com/modelcontextprotocol/conformance) scenarios. A Standards Track SEP with observable protocol behavior [needs one](/community/sep-guidelines#conformance-test-requirement) to reach Final.
 
 ## Growing your role
 
-Sustained contributors are sponsored to Member and then to Maintainer, and in practice you become maintainer of something specific: an SDK, a tool, a documentation area or a group. The [Contributor Ladder](/community/contributor-ladder) defines each role and how to be nominated, [Governance](/community/governance) defines who decides what, and [MAINTAINERS.md](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/MAINTAINERS.md) lists the current maintainers.
+To take on a bigger role, see the [Contributor Ladder](/community/contributor-ladder). [Governance](/community/governance) covers who decides what, and [MAINTAINERS.md](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/MAINTAINERS.md) lists the current maintainers.
 
 ## Ground rules
 
-The [Code of Conduct](/community/policies#code-of-conduct) applies in every repository, channel and meeting. Any AI assistance used for a contribution must be [disclosed](/community/policies#ai-assisted-contributions) in the pull request or issue. Contributions are licensed under Apache-2.0 for code and specifications and CC-BY-4.0 for other documentation (see [Project Policies](/community/policies#licensing-and-intellectual-property)).
+- The [Code of Conduct](/community/policies#code-of-conduct) applies in every repository, channel and meeting.
+- [Disclose](/community/policies#ai-assisted-contributions) any AI assistance in the pull request or issue.
+- AI agents must follow [AGENTS.md](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/AGENTS.md), which limits when they can open issues and pull requests.
+- Contributions are [licensed](/community/policies#licensing-and-intellectual-property) under Apache-2.0 for code and specifications and CC-BY-4.0 for other documentation.
