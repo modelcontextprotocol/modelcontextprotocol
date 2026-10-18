@@ -870,20 +870,17 @@
         "tab": "Community",
         "pages": [
           {
-            "group": "Get Involved",
+            "group": "Contributing",
             "pages": [
               "community/contributing",
-              "community/communication",
-              "community/working-interest-groups",
-              "community/charter-template"
+              "community/sep-guidelines",
+              "community/design-principles"
             ]
           },
           {
-            "group": "Shaping the Protocol",
+            "group": "Roadmap",
             "pages": [
-              "development/roadmap",
-              "community/design-principles",
-              "community/sep-guidelines"
+              "development/roadmap"
             ]
           },
           {
@@ -891,41 +888,50 @@
             "pages": [
               "community/governance",
               "community/contributor-ladder",
+              "community/working-interest-groups",
+              "community/charter-template",
+              {
+                "group": "Working Groups",
+                "pages": [
+                  "community/working-groups/agents",
+                  "community/working-groups/apps",
+                  "community/working-groups/file-uploads",
+                  "community/working-groups/filesystems",
+                  "community/working-groups/governance",
+                  "community/working-groups/infrastructure",
+                  "community/working-groups/inspector-v2",
+                  "community/working-groups/interceptors",
+                  "community/working-groups/progressive-disclosure",
+                  "community/working-groups/registry",
+                  "community/working-groups/sdk",
+                  "community/working-groups/server-card",
+                  "community/working-groups/skills-over-mcp",
+                  "community/working-groups/transports",
+                  "community/working-groups/triggers-events"
+                ]
+              },
+              {
+                "group": "Interest Groups",
+                "pages": [
+                  "community/interest-groups/auth",
+                  "community/interest-groups/enterprise",
+                  "community/interest-groups/enterprise-managed-authorization",
+                  "community/interest-groups/financial-services",
+                  "community/interest-groups/scientific-computing",
+                  "community/interest-groups/security",
+                  "community/interest-groups/tool-annotations"
+                ]
+              }
+            ]
+          },
+          {
+            "group": "Policies",
+            "pages": [
+              "community/policies",
+              "community/communication",
               "community/feature-lifecycle",
               "community/sdk-tiers",
-              "community/security",
               "community/antitrust"
-            ]
-          },
-          {
-            "group": "Working Group Charters",
-            "pages": [
-              "community/working-groups/agents",
-              "community/working-groups/file-uploads",
-              "community/working-groups/filesystems",
-              "community/working-groups/governance",
-              "community/working-groups/infrastructure",
-              "community/working-groups/inspector-v2",
-              "community/working-groups/interceptors",
-              "community/working-groups/progressive-disclosure",
-              "community/working-groups/registry",
-              "community/working-groups/sdk",
-              "community/working-groups/server-card",
-              "community/working-groups/skills-over-mcp",
-              "community/working-groups/transports",
-              "community/working-groups/triggers-events"
-            ]
-          },
-          {
-            "group": "Interest Group Charters",
-            "pages": [
-              "community/interest-groups/auth",
-              "community/interest-groups/enterprise",
-              "community/interest-groups/enterprise-managed-authorization",
-              "community/interest-groups/financial-services",
-              "community/interest-groups/scientific-computing",
-              "community/interest-groups/security",
-              "community/interest-groups/tool-annotations"
             ]
           }
         ]
@@ -968,6 +974,10 @@
     {
       "source": "/community/agents/charter",
       "destination": "/community/working-groups/agents"
+    },
+    {
+      "source": "/community/security",
+      "destination": "/community/policies"
     },
     {
       "source": "/community/file-uploads/charter",
