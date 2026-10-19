@@ -156,7 +156,8 @@
                 "pages": [
                   "examples"
                 ]
-              }
+              },
+              "docs/tutorials/deployment"
             ]
           },
           {
