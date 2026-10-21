@@ -13,7 +13,14 @@ Point the client at this directory, or at `plugins/mcp-spec` in a clone of `mode
 ### Claude Code
 
 ```bash
+/plugin install mcp-spec --marketplace modelcontextprotocol/modelcontextprotocol
+```
+
+On Claude Code older than 2.1.275, add the marketplace first:
+
+```bash
 /plugin marketplace add modelcontextprotocol/modelcontextprotocol
+/plugin install mcp-spec@modelcontextprotocol
 ```
 
 ### Claude Cowork

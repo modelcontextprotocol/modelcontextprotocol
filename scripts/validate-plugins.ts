@@ -12,7 +12,7 @@
  * 3. Skills under `skills/` are discoverable where the spec looks for them and their
  *    frontmatter conforms to the Agent Skills specification.
  * 4. The Claude Code adapter (`.claude-plugin/plugin.json`) agrees with the portable
- *    manifest on shared metadata and declares the same MCP servers.
+ *    manifest on shared metadata and reads MCP servers from the portable `mcp.json`.
  * 5. `.claude-plugin/marketplace.json` entries point at real plugin directories and
  *    agree with those plugins' manifests.
  *
@@ -310,7 +310,8 @@ function equalValues(a: unknown, b: unknown): boolean {
 function validateClaudeAdapter(
   pluginRoot: string,
   manifest: Record<string, unknown>,
-  mcp: Record<string, unknown> | undefined
+  mcp: Record<string, unknown> | undefined,
+  warnings: string[]
 ): string[] {
   const errors: string[] = [];
   const adapterPath = path.join(pluginRoot, ".claude-plugin", "plugin.json");
@@ -331,11 +332,37 @@ function validateClaudeAdapter(
 
   const portableServers = (mcp?.mcpServers ?? {}) as Record<string, Record<string, unknown>>;
   const adapterServers = adapter.mcpServers;
-  if (adapterServers !== undefined && typeof adapterServers !== "object") {
-    // A string or array points at another config file; nothing to cross-check.
+  const hasPortableMcp = fs.existsSync(path.join(pluginRoot, "mcp.json"));
+
+  if (typeof adapterServers === "string") {
+    // Claude Code reads the portable mcp.json directly when pointed at it, so the
+    // adapter can reference it instead of duplicating the servers. Any other file
+    // would be a second source of truth.
+    if (adapterServers !== "./mcp.json") {
+      errors.push(
+        `.claude-plugin/plugin.json: "mcpServers" points at "${adapterServers}"; point it at "./mcp.json" so Claude Code reads the portable configuration`
+      );
+    } else if (!hasPortableMcp) {
+      errors.push(`.claude-plugin/plugin.json: "mcpServers" points at "./mcp.json", which does not exist`);
+    }
+    return errors;
+  }
+  if (Array.isArray(adapterServers)) {
+    errors.push(
+      `.claude-plugin/plugin.json: "mcpServers" is an array; declare MCP servers once in mcp.json and set "mcpServers" to "./mcp.json"`
+    );
+    return errors;
+  }
+  if (hasPortableMcp && adapterServers === undefined) {
+    errors.push(`.claude-plugin/plugin.json: mcp.json exists but "mcpServers" is not set; set it to "./mcp.json"`);
     return errors;
   }
   const claudeServers = (adapterServers ?? {}) as Record<string, Record<string, unknown>>;
+  if (Object.keys(claudeServers).length > 0) {
+    warnings.push(
+      `.claude-plugin/plugin.json: "mcpServers" is inlined; set it to "./mcp.json" so the servers are declared once`
+    );
+  }
 
   for (const name of Object.keys(portableServers)) {
     if (!(name in claudeServers)) {
@@ -433,7 +460,7 @@ function validatePlugin(pluginRoot: string): Result {
   }
 
   errors.push(...validateSkills(pluginRoot, warnings));
-  errors.push(...validateClaudeAdapter(pluginRoot, manifest, mcp));
+  errors.push(...validateClaudeAdapter(pluginRoot, manifest, mcp, warnings));
 
   return { name: label, errors, warnings };
 }

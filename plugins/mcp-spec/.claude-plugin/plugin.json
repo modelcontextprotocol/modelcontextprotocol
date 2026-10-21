@@ -9,10 +9,5 @@
   "repository": "https://github.com/modelcontextprotocol/modelcontextprotocol",
   "license": "Apache-2.0",
   "keywords": ["mcp", "model-context-protocol", "specification", "github", "research"],
-  "mcpServers": {
-    "mcp-docs": {
-      "type": "http",
-      "url": "https://modelcontextprotocol.io/mcp"
-    }
-  }
+  "mcpServers": "./mcp.json"
 }
