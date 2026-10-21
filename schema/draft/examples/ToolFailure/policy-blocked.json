@@ -1,0 +1,6 @@
+{
+  "class": "governance",
+  "code": "auth_required",
+  "correlationId": "req_8f2c1a-attempt-3",
+  "agentGuidance": "Ask the user to reconnect their account, then retry the same call."
+}
