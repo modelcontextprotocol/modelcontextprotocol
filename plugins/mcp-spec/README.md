@@ -23,6 +23,15 @@ On Claude Code older than 2.1.275, add the marketplace first:
 /plugin install mcp-spec@modelcontextprotocol
 ```
 
+### Codex
+
+Codex reads this repository's [`.claude-plugin/marketplace.json`](../../.claude-plugin/marketplace.json) as a marketplace and loads the plugin from its portable `plugin.json` and `mcp.json`.
+
+```bash
+codex plugin marketplace add modelcontextprotocol/modelcontextprotocol
+codex plugin add mcp-spec@modelcontextprotocol
+```
+
 ### Claude Cowork
 
 Navigate to Customize >> Browse Plugins >> Personal >> Plus Button >> Add marketplace from GitHub and add `modelcontextprotocol/modelcontextprotocol`

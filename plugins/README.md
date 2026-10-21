@@ -75,4 +75,19 @@ claude --plugin-dir ./plugins/mcp-spec mcp list
 
 `claude plugin validate` warns about a missing icon and privacy policy URL. Those are requirements of the Anthropic plugin directory, not of loading the plugin, and are ignored here.
 
+Codex is the easiest check of the portable core, because it ignores `.claude-plugin/plugin.json` and loads only `plugin.json`, `mcp.json`, and `skills/`. It reads `.claude-plugin/marketplace.json` as a marketplace, so the repository checkout works as one directly:
+
+```bash
+# From the repository root. Use owner/repo --ref <branch> to test a pushed branch instead.
+codex plugin marketplace add .
+codex plugin add mcp-spec@modelcontextprotocol
+
+# The server from mcp.json should be listed as enabled.
+codex mcp list
+
+# Remove when done.
+codex plugin remove mcp-spec@modelcontextprotocol
+codex plugin marketplace remove modelcontextprotocol
+```
+
 For other clients, point the client at the plugin directory and confirm it discovers both skills and connects to the `mcp-docs` server. The [agent-plugins-example](https://github.com/agentplugins/agent-plugins-example) repository has a validation checklist for the portable package.
