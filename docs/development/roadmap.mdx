@@ -25,7 +25,7 @@ Each priority area names the Core Maintainers responsible for it, who can be rea
 
 ### 1. Agentic Messaging Primitives
 
-Core Maintainers: [**Caitie McCaffrey**](https://github.com/CaitieM20), [**Clare Liguori**](https://github.com/clareliguori), [**Peter Alexander**](https://github.com/pja-ant)
+Core Maintainers: [**Caitie McCaffrey**](https://github.com/CaitieM20), [**Clare Liguori**](https://github.com/clareliguori), [**Peter Alexander**](https://github.com/poita)
 
 Agentic workloads need [messaging patterns](/specification/2026-07-28/basic/patterns) beyond request and response: work that runs for minutes, servers that push, results that stream, and a way to steer work mid-flight. MCP has grown a set of concepts for this, including [Tasks](/extensions/tasks/overview), [`subscriptions/listen`](/specification/2026-07-28/basic/patterns/subscriptions), and [progress notifications](/specification/2026-07-28/basic/patterns/progress), spread across multiple Working Groups. The risk is three answers to "the server isn't done yet" that don't share a lifecycle, a cancellation model, or an error surface. We want them to compose.
 
@@ -64,7 +64,7 @@ Beyond these, several other topics are under discussion and may come into scope 
 
 ### 4. Improved Primitives
 
-Core Maintainers: [**Kurtis Van Gent**](https://github.com/kurtisvg), [**Peter Alexander**](https://github.com/pja-ant), [**Den Delimarsky**](https://github.com/localden)
+Core Maintainers: [**Kurtis Van Gent**](https://github.com/kurtisvg), [**Peter Alexander**](https://github.com/poita), [**Den Delimarsky**](https://github.com/localden)
 
 MCP's tool calling interface has served well. However, `tools/call` allows returning both `content` and `structuredContent` at the same time, which has confused server and client authors alike and produced diverging implementations. We want to spend this roadmap period improving the shape of the `tools/call` interface for more consistent semantics. We also hear repeatedly from the community that servers need more options to guide clients through large sets of tools, resources, and other primitives, so we're starting a dedicated effort around **progressive discovery** to define what an experimental server-side discovery mechanism would look like.
 
