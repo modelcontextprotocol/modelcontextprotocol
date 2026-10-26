@@ -5,8 +5,8 @@ description: "Release Cycle Updates"
 ---
 
 <div className="flex items-center gap-2 mb-4">
-  <Badge color="gray" shape="pill">
-    Draft
+  <Badge color="blue" shape="pill">
+    Accepted
   </Badge>
   <Badge color="gray" shape="pill">
     Process
@@ -17,9 +17,10 @@ description: "Release Cycle Updates"
 | ------------- | --------------------------------------------------------------------------------------------- |
 | **SEP**       | 3398                                                                                          |
 | **Title**     | Release Cycle Updates                                                                         |
-| **Status**    | Draft                                                                                         |
+| **Status**    | Accepted                                                                                      |
 | **Type**      | Process                                                                                       |
 | **Created**   | 2026-09-17                                                                                    |
+| **Accepted**  | 2026-10-14                                                                                    |
 | **Author(s)** | Kurtis Van Gent ([@kurtisvg](https://github.com/kurtisvg))                                    |
 | **Sponsor**   | Kurtis Van Gent ([@kurtisvg](https://github.com/kurtisvg)), on behalf of the Core Maintainers |
 | **PR**        | [#3398](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/3398)               |
@@ -97,6 +98,8 @@ The following cycle's planning ends and its CM review window opens on the curren
 
 Each release has a primary and secondary release manager. Release managers are Maintainers who self-nominate and are selected by affirmative votes from more than half of all eligible Core Maintainers (CMs). Voter eligibility follows [Voting and Recorded Outcomes](#voting-and-recorded-outcomes).
 
+Core Maintainers give both release managers the access needed for their duties, including repositories, release tooling, the review queue, and communication channels, and invite them to all CM meetings.
+
 A manager serves as secondary for one cycle and primary for the next. CMs select an incoming secondary before planning for the following release begins.
 
 The primary is accountable for the release calendar, review scheduling, scope tracking, freeze coordination, SDK readiness, publication, and communication. The secondary participates in that work, maintains the queue and handoff notes with the primary, and learns the release procedures. Release managers coordinate and escalate decisions; SEP acceptance and exception authority remain with the roles specified in this SEP.
@@ -123,7 +126,7 @@ Process and Informational SEPs can take effect after acceptance and completion o
 
 SEPs require sponsorship from a Working Group or the Core Maintainer group before formal review. A named representative acts on the sponsoring group's behalf. Sponsorship supports bringing the proposal to review; formal acceptance requires a separate decision.
 
-- **WG sponsorship:** Develop the proposal in a publicly readable WG-designated repository or fork and obtain approval through the existing [WG decision-making process](https://modelcontextprotocol.io/community/working-interest-groups#decision-making-process). The WG lead records the decision and unresolved concerns, then submits the ready SEP to the [SEP review queue](https://voting.modelcontextprotocol.io/seps).
+- **WG sponsorship:** Develop the proposal in a publicly readable WG-designated repository or fork and obtain approval through the existing [WG decision-making process](https://modelcontextprotocol.io/community/working-interest-groups#decision-making-process). The WG lead records the decision and unresolved concerns, then submits the ready SEP to the [SEP review queue](https://voting.modelcontextprotocol.io/p/seps).
 - **Core Maintainer group sponsorship:** The Core Maintainers agree to sponsor the proposal and designate a CM to represent the group. That representative records the sponsorship decision, consults relevant WGs, and submits the ready SEP to the same queue. No separate WG approval is required.
 
 Before queue submission for formal review, both paths require a canonical SEP PR in the main MCP repository. Use a placeholder number until that PR supplies the SEP number, following [SEP-1850](https://modelcontextprotocol.io/seps/1850-pr-based-sep-workflow). WG-sponsored PRs link to the WG review and approval; proposals sponsored by the Core Maintainer group may start directly in the main repository. Record the sponsoring group's decision and consultation with affected WGs in the PR.
@@ -134,13 +137,13 @@ Both paths follow the same queue, review schedule, and acceptance requirements. 
 
 #### Review Queue and Scheduling
 
-Release managers maintain the public [SEP review queue](https://voting.modelcontextprotocol.io/seps). Each entry records a link to the proposal, sponsoring group and representative, named maintainer sponsor when assigned, requested review type, readiness date, roadmap alignment, and target review cycle. Formal review entries link to the canonical upstream SEP PR. Pre-review entries may link to an initial proposal without an upstream SEP number or completed group approval.
+Release managers maintain the public [SEP review queue](https://voting.modelcontextprotocol.io/p/seps). Each entry records a link to the proposal, sponsoring group and representative, named maintainer sponsor when assigned, requested review type, readiness date, roadmap alignment, and target review cycle. Formal review entries link to the canonical upstream SEP PR. Pre-review entries may link to an initial proposal without an upstream SEP number or completed group approval.
 
 A WG lead or designated CM may request optional pre-review to discuss direction, dependencies, and major concerns before investing in a complete proposal. Pre-review provides guidance and does not grant acceptance or reserve release scope.
 
 For each agenda, release managers prioritize ready formal reviews, then pre-reviews. Within each category, roadmap-aligned proposals come first, followed by readiness date, oldest first. Record the reason for any scheduling exception in the queue. A proposal returned for substantive revision receives a new readiness date when resubmitted; a ready proposal deferred solely for lack of agenda time retains its readiness date.
 
-Core Maintainers continue meeting every two weeks. For each formal review:
+Formal reviews take place at regular Core Maintainer meetings during the review window. For each formal review:
 
 1. **Two weeks before the meeting:** Release managers select ready proposals with Core Maintainers and publish the agenda and proposal links.
 2. **During the preceding week:** Reviewers leave asynchronous comments. Authors and sponsors respond and identify questions requiring discussion.
@@ -270,7 +273,7 @@ For this Process SEP, implementation consists of contributor documentation and o
 
 1. Update the current SEP guidelines and WG guidance to explain sponsorship, upstream submission, review scheduling, voting, and transition handling.
 2. Publish release-cycle documentation and the first calendar, including exact UTC deadlines and review meetings.
-3. Set up the public [SEP review queue](https://voting.modelcontextprotocol.io/seps), publish the SDK readiness summary, assign their maintainers, and record the initial release-manager appointments.
+3. Set up the public [SEP review queue](https://voting.modelcontextprotocol.io/p/seps), publish the SDK readiness summary, assign their maintainers, and record the initial release-manager appointments.
 4. Publish a release checklist covering freeze scope, emergency approvals, SDK milestones, publication, and handoff.
 
 Link the documentation changes, calendar, queue, and assignments here as they become available. Process SEPs are exempt from protocol conformance-test requirements; existing release tooling can continue to perform publication.
