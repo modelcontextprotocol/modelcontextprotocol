@@ -30,8 +30,28 @@ Examples of unacceptable behavior include:
 - Public or private harassment
 - Publishing others' private information, such as a physical or email address, without
   their explicit permission
+- Bringing third-party AI notetakers, meeting bots, or other unofficial recording or
+  transcription tools into community meetings (see [Community Meetings](#community-meetings))
 - Other conduct which could reasonably be considered inappropriate in a professional
   setting
+
+## Community Meetings
+
+Working Group, Interest Group, and other community meetings use the official Google Meet
+transcription, enabled by the meeting host. Participants who want a record of a meeting
+should use that transcript and the published meeting notes.
+
+Participants must not add third-party AI notetakers, meeting bots, or other automated
+recording or transcription services (such as Otter.ai, Fireflies.ai, Read.ai, or similar
+tools) to community meetings, whether by inviting them directly or by letting them join
+automatically from a personal calendar or account. Participants also must not record or
+transcribe meetings with their own tools. These services capture the voices and words of
+everyone present without their consent, and store that data under terms the project does
+not control.
+
+Meeting hosts may remove unauthorized bots from a meeting at any time without notice.
+Repeatedly bringing bots or unofficial recording tools into meetings is a violation of
+this Code of Conduct and is handled under the [Enforcement Guidelines](#enforcement-guidelines).
 
 ## Enforcement Responsibilities
 
