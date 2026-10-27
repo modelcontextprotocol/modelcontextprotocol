@@ -863,6 +863,12 @@
               "seps/2640-skills-extension",
               "seps/2663-tasks-extension"
             ]
+          },
+          {
+            "group": "Accepted",
+            "pages": [
+              "seps/3398-release-cycle-updates"
+            ]
           }
         ]
       },
@@ -1442,6 +1448,10 @@
     {
       "source": "/seps/2663",
       "destination": "/seps/2663-tasks-extension"
+    },
+    {
+      "source": "/seps/3398",
+      "destination": "/seps/3398-release-cycle-updates"
     }
   ],
   "contextual": {
