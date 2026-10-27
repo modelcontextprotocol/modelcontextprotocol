@@ -203,7 +203,7 @@ Extensions became an official part of the protocol in version `2026-07-28`. Befo
 
 <Note>
 
-The `extensions` field is not part of the published schemas for these protocol versions, and supporting it is not required for conformance. SDKs that can carry `capabilities.extensions` through `initialize` are encouraged to do so, so that extensions work consistently across protocol versions. Check that your SDK can send and receive this field, and that the extension supports the negotiated protocol version.
+The `extensions` field is not part of the published schemas for these protocol versions, and supporting it is not required for conformance. SDKs that can carry `capabilities.extensions` through `initialize` are encouraged to do so, so that extensions work consistently across protocol versions. Check that your SDK can send and receive this field, and that the extension supports the negotiated protocol version. If the other side's capabilities omit `extensions`, or omit a given extension, treat that extension as unsupported and follow [Graceful Degradation](#graceful-degradation).
 
 </Note>
 
