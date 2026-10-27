@@ -60,9 +60,9 @@ An extension MUST NOT skip Beta, unless the Core Maintainers waive the requireme
 ### Roles
 
 An **Extension Maintainer** is a maintainer of the extension's repository who is listed in that repository's `MAINTAINERS.md`, as `ext-tasks` already does. As SEP-2133 provides for repository maintainers, the Core Maintainers appoint Extension Maintainers, who are normally the
-leads of the associated Working Group or Interest Group. Every extension MUST have at least one Extension Maintainer.
+leads of the associated Working Group, or the facilitators of the associated Interest Group. Every extension MUST have at least one Extension Maintainer.
 
-"Extension Maintainer approval" means a pull request approved by at least one Extension Maintainer who is not its author. Extension Maintainers SHOULD coordinate changes through the associated Working Group or Interest Group.
+"Extension Maintainer approval" means a pull request approved by at least one Extension Maintainer who is not its author. Extension Maintainers SHOULD coordinate changes through the associated Working Group or Interest Group, following its [decision-making process](https://modelcontextprotocol.io/community/working-interest-groups#decision-making-process).
 
 The Core Maintainers keep the authority SEP-2133 gives them over every extension, including the ability to modify, deprecate, archive or remove it. Lead Maintainers retain veto authority over each Core Maintainer decision in this SEP, per the
 [governance roles](https://modelcontextprotocol.io/community/governance#roles).
@@ -101,7 +101,7 @@ The following apply at every stage:
 
 - Every extension MUST stay associated with a Working Group or Interest Group, as SEP-2133 requires.
 - The licensing, contributor license grant, trademark and antitrust terms of SEP-2133 apply.
-- Each extension MUST be listed on the extensions page of the MCP website with its current stage.
+- Each extension MUST be listed on the extensions page of the MCP website with its current stage, and a Beta extension with its intended destination.
 
 SDKs keep the autonomy SEP-2133 gives them. Extensions stay disabled by default and require explicit opt-in, at every stage.
 
@@ -120,6 +120,8 @@ A Beta extension is one the Core Maintainers are willing to have implementers tr
 
 **Entry.** An Extension Maintainer, or the Working Group, submits an Extensions Track SEP under SEP-2133 and the [SEP guidelines](https://modelcontextprotocol.io/community/sep-guidelines). It is reviewed like a Standards Track SEP, and SEP-2133 already requires it to identify the
 Working Group and Extension Maintainers and to have a reference implementation in an official SDK. When the SEP is accepted, the extension moves to `specification/beta/<name>`, as [Repositories and directories](#repositories-and-directories) describes.
+
+**Intended destination.** The Beta SEP SHOULD state whether the extension is intended to become Stable or to be promoted to Core. The destination is a signal to implementers, not a commitment. Extension Maintainers MAY change it during Beta, and the SEP that moves the extension out of Beta decides. A change of intended destination SHOULD be announced like a breaking change.
 
 **Iteration.** After entry, Extension Maintainers approve changes without further Core Maintainer review.
 
@@ -196,14 +198,14 @@ When this SEP reaches Final:
 - The extensions page lists each extension with its stage.
 - The extensions in existing repositories are classified as follows. No repository is renamed. The Extension Maintainers of each `ext-` repository move its specification into the stage directory shown, and a Core Maintainer approves the move.
 
-| Repository                                                                                                                            | Stage at Final                  | Specification moves to  |
-| ------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------- | ----------------------- |
-| `ext-apps`, `ext-auth`                                                                                                                | Stable                          | `specification/stable/` |
-| `ext-skills`, `ext-tasks`                                                                                                             | Beta                            | `specification/beta/`   |
-| `ext-server-card`                                                                                                                     | Beta, once SEP-2127 is accepted | `specification/beta/`   |
-| `experimental-ext-interceptors`, `experimental-ext-variants`, `experimental-ext-triggers-events`, `experimental-ext-tool-annotations` | Experimental                    | No change               |
+| Repository                                                                                                                            | Stage at Final | Specification moves to  |
+| ------------------------------------------------------------------------------------------------------------------------------------- | -------------- | ----------------------- |
+| `ext-apps`, `ext-auth`                                                                                                                | Stable         | `specification/stable/` |
+| `ext-skills`, `ext-tasks`                                                                                                             | Beta           | `specification/beta/`   |
+| `ext-server-card`                                                                                                                     | Beta           | `specification/beta/`   |
+| `experimental-ext-interceptors`, `experimental-ext-variants`, `experimental-ext-triggers-events`, `experimental-ext-tool-annotations` | Experimental   | No change               |
 
-- The classified extensions need no new SEP. Their existing SEPs count as the SEP for the stage assigned, and they keep their identifiers and wire behavior. `ext-server-card` uses SEP-2127 as its Beta SEP, so its classification takes effect when that SEP is accepted.
+- The classified extensions need no new SEP. Their existing SEPs, including SEP-2127 for `ext-server-card`, count as the SEP for the stage assigned, and they keep their identifiers and wire behavior. Their existing SEPs do not state an intended destination, so the Extension Maintainers of each Beta extension record one on the extensions page.
 - Extensions classified as Stable follow the revision rules from Final. Their next revision is keyed to the next core protocol revision, and their existing published specifications keep their content.
 - Dated snapshots and `draft/` directories that sit directly under `specification/` today, as in `ext-apps` and `ext-tasks`, move under the extension's own directory, for example `specification/beta/tasks/2026-07-28/`.
 - `ext-auth` keeps hosting several extensions, and each is classified as Stable. Its `specification/stable/` and `specification/draft/` directories hold different extensions today. Both extensions move under `specification/stable/`, and each gets its own `draft/` directory.
@@ -212,7 +214,7 @@ When this SEP reaches Final:
 
 ## Rationale
 
-**Why put the stage in a directory, and not in the repository name?** An earlier draft of this SEP used the repository name (`experimental-ext-<name>`, `beta-ext-<name>`, `ext-<name>`). That allows one stage per repository, but one area often holds work at several stages. The Tasks Working Group plans to stabilize the current Tasks extension while steering and intermediate results incubate beside it ([agents-wg#29](https://github.com/modelcontextprotocol/agents-wg/pull/29)), and `ext-auth` already keeps one extension under `specification/stable/` and another under `specification/draft/`. With stages in repository names, each of those would need a second repository with its own maintainers file, issues and packages. A directory lets them share one. It also avoids renames, which GitHub redirects but which break package names and module paths at every stage change.
+**Why put the stage in a directory, and not in the repository name?** An earlier draft of this SEP used the repository name (`experimental-ext-<name>`, `beta-ext-<name>`, `ext-<name>`). That allows one stage per repository, but one area often holds work at several stages. The Tasks and Events Working Group plans to stabilize the current Tasks extension while steering and intermediate results incubate beside it ([agents-wg#29](https://github.com/modelcontextprotocol/agents-wg/pull/29)), and `ext-auth` already keeps one extension under `specification/stable/` and another under `specification/draft/`. With stages in repository names, each of those would need a second repository with its own maintainers file, issues and packages. A directory lets them share one. It also avoids renames, which GitHub redirects but which break package names and module paths at every stage change.
 
 The directory is still visible in every link to the specification, which a README banner or front-matter label would not be. There are two costs. GitHub does not redirect a moved path, so links to the old path on the default branch break. Links to a tag or commit do not break, and the extensions page on the MCP website is the stable entry point. A move also needs only write access, where a rename needs administrator access. This SEP therefore requires a Core Maintainer to approve the move.
 
@@ -226,6 +228,8 @@ peers on an earlier revision. It also matches current practice: `ext-tasks` snap
 
 **Why is Beta required before Stable?** The purpose of Beta is real usage before the project commits to a design. The Stable evidence is easier to gather during Beta, and a Beta extension is cheap to change if the evidence shows a problem. The Core Maintainers can still waive the
 requirement.
+
+**Why does a Beta extension state an intended destination?** The two exits from Beta set different expectations. An extension heading for Core will later be defined by core protocol revisions and its identifier will stop being advertised, while one heading for Stable stays an extension. Implementers deciding how deeply to adopt a Beta extension need to know which to expect. The destination is not binding, because Beta exists to gather the evidence that decides it.
 
 **Why does the extension stay advertised after promotion to Core?** Protocol revisions are negotiated per request, so a client cannot know in advance whether a server supports R. Advertising the extension lets the same client work with servers on either side of R, and the core
 behavior needs no negotiation once both sides are on R.
@@ -251,8 +255,7 @@ This SEP changes process only, and changes no message on the wire.
 - It replaces the identifier rule and the creation, iteration and promotion steps of SEP-2133 with the rules above.
 - No repository is renamed, so repository URLs, package names and module paths do not change.
 - Existing Experimental repositories are unchanged.
-- `ext-skills` and `ext-tasks` are classified as Beta. Their identifiers and wire behavior do not change. Their specifications move to `specification/beta/`, which breaks links to the old paths on the default branch.
-- `ext-server-card` is classified as Beta once SEP-2127 is accepted, and its specification moves then.
+- `ext-skills`, `ext-tasks` and `ext-server-card` are classified as Beta. Their identifiers and wire behavior do not change. Their specifications move to `specification/beta/`, which breaks links to the old paths on the default branch.
 - `ext-apps` and `ext-auth` are classified as Stable, and their specifications move to `specification/stable/`. From Final, changes to their published specifications wait for a core protocol revision.
 
 ## Security Implications
