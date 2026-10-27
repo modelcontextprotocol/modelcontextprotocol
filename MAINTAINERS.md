@@ -16,7 +16,7 @@ This document lists current maintainers in the Model Context Protocol project.
 - [Kurtis Van Gent](https://github.com/kurtisvg)
 - [Nick Cooper](https://github.com/nickcoai)
 - [Paul Carleton](https://github.com/pcarleton)
-- [Peter Alexander](https://github.com/pja-ant)
+- [Peter Alexander](https://github.com/poita)
 
 ## Emeritus
 
@@ -207,7 +207,7 @@ This document lists current maintainers in the Model Context Protocol project.
 
 ### Agents Working Group
 
-- [Peter Alexander](https://github.com/pja-ant)
+- [Peter Alexander](https://github.com/poita)
 - [Luca Chang](https://github.com/LucaButBoring)
 - [Inna Harper](https://github.com/ihrpr)
 
