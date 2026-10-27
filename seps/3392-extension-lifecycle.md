@@ -1,6 +1,6 @@
 # SEP-3392: Extension Lifecycle
 
-- **Status**: Draft
+- **Status**: Final
 - **Type**: Process
 - **Created**: 2026-09-25
 - **Author(s)**: Peter Alexander (@pja-ant)
