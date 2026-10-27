@@ -199,11 +199,11 @@ Each extension specifies the schema of its settings object; an empty object indi
 
 ### Initialization-Based Versions
 
-For protocol version `2025-11-25` and earlier, clients and servers advertise extensions during the [`initialize` handshake](/specification/2025-11-25/basic/lifecycle#initialization), using `params.capabilities.extensions` in the request and `result.capabilities.extensions` in the response. The extension identifiers and settings objects follow the same rules as above.
+Extensions became an official part of the protocol in version `2026-07-28`. Before that, many SDKs, clients, and servers already negotiated extensions on `2025-11-25` and earlier during the [`initialize` handshake](/specification/2025-11-25/basic/lifecycle#initialization), using `params.capabilities.extensions` in the request and `result.capabilities.extensions` in the response. The extension identifiers and settings objects follow the same rules as above.
 
 <Note>
 
-[SEP-2133](/seps/2133-extensions#negotiation) defines this optional `extensions` field for both `ClientCapabilities` and `ServerCapabilities`, although it is absent from the published schemas for these protocol versions. Extension support is not required for core protocol conformance. Check that your SDK can send and receive this field, and that the extension supports the negotiated protocol version.
+The `extensions` field is not part of the published schemas for these protocol versions, and supporting it is not required for conformance. SDKs that can carry `capabilities.extensions` through `initialize` are encouraged to do so, so that extensions work consistently across protocol versions. Check that your SDK can send and receive this field, and that the extension supports the negotiated protocol version.
 
 </Note>
 
