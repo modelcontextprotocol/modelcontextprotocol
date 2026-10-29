@@ -321,7 +321,7 @@ sequenceDiagram
 
     SDK->>Server: events/stream {name, arguments, cursor}
     activate Server
-    Server-->>SDK: notifications/events/active {cursor, truncated, _meta.subscriptionId}
+    Server-->>SDK: notifications/events/active {cursor, truncated, heartbeatMs, _meta.subscriptionId}
     loop as events occur
         Server-->>SDK: notifications/events/event {eventId, name, timestamp, data, cursor, _meta.subscriptionId}
     end
@@ -344,19 +344,20 @@ sequenceDiagram
     "arguments": { "from": "*@anthropic.com", "redact_pii": true },
     "cursor": null,
     "maxAgeMs": 300000,
+    "heartbeatMs": 15000, // optional; suggested heartbeat interval (see Lifecycle)
   },
 }
 ```
 
 #### Event delivery
 
-If the subscription is invalid (`NotFound`, `Forbidden`, `InvalidParams`, `Unsupported`), the server responds immediately with a JSON-RPC error and no stream is opened. Otherwise the server confirms the subscription with `notifications/events/active`, and then delivers events as notifications.
+If the subscription is invalid (`NotFound`, `Forbidden`, `InvalidParams`, `Unsupported`), the server responds immediately with a JSON-RPC error and no stream is opened. Otherwise the server confirms the subscription with `notifications/events/active`, which carries the granted heartbeat interval, and then delivers events as notifications.
 
 Every `notifications/events/*` message carries the JSON-RPC `id` of the parent `events/stream` request in `params._meta["io.modelcontextprotocol/subscriptionId"]`, the correlation key the core protocol defines for subscription streams. A client with several concurrent streams, especially on stdio where they all share one stdout, uses it to route notifications to the right stream.
 
 ```jsonc
 // Confirmation
-{"jsonrpc":"2.0","method":"notifications/events/active","params":{"cursor":"historyId_99840","truncated":false,"_meta":{"io.modelcontextprotocol/subscriptionId":1}}}
+{"jsonrpc":"2.0","method":"notifications/events/active","params":{"cursor":"historyId_99840","truncated":false,"heartbeatMs":15000,"_meta":{"io.modelcontextprotocol/subscriptionId":1}}}
 
 // Events as they occur
 {"jsonrpc":"2.0","method":"notifications/events/event","params":{"eventId":"evt_001","name":"email.received","timestamp":"2026-02-19T15:30:00Z","data":{"messageId":"msg_xyz","from":"dsp@anthropic.com","subject":"MCP spec review"},"cursor":"historyId_99842","_meta":{"io.modelcontextprotocol/subscriptionId":1}}}
@@ -377,10 +378,11 @@ On Streamable HTTP, notifications are SSE `data:` frames. When the server ends t
 #### Lifecycle
 
 - **Stream termination.** The `StreamEventsResult` is an empty result that carries only `resultType` and the subscription ID in `_meta`, mirroring `SubscriptionsListenResult`. It carries no information. It satisfies the JSON-RPC requirement that every request gets a response, and all meaningful content is in the notifications before it. It is sent whenever the server can write a final frame: on Streamable HTTP only when the server initiates the close, and on stdio at the server's discretion. Clients MUST NOT depend on receiving it.
-- **Heartbeat.** The server MUST send periodic keepalive messages on the push stream, so that the client can tell "nothing to send" from "the connection is dead". The heartbeat is `{"jsonrpc":"2.0","method":"notifications/events/heartbeat","params":{"cursor":"historyId_99850","_meta":{"io.modelcontextprotocol/subscriptionId":1}}}`. `cursor` is the position the server has checked up to, so the client's persisted cursor advances even when no events match (see [Cursor Lifecycle](#cursor-lifecycle)). It is `null` for event types that do not support replay. On Streamable HTTP the heartbeat is an SSE `data:` frame. The SSE comment form (`: keepalive`) is not used, because it cannot carry cursor state. The server SHOULD send a heartbeat at least every 30 seconds. Clients SHOULD NOT apply their default request timeout to `events/stream`: the heartbeat is the liveness signal. A client that has received neither an event nor a heartbeat for more than twice the heartbeat interval SHOULD treat the stream as dead and reconnect with its cursor.
+- **Heartbeat.** The server MUST send periodic keepalive messages on the push stream, so that the client can tell "nothing to send" from "the connection is dead". The heartbeat is `{"jsonrpc":"2.0","method":"notifications/events/heartbeat","params":{"cursor":"historyId_99850","_meta":{"io.modelcontextprotocol/subscriptionId":1}}}`. `cursor` is the position the server has checked up to, so the client's persisted cursor advances even when no events match (see [Cursor Lifecycle](#cursor-lifecycle)). It is `null` for event types that do not support replay. On Streamable HTTP the heartbeat is an SSE `data:` frame. The SSE comment form (`: keepalive`) is not used, because it cannot carry cursor state. The heartbeat also lets the server notice a client that has gone away, because a write to a dead connection fails, and release the subscription and any upstream resources behind it.
+- **Heartbeat interval.** The client MAY suggest an interval in milliseconds with `heartbeatMs` in the `events/stream` params. The server grants one in `heartbeatMs` on every `notifications/events/active`, and the grant is authoritative. The server honors the suggestion within its own bounds, such as its CPU budget for idle streams or the idle timeout of its load balancer, and otherwise clamps it. Without a suggestion the server chooses, and 30 seconds is the recommended default. Each side SHOULD keep the interval below the idle timeouts of the intermediaries it knows about, such as the server's load balancer or the client's egress proxy, which commonly close idle connections after 60 to 100 seconds. The server sends a heartbeat whenever `heartbeatMs` passes without any other message on the stream. Clients SHOULD NOT apply their default request timeout to `events/stream`: the heartbeat is the liveness signal. A client that has received no message on the stream for three times the granted `heartbeatMs`, counted from `notifications/events/active`, SHOULD treat the stream as dead and reconnect with its cursor. On stdio, the client detects a dead server by end of file on stdout, so the heartbeat only advances the cursor, and a server MAY grant a longer interval there.
 - **Cancellation.** On Streamable HTTP, the client aborts the request stream. On stdio, the client sends `notifications/cancelled` with the `requestId` of the `events/stream` request. In both cases the server MUST stop delivering events and release the associated resources. On stdio, the server MAY then send the `StreamEventsResult`. The core protocol says servers SHOULD NOT respond to cancelled requests, so omitting it is the expected behavior. On Streamable HTTP, the abort is the terminal signal and no result is sent.
 - **Concurrent streams.** A client MAY hold several concurrent `events/stream` requests open, one per subscription. To add a subscription it opens another stream, and to remove one it cancels only that stream. On HTTP/1.1 each stream consumes a TCP connection, so a client with many subscriptions effectively depends on HTTP/2 multiplexing. On stdio, concurrent streams share stdout and are demultiplexed by `_meta["io.modelcontextprotocol/subscriptionId"]`. Server SDKs MUST exempt `events/stream` from any general cap on concurrent requests, because each push subscription is a long-lived request that does not complete until it is cancelled.
-- **Reconnection after failure.** If the connection drops (HTTP) or the server stops sending (stdio), the client sends a new `events/stream` with the same subscription and its last known cursor.
+- **Reconnection after failure.** If the connection drops (HTTP) or the server stops sending (stdio), the client sends a new `events/stream` with the same subscription and its last known cursor. Clients SHOULD wait a random jitter before reconnecting, so that a server restart does not bring every client back at the same moment.
 
 #### Cursor advancement
 
@@ -814,6 +816,8 @@ The protocol connects to many upstream systems (Gmail, Slack, PagerDuty and othe
 
 **The cursor advances during quiet periods.** The heartbeat carries the cursor for push, the refresh response carries it for webhook, and poll already returns it on empty results. Without this, a long quiet stretch leaves the client holding a cursor older than the upstream's retention window, which yields a spurious `truncated: true` even though nothing happened. This reuses existing periodic messages and adds no new traffic.
 
+**The heartbeat interval is suggested by the client and granted by the server.** Both sides have constraints the other cannot see. A client on a flaky network wants to notice disconnects sooner, a mobile client wants fewer wake-ups, a server wants to bound the work spent on idle streams, and either may sit behind an intermediary that closes idle connections. A fixed interval suits none of them. The suggest-and-grant pattern used for webhook TTLs gives each side one knob and makes the server's answer authoritative. The heartbeat does two jobs, liveness and cursor advancement. Only cursor advancement is specific to this extension, and liveness may move to the core protocol (see [Open Questions](#open-questions)).
+
 **`eventId` is assigned by the server, and SHOULD be the upstream's stable identifier.** Delivery of the same upstream event by two paths, such as a webhook emit and a poll backfill, has to collapse under client-side deduplication. A server SDK generates one only when the author supplies none.
 
 **`webhook-id` is separate from `eventId`.** `webhook-id` is transport-level: it identifies one delivered message and lets receivers discard retries, as Standard Webhooks intends. `eventId` is application-level: it identifies the upstream event. One upstream event can match several subscriptions that deliver to the same receiver. If `webhook-id` were the `eventId`, a receiver deduplicating on `webhook-id` would accept the first delivery and silently drop the others. A server-generated `webhook-id` is also always header-safe and contains no `.`, so it cannot make the signed string ambiguous, which an upstream-controlled `eventId` could. Webhook infrastructure such as Svix generates `webhook-id` itself, so the separation is also what off-the-shelf senders do.
@@ -951,6 +955,8 @@ SEP-2133 requires a reference implementation in an official SDK before an Extens
 4. **Should MCP task state changes be exposed as events?** Clients currently learn of task state transitions by polling `tasks/get`, or through `notifications/tasks` on a live `subscriptions/listen` stream. A reserved `mcp.task.updated` event type (arguments `{taskId}`, payload `{status, progress?, result?}`) would let a client that started a task and disconnected receive the completion by poll or webhook. This serves "kick off a long job, close the laptop, get notified when done". The considerations are the same as in question 2: a reserved `mcp.*` prefix, a migration path, and whether one mechanism subsuming another is worth the coupling. A draft is in [experimental-ext-triggers-events#2](https://github.com/modelcontextprotocol/experimental-ext-triggers-events/pull/2).
 
 5. **Should the error codes be new allocations, or `InvalidParams` with typed `data`?** This SEP requests five general-purpose codes. The core protocol has moved the other way for one case: resource-not-found (`-32002`) was replaced by `-32602`, and the Tasks extension uses `-32602` for an unknown task ID. The codes here also travel inside `terminated` signals, where the client branches on them (`NotFound` and `Unsupported` mean rediscover and resubscribe, `Forbidden` means stop), which is the argument for keeping them distinct.
+
+6. **Should stream liveness move to the core protocol?** Telling a quiet stream from a dead one is a transport concern that `subscriptions/listen` and other long-lived requests share. If the core protocol defines a keepalive with interval negotiation, this extension would defer to it for liveness and keep `notifications/events/heartbeat` only to advance the cursor during quiet periods, which needs far less frequent messages.
 
 ## Appendix A: SDK Guidance (non-normative)
 
