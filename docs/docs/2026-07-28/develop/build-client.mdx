@@ -675,9 +675,11 @@ async processQuery(query: string) {
         messages,
       });
 
-      finalText.push(
-        response.content[0].type === "text" ? response.content[0].text : ""
-      );
+      for (const block of response.content) {
+        if (block.type === "text") {
+          finalText.push(block.text);
+        }
+      }
     }
   }
 
@@ -1279,7 +1281,9 @@ suspend fun processQuery(query: String): String {
                         .build(),
                 )
 
-                finalText.add(aiResponse.content().first().text().get().text())
+                aiResponse.content().forEach { block ->
+                    if (block.isText()) finalText.add(block.text().get().text())
+                }
             }
         }
     }
@@ -1826,7 +1830,10 @@ def process_query(query)
     messages << { role: "assistant", content: assistant_content }
   end
 
-  response.content.each_with_object([]) do |content, response_parts|
+  response_parts = []
+  tool_results = []
+
+  response.content.each do |content|
     case content
     when Anthropic::Models::TextBlock
       response_parts << content.text
@@ -1842,23 +1849,23 @@ def process_query(query)
         tool_result_content.to_s
       end
 
-      messages << {
-        role: "user",
-        content: [{
-          type: "tool_result",
-          tool_use_id: content.id,
-          content: result_text
-        }]
-      }
-
-      # Get next response from Claude.
-      response = chat(messages)
-
-      response.content.each do |content_block|
-        response_parts << content_block.text if content_block.is_a?(Anthropic::Models::TextBlock)
-      end
+      tool_results << { type: "tool_result", tool_use_id: content.id, content: result_text }
     end
-  end.join("\n")
+  end
+
+  unless tool_results.empty?
+    # Every tool_use block needs a matching tool_result in a single user message.
+    messages << { role: "user", content: tool_results }
+
+    # Get next response from Claude.
+    response = chat(messages)
+
+    response.content.each do |content_block|
+      response_parts << content_block.text if content_block.is_a?(Anthropic::Models::TextBlock)
+    end
+  end
+
+  response_parts.join("\n")
 end
 
 def chat(messages, tools: nil)
