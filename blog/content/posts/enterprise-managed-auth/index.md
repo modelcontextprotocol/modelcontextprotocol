@@ -130,7 +130,7 @@ specification and add support for the new standard into their products:
   documents the flow for clients, servers, and authorization servers.
 - **Source and spec:** see the
   [ext-auth repository](https://github.com/modelcontextprotocol/ext-auth) and the
-  [specification](https://github.com/modelcontextprotocol/ext-auth/blob/main/specification/stable/enterprise-managed-authorization.mdx)
+  [specification](https://github.com/modelcontextprotocol/ext-auth/blob/main/specification/stable/enterprise-managed-authorization/2026-07-28/enterprise-managed-authorization.mdx)
   for the latest in EMA evolution as well as any support materials that will help you get
   started.
 
