@@ -1586,7 +1586,7 @@ using var anthropicClient = new AnthropicClient(new APIAuthentication(builder.Co
 
 var options = new ChatOptions
 {
-    MaxOutputTokens = 1000,
+    MaxOutputTokens = 10000,
     ModelId = "claude-opus-5",
     Tools = [.. tools]
 };
