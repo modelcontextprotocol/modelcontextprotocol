@@ -816,7 +816,7 @@ Save the file, and restart **Claude for Desktop**.
 
 <Note>
 
-The Java SDK release that the current Spring AI starters pull in implements protocol revision 2025-11-25. A client that supports both protocol eras falls back to `initialize` when its `server/discover` probe fails, as described in the [versioning specification](/specification/draft/basic/versioning#backward-compatibility-with-initialization-based-versions). A client that supports only 2026-07-28 cannot connect to this server.
+This server uses the 2025-11-25 protocol revision, as supported by the latest version of the Java SDK. Clients that also support that revision can connect to it, but clients that support only 2026-07-28 cannot. See [backward compatibility](/specification/draft/basic/versioning#backward-compatibility-with-initialization-based-versions).
 
 </Note>
 
@@ -1131,7 +1131,7 @@ It showcases how to define and register MCP Tools, Resources, and Prompts, using
 
 <Note>
 
-The Kotlin SDK release this tab uses, 0.16.0, implements protocol revision 2025-11-25. A client that supports both protocol eras falls back to `initialize` when its `server/discover` probe fails, as described in the [versioning specification](/specification/draft/basic/versioning#backward-compatibility-with-initialization-based-versions). A client that supports only 2026-07-28 cannot connect to this server.
+This server uses the 2025-11-25 protocol revision, as supported by the latest version of the Kotlin SDK. Clients that also support that revision can connect to it, but clients that support only 2026-07-28 cannot. See [backward compatibility](/specification/draft/basic/versioning#backward-compatibility-with-initialization-based-versions).
 
 </Note>
 
