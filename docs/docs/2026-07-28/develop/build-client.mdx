@@ -566,8 +566,11 @@ First, let's set up our imports and create the basic client class in `index.ts`:
 ```typescript
 import { Anthropic } from "@anthropic-ai/sdk";
 import {
+  ContentBlockParam,
   MessageParam,
   Tool,
+  ToolResultBlockParam,
+  ToolUseBlock,
 } from "@anthropic-ai/sdk/resources/messages/messages.mjs";
 import { Client } from "@modelcontextprotocol/client";
 import { StdioClientTransport } from "@modelcontextprotocol/client/stdio";
@@ -581,6 +584,12 @@ if (!ANTHROPIC_API_KEY) {
   throw new Error("ANTHROPIC_API_KEY is not set");
 }
 
+const MODEL = "claude-opus-5";
+// The model thinks adaptively unless told otherwise, and max_tokens caps
+// thinking plus the reply, so leave room for both.
+const MAX_TOKENS = 10000;
+const MAX_TOOL_TURNS = 10;
+
 class MCPClient {
   private mcp: Client;
   private anthropic: Anthropic;
@@ -591,7 +600,12 @@ class MCPClient {
     this.anthropic = new Anthropic({
       apiKey: ANTHROPIC_API_KEY,
     });
-    this.mcp = new Client({ name: "mcp-client-cli", version: "1.0.0" });
+    // 'auto' probes server/discover, falling back to the 2025-11-25 handshake.
+    // The SDK's default is 'legacy'.
+    this.mcp = new Client(
+      { name: "mcp-client-cli", version: "1.0.0" },
+      { versionNegotiation: { mode: "auto" } },
+    );
   }
   // methods will go here
 }
@@ -653,55 +667,85 @@ async processQuery(query: string) {
     },
   ];
 
-  const response = await this.anthropic.messages.create({
-    model: "claude-opus-5",
-    max_tokens: 1000,
+  let response = await this.anthropic.messages.create({
+    model: MODEL,
+    max_tokens: MAX_TOKENS,
     messages,
     tools: this.tools,
   });
 
-  const finalText = [];
+  const finalText: string[] = [];
 
-  for (const content of response.content) {
-    if (content.type === "text") {
-      finalText.push(content.text);
-    } else if (content.type === "tool_use") {
-      const toolName = content.name;
-      const toolArgs = content.input as { [x: string]: unknown } | undefined;
+  for (let turn = 0; turn < MAX_TOOL_TURNS; turn++) {
+    const toolUses: ToolUseBlock[] = [];
 
-      const result = await this.mcp.callTool({
-        name: toolName,
-        arguments: toolArgs,
-      });
+    for (const block of response.content) {
+      if (block.type === "text") {
+        finalText.push(block.text);
+      } else if (block.type === "tool_use") {
+        toolUses.push(block);
+      }
+    }
+
+    if (toolUses.length === 0) {
+      return finalText.join("\n");
+    }
+
+    const toolResults: ToolResultBlockParam[] = [];
+    for (const toolUse of toolUses) {
+      const toolArgs = toolUse.input as { [x: string]: unknown } | undefined;
       finalText.push(
-        `[Calling tool ${toolName} with args ${JSON.stringify(toolArgs)}]`
+        `[Calling tool ${toolUse.name} with args ${JSON.stringify(toolArgs)}]`
       );
 
-      messages.push({
-        role: "user",
+      const result = await this.mcp.callTool({
+        name: toolUse.name,
+        arguments: toolArgs,
+      });
+
+      toolResults.push({
+        type: "tool_result",
+        tool_use_id: toolUse.id,
         content: result.content
           .filter((block) => block.type === "text")
           .map((block) => block.text)
           .join("\n"),
+        is_error: result.isError === true,
       });
-
-      const response = await this.anthropic.messages.create({
-        model: "claude-opus-5",
-        max_tokens: 1000,
-        messages,
-      });
-
-      for (const block of response.content) {
-        if (block.type === "text") {
-          finalText.push(block.text);
-        }
-      }
     }
+
+    messages.push({
+      role: "assistant",
+      content: response.content as unknown as ContentBlockParam[],
+    });
+    messages.push({ role: "user", content: toolResults });
+
+    response = await this.anthropic.messages.create({
+      model: MODEL,
+      max_tokens: MAX_TOKENS,
+      messages,
+      tools: this.tools,
+    });
   }
 
+  // The turn cap was hit. Keep the last response's text. If it asked for
+  // more tools, say they were not run.
+  let wantsTools = false;
+  for (const block of response.content) {
+    if (block.type === "text") {
+      finalText.push(block.text);
+    } else if (block.type === "tool_use") {
+      wantsTools = true;
+    }
+  }
+  if (wantsTools) {
+    finalText.push(`[Stopped after ${MAX_TOOL_TURNS} tool-use turns]`);
+  }
   return finalText.join("\n");
 }
 ```
+
+Each turn collects every `tool_use` block before calling the server, then sends the whole assistant turn back as returned (thinking blocks included) followed by one user message holding a `tool_result` block per call. `callTool` returns a `CallToolResult` whose `content` is a list of blocks, which is why the code narrows to `text` blocks before reading `.text`. A tool that fails does not throw here: it answers with `isError` set, and passing that flag on as `is_error` lets Claude read the message and try something else. Every request carries `tools`, so Claude can keep calling tools until it has an answer, up to `MAX_TOOL_TURNS` rounds.
 
 ### Interactive Chat Interface
 
@@ -713,13 +757,26 @@ async chatLoop() {
     input: process.stdin,
     output: process.stdout,
   });
+  // rl.question() doesn't reject on stdin EOF on its own. Wire its close
+  // event to an AbortSignal so EOF (Ctrl-D) and SIGINT both unblock it.
+  const ac = new AbortController();
+  const onClose = () => ac.abort();
+  rl.on("close", onClose);
+  const onSigint = () => rl.close();
+  process.once("SIGINT", onSigint);
 
   try {
     console.log("\nMCP Client Started!");
     console.log("Type your queries or 'quit' to exit.");
 
     while (true) {
-      const message = await rl.question("\nQuery: ");
+      let message: string;
+      try {
+        message = await rl.question("\nQuery: ", { signal: ac.signal });
+      } catch {
+        break;
+      }
+
       if (message.toLowerCase() === "quit") {
         break;
       }
@@ -727,6 +784,8 @@ async chatLoop() {
       console.log("\n" + response);
     }
   } finally {
+    process.off("SIGINT", onSigint);
+    rl.off("close", onClose);
     rl.close();
   }
 }
@@ -735,6 +794,8 @@ async cleanup() {
   await this.mcp.close();
 }
 ```
+
+Closing stdin (Ctrl-D) or pressing Ctrl-C aborts the pending `rl.question()` and breaks out of the loop, so the client reaches `cleanup()` and exits with status 0 instead of failing with `ERR_USE_AFTER_CLOSE`.
 
 ### Main Entry Point
 
@@ -798,16 +859,16 @@ When you submit a query:
 1. The client gets the list of available tools from the server
 2. Your query is sent to Claude along with tool descriptions
 3. Claude decides which tools (if any) to use
-4. The client executes any requested tool calls through the server
-5. Results are sent back to Claude
-6. Claude provides a natural language response
+4. The client executes every requested tool call through the server
+5. The assistant turn and all tool results go back to Claude in one request, with the tools attached again
+6. Claude either requests more tools (the loop allows up to `MAX_TOOL_TURNS` rounds) or provides a natural language response
 7. The response is displayed to you
 
 ## Best practices
 
 1. **Error Handling**
    - Use TypeScript's type system for better error detection
-   - Wrap tool calls in try-catch blocks
+   - Check `result.isError` rather than expecting a failing tool to throw
    - Provide meaningful error messages
    - Gracefully handle connection issues
 
