@@ -2127,9 +2127,8 @@ rmcp = { version = "3.4", features = [
     "transport-io",
     "transport-child-process",
 ], default-features = false }
-# There is no official Anthropic SDK for Rust, so the Messages API is called
-# directly. That also keeps the provider's content blocks verbatim, which
-# matters for signed thinking blocks; see request_model.
+# The Messages API is called directly, which keeps the provider's content
+# blocks verbatim. That matters for signed thinking blocks; see request_model.
 reqwest = { version = "0.13", features = ["json"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0.151"
@@ -2137,7 +2136,7 @@ tokio = { version = "1.53", features = ["full"] }
 dotenvy = "0.15.7"
 ```
 
-The [`rmcp`](https://github.com/modelcontextprotocol/rust-sdk) crate provides the Rust MCP SDK and the child-process stdio transport. Only its client half is enabled. There is no official Anthropic SDK for Rust, so the client calls the [Messages API](https://docs.anthropic.com/en/api/messages) directly with [`reqwest`](https://docs.rs/reqwest). Calling the API directly keeps the content blocks of each reply verbatim, which matters when a reply contains a signed thinking block. The [`jsonschema`](https://docs.rs/jsonschema) crate validates structured tool results against the schema a tool declares.
+The [`rmcp`](https://github.com/modelcontextprotocol/rust-sdk) crate provides the Rust MCP SDK and the child-process stdio transport. Only its client half is enabled. The client calls the [Messages API](https://docs.anthropic.com/en/api/messages) directly with [`reqwest`](https://docs.rs/reqwest). Calling the API directly keeps the content blocks of each reply verbatim, which matters when a reply contains a signed thinking block. The [`jsonschema`](https://docs.rs/jsonschema) crate validates structured tool results against the schema a tool declares.
 
 ## Setting Up Your API Key
 
@@ -2553,8 +2552,7 @@ Add this helper method inside `impl MCPClient`:
     /// calling them across turns.
     async fn request_model(&self, messages: &[Message]) -> Result<Vec<Value>> {
         let api_key = std::env::var("ANTHROPIC_API_KEY").context("ANTHROPIC_API_KEY is not set")?;
-        // The base URL is configurable for the same reason the official SDKs
-        // make it configurable: to point the client at a local stand-in.
+        // The base URL is configurable so the client can point at a local stand-in.
         let base_url =
             std::env::var("ANTHROPIC_BASE_URL").unwrap_or_else(|_| ANTHROPIC_API_BASE.to_string());
 
@@ -2590,7 +2588,7 @@ Add this helper method inside `impl MCPClient`:
     }
 ```
 
-`request_model` reads `ANTHROPIC_API_KEY` on each call and posts the history to `/v1/messages` with the `x-api-key` and `anthropic-version` headers. `ANTHROPIC_BASE_URL` overrides the endpoint, as it does in the official SDKs for other languages, which allows pointing the client at a local stand-in. Tools are sent on every request so Claude can keep calling them across turns. A non-success status becomes an error that includes the response body. The reply's content blocks are returned untouched.
+`request_model` reads `ANTHROPIC_API_KEY` on each call and posts the history to `/v1/messages` with the `x-api-key` and `anthropic-version` headers. `ANTHROPIC_BASE_URL` overrides the endpoint, which allows pointing the client at a local stand-in. Tools are sent on every request so Claude can keep calling them across turns. A non-success status becomes an error that includes the response body. The reply's content blocks are returned untouched.
 
 ### Interactive Chat Interface
 
