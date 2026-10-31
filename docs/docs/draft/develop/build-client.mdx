@@ -1116,6 +1116,12 @@ This provides similar functionality but uses a WebFlux-based Streamable HTTP tra
 
 <Tab title="Kotlin">
 
+<Note>
+
+The Kotlin SDK release this tutorial pins, 0.16.0, implements the 2025-11-25 protocol revision and opens every connection with the legacy `initialize` handshake. A 2026-07-28 server answers that handshake only if it also serves legacy revisions (a dual-era server), in which case it serves the client according to the negotiated legacy revision.
+
+</Note>
+
 [You can find the complete code for this tutorial here.](https://github.com/modelcontextprotocol/kotlin-sdk/tree/main/samples/kotlin-mcp-client)
 
 ## System Requirements
@@ -1166,7 +1172,7 @@ After creating the project, replace the contents of your `build.gradle.kts` with
 
 ```kotlin build.gradle.kts
 // Check latest versions at https://github.com/modelcontextprotocol/kotlin-sdk/releases
-val mcpVersion = "0.9.0"
+val mcpVersion = "0.16.0"
 val ktorVersion = "3.2.3"
 val anthropicVersion = "2.15.0"
 val slf4jVersion = "2.0.17"
@@ -1175,6 +1181,10 @@ plugins {
     kotlin("jvm") version "2.3.20"
     id("com.gradleup.shadow") version "8.3.9"
     application
+}
+
+repositories {
+    mavenCentral()
 }
 
 application {
@@ -1218,6 +1228,12 @@ Make sure you keep your `ANTHROPIC_API_KEY` secure!
 First, let's create the basic client class:
 
 ```kotlin
+private const val MODEL = "claude-opus-5"
+// The model thinks adaptively unless told otherwise, and max_tokens caps thinking
+// plus the reply, so leave room for both.
+private const val MAX_TOKENS = 10_000L
+private const val MAX_TOOL_TURNS = 10
+
 class MCPClient(apiKey: String) : AutoCloseable {
     private val anthropic = AnthropicOkHttpClient.builder()
         .apiKey(apiKey)
@@ -1303,7 +1319,7 @@ private fun JsonObject.toJsonValue(): JsonValue {
 
 ### Query processing logic
 
-Now let's add the core functionality for processing queries and handling tool calls:
+Now let's add the core functionality for processing queries and handling tool calls. Claude can request several tools in one turn and can request more after reading their results, so the client runs a loop: it executes every requested tool, sends all of the results back in one message, and repeats until Claude answers without tool calls or `MAX_TOOL_TURNS` is reached:
 
 ```kotlin
 suspend fun processQuery(query: String): String {
@@ -1314,60 +1330,89 @@ suspend fun processQuery(query: String): String {
             .build(),
     )
 
-    val response = anthropic.messages().create(
+    var response = anthropic.messages().create(
         MessageCreateParams.builder()
-            .model("claude-opus-5")
-            .maxTokens(1024)
+            .model(MODEL)
+            .maxTokens(MAX_TOKENS)
             .messages(messages)
             .tools(tools)
             .build(),
     )
 
     val finalText = mutableListOf<String>()
-    response.content().forEach { content ->
-        when {
-            content.isText() -> finalText.add(content.text().get().text())
 
-            content.isToolUse() -> {
-                val toolName = content.toolUse().get().name()
-                val toolArgs =
-                    content.toolUse().get()._input().convert(object : TypeReference<Map<String, JsonValue>>() {})
-
-                val result = mcp.callTool(
-                    name = toolName,
-                    arguments = toolArgs ?: emptyMap(),
-                )
-                finalText.add("[Calling tool $toolName with args $toolArgs]")
-
-                messages.add(
-                    MessageParam.builder()
-                        .role(MessageParam.Role.USER)
-                        .content(
-                            result.content
-                                .filterIsInstance<TextContent>()
-                                .joinToString("\n") { it.text }
-                        )
-                        .build(),
-                )
-
-                val aiResponse = anthropic.messages().create(
-                    MessageCreateParams.builder()
-                        .model("claude-opus-5")
-                        .maxTokens(1024)
-                        .messages(messages)
-                        .build(),
-                )
-
-                aiResponse.content().forEach { block ->
-                    if (block.isText()) finalText.add(block.text().get().text())
-                }
+    repeat(MAX_TOOL_TURNS) {
+        val toolUses = mutableListOf<ToolUseBlock>()
+        response.content().forEach { block ->
+            when {
+                block.isText() -> finalText.add(block.text().get().text())
+                block.isToolUse() -> toolUses.add(block.toolUse().get())
             }
         }
+
+        if (toolUses.isEmpty()) return finalText.joinToString("\n")
+
+        val toolResults = toolUses.map { toolUse ->
+            val toolArgs = toolUse._input().convert(object : TypeReference<Map<String, JsonValue>>() {})
+            finalText.add("[Calling tool ${toolUse.name()} with args $toolArgs]")
+
+            val result = mcp.callTool(
+                name = toolUse.name(),
+                arguments = toolArgs ?: emptyMap(),
+            )
+
+            // content is a list of block types, so forward only the text ones. MCP
+            // and Anthropic block shapes differ, so other kinds need converting.
+            ContentBlockParam.ofToolResult(
+                ToolResultBlockParam.builder()
+                    .toolUseId(toolUse.id())
+                    .content(result.content.filterIsInstance<TextContent>().joinToString("\n") { it.text })
+                    .apply { if (result.isError == true) isError(true) }
+                    .build(),
+            )
+        }
+
+        // Replay the full assistant turn, tool_use blocks included, then send
+        // every tool result of this turn in one user message.
+        messages.add(
+            MessageParam.builder()
+                .role(MessageParam.Role.ASSISTANT)
+                .contentOfBlockParams(response.content().map { it.toParam() })
+                .build(),
+        )
+        messages.add(
+            MessageParam.builder()
+                .role(MessageParam.Role.USER)
+                .contentOfBlockParams(toolResults)
+                .build(),
+        )
+
+        response = anthropic.messages().create(
+            MessageCreateParams.builder()
+                .model(MODEL)
+                .maxTokens(MAX_TOKENS)
+                .messages(messages)
+                .tools(tools)
+                .build(),
+        )
     }
+
+    // The turn cap was hit. Keep the last response's text. If it asked for
+    // more tools, say they were not run.
+    var wantsTools = false
+    response.content().forEach { block ->
+        when {
+            block.isText() -> finalText.add(block.text().get().text())
+            block.isToolUse() -> wantsTools = true
+        }
+    }
+    if (wantsTools) finalText.add("[Stopped after $MAX_TOOL_TURNS tool-use turns]")
 
     return finalText.joinToString("\n")
 }
 ```
+
+`callTool` returns a `CallToolResult`. Its `content` is a list of blocks, which is why the code narrows to `TextContent` before reading `.text`. A tool that fails does not throw here: it answers with `isError` set, and passing that flag on through `ToolResultBlockParam` lets Claude read the message and try something else. Every tool result carries the `id` of the `tool_use` block it answers, and the assistant turn goes back exactly as returned, so the conversation stays valid for the next call.
 
 ### Interactive chat
 
@@ -1465,12 +1510,14 @@ sequenceDiagram
     User->>Client: Send query
     Client<<->>MCP_Server: Get available tools
     Client->>Claude: Send query with tool descriptions
-    Claude-->>Client: Decide tool execution
-    Client->>MCP_Server: Request tool execution
-    MCP_Server->>Tools: Execute chosen tools
-    Tools-->>MCP_Server: Return results
-    MCP_Server-->>Client: Send results
-    Client->>Claude: Send tool results
+    loop Until Claude answers without tool_use blocks, or MAX_TOOL_TURNS is reached
+        Claude-->>Client: Return tool_use blocks
+        Client->>MCP_Server: Request every tool execution
+        MCP_Server->>Tools: Execute chosen tools
+        Tools-->>MCP_Server: Return results
+        MCP_Server-->>Client: Send results
+        Client->>Claude: Replay assistant turn, send all tool results in one message
+    end
     Claude-->>Client: Provide final response
     Client-->>User: Display response
 ```
@@ -1480,14 +1527,16 @@ When you submit a query:
 1. The client gets the list of available tools from the server
 2. Your query is sent to Claude along with tool descriptions
 3. Claude decides which tools (if any) to use
-4. The client executes any requested tool calls through the server
-5. Results are sent back to Claude
-6. Claude provides a natural language response
+4. The client executes every requested tool call through the server and forwards the `isError` flag of any call that failed
+5. The client replays the assistant turn and sends all tool results back to Claude in one message, with the tool descriptions attached again
+6. Steps 3 to 5 repeat until Claude answers without tool calls or `MAX_TOOL_TURNS` is reached
 7. The response is displayed to you
 
 ## Best practices
 
 1. **Error Handling**
+   - Check `result.isError` on every tool result and forward it with `isError(true)`, since a failing tool answers with that flag instead of throwing
+   - Keep `MAX_TOOL_TURNS` in place so a run that keeps requesting tools stops with a visible message
    - Leverage Kotlin's type system to model errors explicitly
    - Wrap external tool and API calls in `try-catch` blocks when exceptions are possible
    - Provide clear and meaningful error messages
@@ -1547,6 +1596,7 @@ If you see:
 
 - `Connection refused`: Ensure the server is running and the path is correct
 - `Tool execution failed`: Verify the tool's required environment variables are set
+- `[Stopped after 10 tool-use turns]`: Claude was still requesting tools when `MAX_TOOL_TURNS` ran out, so raise the cap or narrow the query
 - `ANTHROPIC_API_KEY is not set`: Check your environment variables
 
 </Tab>
