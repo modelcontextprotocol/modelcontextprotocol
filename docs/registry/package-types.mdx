@@ -87,6 +87,8 @@ This MCP server executes SQL queries and manages database connections.
 <!-- mcp-name: io.github.username/database-query-mcp -->
 ```
 
+The `mcp-name:` token must be followed by a boundary — a newline, whitespace, an HTML tag, or the comment close `-->`. Keep it on its own line or inside `<!-- … -->`; do not glue it directly to trailing characters such as a sentence-ending period (`…/database-query-mcp.`), which prevents the match.
+
 ## NuGet Packages
 
 For NuGet packages, the MCP Registry currently supports the official NuGet registry (`https://api.nuget.org/v3/index.json`) only.
@@ -124,6 +126,8 @@ This MCP server manages Azure DevOps work items and pipelines.
 
 <!-- mcp-name: io.github.username/azure-devops-mcp -->
 ```
+
+The `mcp-name:` token must be followed by a boundary — a newline, whitespace, an HTML tag, or the comment close `-->`. Keep it on its own line or inside `<!-- … -->`; do not glue it directly to trailing characters such as a sentence-ending period (`…/azure-devops-mcp.`), which prevents the match.
 
 ## Cargo (Rust) Packages
 
@@ -182,6 +186,7 @@ For Docker/OCI images, the MCP Registry currently supports:
 
 - Docker Hub (`docker.io`)
 - GitHub Container Registry (`ghcr.io`)
+- Quay.io (`quay.io`)
 - Google Artifact Registry (any `*.pkg.dev` domain)
 - Azure Container Registry (`*.azurecr.io`)
 - Microsoft Container Registry (`mcr.microsoft.com`)
@@ -207,7 +212,7 @@ Docker/OCI images use `"registryType": "oci"` in `server.json`. For example:
 }
 ```
 
-The format of `identifier` is `registry/namespace/repository:tag`. For example, `docker.io/user/app:1.0.0` or `ghcr.io/user/app:1.0.0`. The tag can also be specified as a digest.
+The format of `identifier` is `registry/namespace/repository:tag`. For example, `docker.io/user/app:1.0.0`, `ghcr.io/user/app:1.0.0`, or `quay.io/myorg/my-mcp-server:1.0.0`. The tag can also be specified as a digest.
 
 ### Ownership Verification
 
