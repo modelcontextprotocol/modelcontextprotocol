@@ -3,7 +3,7 @@ title: The Official Ruby SDK for MCP Reaches Tier 1
 date: "2026-10-30T09:00:00+00:00"
 publishDate: "2026-10-30T09:00:00+00:00"
 slug: ruby-sdk-tier-1
-description: The official Ruby SDK for the Model Context Protocol is now a Tier 1 SDK under the MCP SDK tiering system, with full support for the 2026-07-28 specification revision and a 100% conformance pass rate across both scored spec revisions.
+description: The official Ruby SDK for the Model Context Protocol is now a Tier 1 SDK under the MCP SDK tiering system, with full support for the 2026-07-28 MCP specification and a 100% conformance pass rate across both scored spec versions.
 author:
   - Koichi Ito (Ruby SDK Maintainer)
 tags:
@@ -13,14 +13,14 @@ tags:
   - ruby
 ---
 
-The official [Ruby SDK](https://github.com/modelcontextprotocol/ruby-sdk) for the Model Context Protocol is now a Tier 1 SDK, as recorded in the [Tier 1 assessment](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/3247) under the [SDK tiering system](https://modelcontextprotocol.io/community/sdk-tiers). Ruby joins TypeScript, Python, C#, Go, and Rust as the sixth Tier 1 SDK. Among other things, Tier 1 requires full feature support, a 100% conformance pass rate, support for new spec revisions by their release date, issue triage within two business days, and critical bug fixes within seven days.
+The official [Ruby SDK](https://github.com/modelcontextprotocol/ruby-sdk) for the Model Context Protocol is now a Tier 1 SDK, as recorded in the [Tier 1 assessment](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/3247) under the [SDK tiering system](https://modelcontextprotocol.io/community/sdk-tiers). Ruby joins TypeScript, Python, C#, Go, and Rust as the sixth Tier 1 SDK. Among other things, Tier 1 requires full feature support, a 100% conformance pass rate, support for new spec versions by their release date, issue triage within two business days, and critical bug fixes within seven days.
 
 {{< button text="Get the Ruby SDK" url="https://github.com/modelcontextprotocol/ruby-sdk" >}}
 {{< button text="Read the documentation" url="https://ruby.sdk.modelcontextprotocol.io" >}}
 
-## Full support for the 2026-07-28 revision
+## Full support for the 2026-07-28 MCP spec
 
-[Version 1.2.0](https://github.com/modelcontextprotocol/ruby-sdk/releases/tag/v1.2.0) of the [`mcp` gem](https://rubygems.org/gems/mcp) completes support for the [2026-07-28 revision](/posts/2026-07-28/):
+[Version 1.2.0](https://github.com/modelcontextprotocol/ruby-sdk/releases/tag/v1.2.0) of the [`mcp` gem](https://rubygems.org/gems/mcp) completes support for the [2026-07-28 MCP spec](/posts/2026-07-28/):
 
 - The stateless lifecycle ([SEP-2575](https://modelcontextprotocol.io/seps/2575-stateless-mcp)) is served alongside the classic session handshake, including `server/discover` and the `subscriptions/listen` notification stream
 - Multi round-trip requests ([SEP-2322](https://modelcontextprotocol.io/seps/2322-MRTR)) work on both the server and the client, and a built-in shim lets handlers written in the new `input_required` style serve pre-2026 clients unchanged
@@ -33,15 +33,15 @@ Several 1.x releases, starting with 1.2.0, reject input that earlier releases ac
 
 ## From Tier 2 to Tier 1
 
-The [Tier 2 assessment](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/3127) in July found that the SDK already met eight of the ten Tier 1 requirements. It missed two: documentation coverage, and an agreed timeline for supporting new spec revisions. Since then:
+The [Tier 2 assessment](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/3127) in July found that the SDK already met eight of the ten Tier 1 requirements. It missed two: documentation coverage, and an agreed timeline for supporting new spec versions. Since then:
 
 - Every implemented feature is documented with prose and examples, from non-text content types through elicitation options to the full OAuth client flow; with [version 1.3.0](https://github.com/modelcontextprotocol/ruby-sdk/releases/tag/v1.3.0), this documentation moved from the README to a revamped [documentation site](https://ruby.sdk.modelcontextprotocol.io), one page per topic
-- The SDK passes 100% of the scored server and client conformance scenarios for both the 2025-11-25 and 2026-07-28 requirement sets, measured with the [conformance suite](https://github.com/modelcontextprotocol/conformance)'s frozen per-revision scoring: 67/67 server scenario runs and 50/50 client scenario runs, each executed at that revision's own wire version
+- The SDK passes 100% of the scored server and client conformance scenarios for both the 2025-11-25 and 2026-07-28 requirement sets, measured with the [conformance suite](https://github.com/modelcontextprotocol/conformance)'s frozen scoring for each spec version: 67/67 server scenario runs and 50/50 client scenario runs, each executed at that spec's own protocol version
 - The repository maintained a 100% issue triage rate within the Tier 1 window, with no P0 issues filed
 
 The full evidence tables, including reproduction steps for the conformance results, are in the [Tier 1 assessment](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/3247).
 
-The stable release supporting 2026-07-28 shipped 18 days after the specification release, while Tier 1 expects support by the release date. To close this spec-tracking gap, the Ruby SDK team has committed to supporting the next revision, targeted for [late March 2027](https://modelcontextprotocol.io/seps/3398-release-cycle-updates), by its release date.
+The stable release supporting 2026-07-28 shipped 18 days after the specification release, while Tier 1 expects support by the release date. To close this spec-tracking gap, the Ruby SDK team has committed to supporting the next MCP spec, targeted for [late March 2027](https://modelcontextprotocol.io/seps/3398-release-cycle-updates), by its release date.
 
 The road here was short but steep: the SDK was assessed at [Tier 3](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/2340) in March 2026, reached [Tier 2](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/3127) with the 1.0 release in July, applied for Tier 1 in August, and was confirmed at Tier 1 in September.
 
