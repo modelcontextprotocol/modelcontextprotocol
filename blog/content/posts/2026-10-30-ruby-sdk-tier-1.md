@@ -47,7 +47,7 @@ The stable release supporting 2026-07-28 shipped 18 days after the specification
 
 The road here was short but steep: the SDK was assessed at [Tier 3](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/2340) in March 2026, reached [Tier 2](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/3127) with the 1.0 release in July, applied for Tier 1 in August, and was confirmed at Tier 1 in September. In under seven months, server conformance went from 25 of 30 scenarios to every scored scenario, client conformance went from untested to 100%, and documented features went from 22 of 48 to 46. The remaining two are the legacy SSE transport, which the SDK intentionally does not implement.
 
-![Ruby SDK results at each tier assessment. Tier 3, March 2026: release 0.8.0, server conformance 25 of 30, client conformance not tested, 22 of 48 features documented. Tier 2, July 2026: release 1.0.0, server conformance 30 of 30, client conformance 24 of 24, 34 of 48 features documented. Tier 1, September 2026: release 1.2.0, server conformance 67 of 67, client conformance 50 of 50, 46 of 48 features documented.](/posts/images/ruby-sdk-tier-1/tier-progress.svg)
+![Ruby SDK results at the Tier 3 (March 2026, v0.8.0), Tier 2 (July 2026, v1.0.0), and Tier 1 (August 2026, v1.2.0) assessments, drawn as a rough stone, a cut stone, and a polished ruby. Server conformance: 25 of 30, 30 of 30, 67 of 67. Client conformance: not tested, 24 of 24, 50 of 50. Features documented: 22, 34, and 46 of 48.](/posts/images/ruby-sdk-tier-1/tier-progress.svg)
 
 ## Get started
 
