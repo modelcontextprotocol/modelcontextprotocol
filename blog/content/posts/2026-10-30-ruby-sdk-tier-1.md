@@ -65,7 +65,7 @@ If you are already running a 1.x server, upgrading lets it serve 2026-07-28 clie
 
 ## Give us your feedback
 
-If you run into problems or unexpected behavior while using the SDK, please report them on the [issue tracker](https://github.com/modelcontextprotocol/ruby-sdk/issues). Reports from real-world usage are especially valuable, and with Tier 1 comes a commitment to triage them quickly.
+If you run into problems or unexpected behavior while using the SDK, please report them on the [issue tracker](https://github.com/modelcontextprotocol/ruby-sdk/issues). New issues get triaged within two business days.
 
 ## Acknowledgements
 
