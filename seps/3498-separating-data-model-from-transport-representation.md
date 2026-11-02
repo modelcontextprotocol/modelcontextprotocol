@@ -1,11 +1,11 @@
-# SEP-0000: Separating Data Model from Transport Representation
+# SEP-3498: Separating Data Model from Transport Representation
 
 - **Status**: Draft
 - **Type**: Standards Track
 - **Created**: 2026-09-30
 - **Author(s)**: Kurtis Van Gent (@kurtisvg)
 - **Sponsor**: None
-- **PR**: Not yet submitted
+- **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/3498
 - **Discussion**: https://github.com/modelcontextprotocol/transports-wg/pull/58
 - **Original draft**: [Transports WG SEP draft](https://github.com/modelcontextprotocol/transports-wg/blob/032af28261ae709c7ca2e690db26c1fa0d52322a/proposals/data-model/0000-separating-data-model-from-transport-representation.md)
 
