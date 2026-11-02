@@ -15,6 +15,9 @@ tags:
 
 The official [Ruby SDK](https://github.com/modelcontextprotocol/ruby-sdk) for the Model Context Protocol is now a Tier 1 SDK, as recorded in the [Tier 1 assessment](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/3247) under the [SDK tiering system](https://modelcontextprotocol.io/community/sdk-tiers). Ruby joins TypeScript, Python, C#, Go, and Rust as the sixth Tier 1 SDK. Among other things, Tier 1 requires full feature support, a 100% conformance pass rate, support for new spec revisions by their release date, issue triage within two business days, and critical bug fixes within seven days.
 
+{{< button text="Get the Ruby SDK" url="https://github.com/modelcontextprotocol/ruby-sdk" >}}
+{{< button text="Read the documentation" url="https://ruby.sdk.modelcontextprotocol.io" >}}
+
 ## Full support for the 2026-07-28 revision
 
 [Version 1.2.0](https://github.com/modelcontextprotocol/ruby-sdk/releases/tag/v1.2.0) of the [`mcp` gem](https://rubygems.org/gems/mcp) completes support for the [2026-07-28 revision](/posts/2026-07-28/):
