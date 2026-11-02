@@ -33,7 +33,7 @@ Several 1.x releases, starting with 1.2.0, reject input that earlier releases ac
 
 ## From Tier 2 to Tier 1
 
-The [Tier 2 assessment](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/3127) in July showed that the SDK was already close, meeting eight of the ten Tier 1 requirements. Two things were left, however: the **documentation didn't cover every feature** yet, and there was **no agreed timeline for supporting new versions of the spec**. Here's where the SDK stands now:
+The [Tier 2 assessment](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/3127) in July showed that the SDK was already close, meeting eight of the ten Tier 1 requirements. Two things were left, however: the **documentation didn't cover every feature** yet, and there was **no agreed timeline for supporting new versions of the spec**. Since then, we made a few changes to put us on a more robust track:
 
 - Every implemented feature is documented with prose and examples, from non-text content types through elicitation options to the full OAuth client flow; with [version 1.3.0](https://github.com/modelcontextprotocol/ruby-sdk/releases/tag/v1.3.0), this documentation moved from the README to a revamped [documentation site](https://ruby.sdk.modelcontextprotocol.io), one page per topic
 - The SDK passes 100% of the scored server and client conformance scenarios for both the 2025-11-25 and 2026-07-28 requirement sets, measured with the [conformance suite](https://github.com/modelcontextprotocol/conformance)'s frozen scoring for each spec version: 67/67 server scenario runs and 50/50 client scenario runs, each executed at that spec's own protocol version
