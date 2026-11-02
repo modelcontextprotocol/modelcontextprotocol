@@ -123,9 +123,12 @@ language negotiation and [RFC 4647], including weights and wildcard semantics.
 The server can use lookup or filtering as appropriate to its representation.
 It **MUST NOT** define a different interpretation of the field value.
 
-If no supported language matches, the server **MUST** use its server-defined
-default and **MUST NOT** return an error solely because the preference was
-unmatched.
+Servers **MUST** automatically fall back to their server-defined default
+language, rather than return an error analogous to `406 Not Acceptable`, when
+no supported language matches. Considering the complete or partial autonomy of
+applications targeted by this protocol, this SEP requires fallback rather than
+allowing the choice between fallback and rejection permitted by HTTP
+([RFC 9110 §12.4.1]).
 
 #### Response behavior
 
@@ -542,6 +545,7 @@ authors of [SEP-2243], [SEP-2575], and [SEP-2484].
 [RFC 9110 §5.3]: https://www.rfc-editor.org/rfc/rfc9110.html#section-5.3
 [RFC 9110 §5.5]: https://www.rfc-editor.org/rfc/rfc9110.html#section-5.5
 [RFC 9110 §8.5]: https://www.rfc-editor.org/rfc/rfc9110.html#section-8.5
+[RFC 9110 §12.4.1]: https://www.rfc-editor.org/rfc/rfc9110.html#section-12.4.1
 [RFC 9110 §12.5.4]: https://www.rfc-editor.org/rfc/rfc9110.html#section-12.5.4
 [SEP-2243]: https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/seps/2243-http-standardization.md
 [SEP-2484]: https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/seps/2484-conformance-tests-required-for-final-seps.md
