@@ -383,7 +383,8 @@ the header name `Mcp-Param-{name}`.
   the `inputSchema`
 - **MUST** only be applied to parameters with primitive types (integer,
   string, boolean). Parameters with type `number` are not permitted.
-  Integer values **MUST** be within the safe range for JavaScript
+  Integer values **MUST** be within the safe range for integers
+  represented using IEEE754 double-precision floating point numbers
   (−2<sup>53</sup>+1 to 2<sup>53</sup>−1)
 - **MUST** only be applied to properties that are _statically reachable_
   from the schema root: reachable via a chain consisting solely of

@@ -13,7 +13,9 @@ The [MCP Inspector](https://github.com/modelcontextprotocol/inspector) is the re
 
 All three are built on the same shared core, so a connection behaves identically across them: the same transports, the same configuration files, the same OAuth state on disk, and the same [protocol-era](/docs/draft/tools/inspector/protocol-eras) negotiation (legacy vs. modern 2026-07-28).
 
-<Frame caption="The MCP Inspector web client, connected to a server, with the monitoring sidebar pinned so protocol traffic stays visible while you work.">
+The package also installs **`mcpdo`**, an experimental [connection client](/docs/draft/tools/inspector/mcpdo) that connects to a server once and keeps it open across many commands, on the same core.
+
+<Frame caption="The MCP Inspector web client after a tool call, with the monitoring sidebar pinned and widened so the JSON-RPC exchange stays readable while you work.">
   <img src="/images/inspector/web-monitor-sidebar.png" />
 </Frame>
 
@@ -32,7 +34,7 @@ npx @modelcontextprotocol/inspector node path/to/server/index.js
 npx @modelcontextprotocol/inspector
 ```
 
-The command prints a URL containing a one-time session token; open it in your browser. See [Web client](/docs/draft/tools/inspector/web).
+The command prints a URL carrying a per-launch API token and opens it in your browser (set `MCP_AUTO_OPEN_ENABLED=false` to stop it opening). See [Web client](/docs/draft/tools/inspector/web).
 
   </Tab>
   <Tab title="CLI">
@@ -90,6 +92,18 @@ npx @modelcontextprotocol/inspector --server-url https://api.example.com/mcp --t
 
 Always read a server's own README first, since every server requires different commands and arguments.
 
+<Warning>
+  **The Inspector stores secrets (OAuth tokens, OAuth client secrets, and stdio
+  `env:` values) in the OS keychain when one is available.** On a machine with
+  no keychain (Linux without libsecret or a Secret Service, headless and SSH
+  sessions, Termux, and containers with a mounted volume) they are saved to
+  `~/.mcp-inspector/secrets.json` instead, **unencrypted unless you supply a
+  key**. See [Where secrets are
+  stored](/docs/draft/tools/inspector/configuration#where-secrets-are-stored)
+  for how to get a keychain back, encrypt the file, or keep secrets in memory
+  only.
+</Warning>
+
 ## Launcher flags vs. client flags
 
 `mcp-inspector`, the binary that `npx @modelcontextprotocol/inspector` runs, is a thin launcher. It owns only two things:
@@ -109,10 +123,10 @@ mcp-inspector --cli node server.js --cli   # mode is CLI; the trailing --cli goe
 </Note>
 
 <Note>
-  `--help` behaves differently with and without a mode flag. Bare `mcp-inspector
-  --help` prints the launcher's help and exits. With a mode flag it is
-  forwarded, so `mcp-inspector --cli --help` prints the CLI's full flag
-  reference instead.
+  `--help` behaves differently with and without a mode flag. Without one,
+  `-h`/`--help` anywhere on the command line (even after a server command)
+  prints the launcher's help and exits. With a mode flag it is forwarded, so
+  `mcp-inspector --cli --help` prints the CLI's full flag reference instead.
 </Note>
 
 ## Where to go next
@@ -162,6 +176,21 @@ mcp-inspector --cli node server.js --cli   # mode is CLI; the trailing --cli goe
   >
     Legacy vs. modern (2026-07-28) operation, and how every tab changes between
     protocol eras.
+  </Card>
+  <Card
+    title="mcpdo connection client"
+    icon="plug"
+    href="/docs/draft/tools/inspector/mcpdo"
+  >
+    Connect once, then run many commands against a named connection.
+  </Card>
+  <Card
+    title="Security"
+    icon="shield-halved"
+    href="/docs/draft/tools/inspector/security"
+  >
+    The threat model: the web backend's token, Docker, secret storage, stdio
+    servers, and the mcpdo daemon.
   </Card>
   <Card title="Recipes" icon="book" href="/docs/draft/tools/inspector/recipes">
     Importing client configs, reviewing MCP Apps, Docker, and network hosting.
