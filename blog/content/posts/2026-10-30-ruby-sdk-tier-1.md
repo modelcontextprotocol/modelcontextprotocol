@@ -67,4 +67,8 @@ If you are already running a 1.x server, upgrading lets it serve 2026-07-28 clie
 
 If you run into problems or unexpected behavior while using the SDK, please report them on the [issue tracker](https://github.com/modelcontextprotocol/ruby-sdk/issues). Reports from real-world usage are especially valuable, and with Tier 1 comes a commitment to triage them quickly.
 
-The Ruby SDK is maintained by [Topher Bullock](https://github.com/topherbullock), [Koichi Ito](https://github.com/koic), [Ateş Göral](https://github.com/atesgoral), and [Jonathan Hefner](https://github.com/jonathanhefner) together with the wider Ruby community. Thank you to everyone for the feedback and contributions on the road from Tier 3 to Tier 1. Special thanks to [Felix Weinberger](https://github.com/felixweinberger) and [Paul Carleton](https://github.com/pcarleton) for their review and independent verification of the Tier 1 assessment, and to [Den Delimarsky](https://github.com/localden) for the final review.
+## Acknowledgements
+
+The Ruby SDK is maintained by [Topher Bullock](https://github.com/topherbullock), [Koichi Ito](https://github.com/koic), [Ateş Göral](https://github.com/atesgoral), and [Jonathan Hefner](https://github.com/jonathanhefner) together with the wider Ruby community. Thank you to everyone for the feedback and contributions on the road from Tier 3 to Tier 1.
+
+Special thanks to [Felix Weinberger](https://github.com/felixweinberger) and [Paul Carleton](https://github.com/pcarleton) for their review and independent verification of the Tier 1 assessment, and to [Den Delimarsky](https://github.com/localden) for the final review.
