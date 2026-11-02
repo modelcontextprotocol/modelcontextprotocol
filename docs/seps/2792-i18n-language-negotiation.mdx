@@ -55,6 +55,10 @@ form labels, and progress notifications can contain user-visible status text.
 MCP currently has no common way to carry the language preference already known
 to an operating system, desktop application, terminal, or HTTP user agent.
 
+Servers can already serve text in any language. This proposal does not
+prescribe a default language; it defines how to communicate the user's
+preference and report the language used.
+
 Relying on a model is not sufficient. A model is not guaranteed to know the
 user's operating-system or application preference, and putting that preference
 into chat context is indirect and unreliable. Tool arguments are also too late
@@ -155,12 +159,13 @@ embedded source material.
 The field is carried:
 
 - in `result._meta` for a successful or input-required response;
-- in `error.data._meta` for an error response whose user-facing text is
-  localized; and
+- in `error.data._meta` for an error response with localized user-facing
+  content in `error.data`; and
 - in `params._meta` for a localized notification associated with the request.
 
 If `error.data` carries `contentLanguage`, it **MUST** be an object. The
-machine-readable `error.code` remains unchanged.
+field describes the localized content in `error.data`, not `Error.message`,
+which remains untranslated. The machine-readable `error.code` remains unchanged.
 
 A server that ignores `acceptLanguage` **MAY** omit `contentLanguage`.
 Omission does not identify any language.
@@ -168,8 +173,9 @@ Omission does not identify any language.
 ### Translation boundary
 
 Language selection does not imply that every natural-language string should be
-translated. When a server honors the preference and has a supported selected
-language, it **SHOULD** translate these display-oriented fields:
+translated. When a server honors the preference and has translations available
+in the selected language for these display-oriented fields, it **MUST** use
+those translations:
 
 - `BaseMetadata.title` on `Implementation`, `Tool`, `Resource`,
   `ResourceTemplate`, `Prompt`, `PromptArgument`, and `PromptReference`;
@@ -179,18 +185,19 @@ language, it **SHOULD** translate these display-oriented fields:
   `ElicitRequestFormParams.requestedSchema` (property keys remain stable); and
 - `ProgressNotificationParams.message`.
 
-A server **MAY** translate `Error.message` when it is intended for user
-display. `Error.code` remains stable.
-
-A server **MAY** translate other natural-language, model-facing, or returned
-content, but this is not expected in ordinary circumstances. Translation can
-change meaning and model behavior, including tool selection and argument
-generation. This category includes general `description` fields such as
+A server that honors the preference **SHOULD** translate natural-language
+descriptions into the selected language. This includes
 `Tool.description`, `Resource.description`, `ResourceTemplate.description`,
 `Prompt.description`, `PromptArgument.description`, and
-`Implementation.description`, as well as tool, prompt, and resource content.
-Servers that translate such content are responsible for preserving its
+`Implementation.description`.
+
+A server **MAY** translate other natural-language or returned content,
+including tool, prompt, and resource content. Servers that translate
+natural-language content are responsible for preserving its
 domain-specific semantics.
+
+A server **MUST NOT** translate `Error.message` in response to the language
+preference. Error messages remain developer-facing.
 
 A server **MUST NOT** translate a machine-interpreted identifier or token. This
 categorical rule includes:
@@ -464,9 +471,9 @@ language.
   concerns and discards standard weighted fallback semantics.
 - **Handshake or capability state:** conflicts with stateless operation and
   cannot represent a changed preference on the next request.
-- **Automatic translation of all natural-language fields:** changes
-  model-facing semantics and exceeds the display-oriented need this SEP
-  addresses.
+- **Requiring translation of all natural-language fields:** would include
+  developer-facing errors and domain-specific content whose language is part
+  of the operation's meaning.
 
 ## Backward Compatibility
 
@@ -501,8 +508,6 @@ Incorrect cache variation can disclose one user's localized representation to
 another user. Implementations **MUST** follow the cache-key, `cacheScope`, and
 `Vary` requirements above.
 
-Translations of model-facing text can alter model behavior. Servers that use
-the **MAY** category should consider the implications of this.
 Machine-interpreted identifiers remain stable to prevent routing, validation,
 authorization and parsing failures.
 
@@ -522,10 +527,10 @@ Final. Tests should cover at least:
    fallback without an unmatched-preference error.
 2. Preference changes and omission on consecutive requests over one
    connection, proving no earlier value is reused.
-3. Localized `tools/list` titles with stable names and a reported
-   `contentLanguage`.
-4. Localized elicitation and progress display text with stable property keys
-   and tokens.
+3. Use of available `tools/list` title translations and the recommended
+   description translations, with stable names and a reported `contentLanguage`.
+4. Use of available elicitation and progress display translations with stable
+   property keys and tokens.
 5. Preservation of all machine-interpreted identifiers and explicit language
    arguments taking precedence.
 6. HTTP request and JSON response mirroring, tolerated missing
@@ -542,6 +547,8 @@ Final. Tests should cover at least:
    `ttlMs`, `cacheScope`, `Vary: Accept-Language`, and the stripped-header
    shared-cache case.
 10. HTTP language-preference privacy guidance.
+11. Preservation of `Error.message` and `Error.code` across language
+    preferences, including when `error.data` contains localized content.
 
 ## Acknowledgments
 
