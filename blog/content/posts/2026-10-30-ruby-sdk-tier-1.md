@@ -33,7 +33,7 @@ The server serves both lifecycle eras side by side, so current clients keep work
 
 Several 1.x releases, starting with 1.2.0, reject input that earlier releases accepted. The SDK's [versioning policy](https://github.com/modelcontextprotocol/ruby-sdk/blob/main/VERSIONING.md) allows such changes to fix spec conformance, security issues, and clear defects, so read the [changelog](https://github.com/modelcontextprotocol/ruby-sdk/blob/main/CHANGELOG.md) before upgrading an existing 1.x application.
 
-## From Tier 2 to Tier 1
+## Getting to Tier 1
 
 The [Tier 2 assessment](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/3127) in July showed that the SDK was already close, meeting eight of the ten Tier 1 requirements. Two things were left, however: the **documentation didn't cover every feature** yet, and there was **no agreed timeline for supporting new versions of the spec**. Since then, we made a few changes to put us on a more robust track:
 
