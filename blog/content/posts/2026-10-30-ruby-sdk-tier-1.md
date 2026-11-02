@@ -52,13 +52,11 @@ bundle add mcp
 
 Or install it on its own with `gem install mcp`.
 
-To upgrade an existing application, set the constraint in your Gemfile:
+To upgrade an existing application, set the constraint in your Gemfile and run `bundle update mcp`:
 
 ```ruby
 gem 'mcp', '~> 1.8'
 ```
-
-Then read the [changelog](https://github.com/modelcontextprotocol/ruby-sdk/blob/main/CHANGELOG.md) and run `bundle update mcp`.
 
 If you are already running a 1.x server, upgrading lets it serve 2026-07-28 clients alongside existing ones. See the [Ruby SDK documentation](https://ruby.sdk.modelcontextprotocol.io) for guides on building servers and clients, including Rails integration, and the [1.0 announcement](/posts/ruby-sdk-1-0/) for a walkthrough of the basics.
 
