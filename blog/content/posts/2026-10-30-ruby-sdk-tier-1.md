@@ -13,7 +13,9 @@ tags:
   - ruby
 ---
 
-The official [Ruby SDK](https://github.com/modelcontextprotocol/ruby-sdk) for the Model Context Protocol is now a Tier 1 SDK, as recorded in the [Tier 1 assessment](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/3247) under the [SDK tiering system](https://modelcontextprotocol.io/community/sdk-tiers). Ruby joins TypeScript, Python, C#, Go, and Rust as the sixth Tier 1 SDK. Among other things, Tier 1 requires full feature support, a 100% conformance pass rate, support for new spec versions by their release date, issue triage within two business days, and critical bug fixes within seven days.
+The official [Ruby SDK](https://github.com/modelcontextprotocol/ruby-sdk) for the Model Context Protocol is now a Tier 1 SDK, as recorded in the [Tier 1 assessment](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/3247) under the [SDK tiering system](https://modelcontextprotocol.io/community/sdk-tiers). Ruby joins TypeScript, Python, C#, Go, and Rust as the sixth Tier 1 SDK.
+
+Tier 1 is the top of the three tiers, reserved for fully supported SDKs. If you build MCP servers or clients in Ruby, you now get the same commitments as developers on those SDKs, including full feature support, a 100% conformance pass rate, support for new spec versions by their release date, issue triage within two business days, and critical bug fixes within seven days.
 
 {{< button text="Get the Ruby SDK" url="https://github.com/modelcontextprotocol/ruby-sdk" >}}
 {{< button text="Read the documentation" url="https://ruby.sdk.modelcontextprotocol.io" >}}
@@ -41,9 +43,11 @@ The [Tier 2 assessment](https://github.com/modelcontextprotocol/modelcontextprot
 
 The full evidence tables, including reproduction steps for the conformance results, are in the [Tier 1 assessment](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/3247).
 
-The stable release supporting 2026-07-28 shipped 18 days after the specification release, while Tier 1 expects support by the release date. To close this spec-tracking gap, the Ruby SDK team has committed to supporting the next MCP spec, targeted for [late March 2027](https://modelcontextprotocol.io/seps/3398-release-cycle-updates), by its release date.
+The stable release supporting 2026-07-28 shipped 18 days after the specification release, while Tier 1 expects support by the release date. To close this spec-tracking gap, the Ruby SDK team has committed to supporting the next MCP spec, targeted for [late March 2027](https://modelcontextprotocol.io/seps/3398-release-cycle-updates), by its release date. The SDK's [roadmap](https://github.com/modelcontextprotocol/ruby-sdk/blob/main/ROADMAP.md) covers what else is planned, including the [tasks extension](https://modelcontextprotocol.io/seps/2663-tasks-extension).
 
-The road here was short but steep: the SDK was assessed at [Tier 3](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/2340) in March 2026, reached [Tier 2](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/3127) with the 1.0 release in July, applied for Tier 1 in August, and was confirmed at Tier 1 in September.
+The road here was short but steep: the SDK was assessed at [Tier 3](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/2340) in March 2026, reached [Tier 2](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/3127) with the 1.0 release in July, applied for Tier 1 in August, and was confirmed at Tier 1 in September. In under seven months, server conformance went from 25 of 30 scenarios to every scored scenario, client conformance went from untested to 100%, and documented features went from 22 of 48 to 46. The remaining two are the legacy SSE transport, which the SDK intentionally does not implement.
+
+![Ruby SDK results at each tier assessment. Tier 3, March 2026: release 0.8.0, server conformance 25 of 30, client conformance not tested, 22 of 48 features documented. Tier 2, July 2026: release 1.0.0, server conformance 30 of 30, client conformance 24 of 24, 34 of 48 features documented. Tier 1, September 2026: release 1.2.0, server conformance 67 of 67, client conformance 50 of 50, 46 of 48 features documented.](/posts/images/ruby-sdk-tier-1/tier-progress.svg)
 
 ## Get started
 
