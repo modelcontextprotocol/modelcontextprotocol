@@ -1,8 +1,8 @@
 {{- /*
   Override of PaperMod's single.html. The only change is how the title and the
   description are set, which is the way post_list.html does it: both go through
-  keep_versions.html, so "2026-07-28" stays on one line, and the description's
-  last three words are joined so it never ends on a line of one short word.
+  keep_together.html, so "2026-07-28" and "Tier 1" stay on one line, and the
+  description's last three words are joined so it never ends on a short word.
 
   The title gets a <span> around it because PaperMod makes the <h1> a flex row
   (for the draft icon), where each piece of text would otherwise become a
@@ -14,7 +14,7 @@
   <header class="post-header">
     {{ partial "breadcrumbs.html" . }}
     <h1 class="post-title entry-hint-parent">
-      <span>{{ partial "keep_versions.html" .Title }}</span>
+      <span>{{ partial "keep_together.html" .Title }}</span>
       {{- if .Draft }}
       <span class="entry-hint" title="Draft">
         <svg xmlns="http://www.w3.org/2000/svg" height="35" viewBox="0 -960 960 960" fill="currentColor">
@@ -26,7 +26,7 @@
     </h1>
     {{- if .Description }}
     <div class="post-description">
-      {{ partial "keep_versions.html" (replaceRE `\s+(\S+)\s+(\S+)\s*$` "\u00a0$1\u00a0$2" .Description) }}
+      {{ partial "keep_together.html" (replaceRE `\s+(\S+)\s+(\S+)\s*$` "\u00a0$1\u00a0$2" .Description) }}
     </div>
     {{- end }}
     {{- if not (.Param "hideMeta") }}

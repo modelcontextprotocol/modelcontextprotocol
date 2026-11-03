@@ -7,8 +7,9 @@
    1. Type does the work. There are no rules, boxes or separator characters
       between things. Size, weight, color and space say what a thing is and
       what it belongs to.
-   2. Two voices. Geist for everything a person wrote or clicks. JetBrains
-      Mono for time and code only: year, date, reading time, counts, code.
+   2. One typeface, Geist. JetBrains Mono is for code and nothing else. Things
+      that share a line share its size and line height, so they line up at the
+      top as well as at the bottom.
    3. One text edge. The logo, every title, every paragraph and the footer
       start on the left edge of one 720px column. On a wide screen the time
       facts hang outside it, in the left margin.
@@ -74,10 +75,10 @@
        title stands well clear of everything else. They are written in rem, so
        a reader who sets a larger font size in the browser gets one. The pixel
        values below are at the usual 16px.
-         1  13/20  date, reading time, back link, tags, list authors, footer
+         1  13/20  back link, tags, list authors, byline roles, footer
          2  15/24  navigation, list summaries, byline names, code, tables
          3  18/28  h3, homepage lead, search results (18/30 for body text)
-         4  22/28  list titles, years (22/32 for the standfirst)
+         4  22/28  list titles, dates and years (22/32 for the standfirst)
          5  26/32  h2
          6  31/36  page titles on a phone
          7  45/48  page titles
@@ -101,7 +102,7 @@
     --lh-6: 2.25rem;
     --lh-7: 3rem;
 
-    /* Tracking tightens as the size grows. Mono is always 0. */
+    /* Tracking tightens as the size grows. Code is always 0. */
     --ls-1: 0;
     --ls-2: 0;
     --ls-3: -0.005em;
@@ -137,6 +138,17 @@
     --s-16: 64px;
     --s-24: 96px;
 
+    /* The vertical rhythm of a post. Three gaps, taken from the scale above:
+         text     between paragraphs and lists
+         block    above and below anything that is not running text: code,
+                  diagrams, images, video, tables, quotations, buttons
+         section  above an h2
+       They are always set as margins on block-level boxes, so where two meet
+       they collapse and the larger one wins. They never add up. */
+    --gap-text: var(--s-6);
+    --gap-block: var(--s-8);
+    --gap-section: var(--s-12);
+
     /* Two radii: small for things inside a line of text, large for blocks. */
     --r-sm: 6px;
     --r-lg: 10px;
@@ -147,10 +159,11 @@
     --stroke: 2px;
 
     /* Columns that hold text, so they grow with it.
-       --when-col fits "12 min read", the widest thing in it at 86px, and
-       leaves 18px before the title. --year-col fits "2026" at step 4. Together
-       they are the rail that hangs in the margin on a wide screen: 184px. */
-    --when-col: 6.5rem;
+       --when-col fits "Oct 30, 2026" on a post, the widest thing in it at
+       about 90px, and leaves 30px before the text. --year-col fits "2026" at
+       step 4. Together they are the rail that hangs in the margin on a wide
+       screen: 200px. */
+    --when-col: 7.5rem;
     --year-col: 5rem;
     --rail: calc(var(--year-col) + var(--when-col));
 
@@ -588,19 +601,21 @@ button#theme-toggle {
 }
 
 /* ─── Metadata ───────────────────────────────────────────────────────────── */
-/* Three facts, each with its own look, the same in the post list and on a
-   post (layouts/partials/post_when.html, authors.html, post_meta.html):
-     date          mono, text color
-     reading time  mono, faint
-     author        sans, medium and bright. The role, on a post only, is
-                   regular and faint. */
+/* Date, reading time and authors, in the post list and on a post
+   (layouts/partials/post_when.html, authors.html, post_meta.html).
+
+   One rule places them: whatever shares a line shares that line's size and
+   line height, so the tops of the letters line up as well as the bottoms.
+   Weight and color tell the parts apart, never a second typeface.
+     in the list   the date sits beside the title and is set like it. The
+                   reading time sits beside the summary and is set like it.
+     on a post     the date sits beside the author's name, the reading time
+                   beside the role.
+   Digits are all one width, so dates line up under each other. */
 .when {
     display: flex;
     flex-direction: column;
-    font-family: var(--font-mono);
-    font-size: var(--fs-1);
-    line-height: var(--lh-1);
-    letter-spacing: 0;
+    font-variant-numeric: tabular-nums;
 }
 
 /* Each fact stays whole. The pair may still wrap where it is set as a row. */
@@ -609,11 +624,23 @@ button#theme-toggle {
 }
 
 .when-date {
-    color: var(--text);
+    color: var(--muted);
 }
 
 .when-read {
     color: var(--faint);
+}
+
+.post-meta .when-date {
+    font-size: var(--fs-2);
+    line-height: var(--lh-2);
+    letter-spacing: var(--ls-2);
+}
+
+.post-meta .when-read {
+    font-size: var(--fs-1);
+    line-height: var(--lh-1);
+    letter-spacing: var(--ls-1);
 }
 
 /* Under a post's title: when on the left, who on the right, the same two
@@ -626,7 +653,7 @@ button#theme-toggle {
     display: grid !important;
     grid-template-columns: var(--when-col) minmax(0, 1fr);
     column-gap: var(--s-6);
-    align-items: baseline;
+    align-items: start;
     margin-top: var(--s-8);
 }
 
@@ -669,46 +696,73 @@ button#theme-toggle {
     margin-top: var(--s-24);
 }
 
-/* The year belongs to the dates, so it speaks in their voice. It is as large
-   as a title and as bright, because it is what you look for when scrolling
-   back through the list. */
+/* Set exactly like a post title, because on a wide screen it stands on the
+   same line as one, and because it is what you look for when scrolling back
+   through the list. */
 .post-year-heading {
     margin-bottom: var(--s-6);
     color: var(--ink);
-    font-family: var(--font-mono);
     font-size: var(--fs-4);
-    font-weight: var(--fw-regular);
+    font-weight: var(--fw-strong);
     line-height: var(--lh-4);
-    letter-spacing: 0;
+    letter-spacing: var(--ls-4);
+    font-variant-numeric: tabular-nums;
 }
 
 .post-list {
     list-style: none;
 }
 
-/* Baseline alignment puts the date on the same line as the title's first
-   line, although they differ in size. */
+/* A row is a grid of two columns and three lines:
+     date          | title
+     reading time  | summary
+                   | authors
+   The two wrappers step aside (display: contents) so that their children are
+   placed on the grid themselves. That keeps the reading time level with the
+   first line of the summary however many lines the title takes. */
 .post-item {
     position: relative;
     display: grid;
     grid-template-columns: var(--when-col) minmax(0, 1fr);
     column-gap: var(--s-6);
-    align-items: baseline;
+    align-items: start;
 }
 
 .post-item + .post-item {
     margin-top: var(--s-12);
 }
 
-/* Stays in the second column when hideMeta drops the first. */
+.post-item .when,
 .post-item-body {
+    display: contents;
+}
+
+.post-item .when > * {
+    grid-column: 1;
+}
+
+.post-item-body > * {
     grid-column: 2;
 }
 
+.post-item .when-date,
 .post-item-title {
+    grid-row: 1;
     font-size: var(--fs-4);
     line-height: var(--lh-4);
     letter-spacing: var(--ls-4);
+}
+
+.post-item .when-read,
+.post-item-summary {
+    grid-row: 2;
+    margin-top: var(--s-2);
+    font-size: var(--fs-2);
+    line-height: var(--lh-2);
+    letter-spacing: var(--ls-2);
+}
+
+.post-item-title {
     text-wrap: balance;
 }
 
@@ -725,11 +779,7 @@ button#theme-toggle {
 
 .post-item-summary {
     max-width: var(--measure);
-    margin-top: var(--s-2);
     color: var(--muted);
-    font-size: var(--fs-2);
-    line-height: var(--lh-2);
-    letter-spacing: var(--ls-2);
     text-wrap: pretty;
 }
 
@@ -743,7 +793,7 @@ button#theme-toggle {
     letter-spacing: var(--ls-1);
 }
 
-/* Around a spec version (keep_versions.html) or a person's name
+/* Around a spec version (keep_together.html) or a person's name
    (post_list.html). */
 .nowrap {
     white-space: nowrap;
@@ -770,28 +820,45 @@ button#theme-toggle {
     line-height: var(--lh-3-prose);
 }
 
+/* See --gap-text and --gap-block in the tokens. Buttons are in this group too
+   and get their margin further down, with the rest of their style. */
 .post-content p,
 .post-content ul,
 .post-content ol,
-.post-content dl,
-.post-content figure,
-.post-content table {
-    margin-bottom: var(--s-6);
+.post-content dl {
+    margin-bottom: var(--gap-text);
 }
 
-/* Headings sit four to five times closer to the text they introduce than to
+.post-content figure,
+.post-content blockquote,
+.post-content table:not(.highlighttable, .highlight table),
+.post-content .highlight:not(table),
+.post-content > pre,
+.post-content img,
+.post-content video,
+.post-content .youtube-container {
+    margin: var(--gap-block) 0;
+}
+
+/* The header above already keeps its distance. */
+.post-content > :first-child,
+.post-content > p:first-child > img:first-child {
+    margin-top: 0;
+}
+
+/* Headings sit at least three times closer to the text they introduce than to
    the text before them. h2 is set apart by size. h3 is the size of the text
    and set apart by weight and color, h4 and below one step smaller again. */
 .post-content h1,
 .post-content h2 {
-    margin: var(--s-16) 0 var(--s-4);
+    margin: var(--gap-section) 0 var(--s-4);
     font-size: var(--fs-5);
     line-height: var(--lh-5);
     letter-spacing: var(--ls-5);
 }
 
 .post-content h3 {
-    margin: var(--s-10) 0 var(--s-2);
+    margin: var(--gap-block) 0 var(--s-2);
     font-size: var(--fs-3);
     line-height: var(--lh-3);
     letter-spacing: var(--ls-3);
@@ -800,7 +867,7 @@ button#theme-toggle {
 .post-content h4,
 .post-content h5,
 .post-content h6 {
-    margin: var(--s-8) 0 var(--s-1);
+    margin: var(--gap-text) 0 var(--s-1);
     font-size: var(--fs-2);
     line-height: var(--lh-2);
     letter-spacing: var(--ls-2);
@@ -896,7 +963,6 @@ h6:hover .anchor {
 /* Code blocks. */
 .post-content .highlight:not(table),
 .post-content > pre {
-    margin: var(--s-6) 0 var(--s-8);
     border-radius: var(--r-lg);
 }
 
@@ -948,7 +1014,6 @@ h6:hover .anchor {
 
 /* Quotations: the text color, indented behind a bar. */
 .post-content blockquote {
-    margin: var(--s-8) 0;
     padding: 0 0 0 var(--s-6);
     color: var(--text);
     border-inline-start: var(--stroke) solid var(--edge);
@@ -982,24 +1047,23 @@ h6:hover .anchor {
 
 .post-content hr {
     height: var(--hair);
-    margin: var(--s-12) 0;
+    margin: var(--gap-section) 0;
     background: var(--line);
 }
 
+/* A block, so that its margin collapses with that of the paragraph Markdown
+   puts around it, and with whatever comes before and after that. */
 .post-content img,
 .post-content video {
+    display: block;
     max-width: 100%;
     height: auto;
-    /* On top of the 24px of the paragraph that holds it, which makes 32px. */
-    margin: var(--s-2) 0;
     border-radius: var(--r-lg);
 }
 
-/* Written as raw HTML they have no paragraph around them. Same 32px. */
-.post-content > img,
-.post-content > video {
-    display: block;
-    margin: var(--s-8) 0;
+/* The figure has the margin. */
+.post-content figure img {
+    margin: 0;
 }
 
 .post-content figure > figcaption,
@@ -1023,7 +1087,6 @@ h6:hover .anchor {
 .youtube-container {
     position: relative;
     width: 100%;
-    margin: var(--s-8) 0;
     padding-bottom: 56.25%; /* 16:9 */
 }
 
@@ -1037,11 +1100,12 @@ h6:hover .anchor {
 
 /* layouts/shortcodes/button.html. Ink on paper, reversed. Hover swaps the fill
    for the accent color, like every other link. The selectors outrank the
-   prose link style above. */
+   prose link style above. Every button has a border, inside its 40px, so a
+   filled and an outlined one are the same box. */
 .post-content a.mcp-button {
     display: inline-block;
-    margin: var(--s-2) var(--s-2) var(--s-2) 0;
-    padding: var(--s-2) var(--s-4);
+    margin: 0 var(--s-2) 0 0;
+    padding: calc(var(--s-2) - var(--hair)) calc(var(--s-4) - var(--hair));
     color: var(--paper);
     font-size: var(--fs-2);
     font-weight: var(--fw-medium);
@@ -1049,23 +1113,45 @@ h6:hover .anchor {
     letter-spacing: var(--ls-2);
     text-decoration: none;
     background: var(--ink);
+    border: var(--hair) solid var(--ink);
     border-radius: var(--r-sm);
 }
 
 .post-content a.mcp-button:hover {
     color: var(--paper);
     background: var(--accent);
+    border-color: var(--accent);
 }
 
-/* Of two side by side only the first is filled, so one of them leads. */
+/* Of two side by side only the first is filled, so one of them leads. The
+   second is drawn as an outline, which shows its full height and width. */
 .post-content a.mcp-button + a.mcp-button {
     color: var(--ink);
-    background: var(--surface);
+    background: none;
+    border-color: var(--edge);
 }
 
 .post-content a.mcp-button + a.mcp-button:hover {
     color: var(--accent);
     background: var(--accent-tint);
+    border-color: var(--accent);
+}
+
+/* The block gap around buttons. An inline-block's own margin would be added to
+   the margins around it, so the margin goes on a block-level box: the button
+   itself where Markdown leaves it bare, the paragraph where it wraps several.
+   A browser without :has() falls back to the paragraph's text gap. */
+.post-content > a.mcp-button {
+    display: block;
+    width: fit-content;
+    margin: var(--gap-block) 0;
+}
+
+.post-content p:has(> a.mcp-button) {
+    display: flex;
+    flex-wrap: wrap;
+    row-gap: var(--s-2);
+    margin: var(--gap-block) 0;
 }
 
 .mcp-button-arrow {
@@ -1187,12 +1273,11 @@ h6:hover .anchor {
     background: var(--accent-tint);
 }
 
-/* A count, so it is mono. */
 .tag-count {
     margin-inline-start: var(--s-1);
     color: var(--faint);
-    font-family: var(--font-mono);
     font-weight: var(--fw-regular);
+    font-variant-numeric: tabular-nums;
 }
 
 a:hover .tag-count {
@@ -1387,24 +1472,24 @@ a:hover .tag-count {
 }
 
 /* ─── Wide screens ───────────────────────────────────────────────────────── */
-/* From 1136px (71em at the usual font size) there is room beside the column
-   for the rail: 720 + 2 x 184 + 48. The column stays centered. Only the time
+/* From 1168px (73em at the usual font size) there is room beside the column
+   for the rail: 720 + 2 x 200 + 48. The column stays centered. Only the time
    facts move out of it, so post titles start on the same edge as the page
    title, the logo and the text. In em, so the breakpoint grows with the rail
    when the reader's font size does. */
-@media screen and (min-width: 71em) {
+@media screen and (min-width: 73em) {
     /* The list. Each year is pulled left by the width of the rail and split
        in two: the year, then its posts. Each post is split in two again: the
        date, then the rest, which lands back on the column's edge. */
     .post-year {
         display: grid;
         grid-template-columns: var(--year-col) minmax(0, 1fr);
-        align-items: baseline;
+        align-items: start;
         margin-inline-start: calc(var(--rail) * -1);
     }
 
-    /* On the first title's baseline, and it stays in view while its posts
-       scroll past. */
+    /* On the first title's line, and it stays in view while its posts scroll
+       past. */
     .post-year-heading {
         position: sticky;
         top: var(--s-6);
@@ -1415,45 +1500,12 @@ a:hover .tag-count {
         column-gap: 0;
     }
 
-    /* A post. The header becomes the same two columns, and the wrapper around
-       the metadata steps aside so that its two parts can be placed on their
-       own: the date beside the title, on its first baseline, and the authors
-       under the standfirst, on the column's edge. */
-    .post-header {
-        display: grid;
-        grid-template-columns: var(--rail) minmax(0, 1fr);
-        align-items: baseline;
-        margin-inline-start: calc(var(--rail) * -1);
-    }
-
-    .post-header > *,
-    .post-header .authors {
-        grid-column: 2;
-    }
-
+    /* A post. The metadata keeps its two columns and is pulled left by the
+       width of the first, so the date lands in the list's date column and the
+       authors on the column's edge. */
     .post-header .post-meta {
-        display: contents !important;
-    }
-
-    .post-header .breadcrumbs {
-        grid-row: 1;
-    }
-
-    .post-header .post-title,
-    .post-header .when {
-        grid-row: 2;
-    }
-
-    /* Only its first line counts toward the height of the row. Otherwise the
-       reading time, hanging below a one-line title, would push the standfirst
-       down. */
-    .post-header .when {
-        grid-column: 1;
-        height: var(--lh-1);
-    }
-
-    .post-header .authors {
-        margin-top: var(--s-8);
+        column-gap: 0;
+        margin-inline-start: calc(var(--when-col) * -1);
     }
 }
 
@@ -1511,16 +1563,27 @@ a:hover .tag-count {
     }
 
     /* Date and reading time move above the title, side by side, in the list
-       and on a post alike. */
+       and on a post alike. They share a line now, so they share a size. */
     .post-item,
+    .post-item-body,
     .post-header .post-meta {
         display: block !important;
     }
 
-    .when {
+    .when,
+    .post-item .when {
+        display: flex;
         flex-flow: row wrap;
         gap: 0 var(--s-4);
         margin-bottom: var(--s-1);
+    }
+
+    .when .when-date,
+    .when .when-read {
+        margin-top: 0;
+        font-size: var(--fs-1);
+        line-height: var(--lh-1);
+        letter-spacing: var(--ls-1);
     }
 
     /* On a narrow screen with enlarged text a full name may not fit. */
@@ -1553,11 +1616,7 @@ a:hover .tag-count {
 
     .post-content h1,
     .post-content h2 {
-        margin-top: var(--s-12);
-    }
-
-    .post-content h3 {
-        margin-top: var(--s-8);
+        margin-top: var(--s-10);
     }
 
     /* More characters per line where there are few to begin with. */

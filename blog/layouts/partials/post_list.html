@@ -18,8 +18,8 @@
   Its last three words are joined with non-breaking spaces, so a summary never
   ends on a line of one short word.
 
-  Titles and summaries go through keep_versions.html, which keeps a spec
-  version such as 2026-07-28 on one line.
+  Titles and summaries go through keep_together.html, which keeps names such
+  as "2026-07-28" and "Tier 1" on one line.
 
   Authors are names only here. Their roles are on the post page. A long line
   of them wraps between people, not inside a name.
@@ -39,17 +39,17 @@
       {{- end }}
       <div class="post-item-body">
         <h3 class="post-item-title">
-          <a href="{{ .RelPermalink }}">{{ partial "keep_versions.html" .Title }}</a>
+          <a href="{{ .RelPermalink }}">{{ partial "keep_together.html" .Title }}</a>
           {{- if .Draft }} <span class="post-item-draft">Draft</span>{{ end }}
         </h3>
         {{- if ne (.Param "hideSummary") true }}
         <p class="post-item-summary">
           {{- $summary := .Description }}
           {{- if not $summary }}
-          {{- /* truncate escapes what it returns, and keep_versions.html escapes too. */ -}}
+          {{- /* truncate escapes what it returns, and keep_together.html escapes too. */ -}}
           {{- $summary = .Summary | plainify | htmlUnescape | truncate 200 "..." | htmlUnescape }}
           {{- end }}
-          {{- partial "keep_versions.html" (replaceRE $tail "\u00a0$1\u00a0$2" $summary) -}}
+          {{- partial "keep_together.html" (replaceRE $tail "\u00a0$1\u00a0$2" $summary) -}}
         </p>
         {{- end }}
         {{- if not (or (.Param "hideMeta") (.Param "hideAuthor")) }}

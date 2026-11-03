@@ -12,7 +12,7 @@
    margins keep the strip centered too. */
 .mcp-quotes {
     --mcp-quotes-bleed: max(0px, min((1200px - 100%) / 2, 50vw - 50% - 32px));
-    margin: var(--s-12) calc(-1 * var(--mcp-quotes-bleed));
+    margin: var(--gap-block) calc(-1 * var(--mcp-quotes-bleed));
 }
 
 /* A lone quote is a pull quote, not a strip: it stays in the prose column. */

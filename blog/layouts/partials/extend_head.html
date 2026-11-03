@@ -2,14 +2,10 @@
   Fonts. The faces are declared in assets/css/extended/custom.css. Preloading
   them starts the downloads before the stylesheet has been parsed, which keeps
   the swap from the fallback font short. Every page uses the three weights of
-  Geist in its first screen. The search page and the 404 page have no dates or
-  code, so they skip the monospace.
+  Geist in its first screen. The monospace is only for code, which not every
+  page has, so it loads when it is needed.
 */ -}}
-{{- $fonts := slice "Geist-latin-400" "Geist-latin-500" "Geist-latin-600" }}
-{{- if not (or (eq .Kind "404") (eq .Layout "search")) }}
-{{- $fonts = $fonts | append "JetBrainsMono-Regular-latin" }}
-{{- end }}
-{{- range $fonts }}
+{{- range slice "Geist-latin-400" "Geist-latin-500" "Geist-latin-600" }}
 <link rel="preload" href="{{ printf "fonts/%s.woff2" . | relURL }}" as="font" type="font/woff2" crossorigin>
 {{- end }}
 
