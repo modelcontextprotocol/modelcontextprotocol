@@ -77,6 +77,53 @@
     border-color: rgba(206, 206, 206, 0.4);
 }
 
+/* Results are rows like the post list, not cards (see assets/js/fastsearch.js).
+   .focus is the row picked with the arrow keys. PaperMod removes the outline
+   from these links, so it is put back for Tab and arrow-key users. */
+#searchResults {
+    margin: var(--gap) 0 0;
+}
+
+#searchResults li {
+    margin: 0;
+    padding: 0;
+    border-radius: 0;
+}
+
+#searchResults li + li {
+    border-top: 1px solid var(--hairline);
+}
+
+#searchResults a {
+    position: static;
+    display: block;
+    width: auto;
+    height: auto;
+    padding: 14px 0;
+    font-size: 17px;
+    font-weight: 500;
+    line-height: 1.4;
+}
+
+#searchResults a:hover,
+#searchResults .focus a {
+    color: var(--link);
+}
+
+#searchResults a:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+
+#searchResults .focus {
+    border: none;
+    border-top: 1px solid var(--hairline);
+}
+
+#searchResults li:first-child.focus {
+    border-top: none;
+}
+
 /* ─── Skip link ──────────────────────────────────────────────────────────── */
 .skip-link {
     position: absolute;
@@ -94,11 +141,22 @@
     top: 8px;
 }
 
-/* ─── Homepage intro card ────────────────────────────────────────────────── */
-/* PaperMod forces min-height: 320px regardless of content. With a two-line
-   intro that is ~240px of dead scroll before the first post card on mobile. */
-.first-entry {
-    min-height: auto;
+/* ─── Homepage intro ─────────────────────────────────────────────────────── */
+.home-intro {
+    margin: calc(var(--gap) * 2) 0;
+}
+
+.home-intro h1 {
+    font-size: 34px;
+    line-height: 1.3;
+    letter-spacing: -0.02em;
+}
+
+.home-intro-text {
+    margin-top: 12px;
+    color: var(--secondary);
+    font-size: 16px;
+    line-height: 1.6;
 }
 
 /* ─── Reading rhythm ─────────────────────────────────────────────────────── */
@@ -119,15 +177,59 @@
     margin-bottom: 0;
 }
 
-/* PaperMod's spacing in the post header is uneven: title→description is 12px
-   (margin-bottom:2px + margin-top:10px), description→meta is 5px, meta→content
-   is --content-gap (20px). Normalize the intra-header gaps to the same 20px. */
+/* ─── Post header ────────────────────────────────────────────────────────── */
+/* The description is the post's standfirst. It is set larger than the body
+   (18px) and in the secondary color, upright, so it reads as an introduction
+   and not as the first paragraph. */
 .post-description {
-    margin: var(--content-gap) 0 0;
+    margin: 16px 0 0;
+    color: var(--secondary);
+    font-size: 21px;
+    line-height: 1.5;
 }
 
+/* Byline: author on the first line, date and reading time on the second,
+   ruled off above and below so the header ends where the post begins. Each
+   item is its own element (see post_meta.html) and the gap does the job a
+   separator character would. !important beats PaperMod's inline-flex, see
+   https://github.com/adityatelange/hugo-PaperMod/issues/1789 */
 .post-header .post-meta {
-    margin-top: var(--content-gap);
+    display: flex !important;
+    flex-wrap: wrap;
+    gap: 2px 20px;
+    margin-top: var(--gap);
+    padding: 14px 0;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    line-height: 1.6;
+}
+
+.post-meta-author {
+    flex-basis: 100%;
+    color: var(--primary);
+    font-size: 15px;
+    font-weight: 500;
+}
+
+.post-header {
+    margin-bottom: var(--gap);
+}
+
+.breadcrumbs {
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.breadcrumbs a {
+    font-size: 14px;
+}
+
+.breadcrumbs a:hover {
+    color: var(--link);
+}
+
+.breadcrumbs-sep {
+    color: var(--tertiary);
 }
 
 /* PaperMod's .toc has margin: 0 2px 40px 2px — zero top (so byline→TOC is
@@ -141,38 +243,193 @@
     margin-top: var(--content-gap);
 }
 
-/* ─── Card hover ─────────────────────────────────────────────────────────── */
-@media (hover: hover) {
-    .post-entry {
-        transition: border-color 0.15s ease;
-    }
+/* ─── Post list ──────────────────────────────────────────────────────────── */
+/* Rows, not cards. See layouts/partials/post_list.html. */
+.post-year + .post-year {
+    margin-top: calc(var(--gap) * 2);
+}
 
-    .post-entry:hover {
-        border-color: var(--primary);
+.post-year-heading {
+    padding-bottom: 8px;
+    color: var(--secondary);
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    border-bottom: 1px solid var(--border);
+}
+
+.post-list {
+    list-style: none;
+}
+
+.post-item {
+    position: relative;
+    display: grid;
+    grid-template-columns: 88px minmax(0, 1fr);
+    column-gap: var(--gap);
+    padding: var(--gap) 0;
+}
+
+.post-item + .post-item {
+    border-top: 1px solid var(--hairline);
+}
+
+/* line-height matches the title's first line so the date sits on its baseline. */
+.post-item-when {
+    display: flex;
+    flex-direction: column;
+    color: var(--secondary);
+    font-size: 14px;
+    font-variant-numeric: tabular-nums;
+    line-height: 28px;
+}
+
+.post-item-when span {
+    font-size: 13px;
+    line-height: 20px;
+}
+
+/* Stays in the second column when hideMeta drops the first. */
+.post-item-body {
+    grid-column: 2;
+}
+
+.post-item-title {
+    font-size: 20px;
+    font-weight: 600;
+    line-height: 28px;
+    letter-spacing: -0.01em;
+}
+
+.post-item-title a::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+}
+
+.post-item-summary {
+    margin-top: 6px;
+    color: var(--secondary);
+    font-size: 15px;
+    line-height: 1.6;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 4;
+}
+
+.post-item-author {
+    margin-top: 8px;
+    color: var(--secondary);
+    font-size: 13px;
+}
+
+.post-item-draft {
+    margin-inline-start: 6px;
+    padding: 1px 6px;
+    color: var(--secondary);
+    font-size: 12px;
+    font-weight: normal;
+    letter-spacing: 0;
+    vertical-align: 2px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+}
+
+@media (hover: hover) {
+    .post-item:hover .post-item-title a {
+        color: var(--link);
     }
 }
 
-/* ─── Archives page ──────────────────────────────────────────────────────── */
-.archive-count {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 20px;
-    height: 20px;
-    padding: 0 7px;
-    margin-inline-start: 8px;
-    vertical-align: 3px;
-    font-size: 13px;
+/* ─── No press animation ─────────────────────────────────────────────────── */
+/* PaperMod shrinks cards, tag chips and search results to 96-98% while the
+   mouse button is down, so they jump when clicked. The cards are gone. */
+.terms-tags a,
+.terms-tags a:active,
+#searchResults li:active,
+#searchResults .focus {
+    transform: none;
+    transition: none;
+}
+
+/* ─── Tags ───────────────────────────────────────────────────────────────── */
+/* One chip, three places: under a post (.post-tags), on /tags/ (.terms-tags)
+   and in the heading of a tag page (.tag-current). Always lowercase, which
+   is done here and nowhere else. */
+.post-tags,
+.terms-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    list-style: none;
+}
+
+.terms-tags li {
+    margin: 0;
     font-weight: normal;
-    font-variant-numeric: tabular-nums;
+}
+
+.post-tags a,
+.terms-tags a {
+    display: block;
+    padding: 0 12px;
+    color: var(--secondary);
+    font-size: 14px;
+    line-height: 32px;
+    text-transform: lowercase;
     background: var(--code-bg);
     border: 1px solid var(--border);
-    border-radius: 10px;
+    border-radius: var(--radius);
 }
 
-/* ─── Post footer tags ───────────────────────────────────────────────────── */
-.post-tags a {
+.post-tags a:hover,
+.terms-tags a:hover,
+.terms-tags a:active {
+    color: var(--link);
+    background: var(--code-bg);
+    border-color: var(--link);
+}
+
+.tag-count {
+    margin-inline-start: 4px;
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+}
+
+/* Tag page heading: "2 posts tagged [ruby]". The sentence is quiet and the
+   tag carries the accent color. */
+.page-header h1.tag-heading {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 12px;
+    color: var(--secondary);
+    font-size: 24px;
+    font-weight: 500;
+}
+
+.tag-current {
+    padding: 2px 14px;
+    color: var(--link);
+    font-weight: 600;
     text-transform: lowercase;
+    background: color-mix(in srgb, var(--link) 12%, transparent);
+    border: 1px solid color-mix(in srgb, var(--link) 40%, transparent);
+    border-radius: var(--radius);
+}
+
+.page-rss {
+    display: inline-flex;
+    color: var(--secondary);
+}
+
+.page-rss:hover {
+    color: var(--link);
+}
+
+.page-header {
+    margin-bottom: calc(var(--gap) * 1.5);
 }
 
 /* ─── Header ─────────────────────────────────────────────────────────────── */
@@ -207,31 +464,6 @@
     color: var(--link);
 }
 
-/* ─── Buttons ────────────────────────────────────────────────────────────── */
-/* Shared treatment for the homepage "All posts" link and the list-page
-   paginator. PaperMod's default .pagination a is an inverted high-contrast
-   pill (bg:--primary, color:--theme) — restyle to match .paginav and the
-   tag chips. */
-.all-posts-link,
-.pagination a {
-    display: inline-block;
-    padding: 8px 16px;
-    color: var(--primary);
-    font-size: 14px;
-    line-height: inherit;
-    background: var(--code-bg);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    transition: border-color 0.15s ease;
-}
-
-@media (hover: hover) {
-    .all-posts-link:hover,
-    .pagination a:hover {
-        border-color: var(--primary);
-    }
-}
-
 /* ─── Footer ─────────────────────────────────────────────────────────────── */
 /* PaperMod's .footer is max-width constrained to the content column, so the
    full-viewport separator lives on a full-width wrapper div (added in the
@@ -261,6 +493,10 @@
 }
 
 .footer-nav {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0 20px;
     margin-bottom: 8px;
 }
 
@@ -271,10 +507,6 @@
 .footer-nav a:hover {
     color: var(--link);
     border-bottom: none;
-}
-
-.footer-sep {
-    color: var(--border);
 }
 
 /* ─── Mobile ─────────────────────────────────────────────────────────────── */
@@ -318,13 +550,42 @@
         margin-inline-start: 0;
     }
 
-    /* Text nav (Docs/Posts/Archives/Search) on one row, icon row below. */
+    /* Text nav (Docs/Tags/Search) on one row, icon row below. */
     .menu-break {
         flex-basis: 100%;
         height: 0;
     }
 
-    /* Footer: eight links + separators wrap across 2–3 lines at phone width. */
+    /* Post list: the date column moves above the title as one line. */
+    .post-item {
+        display: block;
+        padding: 20px 0;
+    }
+
+    .post-item-when {
+        flex-direction: row;
+        gap: 14px;
+        margin-bottom: 2px;
+        line-height: 20px;
+    }
+
+    .post-item-when span {
+        font-size: 14px;
+    }
+
+    .home-intro {
+        margin: var(--gap) 0 calc(var(--gap) * 1.5);
+    }
+
+    .home-intro h1 {
+        font-size: 28px;
+    }
+
+    .post-description {
+        font-size: 19px;
+    }
+
+    /* Footer links wrap across two lines at phone width. */
     .footer {
         padding-top: 20px;
     }
@@ -391,16 +652,6 @@ body {
 /* Mermaid diagram styling for dark mode */
 .dark .mermaid {
     filter: invert(0.85) hue-rotate(180deg);
-}
-
-/* Prevent awkward wrapping in post metadata. See https://github.com/adityatelange/hugo-PaperMod/issues/1789 */
-.post-meta {
-    display: block !important;
-}
-
-.post-description {
-    color: var(--secondary);
-    font-style: italic;
 }
 
 /* Split prev/next post nav into two separate buttons (PaperMod joins them in one box) */

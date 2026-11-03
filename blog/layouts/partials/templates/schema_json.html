@@ -40,8 +40,11 @@
 {{- $crumbs := slice -}}
 {{- $pos := 0 -}}
 {{- range .Ancestors.Reverse -}}
+  {{- /* Skip ancestors that only redirect (the posts section). */ -}}
+  {{- if not .Params.redirectTo -}}
   {{- $pos = add $pos 1 -}}
   {{- $crumbs = $crumbs | append (dict "@type" "ListItem" "position" $pos "name" .Title "item" .Permalink) -}}
+  {{- end -}}
 {{- end -}}
 {{- $pos = add $pos 1 -}}
 {{- $crumbs = $crumbs | append (dict "@type" "ListItem" "position" $pos "name" .Title "item" .Permalink) -}}

@@ -1,0 +1,17 @@
+{{- /*
+  Standalone page (no baseof) that sends the visitor to .Params.redirectTo.
+  Same markup as Hugo's built-in alias page. Used for a section that should
+  keep its URL and RSS feed but has no page of its own. Breadcrumbs and
+  JSON-LD leave such pages out of the trail.
+*/ -}}
+{{- $to := .Params.redirectTo | absURL -}}
+<!DOCTYPE html>
+<html lang="{{ site.Language.LanguageCode }}">
+  <head>
+    <title>{{ $to }}</title>
+    <link rel="canonical" href="{{ $to }}">
+    <meta name="robots" content="noindex">
+    <meta charset="utf-8">
+    <meta http-equiv="refresh" content="0; url={{ $to }}">
+  </head>
+</html>

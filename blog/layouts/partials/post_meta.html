@@ -1,23 +1,22 @@
-{{- $scratch := newScratch }}
-
-{{- if not .Date.IsZero -}}
-{{- $scratch.Add "meta" (slice (.Date | time.Format (default "January 2, 2006" site.Params.DateFormat))) }}
-{{- end }}
-
-{{- if (.Param "ShowReadingTime") -}}
-{{- $scratch.Add "meta" (slice (i18n "read_time" .ReadingTime | default (printf "%d min" .ReadingTime))) }}
-{{- end }}
-
-{{- if (.Param "ShowWordCount") -}}
-{{- $scratch.Add "meta" (slice (i18n "words" .WordCount | default (printf "%d words" .WordCount))) }}
-{{- end }}
-
-{{- if not (.Param "hideAuthor") -}}
+{{- /*
+  Override of PaperMod's post_meta.html, which joins the date, reading time
+  and author into one string with " · ". Here each one is its own element
+  and the layout comes from CSS (.post-meta in custom.css): author on the
+  first line, date and reading time on the second.
+*/ -}}
+{{- if not (.Param "hideAuthor") }}
 {{- with (partial "author.html" .) }}
-{{- $scratch.Add "meta" (slice .) }}
+<span class="post-meta-author">{{ . }}</span>
 {{- end }}
 {{- end }}
-
-{{- with ($scratch.Get "meta") }}
-{{- delimit . "&nbsp;·&nbsp;" | safeHTML -}}
+{{- if not .Date.IsZero }}
+<time class="post-meta-date" datetime="{{ .Date.Format "2006-01-02" }}">
+  {{- .Date | time.Format (default "January 2, 2006" site.Params.DateFormat) -}}
+</time>
+{{- end }}
+{{- if (.Param "ShowReadingTime") }}
+<span class="post-meta-read">{{ .ReadingTime }} min read</span>
+{{- end }}
+{{- if (.Param "ShowWordCount") }}
+<span class="post-meta-words">{{ i18n "words" .WordCount | default (printf "%d words" .WordCount) }}</span>
 {{- end -}}
