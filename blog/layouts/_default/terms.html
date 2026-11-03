@@ -1,32 +1,23 @@
 {{- /*
-  Override of PaperMod's terms.html: replaces the double-nested
-  <sup><strong><sup>N</sup></strong></sup> count with a plain
-  <span class="archive-count"> so the pill styling from archives applies.
+  Override of PaperMod's terms.html (/tags/). Tags are lowercase chips, the
+  same as under a post, each followed by its post count.
 */ -}}
 {{- define "main" }}
 
-{{- if .Title }}
 <header class="page-header">
-    <h1>{{ .Title }}</h1>
-    {{- if .Description }}
-    <div class="post-description">
-        {{ .Description }}
-    </div>
-    {{- end }}
+  {{- partial "breadcrumbs.html" . }}
+  <h1>{{ .Title }}</h1>
+  {{- with .Description }}
+  <div class="post-description">{{ . }}</div>
+  {{- end }}
 </header>
-{{- end }}
 
 <ul class="terms-tags">
-    {{- $type := .Type }}
-    {{- range $key, $value := .Data.Terms.Alphabetical }}
-    {{- $name := .Name }}
-    {{- $count := .Count }}
-    {{- with site.GetPage (printf "/%s/%s" $type $name) }}
-    <li>
-        <a href="{{ .Permalink }}">{{ .Name }}<span class="archive-count">{{ $count }}</span></a>
-    </li>
-    {{- end }}
-    {{- end }}
+  {{- range .Data.Terms.Alphabetical }}
+  <li>
+    <a href="{{ .Page.RelPermalink }}">{{ .Page.Title }} <span class="tag-count">{{ len .Page.RegularPages }}</span></a>
+  </li>
+  {{- end }}
 </ul>
 
 {{- end }}{{/* end main */ -}}

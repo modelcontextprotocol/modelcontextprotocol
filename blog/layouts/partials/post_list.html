@@ -1,0 +1,67 @@
+{{- /*
+  The one post list on the site. The homepage and every tag page render
+  through this partial, so they always look the same.
+
+  Takes a page collection. Shows all of it, newest first, grouped by year.
+  There is no pagination: the blog has tens of posts, not thousands.
+
+  A row is the date and reading time (post_when.html), then the title, the
+  summary and the authors. On a wide screen the year and the date hang in the
+  left margin, so titles start on the same edge as everything else on the
+  page (see "Post list" in custom.css). Nothing needs a separator character
+  or a rule: the parts of one row sit close together and the next row starts
+  well below.
+
+  The summary is the post's description, whole. A post without one gets the
+  start of its text, cut at a word near 200 characters.
+
+  Its last three words are joined with non-breaking spaces, so a summary never
+  ends on a line of one short word.
+
+  Titles and summaries go through keep_together.html, which keeps names such
+  as "2026-07-28" and "Tier 1" on one line.
+
+  Authors are names only here. Their roles are on the post page. A long line
+  of them wraps between people, not inside a name.
+
+  The title is the only link. Its ::after is stretched over the row in CSS,
+  which makes the whole row clickable without wrapping block content in <a>.
+*/ -}}
+{{- $tail := `\s+(\S+)\s+(\S+)\s*$` }}
+{{- range .GroupByDate "2006" }}
+<section class="post-year" aria-labelledby="year-{{ .Key }}">
+  <h2 class="post-year-heading" id="year-{{ .Key }}">{{ if eq .Key "0001" }}Undated{{ else }}{{ .Key }}{{ end }}</h2>
+  <ul class="post-list">
+    {{- range .Pages }}
+    <li class="post-item">
+      {{- if not (.Param "hideMeta") }}
+      {{- partial "post_when.html" (dict "page" . "format" "Jan 2") }}
+      {{- end }}
+      <div class="post-item-body">
+        <h3 class="post-item-title">
+          <a href="{{ .RelPermalink }}">{{ partial "keep_together.html" .Title }}</a>
+          {{- if .Draft }} <span class="post-item-draft">Draft</span>{{ end }}
+        </h3>
+        {{- if ne (.Param "hideSummary") true }}
+        <p class="post-item-summary">
+          {{- $summary := .Description }}
+          {{- if not $summary }}
+          {{- /* truncate escapes what it returns, and keep_together.html escapes too. */ -}}
+          {{- $summary = .Summary | plainify | htmlUnescape | truncate 200 "..." | htmlUnescape }}
+          {{- end }}
+          {{- partial "keep_together.html" (replaceRE $tail "\u00a0$1\u00a0$2" $summary) -}}
+        </p>
+        {{- end }}
+        {{- if not (or (.Param "hideMeta") (.Param "hideAuthor")) }}
+        {{- with (partial "authors.html" .) }}
+        <p class="post-item-authors">
+          {{- range $i, $author := . }}{{ if $i }}, {{ end }}<span class="nowrap">{{ $author.name }}</span>{{ end -}}
+        </p>
+        {{- end }}
+        {{- end }}
+      </div>
+    </li>
+    {{- end }}
+  </ul>
+</section>
+{{- end }}

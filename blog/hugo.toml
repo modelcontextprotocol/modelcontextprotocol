@@ -5,8 +5,12 @@ copyright = 'Copyright © Model Context Protocol a Series of LF Projects, LLC.<b
 enableGitInfo = true
 enableRobotsTXT = true
 theme = 'github.com/adityatelange/hugo-PaperMod'
-[pagination]
-  pagerSize = 10
+# Tag pages are titled with the tag as written ("ruby"), not "Ruby".
+capitalizeListTitles = false
+
+# Tags only. Hugo's default also builds an empty /categories/.
+[taxonomies]
+  tag = 'tags'
 
 # JSON output enables PaperMod's Fuse.js client-side search.
 [outputs]
@@ -69,15 +73,9 @@ theme = 'github.com/adityatelange/hugo-PaperMod'
   weight = 10
 
 [[menu.main]]
-  identifier = "posts"
-  name = "Posts"
-  url = "/posts/"
-  weight = 15
-
-[[menu.main]]
-  identifier = "archives"
-  name = "Archives"
-  url = "/archives/"
+  identifier = "tags"
+  name = "Tags"
+  url = "/tags/"
   weight = 20
 
 [[menu.main]]

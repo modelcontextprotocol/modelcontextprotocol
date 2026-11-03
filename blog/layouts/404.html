@@ -1,0 +1,16 @@
+{{- /*
+  Override of PaperMod's 404.html, which is the number 404 at 160px and
+  nothing else. This uses the same header as every other page (small line,
+  title, introduction) and gives the reader two ways out.
+*/ -}}
+{{- define "main" }}
+
+<header class="page-header">
+  <p class="page-eyebrow">404</p>
+  <h1>Page not found</h1>
+  <div class="post-description">
+    There is nothing at this address. Browse <a href="{{ "" | relLangURL }}">all posts</a> or <a href="{{ "search/" | relLangURL }}">search the blog</a>.
+  </div>
+</header>
+
+{{- end }}{{/* end main */ -}}
