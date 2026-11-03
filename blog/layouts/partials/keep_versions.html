@@ -1,0 +1,9 @@
+{{- /*
+  Takes plain text and returns it as escaped HTML in which a spec version such
+  as 2026-07-28 cannot be split across lines (.nowrap in custom.css). A version
+  is a name. Left alone, a browser may break it after either hyphen.
+
+  Used wherever a title or a description is set: post_list.html and
+  _default/single.html.
+*/ -}}
+{{- return (. | htmlEscape | replaceRE `(\d{4}-\d{2}-\d{2})` `<span class="nowrap">$1</span>` | safeHTML) }}

@@ -1,17 +1,16 @@
 {{- /*
-  Override of PaperMod's breadcrumbs.html. Walks .Ancestors instead of
-  splitting permalinks, and skips ancestors that only redirect somewhere
-  else (the posts section, see content/posts/_index.md).
+  Override of PaperMod's breadcrumbs.html. The site is two levels deep, so a
+  trail ("Home / Tags / ruby") says little and needs separators. This is one
+  link back to the list the page belongs to: a tag page goes to "All tags",
+  everything else to "All posts", which is the homepage. Posts keep their full
+  trail in the JSON-LD (templates/schema_json.html).
 */ -}}
 {{- if (.Param "ShowBreadCrumbs") }}
 <nav class="breadcrumbs" aria-label="Breadcrumb">
-  {{- $first := true }}
-  {{- range .Ancestors.Reverse }}
-  {{- if not .Params.redirectTo }}
-  {{- if not $first }}<span class="breadcrumbs-sep" aria-hidden="true">/</span>{{ end }}
-  <a href="{{ .RelPermalink }}">{{ if .IsHome }}{{ i18n "home" | default "Home" }}{{ else }}{{ .LinkTitle }}{{ end }}</a>
-  {{- $first = false }}
-  {{- end }}
+  {{- if eq .Kind "term" }}
+  <a href="{{ .Parent.RelPermalink }}">All {{ lower .Parent.LinkTitle }}</a>
+  {{- else }}
+  <a href="{{ site.Home.RelPermalink }}">All posts</a>
   {{- end }}
 </nav>
 {{- end -}}

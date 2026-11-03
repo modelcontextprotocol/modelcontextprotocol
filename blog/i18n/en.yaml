@@ -1,0 +1,6 @@
+# Overrides single strings of PaperMod's i18n/en.yaml. The rest still come
+# from the theme.
+
+# Label of the table of contents at the top of a post.
+- id: toc
+  translation: "On this page"
