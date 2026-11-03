@@ -138,16 +138,19 @@
     --s-16: 64px;
     --s-24: 96px;
 
-    /* The vertical rhythm of a post. Three gaps, taken from the scale above:
+    /* The vertical rhythm of a page. Four gaps, taken from the scale above:
          text     between paragraphs and lists
          block    above and below anything that is not running text: code,
-                  diagrams, images, video, tables, quotations, buttons
+                  diagrams, images, video, tables, quotations, buttons, the
+                  table of contents, the tags under a post
          section  above an h2
+         page     above the footer
        They are always set as margins on block-level boxes, so where two meet
        they collapse and the larger one wins. They never add up. */
     --gap-text: var(--s-6);
     --gap-block: var(--s-8);
     --gap-section: var(--s-12);
+    --gap-page: var(--s-16);
 
     /* Two radii: small for things inside a line of text, large for blocks. */
     --r-sm: 6px;
@@ -157,6 +160,10 @@
        and the quotation bar. */
     --hair: 1px;
     --stroke: 2px;
+
+    /* Icons are line drawings with a 2px stroke on a 24px grid, shown at --icon.
+       Most are inline SVG in the templates. This one is drawn by CSS. */
+    --icon-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
 
     /* Columns that hold text, so they grow with it.
        --when-col fits "Oct 30, 2026" on a post, the widest thing in it at
@@ -170,9 +177,9 @@
     /* Longest line of small text in the post list: 620px, under 90 letters. */
     --measure: 38.75rem;
 
-    /* Narrowest an author may get in the byline before the row wraps. Gives
-       three across on a desktop and two on a phone. */
-    --author-col: 11rem;
+    /* The byline: how many authors stand side by side, and how far apart. */
+    --author-cols: 3;
+    --author-gap: var(--s-10);
 
     /* Icons that sit beside 15px text. */
     --icon: 18px;
@@ -183,15 +190,14 @@
        numbers after each text color are its contrast ratio on --paper, then
        on --surface. All clear WCAG AA (4.5) on both. */
     --paper: #fafafa;
-    --surface: #efeff1; /* inline code, tags, search box, second button */
+    --surface: #efeff1; /* inline code, tags, search box, contents panel */
+    --surface-2: #e2e2e6; /* a control on --surface while the pointer is on it */
     --line: #e4e4e7;    /* table rows and <hr> inside a post, decoration only */
     --edge: #85858f;    /* search box outline, quote bar: 3.5 on paper */
     --ink: #09090b;     /* 19.1  17.3  titles, headings, years, byline names */
     --text: #27272a;    /* 14.3  13.0  body text, dates, names in the list */
     --muted: #52525b;   /*  7.4   6.7  standfirst, summaries, navigation, tags */
     --faint: #696973;   /*  5.2   4.7  reading time, roles, counts, footer */
-    --accent: #4f46e5;  /*  6.0   5.5  links, hover, focus, the current tag */
-    --accent-tint: #e9e8fb; /* behind the current tag, accent on it is 5.2 */
 
     /* Code blocks are dark in both themes, because the syntax colors are
        Hugo's monokai and are written into the HTML. */
@@ -211,14 +217,13 @@
     .dark {
         --paper: #09090b;
         --surface: #1f1f23;
+        --surface-2: #2e2e33;
         --line: #27272a;
         --edge: #71717a;    /* 4.1 on paper */
         --ink: #fafafa;     /* 19.1  15.7 */
         --text: #d4d4d8;    /* 13.5  11.1 */
         --muted: #a1a1aa;   /*  7.8   6.4 */
         --faint: #8a8a94;   /*  5.8   4.8 */
-        --accent: #818cf8;  /*  6.7   5.5 */
-        --accent-tint: #1b1c3a; /* accent on it is 5.5 */
         color-scheme: dark;
     }
 
@@ -238,14 +243,13 @@
     body {
         --paper: #09090b;
         --surface: #1f1f23;
+        --surface-2: #2e2e33;
         --line: #27272a;
         --edge: #71717a;
         --ink: #fafafa;
         --text: #d4d4d8;
         --muted: #a1a1aa;
         --faint: #8a8a94;
-        --accent: #818cf8;
-        --accent-tint: #1b1c3a;
     }
 
     :root {
@@ -332,22 +336,25 @@ samp {
 
 ::selection {
     color: var(--ink);
-    background: var(--accent-tint);
+    background: var(--surface-2);
 }
 
 /* ─── Links, hover, focus ────────────────────────────────────────────────── */
-/* One behaviour for the whole site. A link inside running text is in the
-   accent color and underlined. Every other link (navigation, titles, tags,
-   contents, footer) looks like the text around it and turns to the accent
-   color on hover. Nothing moves, grows or fades. */
+/* The site has no accent color, like the docs. What can be clicked is told by
+   an underline, a fill or an outline, and the pointer always makes it one step
+   stronger. Nothing moves, grows or fades.
+     in running text      ink, with a grey underline. The underline turns ink.
+     quiet links          (navigation, contents, footer) grey. They turn ink.
+     titles, already ink  (post list, search results) gain an underline.
+     controls             (tags, buttons, arrows) a stronger fill or outline. */
 .post-content a,
 .post-description a,
 .footer span a {
-    color: var(--accent);
+    color: var(--ink);
     text-decoration: underline;
     text-decoration-thickness: var(--hair);
     text-underline-offset: 0.2em;
-    text-decoration-color: color-mix(in srgb, var(--accent) 45%, transparent);
+    text-decoration-color: var(--edge);
     /* PaperMod fakes underlines with a box-shadow and a border. */
     border: 0;
     box-shadow: none;
@@ -356,22 +363,25 @@ samp {
 .post-content a:hover,
 .post-description a:hover,
 .footer span a:hover {
-    color: var(--accent);
+    color: var(--ink);
     text-decoration-color: currentColor;
     border: 0;
 }
 
-.logo a:hover,
 #menu a:hover,
 #theme-toggle:hover,
 .breadcrumbs a:hover,
 .toc a:hover,
-.toc summary:hover,
 .footer-nav a:hover,
-.page-rss:hover,
+.page-rss:hover {
+    color: var(--ink);
+}
+
 #searchResults a:hover,
 #searchResults .focus a {
-    color: var(--accent);
+    text-decoration: underline;
+    text-decoration-thickness: var(--hair);
+    text-underline-offset: 0.2em;
 }
 
 /* PaperMod removes outlines from the theme toggle, the top link, inputs, the
@@ -383,14 +393,9 @@ samp {
 .top-link:focus-visible,
 .toc summary:focus-visible,
 #searchResults a:focus-visible {
-    outline: var(--stroke) solid var(--accent);
+    outline: var(--stroke) solid var(--ink);
     outline-offset: var(--s-half);
     border-radius: var(--r-sm);
-}
-
-/* This one is a filled circle and stays one under the ring. */
-.top-link:focus-visible {
-    border-radius: 50%;
 }
 
 /* PaperMod shrinks tags and search results while the mouse button is down. */
@@ -645,8 +650,8 @@ button#theme-toggle {
 
 /* Under a post's title: when on the left, who on the right, the same two
    columns as a row of the post list. ("Wide screens" moves the first one into
-   the margin.) Each author is a name over a role. Three fit side by side and
-   nine make a three by three. Space above and below holds it in place.
+   the margin.) Each author is a name over a role. Space above and below holds
+   it in place.
    !important beats PaperMod's inline-flex, see
    https://github.com/adityatelange/hugo-PaperMod/issues/1789 */
 .post-header .post-meta {
@@ -657,10 +662,17 @@ button#theme-toggle {
     margin-top: var(--s-8);
 }
 
+/* Each column is as wide as the longest name or role in it, and the gap
+   between columns is always the same. Two authors stand next to each other,
+   nine line up three by three. A column stops growing at its share of the
+   width, and a longer role wraps. */
 .authors {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(var(--author-col), 1fr));
-    gap: var(--s-4) var(--s-6);
+    grid-template-columns: repeat(
+        var(--author-cols),
+        fit-content(calc((100% - (var(--author-cols) - 1) * var(--author-gap)) / var(--author-cols)))
+    );
+    gap: var(--s-4) var(--author-gap);
     list-style: none;
 }
 
@@ -810,7 +822,9 @@ button#theme-toggle {
 
 @media (hover: hover) {
     .post-item:hover .post-item-title a {
-        color: var(--accent);
+        text-decoration: underline;
+        text-decoration-thickness: var(--hair);
+        text-underline-offset: 0.2em;
     }
 }
 
@@ -906,7 +920,7 @@ h6:hover .anchor {
 
 /* Written to outweigh the rule above, which also matches a hovered anchor. */
 :is(h1, h2, h3, h4, h5, h6) .anchor:hover {
-    color: var(--accent);
+    color: var(--ink);
 }
 
 .post-content ul,
@@ -1000,9 +1014,11 @@ h6:hover .anchor {
     background: none !important;
 }
 
+/* On the first line of the code: the same distance from the top as the code
+   and the same line height, so it is level with a one-line block. */
 .copy-code {
-    top: var(--s-2);
-    right: var(--s-2);
+    top: var(--s-4);
+    right: var(--s-4);
     padding: 0 var(--s-2);
     color: var(--code-ink);
     font-size: var(--fs-1);
@@ -1024,8 +1040,24 @@ h6:hover .anchor {
 }
 
 /* Tables are the one place where hairlines stay: they separate rows of data.
-   A one-line row is 40px. PaperMod's display:block is kept, so a table wider
-   than the column scrolls inside itself and not the whole page. */
+   A one-line row is 40px. A table fills the column, so its right edge is the
+   same as that of the text and the code blocks. One that needs more room
+   scrolls inside .table-wrap (layouts/_markup/render-table.html), not the
+   whole page. PaperMod gets the scrolling from display:block on the table,
+   which also stops the table at the width of its content. */
+.post-content .table-wrap {
+    margin: var(--gap-block) 0;
+    overflow-x: auto;
+}
+
+/* The wrapper has the margin. :not() is there to outweigh the rule that gives
+   every table one. */
+.post-content .table-wrap > table:not(.highlighttable) {
+    display: table;
+    width: 100%;
+    margin: 0;
+}
+
 .post-content table:not(.highlighttable, .highlight table) {
     font-size: var(--fs-2);
     line-height: var(--lh-2);
@@ -1098,9 +1130,8 @@ h6:hover .anchor {
     border-radius: var(--r-lg);
 }
 
-/* layouts/shortcodes/button.html. Ink on paper, reversed. Hover swaps the fill
-   for the accent color, like every other link. The selectors outrank the
-   prose link style above. Every button has a border, inside its 40px, so a
+/* layouts/shortcodes/button.html. Ink on paper, reversed. The selectors outrank
+   the prose link style above. Every button has a border, inside its 40px, so a
    filled and an outlined one are the same box. */
 .post-content a.mcp-button {
     display: inline-block;
@@ -1119,8 +1150,8 @@ h6:hover .anchor {
 
 .post-content a.mcp-button:hover {
     color: var(--paper);
-    background: var(--accent);
-    border-color: var(--accent);
+    background: var(--text);
+    border-color: var(--text);
 }
 
 /* Of two side by side only the first is filled, so one of them leads. The
@@ -1132,9 +1163,9 @@ h6:hover .anchor {
 }
 
 .post-content a.mcp-button + a.mcp-button:hover {
-    color: var(--accent);
-    background: var(--accent-tint);
-    border-color: var(--accent);
+    color: var(--ink);
+    background: var(--surface);
+    border-color: var(--ink);
 }
 
 /* The block gap around buttons. An inline-block's own margin would be added to
@@ -1159,36 +1190,70 @@ h6:hover .anchor {
 }
 
 /* ─── Table of contents ──────────────────────────────────────────────────── */
-/* PaperMod draws a filled, bordered box. Here it is a line of medium text
-   with its triangle, and when open a plain list of links. The label is set in
-   i18n/en.yaml. The negative margin brings it closer to the header above, and
-   the gap under it is the same as under a header without it. */
+/* A panel between the header and the text, so it reads as a control and not as
+   the first line of the article. It is built like a code block: the same
+   radius, the same 20px inside, the full width of the column, and the block
+   gap above and below. Closed, it is a 48px bar with the label on the left and
+   a chevron on the right. The label is set in i18n/en.yaml.
+
+   The header above ends with a larger gap than that, which the negative margin
+   takes back. "Phones" has its own value. */
 .toc,
 .dark .toc {
-    margin: calc(var(--s-4) * -1) 0 var(--s-12);
+    margin: calc(var(--gap-block) - var(--s-12)) 0 var(--gap-block);
     padding: 0;
-    background: none;
+    background: var(--surface);
     border: 0;
-    border-radius: 0;
+    border-radius: var(--r-lg);
 }
 
-.toc details summary {
-    /* So the focus ring hugs the words and not the whole column. */
-    width: fit-content;
+.toc details summary,
+.toc details[open] summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--s-4);
     margin: 0;
-    color: var(--text);
+    padding: var(--s-3) var(--s-5);
+    color: var(--ink);
     font-size: var(--fs-2);
     line-height: var(--lh-2);
     letter-spacing: var(--ls-2);
+    list-style: none;
     cursor: pointer;
 }
 
-.toc details[open] summary {
-    cursor: pointer;
+.toc details summary:hover {
+    background: var(--surface-2);
+    border-radius: var(--r-lg);
 }
 
-.toc summary::marker {
-    color: var(--faint);
+/* The browser's own triangle, which sits tight against the label. */
+.toc summary::-webkit-details-marker {
+    display: none;
+}
+
+/* A line icon like the others on the site, in the color of the label. It is a
+   mask so that it can take that color. It points down when there is something
+   to open and up when there is something to close. */
+.toc summary::after {
+    content: "";
+    flex: none;
+    width: var(--icon);
+    height: var(--icon);
+    background: currentColor;
+    -webkit-mask: var(--icon-chevron) center / contain no-repeat;
+    mask: var(--icon-chevron) center / contain no-repeat;
+}
+
+.toc details[open] summary::after {
+    transform: rotate(180deg);
+}
+
+/* The ring follows the panel's corners, just inside its edge. */
+.toc summary:focus-visible {
+    outline-offset: calc(var(--stroke) * -1);
+    border-radius: var(--r-lg);
 }
 
 .toc .details {
@@ -1196,8 +1261,8 @@ h6:hover .anchor {
 }
 
 .toc .inner {
-    margin: var(--s-2) 0 0;
-    padding: 0 0 0 var(--s-4);
+    margin: 0;
+    padding: 0 var(--s-5) var(--s-4);
     opacity: 1;
 }
 
@@ -1231,7 +1296,7 @@ h6:hover .anchor {
    and in the title of a tag page (.tag-current). Always lowercase, which is
    done here and nowhere else. It is the only pill on the site. */
 .post-footer {
-    margin-top: var(--s-16);
+    margin-top: var(--gap-block);
 }
 
 .post-footer > * {
@@ -1269,8 +1334,8 @@ h6:hover .anchor {
 .post-tags a:hover,
 .terms-tags a:hover,
 .terms-tags a:active {
-    color: var(--accent);
-    background: var(--accent-tint);
+    color: var(--ink);
+    background: var(--surface-2);
 }
 
 .tag-count {
@@ -1284,15 +1349,19 @@ a:hover .tag-count {
     color: inherit;
 }
 
-/* Tag page title: "2 posts tagged ruby". It is a page title like any other.
-   The tag inside it is the chip in its highlighted state, in the title's own
-   size and weight. */
+/* Tag page title: "2 posts tagged ruby". It is a page title like any other,
+   in size, weight and place. The tag is what the page is about, so it alone is
+   in ink, on the chip's fill, and the words that lead up to it step back. */
+.tag-lead {
+    color: var(--faint);
+}
+
 .tag-current {
     margin-inline-start: 0.06em;
     padding: 0 0.18em;
-    color: var(--accent);
+    color: var(--ink);
     text-transform: lowercase;
-    background: var(--accent-tint);
+    background: var(--surface);
     border-radius: var(--r-lg);
     box-decoration-break: clone;
     -webkit-box-decoration-break: clone;
@@ -1324,7 +1393,7 @@ a:hover .tag-count {
 /* ─── Search ─────────────────────────────────────────────────────────────── */
 /* The box is filled like a tag and outlined, because an input has to be
    recognisable as one (3:1 against the page). Focus changes the outline to
-   the accent color and doubles it inward, so the box does not change size. */
+   ink and doubles it inward, so the box does not change size. */
 #searchbox input {
     height: var(--s-12);
     padding: 0 var(--s-4);
@@ -1345,9 +1414,9 @@ a:hover .tag-count {
 #searchbox input:focus,
 #searchbox input:focus-visible {
     outline: none;
-    border-color: var(--accent);
+    border-color: var(--ink);
     border-radius: var(--r-lg);
-    box-shadow: inset 0 0 0 var(--hair) var(--accent);
+    box-shadow: inset 0 0 0 var(--hair) var(--ink);
 }
 
 /* Results are a plain list of titles (see assets/js/fastsearch.js), lighter
@@ -1390,7 +1459,7 @@ a:hover .tag-count {
    links repeat the header's look one step smaller, the legal text is faint.
    width:100% for the same reason as .main above. */
 .footer-wrap {
-    margin-top: var(--s-24);
+    margin-top: var(--gap-page);
 }
 
 .footer {
@@ -1435,11 +1504,41 @@ a:hover .tag-count {
     color: inherit;
 }
 
+/* Back to top, shown after some scrolling. PaperMod draws a 42px circle with a
+   solid triangle that sits on the text baseline, below the middle. This is the
+   outlined button from a post (.mcp-button) as a square: the same 40px, radius
+   and border, with a line icon like the others on the site, centered by the
+   grid. It floats over text, so it is filled with the page color. */
 .top-link {
+    display: grid;
+    place-items: center;
     right: var(--s-8);
     bottom: var(--s-8);
-    color: var(--muted);
+    width: var(--s-10);
+    height: var(--s-10);
+    padding: 0;
+    color: var(--ink);
+    background: var(--paper);
+    border: var(--hair) solid var(--edge);
+    border-radius: var(--r-sm);
+    transition: visibility 0.2s, opacity 0.2s linear;
+}
+
+.top-link,
+.top-link svg {
+    filter: none;
+}
+
+.top-link:hover {
+    color: var(--ink);
     background: var(--surface);
+    border-color: var(--ink);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .top-link {
+        transition: none;
+    }
 }
 
 /* ─── Previous and next post ─────────────────────────────────────────────── */
@@ -1517,7 +1616,8 @@ a:hover .tag-count {
     body,
     .dark {
         --gap: var(--s-5);
-        --author-col: 9rem;
+        --author-cols: 2;
+        --author-gap: var(--s-6);
         --title-fs: var(--fs-6);
         --title-lh: var(--lh-6);
         --title-ls: var(--ls-6);
@@ -1596,7 +1696,7 @@ a:hover .tag-count {
     }
 
     .authors {
-        gap: var(--s-3) var(--s-4);
+        row-gap: var(--s-3);
     }
 
     .post-year + .post-year {
@@ -1626,8 +1726,21 @@ a:hover .tag-count {
         line-height: var(--lh-1);
     }
 
+    /* The header ends with the block gap here, so there is nothing to take
+       back. */
+    .toc,
+    .dark .toc {
+        margin-top: 0;
+    }
+
+    /* Its right edge on the right edge of the text. */
+    .top-link {
+        right: var(--gap);
+        bottom: var(--gap);
+    }
+
     .footer-wrap {
-        margin-top: var(--s-16);
+        margin-top: var(--s-12);
     }
 
     .footer {

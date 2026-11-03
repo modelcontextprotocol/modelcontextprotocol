@@ -260,23 +260,26 @@
     display: none;
 }
 
+/* The same outlined square as the back-to-top link (.top-link in custom.css). */
 .mcp-quotes-btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: var(--s-8);
-    height: var(--s-8);
+    width: var(--s-10);
+    height: var(--s-10);
     padding: 0;
     color: var(--ink);
-    background: var(--surface);
-    border: 0;
-    border-radius: 50%;
+    background: none;
+    border: var(--hair) solid var(--edge);
+    border-radius: var(--r-sm);
     cursor: pointer;
 }
 
 @media (hover: hover) {
     .mcp-quotes-btn:not(:disabled):hover {
-        color: var(--accent);
+        color: var(--ink);
+        background: var(--surface);
+        border-color: var(--ink);
     }
 }
 

@@ -15,7 +15,7 @@
   <h1>
     {{- if eq .Kind "term" }}
     {{- $n := len .RegularPages }}
-    {{ $n }} {{ cond (eq $n 1) "post" "posts" }} tagged <span class="tag-current">{{ .Title }}</span>
+    <span class="tag-lead">{{ $n }} {{ cond (eq $n 1) "post" "posts" }} tagged</span> <span class="tag-current">{{ .Title }}</span>
     {{- else }}
     {{ .Title }}
     {{- end }}
