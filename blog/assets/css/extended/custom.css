@@ -142,15 +142,16 @@
          text     between paragraphs and lists
          block    above and below anything that is not running text: code,
                   diagrams, images, video, tables, quotations, buttons, the
-                  table of contents, the tags under a post
+                  table of contents
          section  above an h2
-         page     above the footer
+         page     above the footer, and above the tags that close a post, so
+                  the tags stand midway between the text and the footer
        They are always set as margins on block-level boxes, so where two meet
        they collapse and the larger one wins. They never add up. */
     --gap-text: var(--s-6);
     --gap-block: var(--s-8);
     --gap-section: var(--s-12);
-    --gap-page: var(--s-16);
+    --gap-page: var(--s-12);
 
     /* Two radii: small for things inside a line of text, large for blocks. */
     --r-sm: 6px;
@@ -1295,8 +1296,11 @@ h6:hover .anchor {
 /* One chip, three places: under a post (.post-tags), on /tags/ (.terms-tags)
    and in the title of a tag page (.tag-current). Always lowercase, which is
    done here and nowhere else. It is the only pill on the site. */
+/* The same distance to the eye as from the tags to the footer. A line of body
+   text keeps 4px more under its baseline than the footer's small text keeps
+   above its capitals, so that much is taken off here. */
 .post-footer {
-    margin-top: var(--gap-block);
+    margin-top: calc(var(--gap-page) - var(--s-1));
 }
 
 .post-footer > * {
@@ -1737,10 +1741,6 @@ a:hover .tag-count {
     .top-link {
         right: var(--gap);
         bottom: var(--gap);
-    }
-
-    .footer-wrap {
-        margin-top: var(--s-12);
     }
 
     .footer {
