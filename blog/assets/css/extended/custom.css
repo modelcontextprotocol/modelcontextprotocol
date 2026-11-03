@@ -99,7 +99,10 @@
     display: block;
     width: auto;
     height: auto;
-    padding: 14px 0;
+    /* The negative margin keeps the text on the column edge while the focus
+       outline gets room around it. */
+    margin: 0 -12px;
+    padding: 14px 12px;
     font-size: 17px;
     font-weight: 500;
     line-height: 1.4;
@@ -112,7 +115,8 @@
 
 #searchResults a:focus-visible {
     outline: 2px solid var(--primary);
-    outline-offset: 2px;
+    outline-offset: -2px;
+    border-radius: var(--radius);
 }
 
 #searchResults .focus {
