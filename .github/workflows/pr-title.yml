@@ -49,5 +49,5 @@ jobs:
               pull_number: context.issue.number,
             });
             if (pr.title.startsWith('sep(') && !/^sep\(SEP-[1-9]\d*\)!?: /.test(pr.title)) {
-              core.setFailed('Use a scope such as SEP-3398 for sep titles: sep(SEP-3398): describe the proposal. Omit the scope when the proposal has no number yet.');
+              core.setFailed('Use sep(SEP-XXXX): describe the proposal, replacing XXXX with the SEP number. Omit the scope when the proposal has no number yet.');
             }
