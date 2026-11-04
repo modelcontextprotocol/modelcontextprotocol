@@ -4,10 +4,7 @@ on:
   issue_comment:
     types: [created]
   pull_request_target:
-    types: [opened, reopened, synchronize, edited]
-  workflow_run:
-    workflows: [PR title policy]
-    types: [completed]
+    types: [opened, reopened, synchronize]
   # Re-evaluates Dependabot auto-approve once CI finishes on a dependabot/
   # branch (approval is withheld until every check on the head SHA is green).
   check_suite:
@@ -24,7 +21,6 @@ jobs:
     if: >-
       (github.event_name == 'issue_comment' && github.event.issue.pull_request) ||
       github.event_name == 'pull_request_target' ||
-      github.event_name == 'workflow_run' ||
       (github.event_name == 'check_suite' &&
        startsWith(github.event.check_suite.head_branch, 'dependabot/'))
     runs-on: ubuntu-latest
@@ -35,11 +31,9 @@ jobs:
           app-id: ${{ secrets.MCP_COMMANDER_APP_ID }}
           private-key: ${{ secrets.MCP_COMMANDER_APP_KEY }}
 
-      - uses: modelcontextprotocol/actions/slash-commands@d0759385ccf04f0f2da416512bfc1e415caea7fd
+      - uses: modelcontextprotocol/actions/slash-commands@main
         with:
           github-token: ${{ steps.app-token.outputs.token }}
-          auto-merge-method: squash
-          required-title-check: PR title
           always-allow-teams: core-maintainers,lead-maintainers
           stageblog-workflow: stage-blog.yml
           remove-labels-on-accept: in-review,draft,proposal
