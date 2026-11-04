@@ -109,4 +109,12 @@ are redirected out of this repo entirely:
 
 ## Commit Guidelines
 
+- Use Conventional Commit PR titles as described in
+  [CONTRIBUTING.md](CONTRIBUTING.md#pull-request-titles). The `PR title` check is
+  advisory during rollout; individual branch commits do not need rewriting.
+- For a new SEP, start with `sep: ...`, then use `sep(SEP-N): ...` after the PR
+  number is assigned. Follow-up changes keep the original SEP number as the scope.
+- When squash merging, retain the checked title and preserve required disclosures
+  and co-author trailers in the commit body. Keep generating and committing the
+  generated files required by the current workflow.
 - Do not include model names or details (e.g., "Claude", "Opus") in commit messages

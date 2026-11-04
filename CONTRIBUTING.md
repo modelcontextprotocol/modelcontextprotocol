@@ -133,6 +133,57 @@ prototype taught you.
 3. Follow the pull request template
 4. Wait for review
 
+### Pull request titles
+
+Use a Conventional Commit title: `type(scope): description`. The scope is optional;
+describe what changes. Allowed types are `sep`, `feat`, `fix`, `docs`, `ci`, `build`,
+`chore`, `refactor`, `test`, `perf`, `style`, and `revert`.
+
+| Change                             | Example title                                         |
+| ---------------------------------- | ----------------------------------------------------- |
+| New SEP, before a PR number exists | `sep: propose task cancellation`                      |
+| New or revised SEP, once numbered  | `sep(SEP-3398): clarify task cancellation`            |
+| SEP status update                  | `sep(SEP-3398): mark proposal as accepted`            |
+| Protocol implementation            | `feat(SEP-3398): add task cancellation`               |
+| Schema correction for that SEP     | `fix(SEP-3398): correct the cancellation result type` |
+| Documentation correction           | `docs: correct the authorization example`             |
+| Generator fix                      | `fix(build): remove obsolete generated SEP pages`     |
+| CI change                          | `ci: validate conventional PR titles`                 |
+| Dependency update                  | `build(deps-dev): update TypeDoc`                     |
+| Blog post                          | `docs(blog): announce the next specification release` |
+| Governance change                  | `docs(governance): clarify working group sponsorship` |
+| Revert                             | `revert(SEP-3398): revert task cancellation support`  |
+
+Use `SEP-<number>` as the scope for changes tied to a SEP. Keep the original SEP
+number in follow-up PRs, and link to the SEP in the PR description. For unrelated
+changes, use an area such as `schema` or `ci`, or omit the scope. A new proposal can
+start with `sep: ...`; rename the title to `sep(SEP-N): ...` once its PR number is known.
+When a `sep` title includes a scope, the check requires `SEP-` followed by a positive
+number without leading zeros. For example, `sep(3398): ...` and `sep(schema): ...`
+fail; `sep(SEP-3398): ...` passes. Other types can still use area scopes.
+
+Mark breaking changes with `!`, for example `feat(spec)!: remove the legacy transport`,
+and explain them in a `BREAKING CHANGE:` paragraph in the PR description. Rename
+GitHub's automatically generated revert titles to use `revert`. Protocol versions
+remain date-based; these prefixes do not trigger releases.
+
+The `PR title` check validates titles and reruns on edits and new commits, including
+for bots and forks. It is advisory during rollout; requiring it and changing merge
+settings are separate maintainer steps. Reviewers still check that the title
+describes the change and the SEP number is correct. Individual branch commits do
+not need to follow the title format or be rewritten.
+
+When squash merging, retain the checked PR title as the commit subject and preserve
+the PR description's required disclosures and any `Co-authored-by` trailers in the
+commit body. GitHub's suggested squash message can differ, especially for a
+single-commit PR, so check it before merging. Generated files are still required
+under the existing contribution workflow.
+
+Release automation keeps its existing `Add YYYY-MM-DD MCP specification` title
+until title-independent release detection is deployed. After that, release PRs can
+use `chore(release): publish YYYY-MM-DD specification`. Do not rename an open
+release PR before that prerequisite is in place.
+
 ## AI Contributions
 
 If you are using any kind of AI assistance to contribute to Model Context Protocol, it must be

@@ -1,0 +1,53 @@
+name: PR title policy
+
+on:
+  pull_request_target:
+    branches: [main]
+    types: [opened, edited, reopened, synchronize, ready_for_review]
+
+permissions:
+  pull-requests: read
+
+concurrency:
+  group: pr-title-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  pr-title:
+    name: PR title
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      # Metadata only: never check out or execute code from the PR.
+      - uses: amannn/action-semantic-pull-request@48f256284bd46cdaab1048c3721360e808335d50 # v6.1.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          types: |
+            sep
+            feat
+            fix
+            docs
+            ci
+            build
+            chore
+            refactor
+            test
+            perf
+            style
+            revert
+          requireScope: false
+          validateSingleCommit: false
+          validateSingleCommitMatchesPrTitle: false
+
+      - name: Check SEP scope format
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
+        with:
+          script: |
+            const { data: pr } = await github.rest.pulls.get({
+              ...context.repo,
+              pull_number: context.issue.number,
+            });
+            if (pr.title.startsWith('sep(') && !/^sep\(SEP-[1-9]\d*\)!?: /.test(pr.title)) {
+              core.setFailed('Use a scope such as SEP-3398 for sep titles: sep(SEP-3398): describe the proposal. Omit the scope when the proposal has no number yet.');
+            }
