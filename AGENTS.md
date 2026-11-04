@@ -124,5 +124,5 @@ ci: validate PR titles
 - This format applies to PR titles; individual branch commits do not need rewriting.
 - Do not include model names or details (e.g., "Claude", "Opus") in commit messages.
 
-See [CONTRIBUTING.md](CONTRIBUTING.md#pull-request-titles) for the full type list,
-less common cases, and the temporary release-title exception.
+See [CONTRIBUTING.md](CONTRIBUTING.md#pull-request-titles) for the full type list
+and less common cases.

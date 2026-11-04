@@ -159,10 +159,6 @@ The `PR title` check reruns on title edits and is advisory during rollout.
 Individual branch commits do not need this format or rewriting. When squash merging,
 use the checked title and preserve disclosures and co-author trailers in the body.
 
-**Temporary release exception:** Keep `Add YYYY-MM-DD MCP specification` until
-title-independent release publication is deployed; then use
-`chore(release): publish YYYY-MM-DD specification`.
-
 ## AI Contributions
 
 If you are using any kind of AI assistance to contribute to Model Context Protocol, it must be
