@@ -1,24 +1,29 @@
 name: Publish spec release
 
 # Companion to cut-release.yml. Creates the GA tag + GitHub Release once the
-# `release/<version>` PR has merged to main. Publishes only at that PR's merge
-# commit so an unrelated push can't publish.
+# `release/<version>` PR has merged to main, targeting that PR's merge commit.
 
 on:
-  push:
+  pull_request:
     branches: [main]
+    types: [closed]
 
 permissions:
   contents: write
-  pull-requests: read
 
 jobs:
   publish:
+    if: >-
+      github.event.pull_request.merged == true &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      startsWith(github.event.pull_request.head.ref, 'release/')
     runs-on: ubuntu-latest
+    env:
+      TARGET_SHA: ${{ github.event.pull_request.merge_commit_sha }}
     steps:
       - uses: actions/checkout@v7
         with:
-          ref: ${{ github.sha }}
+          ref: ${{ env.TARGET_SHA }}
           persist-credentials: false
 
       - name: Derive version from merged release branch
@@ -34,7 +39,6 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           VERSION: ${{ steps.v.outputs.version }}
-          TARGET_SHA: ${{ github.sha }}
         run: |
           cat > /tmp/notes.md <<EOF
           This release marks the \`${VERSION}\` revision of the Model Context Protocol.

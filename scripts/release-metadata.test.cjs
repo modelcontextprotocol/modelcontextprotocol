@@ -5,19 +5,22 @@ const releaseMetadata = require("./release-metadata.cjs");
 const version = "2027-01-26";
 const sha = "a".repeat(40);
 const full_name = "modelcontextprotocol/modelcontextprotocol";
-const context = {
-  repo: { owner: "modelcontextprotocol", repo: "modelcontextprotocol" },
-  sha,
-};
 const release = () => ({
   title: `Add ${version} MCP specification`,
-  merged_at: "2027-01-26T12:00:00Z",
+  merged: true,
   merge_commit_sha: sha,
   base: { ref: "main", repo: { full_name } },
   head: { ref: `release/${version}`, repo: { full_name } },
 });
 
-function fixture(prs = [release()]) {
+function fixture(pr = release()) {
+  const context = {
+    repo: { owner: "modelcontextprotocol", repo: "modelcontextprotocol" },
+    // The release must use the PR's merge commit, even if the context SHA differs.
+    sha: "b".repeat(40),
+    eventName: "pull_request",
+    payload: { action: "closed", pull_request: pr },
+  };
   const outputs = {};
   const files = new Map([
     [
@@ -31,7 +34,6 @@ function fixture(prs = [release()]) {
   ]);
   const github = {
     rest: {
-      repos: { listPullRequestsAssociatedWithCommit: Symbol("list PRs") },
       git: {
         getRef: async () => {
           throw Object.assign(new Error("Not found"), { status: 404 });
@@ -40,18 +42,6 @@ function fixture(prs = [release()]) {
           throw new Error("Unexpected annotated tag lookup");
         },
       },
-    },
-    paginate: async (method, params) => {
-      assert.equal(
-        method,
-        github.rest.repos.listPullRequestsAssociatedWithCommit,
-      );
-      assert.deepEqual(params, {
-        ...context.repo,
-        commit_sha: sha,
-        per_page: 100,
-      });
-      return prs;
     },
   };
   const core = {
@@ -62,6 +52,7 @@ function fixture(prs = [release()]) {
   };
   return {
     github,
+    context,
     outputs,
     files,
     run: () =>
@@ -77,26 +68,27 @@ test("old and conventional titles publish the same version at the merged SHA", a
     `Add ${version} MCP specification`,
     `chore(release): publish ${version} specification`,
   ]) {
-    const f = fixture([{ ...release(), title }]);
+    const f = fixture({ ...release(), title });
     await f.run();
     assert.deepEqual(f.outputs, { version });
   }
 });
 
-test("unrelated, unmerged, fork, deleted-fork, other-base, and historical PRs do not publish", async () => {
+test("unrelated, unmerged, fork, deleted-fork, and other-base PRs do not publish", async () => {
   const prs = [
+    undefined,
     { ...release(), head: { ...release().head, ref: "fix/docs" } },
-    { ...release(), merged_at: null },
+    { ...release(), merged: false },
     {
       ...release(),
       head: { ...release().head, repo: { full_name: "someone/fork" } },
     },
     { ...release(), head: { ...release().head, repo: null } },
     { ...release(), base: { ...release().base, ref: "draft" } },
-    { ...release(), merge_commit_sha: "b".repeat(40) },
   ];
-  for (const candidates of [[], prs]) {
-    const f = fixture(candidates);
+  for (const pr of prs) {
+    const f = fixture();
+    f.context.payload.pull_request = pr;
     f.files.clear();
     f.github.rest.git.getRef = async () => {
       throw new Error("Unexpected tag lookup");
@@ -106,11 +98,27 @@ test("unrelated, unmerged, fork, deleted-fork, other-base, and historical PRs do
   }
 });
 
-test("ambiguous release PRs and malformed release dates fail closed", async () => {
-  await assert.rejects(
-    fixture([release(), release()]).run(),
-    /Multiple release PRs/,
-  );
+test("only the closed pull_request event can publish", async () => {
+  for (const change of [
+    { eventName: "push" },
+    { payload: { action: "opened", pull_request: release() } },
+    { payload: { action: "synchronize", pull_request: release() } },
+  ]) {
+    const f = fixture();
+    Object.assign(f.context, change);
+    f.files.clear();
+    await f.run();
+    assert.deepEqual(f.outputs, {});
+  }
+});
+
+test("missing merge commits and malformed release dates fail closed", async () => {
+  for (const merge_commit_sha of [null, "", "main"]) {
+    await assert.rejects(
+      fixture({ ...release(), merge_commit_sha }).run(),
+      /no valid merge commit SHA/,
+    );
+  }
   for (const ref of [
     "release/not-a-date",
     "release/2027-02-30",
@@ -118,7 +126,7 @@ test("ambiguous release PRs and malformed release dates fail closed", async () =
     "release/2027-01-26/extra",
   ]) {
     await assert.rejects(
-      fixture([{ ...release(), head: { ...release().head, ref } }]).run(),
+      fixture({ ...release(), head: { ...release().head, ref } }).run(),
       /Invalid release branch/,
     );
   }
@@ -168,15 +176,11 @@ test("matching lightweight and annotated tags are idempotent; conflicting tags f
   }
 });
 
-test("API failures are not treated as missing releases or tags", async () => {
-  for (const endpoint of ["pulls", "tags"]) {
-    const f = fixture();
-    const fail = async () => {
-      throw Object.assign(new Error("API unavailable"), { status: 503 });
-    };
-    if (endpoint === "pulls") f.github.paginate = fail;
-    else f.github.rest.git.getRef = fail;
-    await assert.rejects(f.run(), /API unavailable/);
-    assert.deepEqual(f.outputs, {});
-  }
+test("API failures are not treated as missing tags", async () => {
+  const f = fixture();
+  f.github.rest.git.getRef = async () => {
+    throw Object.assign(new Error("API unavailable"), { status: 503 });
+  };
+  await assert.rejects(f.run(), /API unavailable/);
+  assert.deepEqual(f.outputs, {});
 });

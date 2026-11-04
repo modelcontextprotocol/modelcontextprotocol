@@ -1,40 +1,37 @@
 const { readFileSync } = require("node:fs");
 
-// The workflow checks out context.sha, so file validation uses the merged revision.
+// The workflow checks out the PR's merge_commit_sha before validating release files.
 module.exports = async function releaseMetadata(
   { github, context, core },
   readFile = readFileSync,
 ) {
-  const { repo, sha } = context;
+  const { repo, payload } = context;
+  const pr = payload.pull_request;
   const repository = `${repo.owner}/${repo.repo}`.toLowerCase();
-  const pullRequests = await github.paginate(
-    github.rest.repos.listPullRequestsAssociatedWithCommit,
-    { ...repo, commit_sha: sha, per_page: 100 },
-  );
-  const releases = pullRequests.filter(
-    (pr) =>
-      pr.merged_at &&
-      pr.merge_commit_sha === sha &&
-      pr.base.ref === "main" &&
-      pr.base.repo.full_name.toLowerCase() === repository &&
-      pr.head.repo?.full_name.toLowerCase() === repository &&
-      pr.head.ref.startsWith("release/"),
-  );
-  if (releases.length === 0) {
-    core.info("No release PR merged at this commit; skipping publication.");
+  if (
+    context.eventName !== "pull_request" ||
+    payload.action !== "closed" ||
+    pr?.merged !== true ||
+    pr.base.ref !== "main" ||
+    pr.base.repo.full_name.toLowerCase() !== repository ||
+    pr.head.repo?.full_name.toLowerCase() !== repository ||
+    !pr.head.ref.startsWith("release/")
+  ) {
+    core.info("Not a merged release PR into main; skipping publication.");
     return;
   }
-  if (releases.length !== 1) {
-    throw new Error(`Multiple release PRs match ${sha}; refusing to publish.`);
+  const sha = pr.merge_commit_sha;
+  if (!/^[a-f0-9]{40}$/.test(sha ?? "")) {
+    throw new Error("Release PR has no valid merge commit SHA.");
   }
 
-  const version = releases[0].head.ref.slice("release/".length);
+  const version = pr.head.ref.slice("release/".length);
   if (
     !/^\d{4}-\d{2}-\d{2}$/.test(version) ||
     !Number.isFinite(Date.parse(version)) ||
     new Date(version).toISOString().slice(0, 10) !== version
   ) {
-    throw new Error(`Invalid release branch: ${releases[0].head.ref}`);
+    throw new Error(`Invalid release branch: ${pr.head.ref}`);
   }
   const schema = readFile(`schema/${version}/schema.ts`, "utf8");
   if (
