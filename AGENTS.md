@@ -109,11 +109,16 @@ are redirected out of this repo entirely:
 
 ## Commit Guidelines
 
-- Use Conventional Commit PR titles as described in
-  [CONTRIBUTING.md](CONTRIBUTING.md#pull-request-titles). The `PR title` check is
-  advisory during rollout; individual branch commits do not need rewriting.
-- For a new SEP, start with `sep: ...`, then use `sep(SEP-N): ...` after the PR
-  number is assigned. Follow-up changes keep the original SEP number as the scope.
+- Use Conventional Commit PR titles: `type(scope): description`. The scope is
+  optional; for example, `fix(schema): correct the result type` or
+  `docs: clarify authorization`.
+- For a new SEP, start with `sep: ...`, then use `sep(SEP-XXXX): ...`, replacing
+  `XXXX` with the assigned PR number. Follow-up changes keep the original SEP
+  number as the scope, for example `fix(SEP-3398): correct the result type`, and
+  link to that SEP in the PR description.
+- See [CONTRIBUTING.md](CONTRIBUTING.md#pull-request-titles) for the full type list,
+  examples, and release-title exception. The `PR title` check is advisory during
+  rollout; individual branch commits do not need rewriting.
 - When squash merging, retain the checked title and preserve required disclosures
   and co-author trailers in the commit body. Keep generating and committing the
   generated files required by the current workflow.

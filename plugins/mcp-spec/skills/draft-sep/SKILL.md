@@ -132,9 +132,13 @@ Then **ask**: open a draft PR now, or stop here so they can edit the file first?
 
 ## Phase 6 — Open PR (only if the user says yes)
 
-Follow the PR title policy in `CONTRIBUTING.md` and `AGENTS.md`. Open with the
-`0000-` placeholder and a `sep: ...` title, then rename the file and PR title once
-the number is assigned. Use a follow-up commit; no amend or force-push is required.
+Open with the `0000-` filename placeholder and a `sep: {title}` PR title. Once
+GitHub assigns the PR number, rename the file and use `sep(SEP-XXXX): {title}`,
+replacing `XXXX` with that number (a positive integer without leading zeros).
+Use a follow-up commit; no amend or force-push is required. Later PRs about the
+same SEP keep its original number as the scope and link to it in the description.
+The full title policy and examples are in
+[CONTRIBUTING.md](../../../../CONTRIBUTING.md#pull-request-titles).
 
 Before creating the PR, write its description to `/tmp/sep-pr-body.md` with the
 change, motivation, validation, required prior-discussion link, and AI disclosure.
@@ -169,7 +173,6 @@ gh pr edit {N} --repo modelcontextprotocol/modelcontextprotocol \
 The PR title check is advisory during rollout and does not validate individual
 branch commits. `npm run generate:seps` still renders `docs/seps/{N}-{slug}.mdx`
 and updates `docs/docs.json` for the existing `render-seps.yml` check; commit those
-files. `npm run format:docs` keeps the formatting check green. Later PRs about this
-SEP retain `SEP-{N}` as their scope, even when the new PR has a different number.
+files. `npm run format:docs` keeps the formatting check green.
 
 **If Q5 answered `None`, the next step after the PR is open is finding a sponsor** — tag 1-2 relevant maintainers from `MAINTAINERS.md` on the PR and share it in the relevant Discord channel. The 6-month clock starts now.
