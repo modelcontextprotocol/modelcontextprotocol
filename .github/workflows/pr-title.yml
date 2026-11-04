@@ -1,7 +1,7 @@
 name: PR title policy
 
 on:
-  pull_request_target:
+  pull_request:
     branches: [main]
     types: [opened, edited, reopened, synchronize, ready_for_review]
 
@@ -19,35 +19,34 @@ jobs:
     timeout-minutes: 5
     steps:
       # Metadata only: never check out or execute code from the PR.
-      - uses: amannn/action-semantic-pull-request@48f256284bd46cdaab1048c3721360e808335d50 # v6.1.1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          types: |
-            sep
-            feat
-            fix
-            docs
-            ci
-            build
-            chore
-            refactor
-            test
-            perf
-            style
-            revert
-          requireScope: false
-          validateSingleCommit: false
-          validateSingleCommitMatchesPrTitle: false
-
-      - name: Check SEP scope format
+      - name: Check PR title
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
         with:
           script: |
+            // Fetch the current title so a queued run does not validate an old title.
             const { data: pr } = await github.rest.pulls.get({
               ...context.repo,
               pull_number: context.issue.number,
             });
-            if (pr.title.startsWith('sep(') && !/^sep\(SEP-[1-9]\d*\)!?: /.test(pr.title)) {
-              core.setFailed('Use sep(SEP-XXXX): describe the proposal, replacing XXXX with the SEP number. Omit the scope when the proposal has no number yet.');
+
+            // Require an allowed type and description; (scope) and breaking-change ! are optional.
+            const match = pr.title.match(
+              /^(sep|feat|fix|docs|ci|build|chore|refactor|test|perf|style|revert)(?:\(([^()\s]+)\))?!?: (\S.*)$/
+            );
+            if (!match) {
+              core.setFailed(
+                'Use type(scope): description, for example fix(schema): correct the result type. ' +
+                'The scope is optional. See CONTRIBUTING.md for allowed types.'
+              );
+              return;
+            }
+
+            // Numbered SEP proposals use SEP-N; unnumbered proposals can omit the scope.
+            // Other types may use area scopes such as schema or deps-dev.
+            const [, type, scope] = match;
+            if (type === 'sep' && scope && !/^SEP-[1-9]\d*$/.test(scope)) {
+              core.setFailed(
+                'Use sep(SEP-XXXX): description, replacing XXXX with the SEP number. ' +
+                'Omit the scope when the proposal has no number yet.'
+              );
             }

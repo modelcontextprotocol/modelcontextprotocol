@@ -132,13 +132,9 @@ Then **ask**: open a draft PR now, or stop here so they can edit the file first?
 
 ## Phase 6 — Open PR (only if the user says yes)
 
-Open with the `0000-` filename placeholder and a `sep: {title}` PR title. Once
-GitHub assigns the PR number, rename the file and use `sep(SEP-XXXX): {title}`,
-replacing `XXXX` with that number (a positive integer without leading zeros).
-Use a follow-up commit; no amend or force-push is required. Later PRs about the
-same SEP keep its original number as the scope and link to it in the description.
-The full title policy and examples are in
-[CONTRIBUTING.md](../../../../CONTRIBUTING.md#pull-request-titles).
+Use `sep: {title}` until the PR is numbered, then `sep(SEP-{N}): {title}`.
+Follow-up PRs keep the original SEP number and link to the proposal.
+See [CONTRIBUTING.md](../../../../CONTRIBUTING.md#pull-request-titles) for the full policy.
 
 Before creating the PR, write its description to `/tmp/sep-pr-body.md` with the
 change, motivation, validation, required prior-discussion link, and AI disclosure.
