@@ -135,54 +135,33 @@ prototype taught you.
 
 ### Pull request titles
 
-Use a Conventional Commit title: `type(scope): description`. The scope is optional;
-describe what changes. Allowed types are `sep`, `feat`, `fix`, `docs`, `ci`, `build`,
-`chore`, `refactor`, `test`, `perf`, `style`, and `revert`.
+Use a Conventional Commit title: `type(scope): description`. The scope is optional.
+Allowed types are `sep`, `feat`, `fix`, `docs`, `ci`, `build`, `chore`,
+`refactor`, `test`, `perf`, `style`, and `revert`.
 
-| Change                             | Example title                                         |
-| ---------------------------------- | ----------------------------------------------------- |
-| New SEP, before a PR number exists | `sep: propose task cancellation`                      |
-| New or revised SEP, once numbered  | `sep(SEP-3398): clarify task cancellation`            |
-| SEP status update                  | `sep(SEP-3398): mark proposal as accepted`            |
-| Protocol implementation            | `feat(SEP-3398): add task cancellation`               |
-| Schema correction for that SEP     | `fix(SEP-3398): correct the cancellation result type` |
-| Documentation correction           | `docs: correct the authorization example`             |
-| Generator fix                      | `fix(build): remove obsolete generated SEP pages`     |
-| CI change                          | `ci: validate conventional PR titles`                 |
-| Dependency update                  | `build(deps-dev): update TypeDoc`                     |
-| Blog post                          | `docs(blog): announce the next specification release` |
-| Governance change                  | `docs(governance): clarify working group sponsorship` |
-| Revert                             | `revert(SEP-3398): revert task cancellation support`  |
+| Change                    | Example title                                         |
+| ------------------------- | ----------------------------------------------------- |
+| New SEP, before numbering | `sep: propose task cancellation`                      |
+| Numbered SEP              | `sep(SEP-3398): clarify task cancellation`            |
+| Fix related to a SEP      | `fix(SEP-3398): correct the cancellation result type` |
+| Documentation             | `docs: clarify authorization`                         |
+| CI                        | `ci: validate PR titles`                              |
 
-Use `SEP-<number>` as the scope for changes tied to a SEP. Keep the original SEP
-number in follow-up PRs, and link to the SEP in the PR description. For unrelated
-changes, use an area such as `schema` or `ci`, or omit the scope. A new proposal can
-start with `sep: ...`; rename the title to `sep(SEP-N): ...` once its PR number is known.
-When a `sep` title includes a scope, the check requires `SEP-` followed by a positive
-number without leading zeros. For example, `sep(3398): ...` and `sep(schema): ...`
-fail; `sep(SEP-3398): ...` passes. Other types can still use area scopes.
+Once a new SEP has a PR number, use `sep(SEP-XXXX): description`, replacing
+`XXXX` with that number. Keep the original SEP number for follow-ups and link to
+the proposal in the PR description. SEP scopes use positive numbers without leading
+zeros. Other changes can use an area scope such as `schema` or omit it.
 
 Mark breaking changes with `!`, for example `feat(spec)!: remove the legacy transport`,
-and explain them in a `BREAKING CHANGE:` paragraph in the PR description. Rename
-GitHub's automatically generated revert titles to use `revert`. Protocol versions
-remain date-based; these prefixes do not trigger releases.
+and explain them in a `BREAKING CHANGE:` paragraph in the PR description.
 
-The `PR title` check validates titles and reruns on edits and new commits, including
-for bots and forks. It is advisory during rollout; requiring it and changing merge
-settings are separate maintainer steps. Reviewers still check that the title
-describes the change and the SEP number is correct. Individual branch commits do
-not need to follow the title format or be rewritten.
+The `PR title` check reruns on title edits and is advisory during rollout.
+Individual branch commits do not need this format or rewriting. When squash merging,
+use the checked title and preserve disclosures and co-author trailers in the body.
 
-When squash merging, retain the checked PR title as the commit subject and preserve
-the PR description's required disclosures and any `Co-authored-by` trailers in the
-commit body. GitHub's suggested squash message can differ, especially for a
-single-commit PR, so check it before merging. Generated files are still required
-under the existing contribution workflow.
-
-Release automation keeps its existing `Add YYYY-MM-DD MCP specification` title
-until title-independent release detection is deployed. After that, release PRs can
-use `chore(release): publish YYYY-MM-DD specification`. Do not rename an open
-release PR before that prerequisite is in place.
+**Temporary release exception:** Keep `Add YYYY-MM-DD MCP specification` until
+title-independent release publication is deployed; then use
+`chore(release): publish YYYY-MM-DD specification`.
 
 ## AI Contributions
 

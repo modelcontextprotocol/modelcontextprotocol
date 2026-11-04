@@ -109,17 +109,20 @@ are redirected out of this repo entirely:
 
 ## Commit Guidelines
 
-- Use Conventional Commit PR titles: `type(scope): description`. The scope is
-  optional; for example, `fix(schema): correct the result type` or
-  `docs: clarify authorization`.
-- For a new SEP, start with `sep: ...`, then use `sep(SEP-XXXX): ...`, replacing
-  `XXXX` with the assigned PR number. Follow-up changes keep the original SEP
-  number as the scope, for example `fix(SEP-3398): correct the result type`, and
-  link to that SEP in the PR description.
-- See [CONTRIBUTING.md](CONTRIBUTING.md#pull-request-titles) for the full type list,
-  examples, and release-title exception. The `PR title` check is advisory during
-  rollout; individual branch commits do not need rewriting.
-- When squash merging, retain the checked title and preserve required disclosures
-  and co-author trailers in the commit body. Keep generating and committing the
-  generated files required by the current workflow.
-- Do not include model names or details (e.g., "Claude", "Opus") in commit messages
+Use Conventional Commit PR titles: `type(scope): description`. The scope is optional.
+
+```text
+sep: propose task cancellation
+sep(SEP-3398): clarify task cancellation
+fix(SEP-3398): correct the cancellation result type
+docs: clarify authorization
+ci: validate PR titles
+```
+
+- Once a new SEP has a PR number, use it as the `SEP-XXXX` scope. Follow-up PRs
+  keep the original SEP number and link to the proposal.
+- This format applies to PR titles; individual branch commits do not need rewriting.
+- Do not include model names or details (e.g., "Claude", "Opus") in commit messages.
+
+See [CONTRIBUTING.md](CONTRIBUTING.md#pull-request-titles) for the full type list,
+less common cases, and the temporary release-title exception.

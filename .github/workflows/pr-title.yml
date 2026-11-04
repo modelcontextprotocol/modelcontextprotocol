@@ -5,8 +5,7 @@ on:
     branches: [main]
     types: [opened, edited, reopened, synchronize, ready_for_review]
 
-permissions:
-  pull-requests: read
+permissions: {}
 
 concurrency:
   group: pr-title-${{ github.event.pull_request.number }}
@@ -23,14 +22,11 @@ jobs:
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
         with:
           script: |
-            // Fetch the current title so a queued run does not validate an old title.
-            const { data: pr } = await github.rest.pulls.get({
-              ...context.repo,
-              pull_number: context.issue.number,
-            });
+            // Title edits trigger a new run with an updated event payload.
+            const { title } = context.payload.pull_request;
 
             // Require an allowed type and description; (scope) and breaking-change ! are optional.
-            const match = pr.title.match(
+            const match = title.match(
               /^(sep|feat|fix|docs|ci|build|chore|refactor|test|perf|style|revert)(?:\(([^()\s]+)\))?!?: (\S.*)$/
             );
             if (!match) {
