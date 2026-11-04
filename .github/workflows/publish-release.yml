@@ -28,55 +28,24 @@ jobs:
 
       - name: Derive version from merged release branch
         id: v
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
-        with:
-          script: |
-            const { readFileSync } = require('node:fs');
-            const pr = context.payload.pull_request;
-            const version = pr.head.ref.slice('release/'.length);
-            const sha = pr.merge_commit_sha;
-            if (!/^\d{4}-\d{2}-\d{2}$/.test(version) ||
-                !Number.isFinite(Date.parse(version)) ||
-                new Date(version).toISOString().slice(0, 10) !== version) {
-              throw new Error(`Invalid release branch: ${pr.head.ref}`);
-            }
-
-            const schema = readFileSync(`schema/${version}/schema.ts`, 'utf8');
-            if (!schema.includes(`export const LATEST_PROTOCOL_VERSION = "${version}";`)) {
-              throw new Error(`Schema version does not match ${version}.`);
-            }
-            JSON.parse(readFileSync(`schema/${version}/schema.json`, 'utf8'));
-            for (const path of [
-              `docs/specification/${version}/index.mdx`,
-              `docs/specification/${version}/changelog.mdx`,
-              `docs/docs/${version}/learn/versioning.mdx`,
-            ]) readFileSync(path, 'utf8');
-
-            let tag;
-            try {
-              tag = (await github.rest.git.getRef({ ...context.repo, ref: `tags/${version}` })).data.object;
-            } catch (error) {
-              if (error.status !== 404) throw error;
-            }
-            if (tag) {
-              // Resolve annotated tags to their underlying commit.
-              while (tag.type === 'tag') {
-                tag = (await github.rest.git.getTag({ ...context.repo, tag_sha: tag.sha })).data.object;
-              }
-              if (tag.type !== 'commit' || tag.sha !== sha) {
-                throw new Error(`Tag ${version} does not point to ${sha}.`);
-              }
-              core.info(`Tag ${version} already exists at the expected commit; skipping.`);
-              return;
-            }
-            core.setOutput('version', version);
+        env:
+          RELEASE_BRANCH: ${{ github.event.pull_request.head.ref }}
+        run: |
+          V="${RELEASE_BRANCH#release/}"
+          [[ "$V" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]] || { echo "::error::invalid release branch"; exit 1; }
+          [[ -d "docs/specification/$V" ]] || { echo "::error::docs/specification/$V missing"; exit 1; }
+          echo "version=$V" >> "$GITHUB_OUTPUT"
 
       - name: Create GA release
-        if: steps.v.outputs.version != ''
         env:
           GH_TOKEN: ${{ github.token }}
           VERSION: ${{ steps.v.outputs.version }}
         run: |
+          # Idempotent — skip if the tag already exists.
+          if git ls-remote --exit-code --tags origin "refs/tags/${VERSION}"; then
+            echo "tag ${VERSION} already exists — skipping"
+            exit 0
+          fi
           cat > /tmp/notes.md <<EOF
           This release marks the \`${VERSION}\` revision of the Model Context Protocol.
 

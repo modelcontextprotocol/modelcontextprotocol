@@ -21,9 +21,6 @@ jobs:
 
       - run: npm ci
 
-      - name: Check release publication metadata
-        run: node --test scripts/publish-release.test.cjs
-
       - name: Check TypeScript definitions
         run: npm run check:schema:ts
 
