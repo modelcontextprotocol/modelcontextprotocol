@@ -93,7 +93,7 @@ If the task reaches `input_required`, its question is handled like any other [el
 
 ## Load testing
 
-`tools/call --load` is the one-shot CLI's [load mode](/docs/2026-07-28/tools/inspector/cli#load-testing-a-tool), run against an open connection. Both clients run the same engine, so the flags, their defaults, the thresholds and the summary fields mean the same thing in each. The CLI page [defines each field](/docs/2026-07-28/tools/inspector/cli#the-summary).
+`tools/call --load` is the one-shot CLI's [load mode](/docs/2026-07-28/tools/inspector/cli#load-testing-a-tool), run against an open connection. Both clients run the same engine, so the flags, their defaults, the thresholds and the summary fields mean the same thing in each: argument placeholders and args files, scenarios, stepped and ramped load, open loop, warm-up and intervals, baselines, multiple sessions, session churn and notification fan-out. The CLI page [defines each field](/docs/2026-07-28/tools/inspector/cli#the-summary).
 
 ```bash
 # 20 calls in flight for 30 seconds
@@ -101,17 +101,22 @@ mcpdo @my-server tools/call search query:=mcp --load --load-concurrency 20 --loa
 
 # exactly 500 calls at no more than 50 per second; fail if p99 is above 250 ms
 mcpdo @my-server tools/call search query:=mcp --load --load-requests 500 --load-rate 50 --load-max-p99 250
+
+# a weighted mix of calls, at concurrency 10, 25 and then 50
+mcpdo @my-server tools/call --load --load-scenario scenario.json --load-steps 10,25,50
 ```
 
-`--format json` prints the summary object itself, with no `{ "result": … }` envelope, like every other mcpdo command. A breached threshold exits `10` after the summary is printed, with the same envelope `code` the CLI uses.
+The default `--format text` prints the same readable summary table as the CLI, with progress lines on stderr while the run goes. `--format json` prints the summary object itself, with no `{ "result": … }` envelope, like every other mcpdo command, and asks the daemon for no progress lines. A breached threshold or baseline exits `10` after the summary is printed, with the same envelope `code` the CLI uses. The CLI's `--output` per-call samples have no mcpdo equivalent.
 
 How a run differs on a daemon connection:
 
-- **The run happens inside the daemon**, on the connection's live client with its transport, headers and OAuth tokens. The `mcpdo` process makes one round trip for the whole run, so a long `--load-duration` is not cut off. The connection's request timeout still applies to each call.
+- **The run happens inside the daemon**, on the connection's live client with its transport, headers and OAuth tokens. The `mcpdo` process makes one round trip for the whole run, so a long `--load-duration` or a long staircase of stages is not cut off. The connection's request timeout still applies to each call.
+- **Files are read by `mcpdo`, not the daemon.** A `--load-scenario`, `--load-args-file` or `--load-baseline` path is relative to your working directory. The parsed contents travel to the daemon with the run.
 - **Later commands on the same connection wait for it.** A connection runs [one call at a time](#addressing-a-connection), and the load run is one call, so a `tools/list` sent mid-run starts when the run ends. Other connections, and a `logging/tail` or `resources/subscribe` stream that is already running, are unaffected.
 - **Ctrl+C ends the run.** No more calls start and the in-flight ones are cancelled, so the connection is free at once. No summary is printed, since the caller has gone.
 - **A dropped connection ends the run early** with a summary of what completed, marked `"stoppedEarly": { "reason": "connection_lost" }`. Calls that were in flight when it dropped count as `errors`, under `errorMessages` as `AbortError: load run stopped: <detail>`. A server that keeps failing calls while the connection stays up stops the run with `consecutive_errors`, as in the CLI. The next command revives the connection as usual.
-- **`--load-connections` opens its extra sessions inside the daemon** from the connection's stored settings, before the clock starts. They use stored credentials only, so connect first. They never appear in `connections/list`, and they close when the run ends.
+- **Extra sessions open inside the daemon.** `--load-connections`, `--load-churn` and `--load-subscribers` open their sessions from the connection's stored settings, using stored credentials only, so connect first. The connection's own client is always the first session. The extras never appear in `connections/list`, and they close when the run ends.
+- **A connection already subscribed to the `--load-subscribe` resource**, through a running `resources/subscribe` stream, is listened on during the run and left subscribed after it.
 - **Elicitations are cancelled.** No call can be answered in the middle of a run, so a server that elicits during one sees each request cancelled. Use `connect --elicit off` to keep the server from asking.
 
 ## Output

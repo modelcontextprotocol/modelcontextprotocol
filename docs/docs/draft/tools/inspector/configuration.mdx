@@ -138,12 +138,12 @@ These five are defined by the **CLI and TUI** only. The web client obtains the s
 
 The whole scripting surface belongs to the CLI. See [CLI client](/docs/draft/tools/inspector/cli) for usage.
 
-| Group              | Flags                                                                                                                                                                                                                                 |
-| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **What to invoke** | `--method`, `--tool-name`, `--tool-arg`, `--tool-args-json`, `--uri`, `--cursor`, `--prompt-name`, `--prompt-args`, `--log-level`, `--metadata`, `--tool-metadata`, `--rename`                                                        |
-| **How to run it**  | `--connect-timeout`, `--format`, `-q` / `--quiet`, `--output`, `--output-format`, `--app-info`, `--advertise-apps`, `--strict`, `--verify`, `--require-digests`, `--completion <shell>` (`bash`, `zsh`, or `fish`)                    |
-| **Load test**      | `--load`, `--load-concurrency`, `--load-connections`, `--load-duration`, `--load-requests`, `--load-rate`, `--load-max-error-rate`, `--load-max-p99` (see [Load testing a tool](/docs/draft/tools/inspector/cli#load-testing-a-tool)) |
-| **Auth**           | `--use-stored-auth`, `--stored-auth-only`, `--relogin`, `--no-revoke`, `--wait-for-auth`, `--list-stored-auth`, `--print-handoff`                                                                                                     |
+| Group              | Flags                                                                                                                                                                                                                                                 |
+| ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **What to invoke** | `--method`, `--tool-name`, `--tool-arg`, `--tool-args-json`, `--uri`, `--cursor`, `--prompt-name`, `--prompt-args`, `--log-level`, `--metadata`, `--tool-metadata`, `--rename`                                                                        |
+| **How to run it**  | `--connect-timeout`, `--format`, `-q` / `--quiet`, `--output`, `--output-format`, `--app-info`, `--advertise-apps`, `--strict`, `--verify`, `--require-digests`, `--completion <shell>` (`bash`, `zsh`, or `fish`)                                    |
+| **Load test**      | `--load` and the `--load-*` flags that shape and judge a run, such as `--load-concurrency`, `--load-duration`, `--load-rate`, `--load-scenario` and `--load-max-p99` (see [Load testing a tool](/docs/draft/tools/inspector/cli#load-testing-a-tool)) |
+| **Auth**           | `--use-stored-auth`, `--stored-auth-only`, `--relogin`, `--no-revoke`, `--wait-for-auth`, `--list-stored-auth`, `--print-handoff`                                                                                                                     |
 
 ## Environment variables
 
