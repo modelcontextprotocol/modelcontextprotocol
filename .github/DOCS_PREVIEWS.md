@@ -22,11 +22,13 @@ Merge the validation and preview workflows before enabling publication.
 4. Check the generated pages and assets, update the PR, then close it and verify
    branch cleanup. Confirm forks skip publication and failed builds do not publish.
 
-Build jobs have read-only access. A separate publishing job receives the artifact,
-pushes the generated branch, and calls the
-[Mintlify preview API](https://www.mintlify.com/docs/api/preview/trigger).
-It does not run PR code. New PR events cancel any in-progress preview run.
-Staging and production connections stay unchanged.
+The first job generates and validates the docs, then commits them to the preview
+branch. It has repository write permission, with Git credentials supplied to the
+commit step. The second job calls the
+[Mintlify preview API](https://www.mintlify.com/docs/api/preview/trigger) for that
+branch and posts the link. Only the deployment job receives the Mintlify key;
+it needs no checkout or artifact download. New PR events cancel any in-progress
+preview run. Staging and production connections stay unchanged.
 
 ## Cleanup and recovery
 
