@@ -80,8 +80,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-        with:
-          persist-credentials: false
       - uses: actions/setup-node@v7
         with:
           node-version: '24'
@@ -213,22 +211,11 @@ jobs:
           Changes since the most recent release will accumulate here.
           EOF
 
-      - name: Create release PR token
-        if: inputs.dry_run != 'true'
-        id: release-token
-        uses: actions/create-github-app-token@v3
-        with:
-          app-id: ${{ secrets.MCP_COMMANDER_APP_ID }}
-          private-key: ${{ secrets.MCP_COMMANDER_APP_KEY }}
-          permission-contents: write
-          permission-pull-requests: write
-
       - name: Open release PR
         if: inputs.dry_run != 'true'
         id: pr
         uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
         with:
-          token: ${{ steps.release-token.outputs.token }}
           branch: release/${{ inputs.version }}
           title: "chore(release): publish ${{ inputs.version }} specification"
           commit-message: "chore(release): publish ${{ inputs.version }} specification"
