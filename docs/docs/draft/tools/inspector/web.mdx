@@ -63,6 +63,37 @@ Production `--web` serves a built bundle. In the published package that bundle a
   <img src="/images/inspector/web-monitor-sidebar.png" />
 </Frame>
 
+## Active sessions
+
+The web backend holds each connection open as a session, and a session can outlive the tab that opened it. When a tab closes or reloads, the backend keeps the session for 60 seconds, so that a reload or an OAuth redirect can pick it back up, and then closes it, ending a stdio server process with it. **Active Sessions** lists every session the backend holds, from every tab, so you can find one that outlived its tab, or one whose server crashed, and end it without restarting the Inspector.
+
+Open it with the **Active sessions** button in the header, between the disconnect button and **Client settings**.
+
+<Frame caption="The Active sessions button, the network icon in the header between the disconnect and Client settings buttons.">
+  <img src="/images/inspector/web-active-sessions-button.png" />
+</Frame>
+
+Each row shows the server and its session ID, the transport, the status, when the session was created, when a tab was last attached to it (`now`, or `never`), and how many events are queued for a tab to collect.
+
+| Status       | Meaning                                                                                  |
+| ------------ | ---------------------------------------------------------------------------------------- |
+| **This tab** | The session this tab is using. It also shows **Attached**.                               |
+| **Attached** | A tab is connected to the session now.                                                   |
+| **Detached** | No tab is attached. Events queue until a tab reattaches or the backend closes it.        |
+| **Closed**   | The session's transport has died, such as a stdio server process that exited or crashed. |
+
+<Frame caption="Sessions from a closed tab, another open tab, a browser that never opened its stream, a crashed server, and this tab.">
+  <img src="/images/inspector/web-active-sessions.png" />
+</Frame>
+
+**Terminate** closes the session's connection, which ends its stdio server process, and drops it from the list. A tab still attached to it is told that the connection was terminated. The refresh button re-reads the list.
+
+<Frame caption="The same list after terminating the session the other open tab was using.">
+  <img src="/images/inspector/web-active-sessions-terminated.png" />
+</Frame>
+
+The list and the terminate action are backend routes, `GET /api/mcp/sessions` and `DELETE /api/mcp/sessions/<id>`, and like every other `/api` route they require the [session token](#the-session-token).
+
 ## Servers
 
 The Servers screen is the entry point. A server row carries its transport, its connection state, and a control that opens its per-server settings.

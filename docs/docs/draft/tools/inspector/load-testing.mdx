@@ -87,6 +87,7 @@ The other `--load-*` flags shape the traffic or judge the result, and each group
 | [Multiple sessions](#multiple-sessions)                       | `--load-connections`                                                                                   |
 | [Session churn](#session-churn)                               | `--load-churn`, `--load-churn-calls`                                                                   |
 | [Notification fan-out](#notification-fan-out)                 | `--load-subscribe`, `--load-subscribers`, `--load-subscribe-wait`                                      |
+| [Multiple generator processes](#multiple-generator-processes) | `--load-workers` (CLI only)                                                                            |
 
 Each `--load-*` flag requires `--load`. In the CLI, `--load` is rejected with any method other than `tools/call`, and with `--app-info`, `--output-format`, `--list-stored-auth` and `--print-handoff`. Each of those mistakes, and each pair of `--load-*` flags that cannot be combined, exits `1` with the envelope `code` `load_flag_conflict`.
 
@@ -144,7 +145,7 @@ The JSON summary looks like this:
 - **Percentiles** are `p50`, `p90`, `p95`, `p99` and `p999` (the 99.9th), by nearest rank. Memory stays bounded however long the run: the first 10,000 latencies of each kind are kept exactly, so a short run's percentiles are exact, and later ones fold into a histogram whose percentiles are within 1% of the exact value. `min`, `max` and `mean` are always exact.
 - **`plannedStarts`, `droppedSlots` and `achievedRate`** appear only with `--load-rate`. Starts follow an even `1/rate` grid. A slot missed because every worker was busy is dropped rather than made up later, so a stall is never followed by a burst. A server too slow for the target rate can then report healthy latency while most of the planned load never ran, so when fewer than 90% of `plannedStarts` were started, a warning goes to stderr (dropped by `--quiet`). Raise `--load-concurrency`, lower the rate, or switch to [open loop](#open-loop). Rates in the high hundreds per second and above are reached only approximately.
 - **`stoppedEarly`** appears when the run ended before its bounds, with a `reason` and a `detail`. See [When a run fails or stops](#when-a-run-fails-or-stops).
-- **Other blocks** appear only when the mode that fills them is on: `steps` for a scenario, `stages` for a stepped run, `intervals` and `warmup` for those flags, `openLoop`, `connections`, `churn` and `fanout`. A default run's summary has none of them.
+- **Other blocks** appear only when the mode that fills them is on: `steps` for a scenario, `stages` for a stepped run, `intervals` and `warmup` for those flags, `openLoop`, `connections`, `churn`, `fanout` and `workers`. A default run's summary has none of them.
 
 `--load-duration` stops new calls, but calls in flight are allowed to finish, so `elapsedMs` can exceed the window by up to one call. A run that reaches its `--load-duration` is measured over that whole window at least, so a `--load-rate 1` run over five seconds reports 1 call per second. Each call is still bounded by the server's request timeout (`requestTimeout` in the catalog or config file).
 
@@ -373,9 +374,26 @@ mcp-inspector --cli https://example.com/mcp --method tools/call --load \
 - **After the run**, subscribers get `--load-subscribe-wait` seconds (default `2`) to catch up, and whatever hasn't arrived by then is missed. The `fanout` block reports `updates` (expected per subscriber), `delivered`, `missed`, `sessionsMissed`, `unexpected`, `deliveryMs`, and the setup costs `connectMs` and `subscribeMs`.
 - A session that fails to open or subscribe is counted in `failed`, and the run continues with the rest. More than one subscriber needs an HTTP or SSE server, and the extra sessions use stored credentials only. Fan-out can't be combined with `--load-connections`, `--load-churn`, stepped load, `--load-warmup` or `--load-open-loop`.
 
+## Multiple generator processes
+
+One Node process has a ceiling, so at high load the Inspector itself can become the bottleneck rather than the server. In the CLI, `--load-workers <n>` spreads one run over `n` generator processes:
+
+```bash
+# 400 in flight, 4000 calls/s, over 4 generator processes
+mcp-inspector --cli https://example.com/mcp --method tools/call --tool-name search \
+  --tool-arg query=mcp --load --load-concurrency 400 --load-rate 4000 \
+  --load-duration 60 --load-workers 4
+```
+
+- **One run, split.** The CLI connects once, so any sign-in happens before a worker starts, then re-runs its own command as `n` child processes. Each takes an even share of `--load-concurrency`, `--load-requests` and `--load-rate`, and connects with stored credentials only. Everything else, such as the duration, warm-up, scenario and argument rows, applies to every worker as given.
+- **One summary, merged exactly.** The workers send back their counts, error tallies and latency histograms, and the CLI merges them as if one recorder had seen every call. The summary gains `"workers": n`, and thresholds and baselines judge the merged result.
+- **One stop reaches every worker.** If one worker stops early, the CLI stops the rest with the same `stoppedEarly` reason. Ctrl+C stops them all and still prints the merged summary. If a worker fails outright, the run exits with that worker's exit code (`load_worker_failed`) once the rest have stopped.
+- **The rate and the mix hold across processes.** Each worker's rate grid is offset so the processes interleave into one even spacing, and `{{seq}}` and `{{worker}}` stay unique across them. Progress lines add up every worker's latest report, with the slowest worker's p50 and p99, while the final summary's latencies are exact.
+- `n` can't exceed `--load-concurrency` or `--load-requests`. HTTP and SSE only, since each worker opens its own session. Not combined with stepped load, `--load-interval`, `--load-connections`, `--load-churn`, `--load-subscribe` or `--output`. mcpdo has no `--load-workers`, because its run happens inside the daemon on the connection it holds.
+
 ## On an mcpdo connection
 
-`mcpdo tools/call --load` takes every flag above except `--output`. The default `--format text` prints the same readable summary table as the CLI, with progress lines on stderr while the run goes. `--format json` prints the summary object itself, with no `{ "result": … }` envelope, like every other mcpdo command, and asks the daemon for no progress lines. A breached threshold or baseline exits `10` after the summary is printed, with the same envelope `code` the CLI uses.
+`mcpdo tools/call --load` takes every flag above except `--output` and `--load-workers`. The default `--format text` prints the same readable summary table as the CLI, with progress lines on stderr while the run goes. `--format json` prints the summary object itself, with no `{ "result": … }` envelope, like every other mcpdo command, and asks the daemon for no progress lines. A breached threshold or baseline exits `10` after the summary is printed, with the same envelope `code` the CLI uses.
 
 How a run differs on a daemon connection:
 
