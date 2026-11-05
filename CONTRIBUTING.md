@@ -9,10 +9,10 @@ Also see the [overall MCP communication guidelines in our docs](https://modelcon
 
 The following software is required to work on the spec:
 
-- Node.js 24 or above
+- Node.js at the version pinned in `.nvmrc`
 - TypeScript
 - TypeScript JSON Schema (for generating JSON schema)
-- [Mintlify](https://mintlify.com/) (optional, for docs)
+- [Mintlify](https://mintlify.com/) (installed with the npm dependencies)
 - nvm (optional, for managing Node versions)
 
 ### Getting Started
@@ -30,7 +30,7 @@ The following software is required to work on the spec:
 
    ```bash
    nvm install  # install correct Node version
-   npm install  # install dependencies
+   npm ci       # install locked dependencies
    ```
 
 4. Create a new branch:

@@ -7,41 +7,57 @@ on:
     paths:
       - "seps/**/*.md"
       - "scripts/render-seps.ts"
-      - "docs/seps/**"
-      - "docs/docs.json"
-      - "package.json"
-      - "package-lock.json"
-      - ".github/workflows/render-seps.yml"
 
   pull_request:
     paths:
       - "seps/**/*.md"
       - "scripts/render-seps.ts"
-      - "docs/seps/**"
-      - "docs/docs.json"
-      - "package.json"
-      - "package-lock.json"
-      - ".github/workflows/render-seps.yml"
 
   # Allow manual trigger
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   render-seps:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
-          node-version: 24
+          node-version-file: .nvmrc
           cache: npm
 
       - run: npm ci
 
+      # On PR, verify rendered docs are up to date (must run BEFORE generate)
       - name: Verify SEPs are up to date
+        if: github.event_name == 'pull_request'
         run: npm run check:seps
+
+      # On push to main, generate and commit any changes
+      - name: Render SEPs
+        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+        run: npm run generate:seps
+
+      - name: Check for changes
+        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+        id: changes
+        run: |
+          if [[ -n "$(git status --porcelain docs/seps/ docs/docs.json)" ]]; then
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Commit changes
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.changes.outputs.has_changes == 'true'
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add docs/seps/ docs/docs.json
+          git commit -m "docs: auto-render SEPs documentation"
+          git push
