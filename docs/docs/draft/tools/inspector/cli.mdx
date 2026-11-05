@@ -50,25 +50,25 @@ See [Configuration and flags](/docs/draft/tools/inspector/configuration) for `--
 
 ## Methods
 
-| `--method`                 | Required companions                                            | Notes                                                                                   |
-| -------------------------- | -------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
-| `initialize`               | None                                                           | Connect-only probe: `{serverInfo, protocolVersion, capabilities, instructions}`.        |
-| `tools/list`               | None                                                           | `--strict` turns its schema portability check into a gate (see [CI gates](#ci-gates)).  |
-| `tools/call`               | `--tool-name`, plus optional `--tool-arg` / `--tool-args-json` | `--load` calls it repeatedly (see [Load testing a tool](#load-testing-a-tool)).         |
-| `resources/list`           | None                                                           |                                                                                         |
-| `resources/read`           | `--uri`                                                        |                                                                                         |
-| `resources/templates/list` | None                                                           |                                                                                         |
-| `resources/directory/read` | `--uri`, plus optional `--cursor`                              | One page at a time; pass back the previous page's `nextCursor`.                         |
-| `prompts/list`             | None                                                           |                                                                                         |
-| `prompts/get`              | `--prompt-name`, plus optional `--prompt-args`                 |                                                                                         |
-| `logging/setLevel`         | `--log-level`                                                  | Legacy era only; modern servers opt in per request instead.                             |
-| `skills/list`              | None                                                           | `--verify` checks the skills returned (see [CI gates](#ci-gates)).                      |
-| `skills/get`               | `--uri`                                                        | Same `--verify` option.                                                                 |
-| `servers/list`             | None                                                           | Read the catalog **without connecting** to anything.                                    |
-| `servers/show`             | `--server`                                                     | Same, for one entry.                                                                    |
-| `servers/add`              | `--server`, plus a positional target or `--server-url`         | Write the catalog without connecting (see [Editing the catalog](#editing-the-catalog)). |
-| `servers/edit`             | `--server`, plus what to change                                | Same.                                                                                   |
-| `servers/remove`           | `--server`                                                     | Same.                                                                                   |
+| `--method`                 | Required companions                                            | Notes                                                                                        |
+| -------------------------- | -------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| `initialize`               | None                                                           | Connect-only probe: `{serverInfo, protocolVersion, capabilities, instructions}`.             |
+| `tools/list`               | None                                                           | `--strict` turns its schema portability check into a gate (see [CI gates](#ci-gates)).       |
+| `tools/call`               | `--tool-name`, plus optional `--tool-arg` / `--tool-args-json` | `--load` calls it repeatedly (see [Load testing](/docs/draft/tools/inspector/load-testing)). |
+| `resources/list`           | None                                                           |                                                                                              |
+| `resources/read`           | `--uri`                                                        |                                                                                              |
+| `resources/templates/list` | None                                                           |                                                                                              |
+| `resources/directory/read` | `--uri`, plus optional `--cursor`                              | One page at a time; pass back the previous page's `nextCursor`.                              |
+| `prompts/list`             | None                                                           |                                                                                              |
+| `prompts/get`              | `--prompt-name`, plus optional `--prompt-args`                 |                                                                                              |
+| `logging/setLevel`         | `--log-level`                                                  | Legacy era only; modern servers opt in per request instead.                                  |
+| `skills/list`              | None                                                           | `--verify` checks the skills returned (see [CI gates](#ci-gates)).                           |
+| `skills/get`               | `--uri`                                                        | Same `--verify` option.                                                                      |
+| `servers/list`             | None                                                           | Read the catalog **without connecting** to anything.                                         |
+| `servers/show`             | `--server`                                                     | Same, for one entry.                                                                         |
+| `servers/add`              | `--server`, plus a positional target or `--server-url`         | Write the catalog without connecting (see [Editing the catalog](#editing-the-catalog)).      |
+| `servers/edit`             | `--server`, plus what to change                                | Same.                                                                                        |
+| `servers/remove`           | `--server`                                                     | Same.                                                                                        |
 
 Stream- or session-only methods (`logging/tail`, for example) are rejected, since a process that exits can't hold a stream open.
 
@@ -121,347 +121,35 @@ The CLI can't render an App, so by default it doesn't advertise the MCP Apps ext
 
 ## Load testing a tool
 
-`--load` aims the CLI's own connection at one tool, with its transport, headers and OAuth, and keeps calling it. You can see how a server behaves under concurrent or sustained traffic without rebuilding that setup in a separate script. When the run ends, the CLI prints one latency and error-rate summary in place of a result. [mcpdo](/docs/draft/tools/inspector/mcpdo#load-testing) runs the same engine against an open connection, and the [web client](/docs/draft/tools/inspector/web#load-testing) runs it from the Tools screen.
+`--load` calls one tool, or a weighted mix of tools, resources and prompts, repeatedly and concurrently, and prints a latency and error-rate summary in place of a result. [Load testing](/docs/draft/tools/inspector/load-testing) covers every flag, the summary's fields, thresholds for CI and the other run modes.
 
 ```bash
-# 20 calls in flight for 30 seconds
+# 20 calls in flight for 30 seconds; fail the job if p99 is above 250 ms
 mcp-inspector --cli <server> --method tools/call --tool-name search \
-  --tool-arg query=mcp --load --load-concurrency 20 --load-duration 30
-
-# exactly 500 calls, started at no more than 50 per second
-mcp-inspector --cli <server> --method tools/call --tool-name search \
-  --tool-arg query=mcp --load --load-requests 500 --load-rate 50
+  --tool-arg query=mcp --load --load-concurrency 20 --load-duration 30 --load-max-p99 250
 ```
 
-| Flag                     | Meaning                                                                                                                               |
-| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------- |
-| `--load`                 | Load-test the tool instead of calling it once. Requires `--method tools/call` and `--tool-name <name>` (or a [scenario](#scenarios)). |
-| `--load-concurrency <n>` | The most calls in flight at once (default `10`).                                                                                      |
-| `--load-duration <sec>`  | Stop _starting_ calls after this many seconds. Calls already in flight still finish. Default `10` when `--load-requests` is not set.  |
-| `--load-requests <n>`    | Stop after starting this many calls. With `--load-duration` too, whichever is reached first ends the run.                             |
-| `--load-rate <n>`        | Start at most this many calls per second across all workers, spaced evenly (default unlimited).                                       |
-| `--load-progress <sec>`  | How often to print a progress line on stderr (default `5`). See [Watching a run](#watching-a-run).                                    |
-| `--load-interval <sec>`  | Also report the run as a time series of buckets this long.                                                                            |
-| `--load-warmup <sec>`    | Run this long first, at the same concurrency and rate, and leave those calls out of every figure.                                     |
-
-The other `--load-*` flags shape the traffic or judge the result, and each group is covered below:
-
-| Topic                                                         | Flags                                                                                                  |
-| ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| [Varying the arguments](#varying-the-arguments)               | `--load-args-file`, `--load-args-random`, and placeholders in argument values                          |
-| [Scenarios](#scenarios)                                       | `--load-scenario`                                                                                      |
-| [Stepped and ramped load](#stepped-and-ramped-load)           | `--load-steps`, `--load-ramp`, `--load-step-by`, `--load-step-duration`, `--load-stop-on-breach`       |
-| [Open loop](#open-loop)                                       | `--load-open-loop`                                                                                     |
-| [Thresholds](#thresholds)                                     | `--load-max-error-rate`, `--load-max-p50`, `--load-max-p95`, `--load-max-p99`, `--load-min-throughput` |
-| [Comparing against a baseline](#comparing-against-a-baseline) | `--load-baseline`, `--load-max-regression`                                                             |
-| [Multiple sessions](#multiple-sessions)                       | `--load-connections`                                                                                   |
-| [Session churn](#session-churn)                               | `--load-churn`, `--load-churn-calls`                                                                   |
-| [Notification fan-out](#notification-fan-out)                 | `--load-subscribe`, `--load-subscribers`, `--load-subscribe-wait`                                      |
-
-Each `--load-*` flag requires `--load`. `--load` is rejected with any method other than `tools/call`, and with `--app-info`, `--output-format`, `--list-stored-auth` and `--print-handoff`. Each of those mistakes, and each pair of `--load-*` flags that cannot be combined, exits `1` with the envelope `code` `load_flag_conflict`.
-
-### The summary
-
-The summary goes to stdout in one of three shapes:
-
-- **`--format text`, or no `--format` when stdout is a terminal:** a short, readable table, in colour unless `NO_COLOR` is set. mcpdo prints the same one.
-- **`--format json`:** the summary wrapped in `{ "result": … }`.
-- **No `--format` when stdout is a pipe or a file:** the bare summary as pretty-printed JSON, so scripts written against earlier releases keep working. Pass `--format json` to be explicit.
-
-The JSON summary looks like this:
-
-```json
-{
-  "tool": "search",
-  "concurrency": 20,
-  "durationMs": 30000,
-  "requests": 41210,
-  "ok": 41187,
-  "toolErrors": 0,
-  "errors": 23,
-  "errorRate": 0.0006,
-  "elapsedMs": 30012.4,
-  "throughput": 1373.12,
-  "okThroughput": 1372.35,
-  "latencyMs": {
-    "min": 2.1,
-    "mean": 14.5,
-    "p50": 12.9,
-    "p90": 22.4,
-    "p95": 30.7,
-    "p99": 61.3,
-    "p999": 140.2,
-    "max": 212.8
-  },
-  "errorLatencyMs": {
-    "min": 30001.2,
-    "mean": 30003.1,
-    "p50": 30002.9,
-    "p90": 30004.1,
-    "p95": 30004.6,
-    "p99": 30004.8,
-    "p999": 30004.8,
-    "max": 30004.8
-  },
-  "errorMessages": [{ "message": "Request timed out", "count": 23 }],
-  "toolErrorMessages": []
-}
-```
-
-- **`toolErrors`** counts results that carry `isError: true`, meaning the tool ran and reported a failure. **`errors`** counts calls that never produced a result, such as protocol errors, request timeouts or a dropped connection. `errorRate` is both together over `requests`, rounded to four places.
-- **`errorMessages`** groups the thrown messages by frequency. It keeps the first ten distinct messages and counts any others under `(other)`. **`toolErrorMessages`** does the same for `isError` results, using the first text block of each, cut to 200 characters, so a run where every call returned `rate limited` says so.
-- **Latency** is measured per call on the client, in milliseconds. `latencyMs` covers the successful calls only, and `errorLatencyMs` covers the failed ones, so failures that return instantly can't make a struggling server look fast. Either is `null` when it has no calls. `throughput` counts every completed call per second, and `okThroughput` counts only the successful ones.
-- **Percentiles** are `p50`, `p90`, `p95`, `p99` and `p999` (the 99.9th), by nearest rank. Memory stays bounded however long the run: the first 10,000 latencies of each kind are kept exactly, so a short run's percentiles are exact, and later ones fold into a histogram whose percentiles are within 1% of the exact value. `min`, `max` and `mean` are always exact.
-- **`plannedStarts`, `droppedSlots` and `achievedRate`** appear only with `--load-rate`. Starts follow an even `1/rate` grid. A slot missed because every worker was busy is dropped rather than made up later, so a stall is never followed by a burst. A server too slow for the target rate can then report healthy latency while most of the planned load never ran, so when fewer than 90% of `plannedStarts` were started, a warning goes to stderr (dropped by `--quiet`). Raise `--load-concurrency`, lower the rate, or switch to [open loop](#open-loop). Rates in the high hundreds per second and above are reached only approximately.
-- **`stoppedEarly`** appears when the run ended before its bounds, with a `reason` and a `detail`. See [When a run fails or stops](#when-a-run-fails-or-stops).
-- **Other blocks** appear only when the mode that fills them is on: `steps` for a scenario, `stages` for a stepped run, `intervals` and `warmup` for those flags, `openLoop`, `connections`, `churn` and `fanout`. A default run's summary has none of them.
-
-`--load-duration` stops new calls, but calls in flight are allowed to finish, so `elapsedMs` can exceed the window by up to one call. A run that reaches its `--load-duration` is measured over that whole window at least, so a `--load-rate 1` run over five seconds reports 1 call per second. Each call is still bounded by the server's request timeout (`requestTimeout` in the catalog or config file).
-
-### Watching a run
-
-- **Progress.** Every `--load-progress` seconds a line goes to stderr with the totals so far, plus the completion rate and the p50 and p99 of the successful calls over the last interval, such as `[load 12.0s] 1234 calls (1230 ok, 4 failed), 102.3/s, p50 12.1 / p99 40.2 ms`. It is prefixed `warm-up` during a warm-up and `stage N` in a stepped run. `--quiet` turns it off, and it never reaches stdout.
-- **Time series.** `--load-interval <sec>` adds an `intervals` array: the run's calls bucketed by completion time, one entry per interval with empty ones included, so a GC pause or a slow leak in the middle of a run shows instead of averaging away. Each entry has `startMs` and `endMs`, then the same counts, rates, latencies and message tallies as the totals.
-- **Warm-up.** `--load-warmup <sec>` runs that long first, over the same connections, and leaves those calls out of every figure. `--load-duration` and `--load-requests` bound the measured part only, and `warmup` reports what the warm-up ran. If the warm-up stops early, the run ends there and nothing is measured. It is refused with `--load-steps` and `--load-ramp`, where the first stage already plays that part.
-
-### Saving every call
-
-With `--load`, `--output <path>` writes one NDJSON line per measured call, for analysis the summary can't do: your own histogram, a scatter over time, or a join against server logs. The summary still goes to stdout.
-
-```json
-{"seq":17,"worker":3,"startMs":412.5,"latencyMs":14.218,"outcome":"ok"}
-{"seq":18,"worker":0,"startMs":415.02,"latencyMs":30001.4,"outcome":"error","message":"Request timed out"}
-```
-
-- `seq` is the run-wide call number and `worker` is the worker that made the call. `startMs` is measured from the start of the run, or of the stage in a stepped run.
-- `outcome` is `ok`, `tool_error` (with the result's text as `message`) or `error` (with the thrown message). A scenario adds `step`, and a stepped run adds `stage`.
-- Lines are in completion order. Warm-up calls are not written.
-- `--output-format` is refused with `--load`. A file that can't be written exits `1` (`output_write_failed`) after the summary is printed.
-
-### Varying the arguments
-
-A server that caches results or dedupes identical requests looks far faster under one fixed argument than under real traffic. Two ways to vary each call's arguments can be used together:
-
-```bash
-# a distinct id per call, and a random page from 1 to 50
-mcp-inspector --cli <server> --method tools/call --tool-name lookup \
-  --tool-arg id=user-{{seq}} --tool-arg page={{rand:1-50}} --load --load-requests 1000
-
-# one argument object per line of args.ndjson, in turn
-mcp-inspector --cli <server> --method tools/call --tool-name search \
-  --load --load-args-file args.ndjson --load-duration 30
-```
-
-**Placeholders** work in any string value of a call's arguments (`--tool-arg`, `--tool-args-json`, an args-file row, and a scenario step's `args` and `uri`), and only in a `--load` run:
-
-| Placeholder            | Becomes                                          |
-| ---------------------- | ------------------------------------------------ |
-| `{{seq}}`              | The call's number in start order, from `1`.      |
-| `{{worker}}`           | The index of the worker making it, from `0`.     |
-| `{{uuid}}`             | A fresh random UUID (v4).                        |
-| `{{rand:<min>-<max>}}` | A random integer from `min` to `max`, inclusive. |
-
-A value that is exactly one numeric placeholder, like `page={{rand:1-50}}`, is sent as a number, so an integer-typed argument receives an integer. A placeholder inside other text, like `user-{{seq}}`, yields a string. Anything else in double braces is sent as written, so an argument that is itself a template is untouched. A `{{rand:…}}` with reversed or out-of-range bounds exits `1` (`load_args_invalid`) before anything connects.
-
-**`--load-args-file <file>`** is NDJSON, one JSON object per line. Each call takes the next row in turn (or a random one with `--load-args-random`), cycling, and merges it over the `--tool-arg` and `--tool-args-json` arguments, with the row winning on a shared key. Placeholders inside a row are substituted too. A file that can't be read, or a line that isn't a JSON object, exits `1` (`load_args_invalid`). It can't be combined with `--load-scenario`, whose steps carry their own `args`.
-
-### Scenarios
-
-Real traffic is rarely one tool with fixed arguments. `--load-scenario <file>` runs a weighted mix of `tools/call`, `resources/read` and `prompts/get` steps over the same connections and bounds:
-
-```json
-{
-  "steps": [
-    {
-      "name": "search",
-      "method": "tools/call",
-      "tool": "search",
-      "args": { "query": "mcp" },
-      "weight": 7
-    },
-    { "method": "resources/read", "uri": "docs://readme", "weight": 2 },
-    {
-      "method": "prompts/get",
-      "prompt": "summarize",
-      "args": { "style": "short" },
-      "weight": 1
-    }
-  ]
-}
-```
-
-```bash
-mcp-inspector --cli <server> --method tools/call \
-  --load --load-scenario scenario.json --load-duration 30 --load-concurrency 20
-```
-
-- **The file** is that object or a bare array of steps. Each step has a `method` and what it calls (`tool`, `uri` or `prompt`), plus optional `args` (tools and prompts), `meta` (the request's `_meta`), `weight` (a positive number, default `1`) and `name`. Any other key is an error, so a typo such as `"argument"` fails the run instead of silently sending no arguments. Every problem with the file exits `1` (`load_scenario_invalid`) before anything connects.
-- **The mix is exact, not random.** Steps are picked by smooth weighted round-robin, so weights `7:2:1` start exactly 7, 2 and 1 calls in every 10, interleaved, and two runs of the same scenario are comparable.
-- **The summary** keeps its totals at the top level, so the thresholds judge the whole mix, and adds a `steps` array with each step's `name`, `method`, `target` and `weight` followed by the same counts, rates, latencies and messages as the totals, for that step alone.
-- **Tools are checked up front; resources and prompts are not.** A missing tool exits `5` (`tool_not_found`) before the clock starts. A server may serve URIs or prompts it doesn't list, so a bad one shows up as that step's `errors`.
-- `--load-scenario` replaces `--tool-name`, `--tool-arg`, `--tool-args-json` and `--tool-metadata`, so combining it with any of them is refused. `--method tools/call` is still required, since it selects the load mode.
-
-### Stepped and ramped load
-
-One concurrency or rate shows how a server behaves at one load level. To find where latency or errors start climbing, run consecutive stages at rising levels in one run, with one summary row per stage:
-
-```bash
-# concurrency 10, 25, 50, then 100, 30 seconds each
-mcp-inspector --cli <server> --method tools/call --tool-name search \
-  --tool-arg query=mcp --load --load-steps 10,25,50,100 --load-step-duration 30
-
-# rate from 50/s to 500/s over two minutes in 10 s stairs, over 200 workers,
-# stopping at the first stage whose p99 tops 250 ms
-mcp-inspector --cli <server> --method tools/call --tool-name search \
-  --tool-arg query=mcp --load --load-ramp 50:500:120 --load-step-duration 10 \
-  --load-step-by rate --load-concurrency 200 --load-max-p99 250 --load-stop-on-breach
-```
-
-- **`--load-steps <list>`** runs one stage per level. **`--load-ramp <from>:<to>:<sec>`** is a staircase of `sec / --load-step-duration` stages with levels spaced evenly from `from` to `to`, both included. Stairs rather than a continuous ramp give every level enough time to measure and a row of its own.
-- **`--load-step-by`** says what a level sets. `concurrency` (the default) is calls in flight, so `--load-concurrency` is refused. `rate` is calls started per second over a fixed pool of `--load-concurrency` workers, so `--load-rate` is refused.
-- **Each stage runs for `--load-step-duration`** seconds (default `10`), so `--load-duration` and `--load-requests` are refused. Connections are opened once and serve every stage.
-- **The summary** keeps its totals at the top level, across every stage, and adds a `stages` array with one full summary per stage that ran, each carrying `stage`, `stepBy` and `level`.
-- **Any early stop ends the run.** With `--load-stop-on-breach`, which needs a [threshold](#thresholds), so does the first stage that breaches one, with `stoppedEarly.reason` `threshold_breached`. Without it every stage runs, and the run still exits `10` if any stage breached.
-
-### Open loop
-
-By default `--load-rate` is closed-loop: a slot that no worker is free to take is dropped, so a server too slow for the rate is sent fewer requests and its latency looks healthier than its users would see. `--load-open-loop` keeps the rate grid as the arrival schedule instead:
-
-- **No slot is dropped while the run lasts.** A slot that comes due while every worker is busy waits, and starts as soon as one frees.
-- **Each call is timed from its scheduled start**, so the wait for a worker counts in its latency, and queueing behind a slow server shows in `latencyMs`.
-- `--load-concurrency` still caps the calls in flight. Slots still waiting when the window closes are reported in `droppedSlots`, and the summary carries `"openLoop": true`.
-- It needs `--load-rate`, or `--load-step-by rate`, whose stages then all run open loop.
-
-### When a run fails or stops
-
-The tool is looked up once before the clock starts, so a missing tool exits `5` instead of reporting a 100% error rate. Otherwise a completed run exits `0` whatever its error rate, because the summary is the result, unless a [threshold](#thresholds) is set.
-
-A server that dies mid-run would otherwise turn the rest of the window into thousands of instant failures, so the run stops early once 50 calls in a row have thrown, or calls have done nothing but throw for a full second. Only thrown calls count: a tool error is the server answering. The summary covers what completed and carries `"stoppedEarly": { "reason": "consecutive_errors" }`, with a warning on stderr. The exit code is unchanged.
-
-The first Ctrl+C or SIGTERM stops new calls, lets the in-flight ones finish, prints the summary of what completed with `stoppedEarly.reason` `interrupted`, and exits `130` (envelope `code` `interrupted`) without checking any threshold. A second Ctrl+C exits `130` immediately.
-
-A load run does not prompt for OAuth step-up. A tool that needs scopes the session lacks fails every call, and the challenge shows in `errorMessages`. Run one plain `tools/call` of the tool first to grant the scopes, then load it.
-
-### Thresholds
-
-Set a threshold to gate a CI job on the run without parsing the summary:
-
-```bash
-# fail the job if more than 1% of calls fail, or p99 is above 250 ms
-mcp-inspector --cli <server> --method tools/call --tool-name search \
-  --tool-arg query=mcp --load --load-requests 1000 \
-  --load-max-error-rate 0.01 --load-max-p99 250
-```
-
-| Flag                               | Exits `10` when                                                          | Envelope `code`            |
-| ---------------------------------- | ------------------------------------------------------------------------ | -------------------------- |
-| `--load-max-error-rate <fraction>` | The share of failed calls is above this value (`0` to `1`).              | `load_error_rate_exceeded` |
-| `--load-max-p50 <ms>`              | The p50 latency of the successful calls is above this many milliseconds. | `load_p50_exceeded`        |
-| `--load-max-p95 <ms>`              | The same, for p95.                                                       | `load_p95_exceeded`        |
-| `--load-max-p99 <ms>`              | The same, for p99.                                                       | `load_p99_exceeded`        |
-| `--load-min-throughput <n>`        | Fewer than this many calls per second succeeded (`okThroughput`).        | `load_throughput_below`    |
-
-- The full summary prints first either way. A breach then exits `10` with an error envelope on stderr. When several are breached, the message lists them all and the `code` names the first in the table's order.
-- A value equal to the threshold passes. The error-rate check uses the exact share of failed calls (`toolErrors` plus `errors`, over `requests`), not the rounded `errorRate`, so `--load-max-error-rate 0` fails on a single failure.
-- The latency checks judge the successful calls, so a run where half the calls fail instantly can't pass on the speed of its failures. A run where no call succeeded has no latency to compare, and fails. `--load-min-throughput` likewise counts only successful calls.
-- A [stepped run](#stepped-and-ramped-load) is judged stage by stage, and the message names the first stage that breached.
-
-### Comparing against a baseline
-
-An absolute threshold has to be picked, and re-picked as the server changes. To gate on "no worse than last time" instead, save one run's summary and compare later runs against it:
-
-```bash
-# on the release: save the summary
-mcp-inspector --cli <server> --method tools/call --tool-name search \
-  --tool-arg query=mcp --load --load-duration 30 --format json > baseline.json
-
-# on each change: the same run, failing if anything is more than 10% worse
-mcp-inspector --cli <server> --method tools/call --tool-name search \
-  --tool-arg query=mcp --load --load-duration 30 \
-  --load-baseline baseline.json --load-max-regression 10%
-```
-
-- **Four figures are compared:** p50 and p99 of the successful calls and `okThroughput` by relative change, and the error rate in percentage points, since a healthy baseline's error rate is usually `0` and any relative change from it is infinite.
-- **The comparison prints on stderr** after the summary, one line per figure (dropped by `--quiet`). Without `--load-max-regression` it only reports. With it, a figure worse than the baseline by more than the budget exits `10` (`load_regression`). Absolute thresholds are judged first.
-- **The two runs must have the same shape:** the same tool or scenario steps, concurrency, duration, request count, rate, open loop, connections, churn and stages. Otherwise the run exits `1` (`load_baseline_mismatch`) and lists every difference, rather than comparing numbers that mean different things. A stepped run is compared stage by stage.
-- **The baseline is read before anything connects.** Either JSON shape is accepted: the CLI's `{ "result": … }` envelope, or the bare summary that mcpdo and a piped run print. A file that isn't a summary, or a baseline run that stopped early, exits `1` (`load_baseline_invalid`).
-
-### Multiple sessions
-
-By default all calls share one connection, so a run measures how a server copes with concurrent requests on a single session. `--load-connections <n>` opens `n` independent connections with the same transport, headers and OAuth. Use it to see per-session state, session setup cost, connection limits and contention that only appear across sessions.
-
-- **HTTP and SSE only.** Over stdio, every connection would spawn its own server process, which tests `n` isolated servers rather than one server under `n` sessions. More than one connection over stdio exits `1` (`load_flag_conflict`).
-- **`--load-concurrency` and `--load-rate` are totals across all connections.** Workers are split as evenly as the counts allow, so `--load-connections` can't exceed `--load-concurrency`.
-- **Setup is excluded from latency.** Every connection opens before the clock starts. Their connect times are reported separately in `connections.connectMs`.
-- **A connection that fails to open is not a call error.** The run continues on the connections that opened, and the failures are counted under `connections`, never in `errors` or `errorRate`:
-
-  ```json
-  "connections": {
-    "requested": 50,
-    "opened": 48,
-    "failed": 2,
-    "connectMs": { "min": 8.2, "mean": 21.7, "p50": 19.4, "p90": 33.0, "p95": 38.1, "p99": 41.8, "p999": 41.8, "max": 41.8 },
-    "errorMessages": [{ "message": "Too many sessions", "count": 2 }]
-  }
-  ```
-
-- **OAuth.** The extra connections reuse the first connection's token and never start a sign-in of their own. Against a server that rotates refresh tokens, two connections refreshing an expired token at the same moment can lose a refresh, which shows up as call errors.
-
-### Session churn
-
-`--load-connections` opens its sessions once and keeps them, so session setup, per-session state and many short-lived sessions, which is what a server behind a gateway mostly sees, are never under load. With `--load-churn`, every worker connects, makes `--load-churn-calls` calls (default `1`), disconnects, and starts over:
-
-```bash
-# 20 workers, each opening a fresh session for every 5 calls, for 30 s
-mcp-inspector --cli https://example.com/mcp --method tools/call --tool-name search \
-  --tool-arg query=mcp --load --load-concurrency 20 --load-duration 30 \
-  --load-churn --load-churn-calls 5
-```
-
-- **Connecting is not in the call latency.** The sessions are reported in their own `churn` block: `opened`, `failed`, `closeFailed`, `connectMs` (handshake included) and the connect `errorMessages`. In [open loop](#open-loop), a call is timed from its scheduled start, so the connect is inside it there.
-- **A session that fails to open is not a call error**, but it does count toward the early stop, so a server refusing every session stops the run in about a second.
-- **HTTP and SSE only**, for the same reason as `--load-connections`, and not combined with it. Sessions use stored credentials only, so the CLI's first connection completes any sign-in.
-- **`--load-rate` paces a session's turn**, connect included, so a slow handshake shifts calls off the even grid. Slots lost to failed or late connects show as `droppedSlots`.
-
-### Notification fan-out
-
-A request's latency says nothing about what it costs a server to fan `notifications/resources/updated` out to many subscribers, or how long each one waits. `--load-subscribe <uri>` opens `--load-subscribers` sessions (default `1`), subscribes each to the resource, and measures the notifications instead:
-
-```bash
-# 50 subscribers; each call of update_doc should notify all of them
-mcp-inspector --cli https://example.com/mcp --method tools/call \
-  --tool-name update_doc --tool-arg id=1 --load --load-requests 100 \
-  --load-subscribe docs://1 --load-subscribers 50
-
-# no trigger: listen for 30 s to the server's own updates
-mcp-inspector --cli https://example.com/mcp --method tools/call --load \
-  --load-subscribe feed://live --load-subscribers 50 --load-duration 30
-```
-
-- **Triggered,** with a tool or scenario: each successful call is expected to update the resource once. Triggers run one at a time (`--load-concurrency` must be `1`), so each notification can be matched to its call, and delivery latency runs from that call's start.
-- **Passive,** with no tool: nothing is called. The run listens for `--load-duration`, and delivery latency runs from the first subscriber's receipt of each update, so it measures the spread of the fan-out rather than its absolute cost.
-- **After the run**, subscribers get `--load-subscribe-wait` seconds (default `2`) to catch up, and whatever hasn't arrived by then is missed. The `fanout` block reports `updates` (expected per subscriber), `delivered`, `missed`, `sessionsMissed`, `unexpected`, `deliveryMs`, and the setup costs `connectMs` and `subscribeMs`.
-- A session that fails to open or subscribe is counted in `failed`, and the run continues with the rest. More than one subscriber needs an HTTP or SSE server, and the extra sessions use stored credentials only. Fan-out can't be combined with `--load-connections`, `--load-churn`, stepped load, `--load-warmup` or `--load-open-loop`.
+A completed run exits `0` whatever its error rate, unless a threshold or baseline is set, which exits `10` on a breach. Ctrl+C prints the summary of what completed and exits `130`.
 
 ## Exit codes and error envelopes
 
 Every non-zero exit maps to a stable failure class, so a caller can branch on _why_ without scraping prose:
 
-| Code  | Meaning                                                                                                                                                                                                                              |
-| ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `0`   | Success.                                                                                                                                                                                                                             |
-| `1`   | Usage or unexpected error (the catch-all), including an unreadable secret store or OAuth state file.                                                                                                                                 |
-| `2`   | No MCP App found on the tool (`--app-info` probe).                                                                                                                                                                                   |
-| `3`   | Server requires authentication (HTTP 401/403, or an SDK authorization error).                                                                                                                                                        |
-| `4`   | Server unreachable (DNS, connection refused, timeout, `fetch failed`).                                                                                                                                                               |
-| `5`   | Tool error: `tools/call` returned `isError: true`, or the tool wasn't found.                                                                                                                                                         |
-| `6`   | `--strict` found an error-severity tool-schema portability problem.                                                                                                                                                                  |
-| `7`   | `--verify` found a skill that violates SEP-2640 (conformance, digest, or size mismatch).                                                                                                                                             |
-| `8`   | `--verify` couldn't check every skill within its read bounds.                                                                                                                                                                        |
-| `9`   | `--verify --require-digests` found a skill that advertises no digests.                                                                                                                                                               |
-| `10`  | A `--load` run breached a [threshold](#thresholds) or its [baseline](#comparing-against-a-baseline) budget. The summary is printed first, and the envelope `code` names the check, such as `load_p99_exceeded` or `load_regression`. |
-| `11`  | The server answered HTTP 429 (envelope `code` `rate_limited`). The envelope also carries `method`, plus `retryAfter` (the `Retry-After` header as sent) and `retryAfterMs` when the server sent one that parses.                     |
-| `130` | A `--load` run was interrupted by Ctrl+C or SIGTERM (envelope `code` `interrupted`). The summary of what completed is printed first.                                                                                                 |
+| Code  | Meaning                                                                                                                                                                                                                                                                                                              |
+| ----- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `0`   | Success.                                                                                                                                                                                                                                                                                                             |
+| `1`   | Usage or unexpected error (the catch-all), including an unreadable secret store or OAuth state file.                                                                                                                                                                                                                 |
+| `2`   | No MCP App found on the tool (`--app-info` probe).                                                                                                                                                                                                                                                                   |
+| `3`   | Server requires authentication (HTTP 401/403, or an SDK authorization error).                                                                                                                                                                                                                                        |
+| `4`   | Server unreachable (DNS, connection refused, timeout, `fetch failed`).                                                                                                                                                                                                                                               |
+| `5`   | Tool error: `tools/call` returned `isError: true`, or the tool wasn't found.                                                                                                                                                                                                                                         |
+| `6`   | `--strict` found an error-severity tool-schema portability problem.                                                                                                                                                                                                                                                  |
+| `7`   | `--verify` found a skill that violates SEP-2640 (conformance, digest, or size mismatch).                                                                                                                                                                                                                             |
+| `8`   | `--verify` couldn't check every skill within its read bounds.                                                                                                                                                                                                                                                        |
+| `9`   | `--verify --require-digests` found a skill that advertises no digests.                                                                                                                                                                                                                                               |
+| `10`  | A `--load` run breached a [threshold](/docs/draft/tools/inspector/load-testing#thresholds) or its [baseline](/docs/draft/tools/inspector/load-testing#comparing-against-a-baseline) budget. The summary is printed first, and the envelope `code` names the check, such as `load_p99_exceeded` or `load_regression`. |
+| `11`  | The server answered HTTP 429 (envelope `code` `rate_limited`). The envelope also carries `method`, plus `retryAfter` (the `Retry-After` header as sent) and `retryAfterMs` when the server sent one that parses.                                                                                                     |
+| `130` | A `--load` run was interrupted by Ctrl+C or SIGTERM (envelope `code` `interrupted`). The summary of what completed is printed first.                                                                                                                                                                                 |
 
 On any non-zero exit the CLI also writes a **single JSON line to stderr**:
 
@@ -513,7 +201,7 @@ These flags turn a check into a non-zero exit, each with its own code so a job c
 - `--strict` (with `tools/list`): reports tool-schema portability problems in full on stderr (path, issue, suggested fix) and exits `6` if any is error-severity. Without it, `tools/list` prints only a one-line count. Under `--format json` the findings are folded into the output as `schemaFindings`.
 - `--verify` (with `skills/list` or `skills/get`): runs the SEP-2640 conformance and digest checks, writes one JSON report per skill on stdout, and exits `7` on a violation or `8` when the read bounds stopped it before every skill was checked. `--skill-catalog-max-skills` and `--skill-catalog-max-bytes` set those bounds.
 - `--require-digests` (with `--verify`): exits `9` for a skill that advertises no digests, instead of reporting it as unverifiable and exiting `0`.
-- `--load-max-error-rate`, `--load-max-p50`, `--load-max-p95`, `--load-max-p99` and `--load-min-throughput` (with `--load`): print the load run's summary, then exit `10` when the run breaches the limit. `--load-baseline` with `--load-max-regression` does the same for a run worse than a saved one. See [Thresholds](#thresholds) and [Comparing against a baseline](#comparing-against-a-baseline).
+- `--load-max-error-rate`, `--load-max-p50`, `--load-max-p95`, `--load-max-p99` and `--load-min-throughput` (with `--load`): print the load run's summary, then exit `10` when the run breaches the limit. `--load-baseline` with `--load-max-regression` does the same for a run worse than a saved one. See [Thresholds](/docs/draft/tools/inspector/load-testing#thresholds) and [Comparing against a baseline](/docs/draft/tools/inspector/load-testing#comparing-against-a-baseline).
 
 ```bash
 mcp-inspector --cli <server> --method tools/list --strict > /dev/null

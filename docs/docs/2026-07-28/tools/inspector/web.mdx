@@ -106,9 +106,7 @@ On modern-era servers this screen also shows mirrored `Mcp-Param-*` headers, exc
 
 ### Load testing
 
-A tool's **Load test** button opens a panel that runs the same engine as the [CLI's `--load`](/docs/2026-07-28/tools/inspector/cli#load-testing-a-tool), over this tab's live connection. Load the selected tool, which sends the arguments in its form with `{{seq}}`, `{{worker}}`, `{{uuid}}` and `{{rand:…}}` filled in per call, or paste a [scenario](/docs/2026-07-28/tools/inspector/cli#scenarios). Set the concurrency, rate, duration, request count and warm-up, or comma-separated steps by concurrency or rate, then start the run. Progress shows while it runs, and the summary renders as tables.
-
-The run happens in the browser rather than on the backend, because the connection being inspected, with its transport, OAuth tokens, headers and negotiated era, lives in the tab. Every call therefore crosses the browser-to-backend hop, and the page records each call in the monitoring sidebar, so latencies include both. Close the sidebar for figures that measure the server rather than the page.
+A tool's **Load test** button, beside **Execute Tool**, opens a panel that calls the tool, or a pasted scenario, repeatedly and concurrently over this tab's connection, then shows a latency and error-rate summary. See [Load testing](/docs/2026-07-28/tools/inspector/load-testing#in-the-web-client).
 
 ## Resources
 
