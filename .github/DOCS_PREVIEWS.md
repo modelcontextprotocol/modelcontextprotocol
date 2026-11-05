@@ -26,7 +26,10 @@ The first job generates and validates the docs, then commits them to the preview
 branch. It has repository write permission, with Git credentials supplied to the
 publishing action. The second job calls the
 [Mintlify preview API](https://www.mintlify.com/docs/api/preview/trigger) for that
-branch and posts the link. Only the deployment job receives the Mintlify key;
+branch and posts the link. It waits up to five minutes for deployment and updates
+the same comment from Deploying to Ready, Failed, or Timed out. Deployment failures,
+timeouts, and status API errors fail the workflow; API errors show Status unavailable.
+Only the deployment job receives the Mintlify key;
 it needs no checkout or artifact download. New PR events cancel any in-progress
 preview run. Staging and production connections stay unchanged.
 
