@@ -1,5 +1,6 @@
 .claude/
 node_modules/
+.build/
 .DS_Store
 .idea/
 .jj

@@ -10,19 +10,29 @@
  * 5. Updates docs/docs.json with the SEPs navigation tab and a /seps/{number}
  *    redirect for each SEP
  *
- * Usage: npx tsx scripts/render-seps.ts [--check]
+ * Usage: npx tsx scripts/render-seps.ts [--check] [--output-dir <directory>]
  *   --check: Verify generated files are up to date (exit 1 if not)
+ *   --output-dir: Render into a website bundle instead of tracked docs/
  */
 
 import * as fs from "fs";
 import * as path from "path";
-import { execFileSync } from "child_process";
-
-const npx = process.platform === "win32" ? "npx.cmd" : "npx";
+import { format } from "prettier";
+import { parseArgs } from "node:util";
 
 const SEPS_DIR = path.join(__dirname, "..", "seps");
-const DOCS_SEPS_DIR = path.join(__dirname, "..", "docs", "seps");
-const DOCS_JSON_PATH = path.join(__dirname, "..", "docs", "docs.json");
+const { values } = parseArgs({
+  options: {
+    check: { type: "boolean" },
+    "output-dir": { type: "string" },
+  },
+});
+const DOCS_DIR = path.resolve(
+  values["output-dir"] ?? path.join(__dirname, "..", "docs")
+);
+const DOCS_SEPS_DIR = path.join(DOCS_DIR, "seps");
+const DOCS_JSON_PATH = path.join(DOCS_DIR, "docs.json");
+const DOCS_SOURCE_PATH = path.join(__dirname, "..", "docs", "docs.source.json");
 
 interface SEPMetadata {
   number: string;
@@ -315,7 +325,7 @@ const SEP_SHORT_LINK_SOURCE = /^\/seps\/\d+$/;
  * and a /seps/{number} redirect to each SEP page
  */
 function updateDocsJson(seps: SEPMetadata[]): string {
-  const docsJson = JSON.parse(fs.readFileSync(DOCS_JSON_PATH, "utf-8"));
+  const docsJson = JSON.parse(fs.readFileSync(DOCS_SOURCE_PATH, "utf-8"));
 
   // Group SEPs by status
   const groupedSeps = groupSepsByStatus(seps);
@@ -381,21 +391,11 @@ function updateDocsJson(seps: SEPMetadata[]): string {
  * Main function
  */
 async function main() {
-  const checkMode = process.argv.includes("--check");
+  const checkMode = values.check;
 
   console.log("Reading SEP files...");
   const seps = readAllSEPs();
   console.log(`Found ${seps.length} SEP(s)`);
-
-  if (seps.length === 0) {
-    console.log("No SEPs found to render.");
-    return;
-  }
-
-  // Ensure output directory exists
-  if (!fs.existsSync(DOCS_SEPS_DIR)) {
-    fs.mkdirSync(DOCS_SEPS_DIR, { recursive: true });
-  }
 
   // Track all expected files for check mode
   const expectedFiles: { path: string; content: string }[] = [];
@@ -416,68 +416,26 @@ async function main() {
   const docsJsonContent = updateDocsJson(seps.map((s) => s.metadata));
   expectedFiles.push({ path: DOCS_JSON_PATH, content: docsJsonContent });
 
-  if (checkMode) {
-    // Check mode: verify all files match expected content (after formatting)
-    // Write to temp files, format with Prettier, then compare
-    const tempDir = fs.mkdtempSync(path.join(require("os").tmpdir(), "seps-check-"));
-    let hasChanges = false;
-
-    try {
-      // Write expected content to temp files
-      const tempFiles: { original: string; temp: string }[] = [];
-      for (const { path: filePath, content } of expectedFiles) {
-        const tempPath = path.join(tempDir, path.basename(filePath));
-        fs.writeFileSync(tempPath, content, "utf-8");
-        tempFiles.push({ original: filePath, temp: tempPath });
-      }
-
-      // Format MDX files with Prettier
-      const mdxTempFiles = tempFiles.filter(({ temp }) => temp.endsWith(".mdx")).map(({ temp }) => temp);
-      if (mdxTempFiles.length > 0) {
-        execFileSync(npx, ["prettier", "--write", ...mdxTempFiles], { stdio: "pipe" });
-      }
-
-      // Compare formatted temp files with existing files
-      for (const { original, temp } of tempFiles) {
-        if (!fs.existsSync(original)) {
-          console.error(`Missing file: ${original}`);
-          hasChanges = true;
-          continue;
-        }
-        const existing = fs.readFileSync(original, "utf-8");
-        const formatted = fs.readFileSync(temp, "utf-8");
-        if (existing !== formatted) {
-          console.error(`File out of date: ${original}`);
-          hasChanges = true;
-        }
-      }
-    } finally {
-      // Clean up temp directory
-      fs.rmSync(tempDir, { recursive: true, force: true });
+  // Format in memory so ignored build paths and check mode use identical output.
+  for (const file of expectedFiles) {
+    if (file.path.endsWith(".mdx")) {
+      file.content = await format(file.content, { parser: "mdx" });
     }
+  }
 
-    if (hasChanges) {
-      console.error("\nSEP documentation is out of date. Run 'npm run generate:seps' to update.");
-      process.exit(1);
+  if (checkMode) {
+    const outdated = expectedFiles.filter(
+      (file) => !fs.existsSync(file.path) || fs.readFileSync(file.path, "utf8") !== file.content
+    );
+    if (outdated.length) {
+      for (const file of outdated) console.error(`File out of date: ${file.path}`);
+      throw new Error("Run 'npm run generate:seps' to update SEP documentation.");
     }
     console.log("All SEP documentation is up to date.");
   } else {
-    // Write mode: generate all files
-    for (const { path: filePath, content } of expectedFiles) {
-      fs.writeFileSync(filePath, content, "utf-8");
-      console.log(`Generated: ${path.relative(process.cwd(), filePath)}`);
-    }
-
-    // Format generated files with Prettier
-    const filesToFormat = expectedFiles
-      .filter(({ path: p }) => p.endsWith(".mdx"))
-      .map(({ path: p }) => path.relative(process.cwd(), p));
-    if (filesToFormat.length > 0) {
-      console.log("\nFormatting generated files with Prettier...");
-      execFileSync(npx, ["prettier", "--write", ...filesToFormat], { stdio: "inherit" });
-    }
-
-    console.log("\nSEP documentation generated successfully!");
+    fs.mkdirSync(DOCS_SEPS_DIR, { recursive: true });
+    for (const file of expectedFiles) fs.writeFileSync(file.path, file.content);
+    console.log(`Generated ${expectedFiles.length} SEP pages and navigation files.`);
   }
 }
 
