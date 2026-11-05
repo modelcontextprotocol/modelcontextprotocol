@@ -7,10 +7,10 @@ on:
 permissions:
   contents: read
 
-# Serialize updates and cleanup so an older run cannot replace a newer preview.
+# New PR events cancel the previous preview run.
 concurrency:
   group: docs-preview-${{ github.event.pull_request.number }}
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   build:
@@ -61,34 +61,19 @@ jobs:
       MINTLIFY_PROJECT_ID: ${{ vars.MINTLIFY_PROJECT_ID }}
       MINTLIFY_API_KEY: ${{ secrets.MINTLIFY_API_KEY }}
     steps:
-      - name: Check the PR still needs this preview
-        id: current
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
-        with:
-          script: |
-            const { data: pr } = await github.rest.pulls.get({
-              ...context.repo, pull_number: context.issue.number,
-            });
-            // A newer push or closure may have arrived while generation ran.
-            if (pr.state !== 'open' || pr.head.sha !== process.env.SOURCE_SHA) return false;
-            if (!process.env.MINTLIFY_API_KEY || !process.env.MINTLIFY_PROJECT_ID) {
-              throw new Error('Configure MINTLIFY_API_KEY and MINTLIFY_PROJECT_ID before enabling previews.');
-            }
-            return true;
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-        if: steps.current.outputs.result == 'true'
         with:
           ref: ${{ github.event.repository.default_branch }}
           path: publisher
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
-        if: steps.current.outputs.result == 'true'
         with:
           name: docs-preview
           path: ${{ runner.temp }}/generated-docs/
       - name: Commit generated website to its preview branch
-        if: steps.current.outputs.result == 'true'
         working-directory: publisher
         run: |
+          : "${MINTLIFY_API_KEY:?Configure MINTLIFY_API_KEY before enabling previews}"
+          : "${MINTLIFY_PROJECT_ID:?Configure MINTLIFY_PROJECT_ID before enabling previews}"
           test -s "$RUNNER_TEMP/generated-docs/docs.json"
           preview_ref=$(git ls-remote --heads origin "refs/heads/$PREVIEW_BRANCH")
           if [ -n "$preview_ref" ]; then
@@ -106,7 +91,6 @@ jobs:
           git commit --allow-empty -m "docs: preview PR #$PR_NUMBER ($SOURCE_SHA)"
           git push origin "HEAD:refs/heads/$PREVIEW_BRANCH"
       - name: Request Mintlify preview and share its URL
-        if: steps.current.outputs.result == 'true'
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
         with:
           script: |
@@ -148,16 +132,11 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      pull-requests: read
     steps:
       - name: Delete generated preview branch
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
         with:
           script: |
-            const { data: pr } = await github.rest.pulls.get({
-              ...context.repo, pull_number: context.issue.number,
-            });
-            if (pr.state !== 'closed') return; // The PR may have reopened while queued.
             try {
               await github.rest.git.getRef({
                 ...context.repo, ref: `heads/docs-pr-${context.issue.number}`,

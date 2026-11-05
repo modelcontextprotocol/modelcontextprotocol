@@ -25,7 +25,7 @@ Merge the validation and preview workflows before enabling publication.
 Build jobs have read-only access. A separate publishing job receives the artifact,
 pushes the generated branch, and calls the
 [Mintlify preview API](https://www.mintlify.com/docs/api/preview/trigger).
-It does not run PR code. Older queued builds are skipped if the PR has changed.
+It does not run PR code. New PR events cancel any in-progress preview run.
 Staging and production connections stay unchanged.
 
 ## Cleanup and recovery
@@ -35,7 +35,7 @@ a preview-deletion API, so remove remaining hosted previews from the Mintlify
 dashboard. Do not assume branch deletion removes an API-created preview; see
 [preview lifetime](https://www.mintlify.com/docs/deploy/preview-deployments#preview-lifetime).
 
-Rerun a failed workflow to retry the current revision. An older revision is skipped.
+Rerun the latest workflow to retry. Manual reruns use the original run’s revision.
 Disable new previews by setting `DOCS_PREVIEWS_ENABLED` to `false`; this also stops
 automatic branch cleanup. Delete remaining preview branches and hosted previews
 manually if needed. Build errors preserve the last published preview; deployment
