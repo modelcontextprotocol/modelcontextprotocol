@@ -32,7 +32,8 @@ preview run. Staging and production connections stay unchanged.
 
 ## Cleanup and recovery
 
-Closing or merging a PR deletes its generated branch. Mintlify does not document
+Closing or merging a PR attempts to delete its generated branch. Cleanup failures
+are logged without failing the workflow. Mintlify does not document
 a preview-deletion API, so remove remaining hosted previews from the Mintlify
 dashboard. Do not assume branch deletion removes an API-created preview; see
 [preview lifetime](https://www.mintlify.com/docs/deploy/preview-deployments#preview-lifetime).

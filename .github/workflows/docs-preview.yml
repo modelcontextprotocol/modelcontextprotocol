@@ -62,12 +62,13 @@ jobs:
     timeout-minutes: 10
     permissions:
       pull-requests: write
-    env:
-      MINTLIFY_PROJECT_ID: ${{ vars.MINTLIFY_PROJECT_ID }}
-      MINTLIFY_API_KEY: ${{ secrets.MINTLIFY_API_KEY }}
     steps:
-      - name: Request Mintlify preview and share its URL
+      - name: Request Mintlify preview
+        id: preview
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
+        env:
+          MINTLIFY_PROJECT_ID: ${{ vars.MINTLIFY_PROJECT_ID }}
+          MINTLIFY_API_KEY: ${{ secrets.MINTLIFY_API_KEY }}
         with:
           script: |
             if (!process.env.MINTLIFY_API_KEY || !process.env.MINTLIFY_PROJECT_ID) {
@@ -88,10 +89,17 @@ jobs:
             if (!response.ok) throw new Error(`Mintlify preview request failed: HTTP ${response.status}`);
             const { previewUrl } = await response.json();
             if (new URL(previewUrl).protocol !== 'https:') throw new Error('Invalid Mintlify preview URL');
+            core.setOutput('preview_url', previewUrl);
 
+      - name: Update PR preview comment
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
+        env:
+          PREVIEW_URL: ${{ steps.preview.outputs.preview_url }}
+        with:
+          script: |
             // Keep one comment per PR, updating the link and source revision.
             const marker = '<!-- generated-docs-preview -->';
-            const body = `${marker}\n[Generated docs preview](${previewUrl}) for ${process.env.SOURCE_SHA}.\n\nDeployment requested; the preview may take a few minutes to update.`;
+            const body = `${marker}\n[Generated docs preview](${process.env.PREVIEW_URL}) for ${process.env.SOURCE_SHA}.\n\nDeployment requested; the preview may take a few minutes to update.`;
             const comments = await github.paginate(github.rest.issues.listComments, {
               ...context.repo, issue_number: context.issue.number,
             });
@@ -113,16 +121,7 @@ jobs:
       contents: write
     steps:
       - name: Delete generated preview branch
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
-        with:
-          script: |
-            try {
-              await github.rest.git.getRef({
-                ...context.repo, ref: `heads/${process.env.PREVIEW_BRANCH}`,
-              });
-              await github.rest.git.deleteRef({
-                ...context.repo, ref: `heads/${process.env.PREVIEW_BRANCH}`,
-              });
-            } catch (error) {
-              if (error.status !== 404) throw error;
-            }
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api --method DELETE "repos/$GITHUB_REPOSITORY/git/refs/heads/$PREVIEW_BRANCH"
