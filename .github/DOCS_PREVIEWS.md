@@ -24,7 +24,7 @@ Merge the validation and preview workflows before enabling publication.
 
 The first job generates and validates the docs, then commits them to the preview
 branch. It has repository write permission, with Git credentials supplied to the
-commit step. The second job calls the
+publishing action. The second job calls the
 [Mintlify preview API](https://www.mintlify.com/docs/api/preview/trigger) for that
 branch and posts the link. Only the deployment job receives the Mintlify key;
 it needs no checkout or artifact download. New PR events cancel any in-progress

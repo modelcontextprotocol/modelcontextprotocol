@@ -45,29 +45,15 @@ jobs:
           npm run check:docs:format
           npm run generate
           npm run check
-      - name: Commit generated website to its preview branch
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          test -s "$GITHUB_WORKSPACE/docs/docs.json"
-          # Use a separate Git directory so only generated docs are committed.
-          git init --initial-branch="$PREVIEW_BRANCH" "$RUNNER_TEMP/docs-preview-publisher"
-          cd "$RUNNER_TEMP/docs-preview-publisher"
-          git remote add origin "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY.git"
-          git config credential.helper '!gh auth git-credential'
-          preview_ref=$(git ls-remote --heads origin "refs/heads/$PREVIEW_BRANCH")
-          if [ -n "$preview_ref" ]; then
-            git fetch --depth=1 origin "$PREVIEW_BRANCH"
-            git checkout -B "$PREVIEW_BRANCH" FETCH_HEAD
-            git rm -rf .
-          fi
-          # Dereference skills so the published files do not depend on source paths.
-          cp -RL "$GITHUB_WORKSPACE/docs" docs
-          git add docs
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git commit --allow-empty -m "docs: preview PR #$PR_NUMBER ($SOURCE_SHA)"
-          git push origin "HEAD:refs/heads/$PREVIEW_BRANCH"
+      - name: Commit and push preview docs
+        uses: peaceiris/actions-gh-pages@84c30a85c19949d7eee79c4ff27748b70285e453 # v4.1.0
+        with:
+          github_token: ${{ github.token }}
+          publish_branch: ${{ env.PREVIEW_BRANCH }}
+          publish_dir: docs
+          destination_dir: docs
+          allow_empty_commit: true
+          full_commit_message: "docs: preview PR #${{ env.PR_NUMBER }} (${{ env.SOURCE_SHA }})"
 
   deploy:
     name: Deploy preview
