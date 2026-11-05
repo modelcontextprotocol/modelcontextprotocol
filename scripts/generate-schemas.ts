@@ -1,7 +1,7 @@
 #!/usr/bin/env tsx
 
 import { exec } from 'child_process';
-import { existsSync, readdirSync, readFileSync, writeFileSync } from 'fs';
+import { readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import { promisify } from 'util';
 
@@ -11,10 +11,7 @@ const execAsync = promisify(exec);
 const LEGACY_SCHEMAS = ['2024-11-05', '2025-03-26', '2025-06-18'];
 
 // Modern schema versions that use JSON Schema 2020-12
-const MODERN_SCHEMAS = readdirSync('schema').filter(version =>
-  /^(draft|\d{4}-\d{2}-\d{2})$/.test(version) &&
-  !LEGACY_SCHEMAS.includes(version) && existsSync(join('schema', version, 'schema.ts'))
-).sort();
+const MODERN_SCHEMAS = ['2025-11-25', '2026-07-28', 'draft'];
 
 // All schema versions to generate
 const ALL_SCHEMAS = [...LEGACY_SCHEMAS, ...MODERN_SCHEMAS];

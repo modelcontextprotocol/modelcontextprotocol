@@ -107,7 +107,7 @@ jobs:
           # trees, mirroring what rewrite() in the docs.json step already
           # does for nav paths and what the hand-cut 2025-11-25 snapshot
           # did. schema.json/schema.mdx are regenerated from schema.ts by
-          # `npm run generate:schema` below, so stamping schema.ts covers the
+          # `npm run generate` below, so stamping schema.ts covers the
           # schema artifacts.
           grep -rl "/specification/draft/" \
               "docs/specification/$VERSION" "docs/docs/$VERSION" "schema/$VERSION" \
@@ -133,14 +133,14 @@ jobs:
       - name: Regenerate schema artifacts
         run: |
           npm ci
-          npm run generate:schema
+          npm run generate
 
-      - name: Patch Mintlify source navigation
+      - name: Patch Mintlify nav (docs/docs.json)
         run: |
           node <<'EOF'
           const fs = require('fs');
           const V = process.env.VERSION;
-          const p = 'docs/docs.source.json';
+          const p = 'docs/docs.json';
           const j = JSON.parse(fs.readFileSync(p, 'utf8'));
           // navigation.tabs[].versions[] where version === 'Draft' is the template.
           // Insert a copy as the new "(latest)", strip "(latest)" from the previous one,
@@ -200,9 +200,6 @@ jobs:
           }
           fs.writeFileSync(p, JSON.stringify(j, null, 2) + '\n');
           EOF
-
-      - name: Regenerate tracked website navigation
-        run: npm run generate:seps
 
       - name: Reset draft changelog for next cycle
         run: |

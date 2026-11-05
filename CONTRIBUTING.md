@@ -63,8 +63,7 @@ If your branch conflicts with `main` in generated files (`schema/*/schema.json`,
 
 ```bash
 git merge main
-npm run generate:schema
-npm run generate:seps
+npm run generate
 git add .
 git commit
 ```
@@ -74,15 +73,6 @@ These files are marked with `-merge` in `.gitattributes`, so git keeps your bran
 ## Documentation changes
 
 Documentation is written in MDX format and in the [`docs`](./docs) directory.
-
-Edit navigation and site settings in `docs/docs.source.json`, then run
-`npm run generate:seps` to refresh `docs/docs.json`.
-
-`npm run generate` builds a clean website bundle in `.build/docs/` without
-changing source files. `npm run check` validates source and this bundle; CI
-uploads it as a `Docs build` artifact. While hosting still uses tracked files,
-continue committing generated schema and SEP copies with the commands above.
-Do not commit `.build/`.
 
 You can preview documentation changes locally by running:
 
@@ -123,7 +113,7 @@ When contributing to the documentation:
   - You may run `npm run check:docs:links` to look for broken internal links.
 - Use appropriate headings: "When to use", "Steps", and "Tips" for tutorials
 - Place new pages in appropriate sections (concepts, tutorials, etc.)
-- Update `docs/docs.source.json` when adding new pages, then run `npm run generate:seps`
+- Update `docs.json` when adding new pages
 - Follow existing file naming conventions (`kebab-case.mdx`)
 - Include proper frontmatter in MDX files
 
