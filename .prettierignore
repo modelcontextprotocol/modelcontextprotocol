@@ -1,3 +1,5 @@
 docs/specification/*/schema.md
 docs/specification/*/schema.mdx
 docs/registry/
+.build/
+docs/seps/

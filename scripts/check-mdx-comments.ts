@@ -8,7 +8,7 @@
 
 import { readFile } from "fs/promises";
 import { glob } from "glob";
-import { dirname, join } from "path";
+import { dirname, join, resolve } from "path";
 import remarkMdx from "remark-mdx";
 import remarkParse from "remark-parse";
 import { unified } from "unified";
@@ -17,22 +17,25 @@ import { fileURLToPath } from "url";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 async function main() {
-  const mdxFiles = await glob("docs/**/*.mdx", { cwd: join(__dirname, "..") });
+  const docsRoot = resolve(process.argv[2] ?? join(__dirname, "..", "docs"));
+  const mdxFiles = await glob("**/*.mdx", { cwd: docsRoot });
+  if (mdxFiles.length === 0)
+    throw new Error(`No MDX pages found in ${docsRoot}`);
 
   process.stdout.write(
-    `Checking ${mdxFiles.length} MDX files for JS comments in ESM blocks... `
+    `Checking ${mdxFiles.length} MDX files for JS comments in ESM blocks... `,
   );
 
   const parser = unified().use(remarkParse).use(remarkMdx);
 
   const promises = mdxFiles.map(async (file) => {
-    const content = await readFile(join(__dirname, "..", file), "utf8");
+    const content = await readFile(join(docsRoot, file), "utf8");
 
     let tree;
     try {
       tree = parser.parse(content);
-    } catch {
-      return []; // Parse error -- let other checks catch it
+    } catch (error) {
+      return [`${file}: ${(error as Error).message}`];
     }
 
     const locations: string[] = [];
@@ -52,7 +55,7 @@ async function main() {
   const commentLocations = (await Promise.all(promises)).flat();
 
   if (commentLocations.length > 0) {
-    console.error("\nError: JS comments found in MDX ESM blocks:\n");
+    console.error("\nError: Invalid MDX or JS comments in ESM blocks:\n");
     for (const loc of commentLocations) {
       console.error(`- ${loc}`);
     }

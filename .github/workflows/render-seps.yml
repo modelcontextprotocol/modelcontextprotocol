@@ -7,11 +7,13 @@ on:
     paths:
       - "seps/**/*.md"
       - "scripts/render-seps.ts"
+      - "docs/docs.source.json"
 
   pull_request:
     paths:
       - "seps/**/*.md"
       - "scripts/render-seps.ts"
+      - "docs/docs.source.json"
 
   # Allow manual trigger
   workflow_dispatch:

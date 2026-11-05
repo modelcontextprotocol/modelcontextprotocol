@@ -47,6 +47,12 @@ Specifications use **date-based versioning** (YYYY-MM-DD), not semantic versioni
 
 ## Schema Generation
 
+`npm run generate` builds the website in `.build/docs/` without changing source
+files. `npm run check` validates source and the generated bundle. During the
+hosting transition, still commit generated copies using the focused commands
+below. Edit navigation in `docs/docs.source.json`, then run `generate:seps` to
+refresh tracked `docs/docs.json`. Do not commit `.build/`.
+
 TypeScript files are the **source of truth** for the protocol schema:
 
 - Edit: `schema/[version]/schema.ts`
@@ -75,7 +81,7 @@ npm run serve:docs       # Local Mintlify docs server
 npm run serve:blog       # Local Hugo blog server
 
 # Generation (run after editing source files)
-npm run generate         # Generate all (schema + SEPs)
+npm run generate         # Build website content in .build/docs/ (not tracked)
 npm run generate:schema  # Generate JSON schemas + MDX from TypeScript
 npm run generate:seps    # Generate SEP documents
 
