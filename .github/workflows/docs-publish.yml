@@ -1,0 +1,46 @@
+name: Docs publish
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+# Finish each publication before starting another; newer pending runs can replace older ones.
+concurrency:
+  group: docs-publish-main
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Generate and publish docs
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Validate source and generate website
+        run: |
+          npm run check:schema:json
+          npm run check:docs:format
+          npm run generate
+          npm run check
+      - name: Commit and push generated docs
+        uses: peaceiris/actions-gh-pages@84c30a85c19949d7eee79c4ff27748b70285e453 # v4.1.0
+        with:
+          github_token: ${{ github.token }}
+          publish_branch: docs-main
+          publish_dir: docs
+          destination_dir: docs
+          allow_empty_commit: true
+          full_commit_message: "docs: publish main (${{ github.sha }})"
