@@ -2,7 +2,7 @@
 title: "Exploring File Uploads and Downloads in MCP"
 date: "2026-11-10T09:00:00+00:00"
 publishDate: "2026-11-10T09:00:00+00:00"
-slug: exploring-file-uploads-downloads
+slug: exploring-file-uploads-and-downloads-in-mcp
 description: "We're working on an extension for moving files between clients and tools in MCP. It's early, and we'd love your help trying it out."
 author:
   - Den Delimarsky (Lead Maintainer)
