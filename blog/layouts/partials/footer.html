@@ -2,17 +2,13 @@
 <div class="footer-wrap">
 <footer class="footer">
     <nav class="footer-nav">
-        {{- range $i, $m := site.Menus.main }}
-        {{- if $i }}<span class="footer-sep"> · </span>{{ end -}}
-        <a href="{{ $m.URL | absLangURL }}">{{ $m.Name }}</a>
+        {{- range site.Menus.main }}
+        <a href="{{ .URL | absLangURL }}">{{ .Name }}</a>
         {{- end }}
-        {{- with site.GetPage "/tags" }}
-        <span class="footer-sep"> · </span><a href="{{ .RelPermalink }}">Tags</a>
-        {{- end }}
-        <span class="footer-sep"> · </span><a href="https://github.com/modelcontextprotocol">GitHub</a>
-        <span class="footer-sep"> · </span><a href="https://linkedin.com/company/modelcontextprotocol">LinkedIn</a>
+        <a href="https://github.com/modelcontextprotocol">GitHub</a>
+        <a href="https://linkedin.com/company/modelcontextprotocol">LinkedIn</a>
         {{- with site.Home.OutputFormats.Get "rss" }}
-        <span class="footer-sep"> · </span><a href="{{ .RelPermalink }}">RSS</a>
+        <a href="{{ .RelPermalink }}">RSS</a>
         {{- end }}
     </nav>
     {{- if not site.Params.footer.hideCopyright }}
@@ -30,9 +26,11 @@
 {{- end }}
 
 {{- if (not site.Params.disableScrollToTop) }}
-<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
-        <path d="M12 6H0l6-6z" />
+<a href="#top" aria-label="Back to top" title="Back to top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <line x1="12" y1="19" x2="12" y2="5"></line>
+        <polyline points="5 12 12 5 19 12"></polyline>
     </svg>
 </a>
 {{- end }}

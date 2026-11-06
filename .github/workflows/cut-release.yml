@@ -217,8 +217,8 @@ jobs:
         uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
         with:
           branch: release/${{ inputs.version }}
-          title: "Add ${{ inputs.version }} MCP specification"
-          commit-message: "Add ${{ inputs.version }} MCP specification"
+          title: "chore(release): publish ${{ inputs.version }} specification"
+          commit-message: "chore(release): publish ${{ inputs.version }} specification"
           labels: release
           body: |
             Promotes `docs/specification/draft/`, `docs/docs/draft/`, and `schema/draft/` to `${{ inputs.version }}`.

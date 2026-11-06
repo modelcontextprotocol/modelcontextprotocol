@@ -1,23 +1,23 @@
-{{- $scratch := newScratch }}
+{{- /*
+  Override of PaperMod's post_meta.html, which joins the date, reading time
+  and author into one string with " · ". This is the metadata under a post's
+  title: when it was published (post_when.html, the same partial the post
+  list uses), then who wrote it, each role under its name.
 
-{{- if not .Date.IsZero -}}
-{{- $scratch.Add "meta" (slice (.Date | time.Format (default "January 2, 2006" site.Params.DateFormat))) }}
+  The layout is in custom.css under "Metadata": the date beside the first
+  author's name, the reading time beside the role. On a wide screen the date
+  and reading time hang in the left margin, as they do in the list.
+*/ -}}
+{{- partial "post_when.html" (dict "page" . "format" (default "Jan 2, 2006" site.Params.DateFormat)) }}
+{{- if not (.Param "hideAuthor") }}
+{{- with (partial "authors.html" .) }}
+<ul class="authors">
+  {{- range . }}
+  <li class="author">
+    <span class="author-name">{{ .name }}</span>
+    {{- with .role }} <span class="author-role">{{ . }}</span>{{ end }}
+  </li>
+  {{- end }}
+</ul>
 {{- end }}
-
-{{- if (.Param "ShowReadingTime") -}}
-{{- $scratch.Add "meta" (slice (i18n "read_time" .ReadingTime | default (printf "%d min" .ReadingTime))) }}
-{{- end }}
-
-{{- if (.Param "ShowWordCount") -}}
-{{- $scratch.Add "meta" (slice (i18n "words" .WordCount | default (printf "%d words" .WordCount))) }}
-{{- end }}
-
-{{- if not (.Param "hideAuthor") -}}
-{{- with (partial "author.html" .) }}
-{{- $scratch.Add "meta" (slice .) }}
-{{- end }}
-{{- end }}
-
-{{- with ($scratch.Get "meta") }}
-{{- delimit . "&nbsp;·&nbsp;" | safeHTML -}}
 {{- end -}}

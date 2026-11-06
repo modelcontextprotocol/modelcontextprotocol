@@ -15,6 +15,8 @@ Today, servers that need a file from the user resort to prose instructions askin
 or local paths, which produces inconsistent UX and pushes encoding details onto end users. This WG
 will specify a minimal, schema-level mechanism for declaring file inputs and the wire format for
 delivering them, anchored on [SEP-2356](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2356).
+As a secondary goal, the WG covers how a tool returns a file that is too large for a JSON-RPC message
+or that needs authorization to fetch.
 
 ## Scope
 
@@ -23,6 +25,8 @@ delivering them, anchored on [SEP-2356](https://github.com/modelcontextprotocol/
 - **Specification Work**: SEPs defining declarative file input descriptors on tool input schemas and
   elicitation request schemas, the wire encoding for file content, and host-side handling
   requirements.
+- **File Downloads (secondary)**: How a tool returns a file that is too large for a JSON-RPC message
+  or that needs authorization to fetch. Upload work takes priority.
 - **Reference Implementations**: SDK types and helpers for `FileInputDescriptor`, data URI encoding,
   and a sample host flow demonstrating picker invocation and value substitution.
 - **Cross-Cutting Concerns**: Coordination with the MCP Apps WG where embedded UI surfaces present
@@ -32,7 +36,7 @@ delivering them, anchored on [SEP-2356](https://github.com/modelcontextprotocol/
 
 ### Out of Scope
 
-- Server-to-client file delivery, which is already covered by Resources and `BlobResourceContents`.
+- Server-to-client delivery of small files, which Resources and `BlobResourceContents` already cover.
 - Changes to the transport layer or session model.
 
 The WG may evaluate approaches such as streaming, chunked transfer, or presigned upload URLs as part
@@ -106,6 +110,7 @@ Discord: `#file-uploads-wg`
 
 ## Changelog
 
-| Date       | Change          |
-| ---------- | --------------- |
-| 2026-04-23 | Initial charter |
+| Date       | Change                                          |
+| ---------- | ----------------------------------------------- |
+| 2026-04-23 | Initial charter                                 |
+| 2026-10-21 | Add file downloads to scope as a secondary item |

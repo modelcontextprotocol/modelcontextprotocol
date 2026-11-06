@@ -1,21 +1,16 @@
-{{- /* PaperMod override: identical to the theme's breadcrumbs.html except the
-       separator, a plain slash instead of ». */ -}}
-{{- if (.Param "ShowBreadCrumbs") -}}
-<div class="breadcrumbs">
-    {{- $url := replace .Parent.Permalink (printf "%s" site.Home.Permalink) "" }}
-    {{- $lang_url := strings.TrimPrefix (printf "%s/" .Lang) $url -}}
-
-    <a href="{{ "" | absLangURL }}">{{ i18n "home" | default "Home" }}</a>
-    {{- $scratch := newScratch }}
-    {{- range $index, $element := split $lang_url "/" }}
-
-    {{- $scratch.Add "path" (printf "%s/" $element )}}
-    {{- $bc_pg := site.GetPage ($scratch.Get "path") -}}
-
-    {{- if (and ($bc_pg) (gt (len . ) 0))}}
-    {{- print "&nbsp;/&nbsp;" | safeHTML -}}<a href="{{ $bc_pg.Permalink }}">{{ $bc_pg.Name }}</a>
-    {{- end }}
-
-    {{- end -}}
-</div>
+{{- /*
+  Override of PaperMod's breadcrumbs.html. The site is two levels deep, so a
+  trail ("Home / Tags / ruby") says little and needs separators. This is one
+  link back to the list the page belongs to: a tag page goes to "All tags",
+  everything else to "All posts", which is the homepage. Posts keep their full
+  trail in the JSON-LD (templates/schema_json.html).
+*/ -}}
+{{- if (.Param "ShowBreadCrumbs") }}
+<nav class="breadcrumbs" aria-label="Breadcrumb">
+  {{- if eq .Kind "term" }}
+  <a href="{{ .Parent.RelPermalink }}">All {{ lower .Parent.LinkTitle }}</a>
+  {{- else }}
+  <a href="{{ site.Home.RelPermalink }}">All posts</a>
+  {{- end }}
+</nav>
 {{- end -}}

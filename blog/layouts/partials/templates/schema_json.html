@@ -40,8 +40,11 @@
 {{- $crumbs := slice -}}
 {{- $pos := 0 -}}
 {{- range .Ancestors.Reverse -}}
+  {{- /* Skip ancestors that only redirect (the posts section). */ -}}
+  {{- if not .Params.redirectTo -}}
   {{- $pos = add $pos 1 -}}
   {{- $crumbs = $crumbs | append (dict "@type" "ListItem" "position" $pos "name" .Title "item" .Permalink) -}}
+  {{- end -}}
 {{- end -}}
 {{- $pos = add $pos 1 -}}
 {{- $crumbs = $crumbs | append (dict "@type" "ListItem" "position" $pos "name" .Title "item" .Permalink) -}}
@@ -81,22 +84,15 @@
   {{- end -}}
   "datePublished": {{ .PublishDate }},
   "dateModified": {{ .Lastmod }},
-  {{- with (.Params.author | default site.Params.author) }}
+  {{- with (partial "authors.html" .) }}
   "author":
-    {{- if (or (eq (printf "%T" .) "[]string") (eq (printf "%T" .) "[]interface {}")) -}}
   [{{- range $i, $v := . -}}
   {{- if $i }}, {{end -}}
   {
     "@type": "Person",
-    "name": {{ $v }}
+    "name": {{ $v.name }}
   }
   {{- end }}],
-    {{- else -}}
-  {
-    "@type": "Person",
-    "name": {{ . }}
-  },
-    {{- end -}}
   {{- end }}
   "mainEntityOfPage": {
     "@type": "WebPage",

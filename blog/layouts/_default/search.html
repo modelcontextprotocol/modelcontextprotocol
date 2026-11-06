@@ -1,10 +1,12 @@
 {{- /*
   Override of PaperMod's search.html: drops the magnifying-glass SVG that
-  PaperMod inlines inside the <h1> next to the page title.
+  PaperMod inlines inside the <h1> next to the page title, and adds the same
+  link back to the posts that every other page has above its title.
 */ -}}
 {{- define "main" }}
 
 <header class="page-header">
+    {{- partial "breadcrumbs.html" . }}
     <h1>{{ .Title }}</h1>
     {{- if .Description }}
     <div class="post-description">

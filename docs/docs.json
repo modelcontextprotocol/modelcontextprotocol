@@ -861,7 +861,14 @@
               "seps/2577-deprecate-roots-sampling-and-logging",
               "seps/2596-spec-feature-lifecycle-and-deprecation",
               "seps/2640-skills-extension",
-              "seps/2663-tasks-extension"
+              "seps/2663-tasks-extension",
+              "seps/3392-extension-lifecycle"
+            ]
+          },
+          {
+            "group": "Accepted",
+            "pages": [
+              "seps/3398-release-cycle-updates"
             ]
           },
           {
@@ -906,29 +913,29 @@
           {
             "group": "Working Group Charters",
             "pages": [
-              "community/working-groups/agents",
               "community/working-groups/file-uploads",
               "community/working-groups/filesystems",
               "community/working-groups/governance",
               "community/working-groups/infrastructure",
               "community/working-groups/inspector-v2",
               "community/working-groups/interceptors",
+              "community/working-groups/progressive-disclosure",
               "community/working-groups/registry",
               "community/working-groups/sdk",
               "community/working-groups/server-card",
               "community/working-groups/skills-over-mcp",
-              "community/working-groups/transports",
-              "community/working-groups/triggers-events"
+              "community/working-groups/tasks-events",
+              "community/working-groups/transports"
             ]
           },
           {
             "group": "Interest Group Charters",
             "pages": [
+              "community/interest-groups/agents",
               "community/interest-groups/auth",
               "community/interest-groups/enterprise",
               "community/interest-groups/enterprise-managed-authorization",
               "community/interest-groups/financial-services",
-              "community/interest-groups/primitive-grouping",
               "community/interest-groups/scientific-computing",
               "community/interest-groups/security",
               "community/interest-groups/tool-annotations"
@@ -956,6 +963,10 @@
   },
   "redirects": [
     {
+      "source": "/community/interest-groups/primitive-grouping",
+      "destination": "/community/working-groups/progressive-disclosure"
+    },
+    {
       "source": "/clients",
       "destination": "/docs/2026-07-28/getting-started/intro"
     },
@@ -969,7 +980,11 @@
     },
     {
       "source": "/community/agents/charter",
-      "destination": "/community/working-groups/agents"
+      "destination": "/community/interest-groups/agents"
+    },
+    {
+      "source": "/community/working-groups/agents",
+      "destination": "/community/interest-groups/agents"
     },
     {
       "source": "/community/file-uploads/charter",
@@ -1005,7 +1020,11 @@
     },
     {
       "source": "/community/triggers-events/charter",
-      "destination": "/community/working-groups/triggers-events"
+      "destination": "/community/working-groups/tasks-events"
+    },
+    {
+      "source": "/community/working-groups/triggers-events",
+      "destination": "/community/working-groups/tasks-events"
     },
     {
       "source": "/specification/draft/basic/lifecycle",
@@ -1436,6 +1455,14 @@
     {
       "source": "/seps/2663",
       "destination": "/seps/2663-tasks-extension"
+    },
+    {
+      "source": "/seps/3392",
+      "destination": "/seps/3392-extension-lifecycle"
+    },
+    {
+      "source": "/seps/3398",
+      "destination": "/seps/3398-release-cycle-updates"
     },
     {
       "source": "/seps/3405",

@@ -12,7 +12,7 @@
    margins keep the strip centered too. */
 .mcp-quotes {
     --mcp-quotes-bleed: max(0px, min((1200px - 100%) / 2, 50vw - 50% - 32px));
-    margin: 40px calc(-1 * var(--mcp-quotes-bleed));
+    margin: var(--gap-block) calc(-1 * var(--mcp-quotes-bleed));
 }
 
 /* A lone quote is a pull quote, not a strip: it stays in the prose column. */
@@ -71,8 +71,8 @@
     flex-direction: column;
     min-width: 0;
     margin: 0;
-    padding: 8px 24px;
-    border-inline-start: 1px solid var(--border);
+    padding: var(--s-2) var(--s-6);
+    border-inline-start: 1px solid var(--line);
     scroll-snap-align: start;
 }
 
@@ -98,7 +98,7 @@
    card reads as a separate card. */
 @media (max-width: 599px) {
     .post-content .mcp-quote {
-        padding-inline: 16px;
+        padding-inline: var(--s-4);
     }
 }
 
@@ -106,9 +106,9 @@
    ratio. Inline SVGs inherit currentColor so they track the theme. */
 .mcp-quote-logo {
     display: block;
-    height: 28px;
-    margin-bottom: 20px;
-    color: var(--primary);
+    height: var(--lh-4);
+    margin-bottom: var(--s-5);
+    color: var(--ink);
 }
 
 .mcp-quote-logo svg,
@@ -131,18 +131,39 @@
 
 /* Paired logo variants (the quote shortcode's `logo-dark` param): the light
    file renders in light mode, the dark file in dark mode. Theme switching
-   follows PaperMod's body.dark class toggle. */
-body.dark .mcp-quote-logo-light,
-body:not(.dark) .mcp-quote-logo-dark {
+   follows PaperMod's body.dark class toggle. Paper is always light. Without
+   JavaScript nothing sets the class, so the system setting decides, as it does
+   for the colors in custom.css. */
+.mcp-quote-logo-dark {
     display: none;
 }
 
+@media screen {
+    body.dark .mcp-quote-logo-light {
+        display: none;
+    }
+
+    body.dark .mcp-quote-logo-dark {
+        display: block;
+    }
+}
+
+@media screen and (scripting: none) and (prefers-color-scheme: dark) {
+    .mcp-quote-logo-light {
+        display: none;
+    }
+
+    .mcp-quote-logo-dark {
+        display: block;
+    }
+}
+
 .mcp-quote-logo-text {
-    font-size: 18px;
-    font-weight: 400;
-    line-height: 28px;
-    letter-spacing: -0.01em;
-    color: var(--primary);
+    font-size: var(--fs-3);
+    font-weight: var(--fw-regular);
+    line-height: var(--lh-4);
+    letter-spacing: var(--ls-3);
+    color: var(--ink);
 }
 
 /* Reset PaperMod's blockquote treatment (left bar, italic-ish inset). */
@@ -150,10 +171,11 @@ body:not(.dark) .mcp-quote-logo-dark {
     margin: 0;
     padding: 0;
     border: none;
-    font-size: 16px;
+    font-size: var(--fs-2);
     font-style: normal;
-    line-height: 1.6;
-    color: var(--content);
+    line-height: var(--lh-2);
+    letter-spacing: var(--ls-2);
+    color: var(--text);
 }
 
 .post-content .mcp-quote-text p {
@@ -162,24 +184,26 @@ body:not(.dark) .mcp-quote-logo-dark {
     font-size: inherit;
 }
 
-/* Attribution: the name bold on one line, the title regular and muted on the
-   next. PaperMod bolds figure > figcaption wholesale, so the figcaption is
-   reset to 400 and only the name span re-bolds (700, matching the blog's
-   strong text). Both lines share one tight line-height so the pair reads as
-   a unit, not two paragraphs. */
+/* Attribution: a name over a title, set exactly like an author in a post's
+   byline (.author-name and .author-role in custom.css). PaperMod bolds
+   figure > figcaption wholesale, so the figcaption is reset to regular and
+   only the name span is stronger. */
 .post-content .mcp-quote-attrib {
     margin-top: auto;
-    padding-top: 16px;
-    font-size: 14px;
-    font-weight: 400;
-    line-height: 1.45;
-    color: var(--secondary);
+    padding-top: var(--s-4);
+    font-size: var(--fs-1);
+    font-weight: var(--fw-regular);
+    line-height: var(--lh-1);
+    letter-spacing: var(--ls-1);
+    color: var(--faint);
 }
 
 .mcp-quote-attrib-name {
     display: block;
-    font-weight: 700;
-    color: var(--content);
+    font-size: var(--fs-2);
+    font-weight: var(--fw-medium);
+    line-height: var(--lh-2);
+    color: var(--ink);
 }
 
 .mcp-quote-attrib-title {
@@ -228,32 +252,34 @@ body:not(.dark) .mcp-quote-logo-dark {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 16px;
-    margin-top: 28px;
+    gap: var(--s-4);
+    margin-top: var(--s-6);
 }
 
 .mcp-quotes-nav[hidden] {
     display: none;
 }
 
+/* The same outlined square as the back-to-top link (.top-link in custom.css). */
 .mcp-quotes-btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 32px;
-    height: 32px;
+    width: var(--s-10);
+    height: var(--s-10);
     padding: 0;
-    color: var(--primary);
-    background: var(--code-bg);
-    border: 1px solid var(--border);
-    border-radius: 50%;
+    color: var(--ink);
+    background: none;
+    border: var(--hair) solid var(--edge);
+    border-radius: var(--r-sm);
     cursor: pointer;
-    transition: border-color 0.15s ease;
 }
 
 @media (hover: hover) {
     .mcp-quotes-btn:not(:disabled):hover {
-        border-color: var(--primary);
+        color: var(--ink);
+        background: var(--surface);
+        border-color: var(--ink);
     }
 }
 
@@ -262,23 +288,25 @@ body:not(.dark) .mcp-quote-logo-dark {
     cursor: default;
 }
 
+/* Wraps, so a long run of dots cannot push the arrows off a small phone. */
 .mcp-quotes-dots {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
-    gap: 8px;
+    justify-content: center;
+    gap: var(--s-2);
 }
 
 .mcp-quotes-dot {
-    width: 8px;
-    height: 8px;
+    width: var(--s-2);
+    height: var(--s-2);
     padding: 0;
-    background: var(--tertiary);
+    background: var(--edge);
     border: none;
     border-radius: 50%;
     cursor: pointer;
-    transition: background 0.15s ease;
 }
 
 .mcp-quotes-dot[aria-current="true"] {
-    background: var(--primary);
+    background: var(--ink);
 }

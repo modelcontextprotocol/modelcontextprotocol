@@ -634,9 +634,9 @@ The cost of removal is the one archives were introduced to address: a skill with
 ## References
 
 - [Agent Skills specification](https://agentskills.io/specification)
-- [SEP-2133]: Extensions
-- [SEP-2549]: TTL for list results
-- [SEP-2076]: Agent Skills as first-class primitive (alternative approach)
+- [SEP-2133][]: Extensions
+- [SEP-2549][]: TTL for list results
+- [SEP-2076][]: Agent Skills as first-class primitive (alternative approach)
 - [Skills Over MCP Working Group charter](https://modelcontextprotocol.io/community/skills-over-mcp/charter)
 - [Decision Log](https://github.com/modelcontextprotocol/ext-skills/blob/main/docs/decisions.md): Working Group decisions and rationale
 - [Experimental Findings](https://github.com/modelcontextprotocol/ext-skills/blob/main/docs/archive/experimental-findings.md): results from implementations (WIP)
