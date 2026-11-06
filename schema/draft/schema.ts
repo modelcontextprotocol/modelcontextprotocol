@@ -168,8 +168,71 @@ export type ProgressToken = string | number;
  * An opaque token used to represent a cursor for pagination.
  *
  * @category Common Types
+ * @maxLength 8192
  */
 export type Cursor = string;
+
+/**
+ * A Uniform Resource Identifier (URI), as defined by RFC 3986.
+ *
+ * @category Common Types
+ * @format uri
+ * @minLength 1
+ * @maxLength 8192
+ */
+export type URI = string;
+
+/**
+ * A Multipurpose Internet Mail Extensions (MIME) type, as defined in RFC 2045.
+ *
+ * @category Common Types
+ * @format mime-type
+ * @minLength 1
+ * @maxLength 256
+ */
+export type MIMEType = string;
+
+/**
+ * A human-readable description, intended for display to a person (e.g. in a UI).
+ *
+ * @category Common Types
+ * @format text
+ * @minLength 1
+ * @maxLength 1024
+ */
+export type Description = string;
+
+/**
+ * A description intended to inform how an LLM understands or uses the
+ * described object. Unlike {@link Description}, this is not primarily for
+ * human display — it can be thought of like a "hint" to the model.
+ *
+ * @category Common Types
+ * @format text
+ * @minLength 1
+ * @maxLength 1024
+ */
+export type ModelDescription = string;
+
+/**
+ * A human-readable display title, intended for a person (e.g. in a UI).
+ *
+ * @category Common Types
+ * @format text
+ * @minLength 1
+ * @maxLength 256
+ */
+export type Title = string;
+
+/**
+ * A programmatic identifier, intended for machine use rather than display
+ * (e.g. a resource, prompt, or tool name). Unlike {@link Title}, this is not
+ * primarily for human display.
+ *
+ * @category Common Types
+ * @maxLength 256
+ */
+export type Identifier = string;
 
 /**
  * Common params for any request.
@@ -590,6 +653,8 @@ export interface InputRequiredResult extends Result {
    * retries the original request.
    * Note: The client must treat this as an opaque blob; it must not
    * interpret it in any way.
+   *
+   * @maxLength 65536
    */
   requestState?: string;
 }
@@ -846,10 +911,15 @@ export interface ServerCapabilities {
   resources?: {
     /**
      * Whether this server supports subscribing to resource updates.
+     *
+     * If this is `true`, the server will send updates whenever a resource changes.
+     *
      */
     subscribe?: boolean;
     /**
      * Whether this server supports notifications for changes to the resource list.
+     *
+     * If this is `true`, the server will send notifications whenever the resource list changes.
      */
     listChanged?: boolean;
   };
@@ -865,6 +935,8 @@ export interface ServerCapabilities {
   tools?: {
     /**
      * Whether this server supports notifications for changes to the tool list.
+     *
+     * If this is `true`, the server will send notifications whenever the tool list changes.
      */
     listChanged?: boolean;
   };
@@ -898,21 +970,23 @@ export interface Icon {
    * Consumers SHOULD take appropriate precautions when consuming SVGs as they can contain
    * executable JavaScript.
    *
-   * @format uri
+   * @pattern ^(https?://|data:image/)
    */
-  src: string;
+  src: URI;
 
   /**
    * Optional MIME type override if the source MIME type is missing or generic.
    * For example: `"image/png"`, `"image/jpeg"`, or `"image/svg+xml"`.
    */
-  mimeType?: string;
+  mimeType?: MIMEType;
 
   /**
    * Optional array of strings that specify sizes at which the icon can be used.
    * Each string should be in WxH format (e.g., `"48x48"`, `"96x96"`) or `"any"` for scalable formats like SVG.
    *
    * If not provided, the client should assume that the icon can be used at any size.
+   *
+   * @pattern ^(\d+x\d+|any)$
    */
   sizes?: string[];
 
@@ -942,6 +1016,8 @@ export interface Icons {
    * Clients that support rendering icons SHOULD also support:
    * - `image/svg+xml` - SVG images (scalable but requires security precautions)
    * - `image/webp` - WebP images (modern, efficient format)
+   *
+   * @maxItems 10
    */
   icons?: Icon[];
 }
@@ -955,7 +1031,7 @@ export interface BaseMetadata {
   /**
    * Intended for programmatic or logical use, but used as a display name in past specs or fallback (if title isn't present).
    */
-  name: string;
+  name: Identifier;
 
   /**
    * Intended for UI and end-user contexts — optimized to be human-readable and easily understood,
@@ -965,7 +1041,7 @@ export interface BaseMetadata {
    * where `annotations.title` should be given precedence over using `name`,
    * if present).
    */
-  title?: string;
+  title?: Title;
 }
 
 /**
@@ -976,6 +1052,8 @@ export interface BaseMetadata {
 export interface Implementation extends BaseMetadata, Icons {
   /**
    * The version of this implementation.
+   *
+   * @maxLength 64
    */
   version: string;
 
@@ -986,14 +1064,12 @@ export interface Implementation extends BaseMetadata, Icons {
    * and capabilities. For example, a server might describe the types of resources
    * or tools it provides, while a client might describe its intended use case.
    */
-  description?: string;
+  description?: Description;
 
   /**
    * An optional URL of the website for this implementation.
-   *
-   * @format uri
    */
-  websiteUrl?: string;
+  websiteUrl?: URI;
 }
 
 /* Progress notifications */
@@ -1015,12 +1091,14 @@ export interface ProgressNotificationParams extends NotificationParams {
    * The progress thus far. This should increase every time progress is made, even if the total is unknown.
    *
    * @TJS-type number
+   * @minimum 0
    */
   progress: number;
   /**
    * Total number of items to process (or total progress required), if known.
    *
    * @TJS-type number
+   * @minimum 0
    */
   total?: number;
   /**
@@ -1090,6 +1168,7 @@ export interface CacheableResult extends Result {
    *   milliseconds after receiving the response.
    *
    * @minimum 0
+   * @maximum 86400000
    */
   ttlMs: number;
 
@@ -1191,10 +1270,8 @@ export interface ListResourceTemplatesResultResponse extends JSONRPCResultRespon
 export interface ResourceRequestParams extends RequestParams {
   /**
    * The URI of the resource. The URI can use any protocol; it is up to the server how to interpret it.
-   *
-   * @format uri
    */
-  uri: string;
+  uri: URI;
 }
 
 /**
@@ -1283,6 +1360,8 @@ export interface SubscriptionFilter {
   /**
    * Subscribe to {@link ResourceUpdatedNotification | notifications/resources/updated} for these resource URIs.
    * Replaces the former `resources/subscribe` RPC.
+   *
+   * @maxItems 1000
    */
   resourceSubscriptions?: string[];
 }
@@ -1411,10 +1490,8 @@ export interface SubscriptionsAcknowledgedNotification extends JSONRPCNotificati
 export interface ResourceUpdatedNotificationParams extends NotificationParams {
   /**
    * The URI of the resource that has been updated. This might be a sub-resource of the one that the client actually subscribed to.
-   *
-   * @format uri
    */
-  uri: string;
+  uri: URI;
 }
 
 /**
@@ -1441,22 +1518,20 @@ export interface ResourceUpdatedNotification extends JSONRPCNotification {
 export interface Resource extends BaseMetadata, Icons {
   /**
    * The URI of this resource.
-   *
-   * @format uri
    */
-  uri: string;
+  uri: URI;
 
   /**
    * A description of what this resource represents.
    *
    * This can be used by clients to improve the LLM's understanding of available resources. It can be thought of like a "hint" to the model.
    */
-  description?: string;
+  description?: ModelDescription;
 
   /**
    * The MIME type of this resource, if known.
    */
-  mimeType?: string;
+  mimeType?: MIMEType;
 
   /**
    * Optional annotations for the client.
@@ -1467,6 +1542,8 @@ export interface Resource extends BaseMetadata, Icons {
    * The size of the raw resource content, in bytes (i.e., before base64 encoding or any tokenization), if known.
    *
    * This can be used by Hosts to display file sizes and estimate context window usage.
+   *
+   * @minimum 0
    */
   size?: number;
 
@@ -1491,12 +1568,12 @@ export interface ResourceTemplate extends BaseMetadata, Icons {
    *
    * This can be used by clients to improve the LLM's understanding of available resources. It can be thought of like a "hint" to the model.
    */
-  description?: string;
+  description?: ModelDescription;
 
   /**
    * The MIME type for all resources that match this template. This should only be included if all resources matching this template have the same type.
    */
-  mimeType?: string;
+  mimeType?: MIMEType;
 
   /**
    * Optional annotations for the client.
@@ -1514,14 +1591,12 @@ export interface ResourceTemplate extends BaseMetadata, Icons {
 export interface ResourceContents {
   /**
    * The URI of this resource.
-   *
-   * @format uri
    */
-  uri: string;
+  uri: URI;
   /**
    * The MIME type of this resource, if known.
    */
-  mimeType?: string;
+  mimeType?: MIMEType;
 
   _meta?: MetaObject;
 }
@@ -1603,7 +1678,7 @@ export interface GetPromptRequestParams extends InputResponseRequestParams {
   /**
    * The name of the prompt or prompt template.
    */
-  name: string;
+  name: Identifier;
   /**
    * Arguments to use for templating the prompt.
    */
@@ -1635,7 +1710,7 @@ export interface GetPromptResult extends Result {
   /**
    * An optional description for the prompt.
    */
-  description?: string;
+  description?: Description;
   messages: PromptMessage[];
 }
 
@@ -1660,7 +1735,7 @@ export interface Prompt extends BaseMetadata, Icons {
   /**
    * An optional description of what this prompt provides
    */
-  description?: string;
+  description?: Description;
 
   /**
    * A list of arguments to use for templating the prompt.
@@ -1679,7 +1754,7 @@ export interface PromptArgument extends BaseMetadata {
   /**
    * A human-readable description of the argument.
    */
-  description?: string;
+  description?: Description;
   /**
    * Whether this argument must be provided.
    */
@@ -1864,7 +1939,7 @@ export interface CallToolRequestParams extends InputResponseRequestParams {
   /**
    * The name of the tool.
    */
-  name: string;
+  name: Identifier;
   /**
    * Arguments to use for the tool call.
    */
@@ -1913,7 +1988,7 @@ export interface ToolAnnotations {
   /**
    * A human-readable title for the tool.
    */
-  title?: string;
+  title?: Title;
 
   /**
    * If true, the tool does not modify its environment.
@@ -1976,7 +2051,7 @@ export interface Tool extends BaseMetadata, Icons {
    *
    * This can be used by clients to improve the LLM's understanding of available tools. It can be thought of like a "hint" to the model.
    */
-  description?: string;
+  description?: ModelDescription;
 
   /**
    * A JSON Schema object defining the expected parameters for the tool.
@@ -2035,6 +2110,8 @@ export interface LoggingMessageNotificationParams extends NotificationParams {
   level: LoggingLevel;
   /**
    * An optional name of the logger issuing this message.
+   *
+   * @maxLength 256
    */
   logger?: string;
   /**
@@ -2102,6 +2179,9 @@ export type LoggingLevel =
  * @category `sampling/createMessage`
  */
 export interface CreateMessageRequestParams {
+  /**
+   * @maxItems 1000
+   */
   messages: SamplingMessage[];
   /**
    * The server's preferences for which model to select. The client MAY ignore these preferences.
@@ -2131,8 +2211,13 @@ export interface CreateMessageRequestParams {
    * The requested maximum number of tokens to sample (to prevent runaway completions).
    *
    * The client MAY choose to sample fewer tokens than the requested maximum.
+   *
+   * @minimum 1
    */
   maxTokens: number;
+  /**
+   * @maxItems 50
+   */
   stopSequences?: string[];
   /**
    * Optional metadata to pass through to the LLM provider. The format of this metadata is provider-specific.
@@ -2141,6 +2226,8 @@ export interface CreateMessageRequestParams {
   /**
    * Tools that the model may use during generation.
    * The client MUST return an error if this field is provided but {@link ClientCapabilities.sampling.tools} is not declared.
+   *
+   * @maxItems 128
    */
   tools?: Tool[];
   /**
@@ -2350,7 +2437,7 @@ export interface ImageContent {
   /**
    * The MIME type of the image. Different providers may support different image types.
    */
-  mimeType: string;
+  mimeType: MIMEType;
 
   /**
    * Optional annotations for the client.
@@ -2381,7 +2468,7 @@ export interface AudioContent {
   /**
    * The MIME type of the audio. Different providers may support different audio types.
    */
-  mimeType: string;
+  mimeType: MIMEType;
 
   /**
    * Optional annotations for the client.
@@ -2410,11 +2497,15 @@ export interface ToolUseContent {
    * A unique identifier for this tool use.
    *
    * This ID is used to match tool results to their corresponding tool uses.
+   *
+   * @maxLength 256
    */
   id: string;
 
   /**
    * The name of the tool to call.
+   *
+   * @maxLength 256
    */
   name: string;
 
@@ -2449,6 +2540,8 @@ export interface ToolResultContent {
    * The ID of the tool use this result corresponds to.
    *
    * This MUST match the ID from a previous {@link ToolUseContent}.
+   *
+   * @maxLength 256
    */
   toolUseId: string;
 
@@ -2514,6 +2607,8 @@ export interface ModelPreferences {
    *
    * The client SHOULD prioritize these hints over the numeric priorities, but
    * MAY still use the priorities to select from ambiguous matches.
+   *
+   * @maxItems 10
    */
   hints?: ModelHint[];
 
@@ -2599,7 +2694,7 @@ export interface CompleteRequestParams extends RequestParams {
     /**
      * The name of the argument
      */
-    name: string;
+    name: Identifier;
     /**
      * The value of the argument to use for completion matching.
      */
@@ -2761,9 +2856,9 @@ export interface Root {
    * This restriction may be relaxed in future versions of the protocol to allow
    * other URI schemes.
    *
-   * @format uri
+   * @pattern ^file://
    */
-  uri: string;
+  uri: URI;
   /**
    * An optional name for the root. This can be used to provide a human-readable
    * identifier for the root, which may be useful for display purposes or for
@@ -2830,11 +2925,19 @@ export interface ElicitRequestURLParams {
   message: string;
 
   /**
+   * The ID of the elicitation, which must be unique within the context of the server.
+   * The client MUST treat this ID as an opaque value.
+   *
+   * @maxLength 256
+   */
+  elicitationId: string;
+
+  /**
    * The URL that the user should navigate to.
    *
-   * @format uri
+   * @pattern ^https?://
    */
-  url: string;
+  url: URI;
 }
 
 /**
@@ -2875,8 +2978,8 @@ export type PrimitiveSchemaDefinition =
  */
 export interface StringSchema {
   type: "string";
-  title?: string;
-  description?: string;
+  title?: Title;
+  description?: Description;
   minLength?: number;
   maxLength?: number;
   format?: "email" | "uri" | "date" | "date-time";
@@ -2891,8 +2994,8 @@ export interface StringSchema {
  */
 export interface NumberSchema {
   type: "number" | "integer";
-  title?: string;
-  description?: string;
+  title?: Title;
+  description?: Description;
   /**
    * @TJS-type number
    */
@@ -2915,8 +3018,8 @@ export interface NumberSchema {
  */
 export interface BooleanSchema {
   type: "boolean";
-  title?: string;
-  description?: string;
+  title?: Title;
+  description?: Description;
   default?: boolean;
 }
 
@@ -2933,11 +3036,11 @@ export interface UntitledSingleSelectEnumSchema {
   /**
    * Optional title for the enum field.
    */
-  title?: string;
+  title?: Title;
   /**
    * Optional description for the enum field.
    */
-  description?: string;
+  description?: Description;
   /**
    * Array of enum values to choose from.
    */
@@ -2961,11 +3064,11 @@ export interface TitledSingleSelectEnumSchema {
   /**
    * Optional title for the enum field.
    */
-  title?: string;
+  title?: Title;
   /**
    * Optional description for the enum field.
    */
-  description?: string;
+  description?: Description;
   /**
    * Array of enum options with values and display labels.
    */
@@ -2977,7 +3080,7 @@ export interface TitledSingleSelectEnumSchema {
     /**
      * Display label for this option.
      */
-    title: string;
+    title: Title;
   }>;
   /**
    * Optional default value.
@@ -3005,11 +3108,11 @@ export interface UntitledMultiSelectEnumSchema {
   /**
    * Optional title for the enum field.
    */
-  title?: string;
+  title?: Title;
   /**
    * Optional description for the enum field.
    */
-  description?: string;
+  description?: Description;
   /**
    * Minimum number of items to select.
    */
@@ -3047,11 +3150,11 @@ export interface TitledMultiSelectEnumSchema {
   /**
    * Optional title for the enum field.
    */
-  title?: string;
+  title?: Title;
   /**
    * Optional description for the enum field.
    */
-  description?: string;
+  description?: Description;
   /**
    * Minimum number of items to select.
    */
@@ -3075,7 +3178,7 @@ export interface TitledMultiSelectEnumSchema {
       /**
        * Display title for this option.
        */
-      title: string;
+      title: Title;
     }>;
   };
   /**
@@ -3099,8 +3202,8 @@ export type MultiSelectEnumSchema =
  */
 export interface LegacyTitledEnumSchema {
   type: "string";
-  title?: string;
-  description?: string;
+  title?: Title;
+  description?: Description;
   enum: string[];
   /**
    * (Legacy) Display names for enum values.
