@@ -34,7 +34,7 @@ while maintaining simplicity:
 - OAuth 2.0 Dynamic Client Registration Protocol
   ([RFC7591](https://datatracker.ietf.org/doc/html/rfc7591))
 - OAuth 2.0 Protected Resource Metadata ([RFC9728](https://datatracker.ietf.org/doc/html/rfc9728))
-- OAuth Client ID Metadata Documents ([draft-ietf-oauth-client-id-metadata-document-00](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-client-id-metadata-document-00))
+- OAuth Client ID Metadata Documents ([draft-ietf-oauth-client-id-metadata-document-02](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-client-id-metadata-document-02))
 
 ## Roles
 
@@ -55,7 +55,7 @@ specifies how an MCP server indicates the location of its corresponding authoriz
    measures for both confidential and public clients.
 
 2. Authorization servers and MCP clients **SHOULD** support OAuth Client ID Metadata Documents
-   ([draft-ietf-oauth-client-id-metadata-document-00](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-client-id-metadata-document-00)).
+   ([draft-ietf-oauth-client-id-metadata-document-02](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-client-id-metadata-document-02)).
 
 3. Authorization servers and MCP clients **MAY** support the OAuth 2.0 Dynamic Client Registration
    Protocol ([RFC7591](https://datatracker.ietf.org/doc/html/rfc7591)).
@@ -211,7 +211,7 @@ Clients supporting all options **SHOULD** follow the following priority order:
 ### Client ID Metadata Documents
 
 MCP clients and authorization servers **SHOULD** support OAuth Client ID Metadata Documents as specified in
-[OAuth Client ID Metadata Document](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-client-id-metadata-document-00).
+[OAuth Client ID Metadata Document](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-client-id-metadata-document-02).
 This approach enables clients to use HTTPS URLs as client identifiers, where the URL points to a JSON document
 containing client metadata. This addresses the common MCP scenario where servers and clients have
 no pre-existing relationship.
@@ -219,7 +219,7 @@ no pre-existing relationship.
 #### Implementation Requirements
 
 MCP implementations supporting Client ID Metadata Documents **MUST** follow the requirements specified in
-[OAuth Client ID Metadata Document](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-client-id-metadata-document-00).
+[OAuth Client ID Metadata Document](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-client-id-metadata-document-02).
 Key requirements include:
 
 **For MCP Clients:**
@@ -228,7 +228,7 @@ Key requirements include:
 - The `client_id` URL **MUST** use the "https" scheme and contain a path component, e.g. `https://example.com/client.json`
 - The metadata document **MUST** include at least the following properties: `client_id`, `client_name`, `redirect_uris`
 - Clients **MUST** ensure the `client_id` value in the metadata matches the document URL exactly
-- Clients **MAY** use `private_key_jwt` for client authentication (e.g., for requests to the token endpoint) with appropriate JWKS configuration as described in [Section 6.2 of Client ID Metadata Document](https://www.ietf.org/archive/id/draft-ietf-oauth-client-id-metadata-document-00.html#section-6.2)
+- Clients **MAY** use `private_key_jwt` for client authentication (e.g., for requests to the token endpoint) with appropriate JWKS configuration as described in [Section 8.2 of Client ID Metadata Document](https://www.ietf.org/archive/id/draft-ietf-oauth-client-id-metadata-document-02.html#section-8.2)
 
 **For Authorization Servers:**
 
@@ -237,7 +237,7 @@ Key requirements include:
 - **SHOULD** cache metadata respecting HTTP cache headers
 - **MUST** validate redirect URIs presented in an authorization request against those in the metadata document
 - **MUST** validate the document structure is valid JSON and contains required fields
-- **SHOULD** follow the security considerations in [Section 6 of Client ID Metadata Document](https://www.ietf.org/archive/id/draft-ietf-oauth-client-id-metadata-document-00.html#section-6)
+- **SHOULD** follow the security considerations in [Section 8 of Client ID Metadata Document](https://www.ietf.org/archive/id/draft-ietf-oauth-client-id-metadata-document-02.html#section-8)
 
 #### Example Metadata Document
 
@@ -626,7 +626,7 @@ Authorization servers **SHOULD** only automatically redirect the user agent if i
 ### Client ID Metadata Document Security
 
 When implementing Client ID Metadata Documents, authorization servers **MUST** consider the security implications
-detailed in [OAuth Client ID Metadata Document, Section 6](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-client-id-metadata-document-00#name-security-considerations).
+detailed in [OAuth Client ID Metadata Document, Section 8](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-client-id-metadata-document-02#section-8).
 Key considerations include:
 
 #### Authorization Server Abuse Protection
@@ -636,7 +636,7 @@ A malicious client could use this to trigger the authorization server to make re
 such as requests to private administration endpoints the authorization server has access to.
 
 Authorization servers fetching metadata documents **SHOULD** consider
-[Server-Side Request Forgery (SSRF)](https://developer.mozilla.org/docs/Web/Security/Attacks/SSRF) risks, as described in [OAuth Client ID Metadata Document: Server Side Request Forgery (SSRF) Attacks](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-client-id-metadata-document-00#name-server-side-request-forgery).
+[Server-Side Request Forgery (SSRF)](https://developer.mozilla.org/docs/Web/Security/Attacks/SSRF) risks, as described in [OAuth Client ID Metadata Document: Server Side Request Forgery (SSRF) Attacks](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-client-id-metadata-document-02#section-8.6).
 
 #### Localhost Redirect URI Risks
 
