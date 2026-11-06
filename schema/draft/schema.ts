@@ -2160,6 +2160,8 @@ export interface CreateMessageRequestParams {
    * Default is `{ mode: "auto" }`.
    */
   toolChoice?: ToolChoice;
+
+  _meta?: MetaObject;
 }
 
 /**
@@ -2752,6 +2754,8 @@ export interface ListRootsRequest {
  */
 export interface ListRootsResult {
   roots: Root[];
+
+  _meta?: MetaObject;
 }
 
 /**
@@ -2819,6 +2823,8 @@ export interface ElicitRequestFormParams {
     };
     required?: string[];
   };
+
+  _meta?: MetaObject;
 }
 
 /**
@@ -2846,6 +2852,8 @@ export interface ElicitRequestURLParams {
    * @format uri
    */
   url: string;
+
+  _meta?: MetaObject;
 }
 
 /**
@@ -3157,6 +3165,8 @@ export interface ElicitResult {
    * Omitted for out-of-band mode responses.
    */
   content?: { [key: string]: string | number | boolean | string[] };
+
+  _meta?: MetaObject;
 }
 
 /* Client messages */
