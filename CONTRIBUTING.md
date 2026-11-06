@@ -116,22 +116,30 @@ When contributing to the documentation:
 ## Specification Proposal Guidelines
 
 Specification changes follow the [SEP process](https://modelcontextprotocol.io/community/sep-guidelines).
-Discuss the idea with the relevant working or interest group in Discord and link that discussion in
-the pull request description, as required by the
-[SEP guidelines](https://modelcontextprotocol.io/community/sep-guidelines#step-by-step-process).
+Proposals must be submitted to and discussed in the relevant
+[working group](https://modelcontextprotocol.io/community/working-interest-groups).
+A SEP pull request may only be opened once that working group has explicitly approved it.
 Before drafting a proposal, review the [MCP design principles](https://modelcontextprotocol.io/community/design-principles)
 — proposals that align with these principles move faster through review.
 
-The shortest summary: explore the problem space and validate that others share the problem,
-build a prototype that demonstrates a solution, then write the SEP based on what the
-prototype taught you.
+## Reporting Issues
+
+If you are not a member of the `modelcontextprotocol` GitHub organization, contribute by
+opening an issue or by joining a working group. Blank issues are disabled, so use one of the
+[issue templates](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/new/choose).
+SDK bugs belong in the respective SDK repository.
 
 ## Submitting Changes
 
-1. Push your changes to your fork
-2. Submit a pull request to the main repository
-3. Follow the pull request template
-4. Wait for review
+Only members of the `modelcontextprotocol` GitHub organization may open pull requests.
+
+1. Discuss your change with the relevant
+   [working group](https://modelcontextprotocol.io/community/working-interest-groups) and get its approval
+2. Make sure you are a member of the `modelcontextprotocol` organization; request membership in the
+   [access repository](https://github.com/modelcontextprotocol/access)
+3. Push your changes to your fork
+4. Open a pull request against the main repository and follow the pull request template
+5. For SEPs, schedule a review with the Core Maintainers via [voting.modelcontextprotocol.io](https://voting.modelcontextprotocol.io)
 
 ### Pull request titles
 
