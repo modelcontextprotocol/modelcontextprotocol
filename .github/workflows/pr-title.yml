@@ -1,0 +1,48 @@
+name: PR title policy
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, edited, reopened, synchronize, ready_for_review]
+
+permissions: {}
+
+concurrency:
+  group: pr-title-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  pr-title:
+    name: PR title
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      # Metadata only: never check out or execute code from the PR.
+      - name: Check PR title
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
+        with:
+          script: |
+            // Title edits trigger a new run with an updated event payload.
+            const { title } = context.payload.pull_request;
+
+            // Require an allowed type and description; (scope) and breaking-change ! are optional.
+            const match = title.match(
+              /^(sep|feat|fix|docs|ci|build|chore|refactor|test|perf|style|revert)(?:\(([^()\s]+)\))?!?: (\S.*)$/
+            );
+            if (!match) {
+              core.setFailed(
+                'Use type(scope): description, for example fix(schema): correct the result type. ' +
+                'The scope is optional. See CONTRIBUTING.md for allowed types.'
+              );
+              return;
+            }
+
+            // Numbered SEP proposals use SEP-N; unnumbered proposals can omit the scope.
+            // Other types may use area scopes such as schema or deps-dev.
+            const [, type, scope] = match;
+            if (type === 'sep' && scope && !/^SEP-[1-9]\d*$/.test(scope)) {
+              core.setFailed(
+                'Use sep(SEP-XXXX): description, replacing XXXX with the SEP number. ' +
+                'Omit the scope when the proposal has no number yet.'
+              );
+            }

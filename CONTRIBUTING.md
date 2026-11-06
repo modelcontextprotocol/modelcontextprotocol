@@ -133,6 +133,32 @@ prototype taught you.
 3. Follow the pull request template
 4. Wait for review
 
+### Pull request titles
+
+Use a Conventional Commit title: `type(scope): description`. The scope is optional.
+Allowed types are `sep`, `feat`, `fix`, `docs`, `ci`, `build`, `chore`,
+`refactor`, `test`, `perf`, `style`, and `revert`.
+
+| Change                    | Example title                                         |
+| ------------------------- | ----------------------------------------------------- |
+| New SEP, before numbering | `sep: propose task cancellation`                      |
+| Numbered SEP              | `sep(SEP-3398): clarify task cancellation`            |
+| Fix related to a SEP      | `fix(SEP-3398): correct the cancellation result type` |
+| Documentation             | `docs: clarify authorization`                         |
+| CI                        | `ci: validate PR titles`                              |
+
+Once a new SEP has a PR number, use `sep(SEP-XXXX): description`, replacing
+`XXXX` with that number. Keep the original SEP number for follow-ups and link to
+the proposal in the PR description. SEP scopes use positive numbers without leading
+zeros. Other changes can use an area scope such as `schema` or omit it.
+
+Mark breaking changes with `!`, for example `feat(spec)!: remove the legacy transport`,
+and explain them in a `BREAKING CHANGE:` paragraph in the PR description.
+
+The `PR title` check reruns on title edits and is advisory during rollout.
+Individual branch commits do not need this format or rewriting. When squash merging,
+use the checked title and preserve disclosures and co-author trailers in the body.
+
 ## AI Contributions
 
 If you are using any kind of AI assistance to contribute to Model Context Protocol, it must be
