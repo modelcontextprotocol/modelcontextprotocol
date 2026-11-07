@@ -135,7 +135,7 @@ The line breaks in this example are only there to make it easier to read.
 
 After the user logs in and consents, the authorization server redirects back to the client with a `code` and the `state`. If it supports [RFC 9207](https://datatracker.ietf.org/doc/html/rfc9207), it also returns `iss`.
 
-Before it opens the browser, the client must record the `issuer` from the validated metadata. Before it exchanges the code, it must [validate `iss`](/specification/draft/basic/authorization#authorization-response-validation) against that issuer. The same check applies to error responses. If it fails, the client must not act on the error or display it.
+Before it opens the browser, the client must record the `issuer` from the validated metadata. Before it exchanges the code, it must [validate `iss`](/specification/draft/basic/authorization#authorization-response-validation) against that issuer, without normalizing either value. If the authorization server advertises support for `iss`, the client must reject a response that leaves it out. The same check applies to error responses. If it fails, the client must not act on the error or display it.
 
 The client should also discard a response whose `state` is missing or different from the value it sent.
 
@@ -264,7 +264,8 @@ Check these points before you choose one:
 - **CIMD.** It should support CIMD, which it advertises with `client_id_metadata_document_supported`. In some products you have to enable this, or list the client domains you accept.
 - **Token format.** The examples below need signed JWT access tokens. Otherwise, you need an introspection endpoint.
 - **Public clients.** Many MCP clients have no secret. The authorization server must accept them, and its `token_endpoint_auth_methods_supported` should contain `none`.
-- **Scopes.** Define a scope such as `mcp:tools` and make it available to the clients that will connect. Some products add a prefix to scope names. If yours does, use the full name everywhere the examples use `mcp:tools`.
+- **Scopes.** Define a scope such as `mcp:tools` and make it available to the clients that will connect. Some products add a prefix to scope names. If yours does, use the full name everywhere the examples use `mcp:tools`. If you define more than one scope, read [Scope Minimization](/docs/draft/tutorials/security/security_best_practices#scope-minimization), and list only the scopes needed for basic use in `scopes_supported`.
+- **Token lifetime.** Access tokens should be short-lived, because a stolen token works until it expires. The authorization server must rotate refresh tokens for public clients.
 - **Issuer in responses.** It should return `iss` in authorization responses. If it does, it must advertise `authorization_response_iss_parameter_supported`.
 
 <Tip>
@@ -712,13 +713,15 @@ The endpoint requires authorization, so your MCP server needs its own credential
 
 If `active` is `false`, reject the token. If it is `true`, check that `aud` contains the expected audience before you report the resource to the SDK. Check `scope` and `exp` too. These values are optional in the RFC, so make sure your authorization server returns them, and reject a token whose `aud` is missing. If the endpoint can't be reached or returns an error status, even a `401`, treat that as an outage.
 
+If you cache tokens or results, encrypt the tokens and delete each entry no later than the token expires. Keep your server's credentials in a secret manager.
+
 In TypeScript and Python, make the call in the verifier. In C#, replace `AddJwtBearer` with an authentication handler that supports introspection.
 
 ### Deploying Beyond Localhost
 
 Change the server URL to the exact `https` URL that clients connect to. It is used as the PRM `resource` and as the expected audience. If its path isn't `/mcp`, change the route too. It is the `app.all` path in TypeScript and the `streamable_http_path` argument of `mcp.run` in Python. The C# example takes it from the URL. In TypeScript, `new URL()` adds a trailing slash to a URL that has no path, and the token's `aud` then has to include it.
 
-The examples serve plain HTTP, so put them behind a reverse proxy or load balancer that terminates TLS and keeps the original `Host` header. If it runs on the same machine, keep listening on localhost and change only the accepted hosts and origins.
+Clients must reach your server over HTTPS. The examples serve plain HTTP, so put them behind a reverse proxy or load balancer that terminates TLS and keeps the original `Host` header. If it runs on the same machine, keep listening on localhost and change only the accepted hosts and origins.
 
 The examples listen only on localhost and reject requests with any other `Host` header. Configure the hosts and browser origins you accept:
 
@@ -727,6 +730,8 @@ The examples listen only on localhost and reject requests with any other `Host` 
 - **C#**: Change the URL given to `app.Run` to the address to listen on, such as `http://0.0.0.0:3000`. Change `allowedOrigins`, whose entries include the scheme, and `allowedHosts`, whose entries have no scheme or port.
 
 Accepting an origin doesn't enable CORS. Clients that run in a browser also need CORS middleware that answers preflight requests before authentication and exposes the `WWW-Authenticate` header.
+
+This protocol revision has no sessions, so ignore the `Mcp-Session-Id` header if your server supports only this revision. If it also accepts older clients, never use a session ID as proof of who the caller is. See [Session Hijacking](/docs/2025-11-25/tutorials/security/security_best_practices#session-hijacking) in the 2025-11-25 documentation.
 
 ## Testing the Server
 
@@ -772,24 +777,23 @@ You can also connect from a client such as [Visual Studio Code](https://code.vis
 
 ## Common Pitfalls and How to Avoid Them
 
-For attacks and how to prevent them, read [Security Best Practices](/docs/draft/tutorials/security/security_best_practices) and the specification's [Security Considerations](/specification/draft/basic/authorization/security-considerations). Some common problems are listed below.
+Read [Security Best Practices](/docs/draft/tutorials/security/security_best_practices) for attacks and how to prevent them, and [Security Considerations](/specification/draft/basic/authorization/security-considerations) for the requirements in the specification. These topics matter most in the following cases:
+
+- **Your server calls other APIs**: It must get a separate token for each of them. See [Token Passthrough](/docs/draft/tutorials/security/security_best_practices#token-passthrough).
+- **Your server proxies OAuth with one static client ID**: It must get the user's consent for each MCP client. See [Confused Deputy Problem](/docs/draft/tutorials/security/security_best_practices#confused-deputy-problem).
+- **Your tools return state handles**: See [State Handle Hijacking](/docs/draft/tutorials/security/security_best_practices#state-handle-hijacking).
+- **You build a client**: See [Mix-Up Attacks](/docs/draft/tutorials/security/security_best_practices#mix-up-attacks), [OAuth Authorization URL Validation](/docs/draft/tutorials/security/security_best_practices#oauth-authorization-url-validation), and [Server-Side Request Forgery](/docs/draft/tutorials/security/security_best_practices#server-side-request-forgery-ssrf).
+
+The list below covers other common mistakes in a protected server and its authorization server:
 
 - **Don't write your own token validation**. Use well-tested libraries for signature checks, claims validation, and authorization decisions.
 - **Always validate the audience**. A correctly signed token from your authorization server might be meant for another service. Compare the audience exactly with your server's URL, or with the identifier your authorization server uses for this server only. Don't accept a value that several servers share, such as `api`.
-- **Never pass tokens through**. If your server calls an upstream API, it must obtain a separate token for it. See [Token Passthrough](/docs/draft/tutorials/security/security_best_practices#token-passthrough).
-- **Get consent for each client if you proxy OAuth**. If your server sends users to a third-party authorization server with one static client ID, it must get the user's consent for each MCP client first. See [Confused Deputy Problem](/docs/draft/tutorials/security/security_best_practices#confused-deputy-problem).
 - **Accept only access tokens**. Never accept an ID token. If your authorization server follows [RFC 9068](https://datatracker.ietf.org/doc/html/rfc9068), check that the token's `typ` header is `at+jwt` or `application/at+jwt`. The examples don't check it, because many authorization servers use another value.
 - **Accept only one issuer**. Reject tokens from other issuers or tenants, unless your server is meant to be multi-tenant.
-- **Use short-lived access tokens**. A stolen token works until it expires. Authorization servers must also rotate refresh tokens for public clients.
-- **Enforce HTTPS**. Authorization server endpoints and your MCP server must use HTTPS. Redirect URIs must use HTTPS, `localhost`, or a loopback address such as `127.0.0.1`. Use plain HTTP elsewhere only on your own machine during development.
-- **Use narrow scopes**. Split access by tool or capability where you can. In `scopes_supported`, list only the scopes needed for basic use, because clients request all of them when the challenge names none. Ask for the others with a `403` challenge that names them. If a broad scope implies narrower ones, your server must accept it where a narrower one is required. See [Scope Minimization](/docs/draft/tutorials/security/security_best_practices#scope-minimization).
 - **Return complete challenges**. Where your SDK allows it, include `resource_metadata` and `scope` in `401` and `403` challenges. List every scope the operation needs at once. Leave `offline_access` out of challenges and `scopes_supported`, because your server doesn't need refresh tokens.
 - **Return `5xx` during an outage**. If your server can't reach the JWKS or introspection endpoint, return a `5xx` status, as the TypeScript and Python examples do. The C# example does this only until it has downloaded the keys once. A `401` makes users log in again, and that doesn't fix the problem.
-- **Protect stored tokens and secrets**. If you have to cache tokens, encrypt them and delete them when they expire. Keep client secrets in a secret manager.
 - **Separate client and server credentials**. Don't use your MCP server's introspection credentials in end-user flows.
 - **Don't log credentials**. Remove `Authorization` headers, tokens, authorization codes, and secrets from your logs. Return generic errors to clients and keep the details in your own logs.
-- **Never tie authorization to a session or handle**. This protocol revision has no sessions, and a server that supports only this revision should ignore the `Mcp-Session-Id` header. If your tools return state handles, tie each one to the user it was created for. See [State Handle Hijacking](/docs/draft/tutorials/security/security_best_practices#state-handle-hijacking).
-- **Validate `iss` in clients**. Compare it with the recorded issuer and don't normalize either value. If the authorization server advertises support for `iss`, reject a response that leaves it out. See [Mix-Up Attacks](/docs/draft/tutorials/security/security_best_practices#mix-up-attacks).
 - **Restrict Dynamic Client Registration**. Anyone can register with an open `registration_endpoint`, so add controls such as trusted hosts and rate limits.
 
 ## Related Standards and Documentation
