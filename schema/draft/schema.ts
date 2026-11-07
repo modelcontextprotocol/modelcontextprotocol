@@ -1835,6 +1835,8 @@ export interface CallToolResult extends Result {
    * should be reported as an MCP error response.
    */
   isError?: boolean;
+
+  _meta?: CallToolErrorMetaObject;
 }
 
 /**
@@ -1847,6 +1849,100 @@ export interface CallToolResult extends Result {
  */
 export interface CallToolResultResponse extends JSONRPCResultResponse {
   result: CallToolResult | InputRequiredResult;
+}
+
+/**
+ * Broad behavioral class of a tool failure, controlling how a client should
+ * react independent of the specific {@link ToolFailure.code}:
+ *
+ * - `capability`: the operation itself cannot succeed as requested (e.g. an
+ *   unsupported feature, missing permission). Stop and surface to the user
+ *   or agent for a different approach — retrying as-is will not help.
+ * - `reliability`: a transient condition. Safe to retry, honoring
+ *   `retryable`/`retryNotBefore` and the tool's declared `idempotentHint`.
+ * - `governance`: refused by policy (auth, approval, audit). Requires
+ *   out-of-band action (e.g. a human approval), not a retry.
+ *
+ * @category Errors
+ */
+export type ToolFailureClass = "capability" | "reliability" | "governance";
+
+/**
+ * Structured, machine-readable classification of a tool execution failure,
+ * carried in {@link CallToolResult}'s `_meta` under the
+ * `io.modelcontextprotocol/toolFailure` key when `isError` is `true`.
+ *
+ * This is additive: servers that do not implement it continue to report
+ * failures via `content` and `isError` alone, per existing behavior.
+ *
+ * `code` is an open, extensible string rather than a closed enum so servers
+ * can define new codes without a spec change. The following baseline
+ * vocabulary is RECOMMENDED, grouped by `class`:
+ *
+ * - `capability`: `capability_unsupported`, `resource_not_found`,
+ *   `invalid_input`
+ * - `reliability`: `retryable_transient_error`
+ * - `governance`: `auth_required`, `permission_denied`, `policy_blocked`,
+ *   `user_action_required`
+ *
+ * @example Policy-blocked tool call
+ * {@includeCode ./examples/ToolFailure/policy-blocked.json}
+ *
+ * @category Errors
+ */
+export interface ToolFailure {
+  /**
+   * The broad behavioral class of this failure.
+   */
+  class: ToolFailureClass;
+  /**
+   * A specific, machine-readable failure code (e.g. `"auth_required"`).
+   * SHOULD be one of the baseline vocabulary above when applicable;
+   * otherwise a server-defined value consistent with `class`.
+   */
+  code: string;
+  /**
+   * Whether a client MAY retry this exact call. Only meaningful for
+   * `class: "reliability"`; MUST be absent or `false` otherwise.
+   *
+   * Auto-retry eligibility also depends on the tool's declared
+   * `idempotentHint` — a client MUST NOT auto-retry a non-idempotent tool
+   * even when `retryable` is `true`.
+   */
+  retryable?: boolean;
+  /**
+   * Earliest time (Unix epoch milliseconds) at which a retry is likely to
+   * succeed. A "not before" hint, not a guarantee. Only meaningful when
+   * `retryable` is `true`.
+   */
+  retryNotBefore?: number;
+  /**
+   * A server-generated identifier correlating this failure with the
+   * server's own logs, for operator troubleshooting. REQUIRED so operators
+   * can reliably match a user-reported failure to server-side diagnostics;
+   * intermediaries relaying this result MUST preserve it unchanged.
+   */
+  correlationId: string;
+  /**
+   * A short instruction for the calling model describing how to proceed
+   * (e.g. "ask the user to re-authenticate"), kept separate from verbose
+   * diagnostic detail in `content` so it doesn't waste context.
+   */
+  agentGuidance?: string;
+}
+
+/**
+ * Extends {@link ResultMetaObject} with the tool-failure classification
+ * carried by a {@link CallToolResult} when `isError` is `true`.
+ *
+ * @category `tools/call`
+ */
+export interface CallToolErrorMetaObject extends ResultMetaObject {
+  /**
+   * Structured classification of the failure. Present only on error
+   * results (`isError: true`) from servers that implement this extension.
+   */
+  "io.modelcontextprotocol/toolFailure"?: ToolFailure;
 }
 
 /**
