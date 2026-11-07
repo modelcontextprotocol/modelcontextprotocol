@@ -112,7 +112,7 @@ To support Enterprise-Managed Authorization, your client must:
 
 2. **Support SSO** — users should authenticate to the MCP Client using the enterprise IdP. Save the Identity Assertion (either an OpenID ID Token or SAML assertion) issued during login for later use.
 
-3. **Handle ID-JAGs** — when the server indicates that enterprise-managed auth is required, request an ID-JAG from the enterprise IdP's token endpoint with a Token Exchange ([RFC 8693](https://datatracker.ietf.org/doc/html/rfc8693)) request, using the previously obtained ID Token. For SAML, first exchange the assertion for a Refresh Token, then use that in the request. Set `audience` to the issuer identifier of the MCP Authorization Server. Exchange this ID-JAG for an access token from the MCP Authorization Server. Do not redirect the user to the MCP Authorization Server's authorization endpoint.
+3. **Handle ID-JAGs** — when the server indicates that enterprise-managed auth is required, request an ID-JAG from the enterprise IdP's token endpoint with a Token Exchange ([RFC 8693](https://datatracker.ietf.org/doc/html/rfc8693)) request, using the previously obtained ID Token. For SAML, first exchange the assertion for a Refresh Token, then use that in the request. Set `audience` to the issuer identifier of the MCP Authorization Server and `resource` to the resource identifier of the MCP Server. Exchange this ID-JAG for an access token from the MCP Authorization Server. Do not redirect the user to the MCP Authorization Server's authorization endpoint.
 
 4. **Support organization configuration** — allow administrators to configure the enterprise IdP's endpoints, typically via organization-level settings rather than per-user settings.
 
