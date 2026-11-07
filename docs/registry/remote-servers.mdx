@@ -27,6 +27,19 @@ The MCP Registry supports remote MCP servers via the `remotes` property in `serv
 
 A remote server **MUST** be publicly accessible at its specified URL.
 
+A server with only `remotes` does not need a `packages` entry, so the package ownership verification described in [Package Types](./package-types) does not apply.
+
+## Ownership Verification
+
+When you publish, the Registry verifies that you control the namespace in the server `name` using your [authentication method](./authentication). It does **not** verify that you control the remote URL, regardless of authentication method:
+
+- With [GitHub authentication](./authentication#github-authentication), a server named `io.github.my-username/weather` proves control of the `my-username` GitHub account, not of the domain serving the remote URL.
+- With [DNS authentication](./authentication#dns-authentication) or [HTTP authentication](./authentication#http-authentication), a server named `com.example/weather` proves control of `example.com`, but the Registry does not check that the remote URL is on `example.com`.
+
+If your remote URL is on a domain you control, consider using DNS or HTTP authentication so the server name reflects that domain. This lets users see that the server name and remote URL belong to the same publisher.
+
+Each remote URL can be used by only one server name. Publishing fails if another server already uses the same URL.
+
 ## Transport Type
 
 Remote servers should use the Streamable HTTP transport. The SSE transport is [deprecated](/specification/draft/deprecated), so publish an `"sse"` remote only to support existing clients. Remote servers can also support both transports simultaneously at different URLs.
