@@ -202,10 +202,10 @@ Prompts provide structured templates for common tasks. In the travel planning co
   "title": "Plan a vacation",
   "description": "Guide through vacation planning process",
   "arguments": [
-    { "name": "destination", "type": "string", "required": true },
-    { "name": "duration", "type": "number", "description": "days" },
-    { "name": "budget", "type": "number", "required": false },
-    { "name": "interests", "type": "array", "items": { "type": "string" } }
+    { "name": "destination", "description": "City to visit", "required": true },
+    { "name": "duration", "description": "Length of the trip in days" },
+    { "name": "budget", "description": "Total budget in USD" },
+    { "name": "interests", "description": "Comma-separated list of interests" }
   ]
 }
 ```
@@ -213,7 +213,7 @@ Prompts provide structured templates for common tasks. In the travel planning co
 Rather than unstructured natural language input, the prompt system enables:
 
 1. Selection of the "Plan a vacation" template
-2. Structured input: Barcelona, 7 days, $3000, ["beaches", "architecture", "food"]
+2. Structured input, passed as strings: `"Barcelona"`, `"7"`, `"3000"`, `"beaches, architecture, food"`
 3. Consistent workflow execution based on the template
 
 #### User Interaction Model
@@ -250,13 +250,12 @@ Consider a personalized AI travel planner application, with three connected serv
 
    ```json
    {
-     "prompt": "plan-vacation",
+     "name": "plan-vacation",
      "arguments": {
        "destination": "Barcelona",
-       "departure_date": "2024-06-15",
-       "return_date": "2024-06-22",
-       "budget": 3000,
-       "travelers": 2
+       "duration": "7",
+       "budget": "3000",
+       "interests": "beaches, architecture, food"
      }
    }
    ```

@@ -104,7 +104,7 @@ The transport layer abstracts communication details from the protocol layer, ena
 
 A core part of MCP is defining the schema and semantics between MCP clients and MCP servers. Developers will likely find the data layer — in particular, the set of [primitives](#primitives) — to be the most interesting part of MCP. It is the part of MCP that defines the ways developers can share context from MCP servers to MCP clients.
 
-MCP uses [JSON-RPC 2.0](https://www.jsonrpc.org/) as its underlying RPC protocol. Client and servers send requests to each other and respond accordingly. Notifications can be used when no response is required.
+MCP uses [JSON-RPC 2.0](https://www.jsonrpc.org/) as its underlying RPC protocol. Clients send requests and servers respond to them. When a server needs input from the client, it asks for it in its result through the [Multi Round-Trip Requests](/specification/2026-07-28/basic/patterns/mrtr) pattern. Notifications can be used when no response is required.
 
 #### Statelessness and discovery
 
