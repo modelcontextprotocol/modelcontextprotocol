@@ -26,7 +26,7 @@ The OAuth flow in this guide is for HTTP-based transports. Servers that use the 
 
 ## The Authorization Flow: Step by Step
 
-Three parties take part. Your **MCP server** is an OAuth resource server. It validates access tokens and never issues them. The **MCP client** is an OAuth client acting on behalf of a user. The **authorization server** authenticates the user and issues tokens for your MCP server.
+Three parties take part. Your **MCP server** is an OAuth resource server. In this role it validates access tokens and doesn't issue them. The **MCP client** is an OAuth client acting on behalf of a user. The **authorization server** authenticates the user and issues tokens for your MCP server. It can be a separate service or be hosted together with the MCP server.
 
 ```mermaid
 sequenceDiagram
@@ -42,6 +42,7 @@ sequenceDiagram
     C->>A: GET authorization server metadata
     A-->>C: Endpoints and capabilities
     Note over C,A: Client identifies itself:<br/>pre-registered ID, metadata document, or DCR
+    Note over C: Record the issuer
     C->>B: Open authorization URL<br/>(PKCE challenge, resource, scope)
     B->>A: User logs in and consents
     A-->>B: Redirect with code and iss
@@ -63,7 +64,7 @@ WWW-Authenticate: Bearer resource_metadata="https://your-server.com/.well-known/
                          scope="mcp:tools"
 ```
 
-The client requests the scopes named in the challenge. If the challenge names none, it requests everything in the PRM document's `scopes_supported`. See [Scope Selection Strategy](/specification/draft/basic/authorization#scope-selection-strategy).
+The client should request the scopes named in the challenge. If the challenge names none, it should request everything in the PRM document's `scopes_supported`. If that is missing too, it leaves out the `scope` parameter. See [Scope Selection Strategy](/specification/draft/basic/authorization#scope-selection-strategy).
 
 A server must include the `resource_metadata` pointer or serve the PRM document at a well-known URI. It can do both. When the pointer is missing, the client first tries `/.well-known/oauth-protected-resource` followed by the path of the MCP endpoint. It then tries the same URL without the path. See [Protected Resource Metadata Discovery Requirements](/specification/draft/basic/authorization/authorization-server-discovery#protected-resource-metadata-discovery-requirements).
 
@@ -94,6 +95,8 @@ The client picks an authorization server and fetches its metadata. The metadata 
   "token_endpoint": "https://auth.your-server.com/token",
   "jwks_uri": "https://auth.your-server.com/jwks",
   "response_types_supported": ["code"],
+  "grant_types_supported": ["authorization_code", "refresh_token"],
+  "token_endpoint_auth_methods_supported": ["none"],
   "code_challenge_methods_supported": ["S256"],
   "client_id_metadata_document_supported": true,
   "authorization_response_iss_parameter_supported": true
@@ -132,7 +135,9 @@ The line breaks in this example are only there to make it easier to read.
 
 After the user logs in and consents, the authorization server redirects back to the client with a `code` and the `state`. If it supports [RFC 9207](https://datatracker.ietf.org/doc/html/rfc9207), it also returns `iss`.
 
-Before it exchanges the code, the client must [validate `iss`](/specification/draft/basic/authorization#authorization-response-validation) against the issuer it recorded. It should also check that `state` is the value it sent.
+Before it opens the browser, the client must record the `issuer` from the validated metadata. Before it exchanges the code, it must [validate `iss`](/specification/draft/basic/authorization#authorization-response-validation) against that issuer. The same check applies to error responses. If it fails, the client must not act on the error or display it.
+
+The client should also discard a response whose `state` is missing or different from the value it sent.
 
 The client then sends the code, the PKCE verifier, and the same `resource` value to the `token_endpoint`. It receives an access token, and the authorization server can choose to return a refresh token too:
 
@@ -148,7 +153,7 @@ The client then sends the code, the PKCE verifier, and the same `resource` value
 </Step>
 
 <Step title="Making Authenticated Requests">
-The client sends the access token in the `Authorization` header of **every** HTTP request:
+The client sends the access token in the `Authorization` header of **every** HTTP request, and never in the URL:
 
 ```http
 POST /mcp HTTP/1.1
@@ -187,7 +192,7 @@ WWW-Authenticate: Bearer error="insufficient_scope",
                          resource_metadata="https://your-server.com/.well-known/oauth-protected-resource/mcp"
 ```
 
-The client can then start a [step-up authorization flow](/specification/draft/basic/authorization#step-up-authorization-flow). It requests the scopes in the challenge together with the scopes it requested before.
+The client should then start a [step-up authorization flow](/specification/draft/basic/authorization#step-up-authorization-flow). It requests the scopes in the challenge together with the scopes it requested before, and it should limit how often it retries.
 
 </Step>
 </Steps>
@@ -217,7 +222,7 @@ With a [Client ID Metadata Document](https://datatracker.ietf.org/doc/html/draft
 }
 ```
 
-The URL must use `https` and contain a path. The document must contain at least `client_id`, `client_name`, and `redirect_uris`, and its `client_id` must match the URL exactly.
+The URL must use `https` and contain a path, such as `/oauth/client-metadata.json`. The document must contain at least `client_id`, `client_name`, and `redirect_uris`, and its `client_id` must match the URL exactly.
 
 Authorization servers advertise support with `"client_id_metadata_document_supported": true`. A client can use the same client ID with every authorization server that supports CIMD. It doesn't need to register again if your MCP server changes authorization servers.
 
@@ -254,16 +259,18 @@ Use an existing identity provider or authorization server product. Client regist
 
 Check these points before you choose one:
 
-- **Metadata.** It must serve metadata through RFC 8414 or OpenID Connect Discovery. The metadata must contain `code_challenge_methods_supported`.
+- **Audience.** Your MCP server must reject tokens that weren't issued for it. The `resource` value from the client should become the token's audience, which is the `aud` claim in a JWT. Some products need a setting for this, or let you configure the audience on a scope instead. Others always use their own identifier. In that case, compare the audience with that identifier, and keep your server's URL as the PRM `resource`. The identifier must belong to this MCP server only, so don't share one application registration between servers.
+- **Metadata.** It must serve metadata through RFC 8414 or OpenID Connect Discovery. The metadata must contain `code_challenge_methods_supported`. Look at the real document, because some products support PKCE but leave this value out, and clients that follow the specification then refuse to connect.
 - **CIMD.** It should support CIMD, which it advertises with `client_id_metadata_document_supported`. In some products you have to enable this, or list the client domains you accept.
-- **Audience.** Check this first, because your MCP server must reject tokens that weren't issued for it. The `resource` value from the client should become the token's audience, which is the `aud` claim in a JWT. If a product doesn't support RFC 8707, it might let you configure the audience on a scope instead.
-- **Scopes.** Define a scope such as `mcp:tools` and make it available to the clients that will connect.
+- **Token format.** The examples below need signed JWT access tokens. Otherwise, you need an introspection endpoint.
+- **Public clients.** Many MCP clients have no secret. The authorization server must accept them, and its `token_endpoint_auth_methods_supported` should contain `none`.
+- **Scopes.** Define a scope such as `mcp:tools` and make it available to the clients that will connect. Some products add a prefix to scope names. If yours does, use the full name everywhere the examples use `mcp:tools`.
 - **Issuer in responses.** It should return `iss` in authorization responses. If it does, it must advertise `authorization_response_iss_parameter_supported`.
 
 <Tip>
 **Testing Locally**
 
-You can run an authorization server on your own machine. For example, [Keycloak](https://www.keycloak.org/securing-apps/mcp-authz-server) has experimental support for CIMD and resource indicators. To enable both, start it with `--features=cimd,resource-indicators`.
+You can run an authorization server on your own machine. For example, [Keycloak](https://www.keycloak.org/securing-apps/mcp-authz-server) has experimental support for CIMD and resource indicators. To enable both, start it with `--features=cimd,resource-indicators`. You then have to create a client policy for CIMD and add your server's URL to its resource indicator allow list.
 
 </Tip>
 
@@ -273,7 +280,9 @@ The examples below protect an MCP server that has one tool, `add`. Each server r
 
 - `ISSUER` is the exact `issuer` value from your authorization server's metadata.
 - `METADATA_URL` is the URL of that metadata. If the issuer has a path, as in `https://auth.example.com/tenant1`, the RFC 8414 URL is `https://auth.example.com/.well-known/oauth-authorization-server/tenant1`, and the OpenID Connect URL is usually `https://auth.example.com/tenant1/.well-known/openid-configuration`.
-- `RS256` (`RsaSha256` in C#) is the signing algorithm. Change it if your authorization server uses a different one.
+- `RS256` (`RsaSha256` in C#) is the signing algorithm. Change it if your authorization server uses a different one. In Python, the published keys must then have an `alg` value.
+- `mcp:tools` is the required scope.
+- The expected audience is the server URL. Change it if your authorization server puts its own identifier in `aud`. It is the `audience` option in TypeScript and Python, and `ValidAudience` in C#.
 
 In the C# example, the first two are called `issuer` and `metadataUrl`. The TypeScript and Python examples fetch the metadata at startup, so they exit if the authorization server can't be reached.
 
@@ -338,7 +347,9 @@ async function verifyAccessToken(token: string): Promise<AuthInfo> {
     const { payload } = await jwtVerify(token, jwks, {
       algorithms: ["RS256"],
       issuer: ISSUER,
+      audience: MCP_SERVER_URL.href,
       requiredClaims: ["exp"],
+      clockTolerance: 30,
     });
 
     return {
@@ -346,11 +357,8 @@ async function verifyAccessToken(token: string): Promise<AuthInfo> {
       clientId: String(payload.client_id ?? payload.azp ?? ""),
       scopes: typeof payload.scope === "string" ? payload.scope.split(" ") : [],
       expiresAt: payload.exp,
-      // Report the audience only if it is this server. requireBearerAuth
-      // refuses the token when it doesn't match expectedResource.
-      resource: [payload.aud].flat().includes(MCP_SERVER_URL.href)
-        ? MCP_SERVER_URL
-        : undefined,
+      // jwtVerify has checked that the token's audience is this server
+      resource: MCP_SERVER_URL,
       extra: { sub: payload.sub },
     };
   } catch (error) {
@@ -362,6 +370,7 @@ async function verifyAccessToken(token: string): Promise<AuthInfo> {
     ) {
       throw new OAuthError(OAuthErrorCode.InvalidToken, "Invalid access token");
     }
+    console.error("Could not verify the token:", error);
     throw error;
   }
 }
@@ -403,14 +412,15 @@ const requireAuth = requireBearerAuth({
 const handler = toNodeHandler(createMcpHandler(createServer));
 app.all("/mcp", requireAuth, (req, res) => void handler(req, res, req.body));
 
-app.listen(3000, "127.0.0.1", () => {
+app.listen(3000, "127.0.0.1", (error) => {
+  if (error) throw error;
   console.log(`MCP server listening on ${MCP_SERVER_URL}`);
 });
 ```
 
 - `mcpAuthMetadataRouter` serves the PRM document at `/.well-known/oauth-protected-resource/mcp`. It also mirrors the authorization server metadata for older clients that look for it on the MCP server.
 - `requireBearerAuth` runs your verifier on every request. It answers a missing or invalid token with a `401` challenge, and a missing scope with a `403` challenge.
-- `expectedResource` checks the audience. It refuses a token unless the verifier reports the same resource. It requires `@modelcontextprotocol/express` 2.0.2 or later.
+- `jwtVerify` checks the signature, issuer, audience, and lifetime. Keep its `audience` option, because `expectedResource` doesn't look at the token. `expectedResource` refuses a token if the verifier reports a different resource or none. It requires `@modelcontextprotocol/express` 2.0.2, and earlier versions ignore it.
 - `createMcpExpressApp` validates the `Host` and `Origin` headers of a server bound to localhost.
 
 Run the server:
@@ -424,10 +434,10 @@ To require a scope for a single tool, see [Require authorization](https://ts.sdk
 </Tab>
 <Tab title="Python">
 
-Install the [Python SDK](https://py.sdk.modelcontextprotocol.io) and PyJWT, with the `crypto` extra that RS256 needs:
+Install the [Python SDK](https://py.sdk.modelcontextprotocol.io), HTTPX2, and PyJWT with the `crypto` extra that RS256 needs:
 
 ```bash
-pip install "mcp>=2.2" "pyjwt[crypto]"
+pip install "mcp>=2.2" "httpx2>=2.5" "pyjwt[crypto]>=2.14"
 ```
 
 Create `server.py`:
@@ -465,11 +475,12 @@ class JWTTokenVerifier(TokenVerifier):
             )
             claims = jwt.decode(
                 token,
-                signing_key.key,
+                signing_key,
                 algorithms=["RS256"],
                 issuer=ISSUER,
-                # The SDK checks the audience, using AccessToken.resource below
-                options={"require": ["exp"], "verify_aud": False},
+                audience=MCP_SERVER_URL,
+                leeway=30,
+                options={"require": ["exp"]},
             )
         except jwt.PyJWKClientConnectionError:
             # An unreachable JWKS endpoint is an outage, not an invalid token
@@ -477,17 +488,15 @@ class JWTTokenVerifier(TokenVerifier):
         except jwt.PyJWTError:
             return None
 
-        audience = claims.get("aud", [])
-        if isinstance(audience, str):
-            audience = [audience]
         scope = claims.get("scope")
 
         return AccessToken(
             token=token,
-            client_id=claims.get("client_id") or claims.get("azp", ""),
+            client_id=claims.get("client_id") or claims.get("azp") or "",
             scopes=scope.split() if isinstance(scope, str) else [],
             expires_at=int(claims["exp"]),
-            resource=MCP_SERVER_URL if MCP_SERVER_URL in audience else None,
+            # jwt.decode has checked that the token's audience is this server
+            resource=MCP_SERVER_URL,
             subject=claims.get("sub"),
             claims=claims,
         )
@@ -496,13 +505,15 @@ class JWTTokenVerifier(TokenVerifier):
 mcp = MCPServer(
     "Math",
     token_verifier=JWTTokenVerifier(),
-    auth=AuthSettings(
-        # Pass plain strings: AnyHttpUrl(ISSUER) adds a trailing slash, and the
-        # issuer is compared character by character
-        issuer_url=ISSUER,
-        resource_server_url=MCP_SERVER_URL,
-        required_scopes=["mcp:tools"],
-        validate_token_resource=True,
+    # model_validate keeps ISSUER as it is. AnyHttpUrl(ISSUER) would add a trailing
+    # slash, and the issuer is compared character by character.
+    auth=AuthSettings.model_validate(
+        {
+            "issuer_url": ISSUER,
+            "resource_server_url": MCP_SERVER_URL,
+            "required_scopes": ["mcp:tools"],
+            "validate_token_resource": True,
+        }
     ),
 )
 
@@ -519,8 +530,8 @@ if __name__ == "__main__":
 
 - The SDK serves the PRM document at `/.well-known/oauth-protected-resource/mcp` and builds it from `AuthSettings`.
 - Returning `None` from `verify_token` produces a `401` challenge. A token without one of `required_scopes` gets a `403` challenge.
-- `validate_token_resource=True` checks the audience. The SDK refuses a token unless its `AccessToken.resource` is `resource_server_url`. It requires version 2.2 or later.
-- The SDK doesn't put `scope` in its challenges. Clients find the scopes in `scopes_supported` instead.
+- `jwt.decode` checks the signature, issuer, audience, and lifetime. Keep its `audience` argument, because `validate_token_resource` doesn't look at the token. It makes the SDK refuse a token if `AccessToken.resource` isn't `resource_server_url`. It requires version 2.2, and earlier versions ignore it.
+- The SDK doesn't put `scope` in its challenges. After a `401`, clients find the scopes in `scopes_supported` instead. After a `403`, some clients request only the scopes they already have, so step-up authorization might not get the missing scope.
 
 Run the server:
 
@@ -558,7 +569,6 @@ Create `Program.cs`:
 using System.ComponentModel;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
-using ModelContextProtocol.AspNetCore.Authentication;
 using ModelContextProtocol.Server;
 
 // The authorization server's issuer identifier, and where it publishes metadata
@@ -569,34 +579,51 @@ var metadataUrl = "https://auth.example.com/.well-known/oauth-authorization-serv
 var mcpServerUrl = "http://localhost:3000/mcp";
 
 var serverOrigin = new Uri(mcpServerUrl).GetLeftPart(UriPartial.Authority);
-var resourceMetadataUrl = $"{serverOrigin}/.well-known/oauth-protected-resource/mcp";
+var mcpPath = new Uri(mcpServerUrl).AbsolutePath.TrimEnd('/');
+var resourceMetadataUrl = $"{serverOrigin}/.well-known/oauth-protected-resource{mcpPath}";
 
-// Origins of the web pages that may call the server from a browser
+// Browser origins and host names that the server doesn't reject
 string[] allowedOrigins = [serverOrigin];
+var allowedHosts = "localhost;127.0.0.1;[::1]";
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Configuration["AllowedHosts"] = allowedHosts;
 
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultChallengeScheme = McpAuthenticationDefaults.AuthenticationScheme;
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultForbidScheme = JwtBearerDefaults.AuthenticationScheme;
-})
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 .AddJwtBearer(options =>
 {
     options.MetadataAddress = metadataUrl;
+    options.BackchannelTimeout = TimeSpan.FromSeconds(5);
+    options.RefreshInterval = TimeSpan.FromSeconds(30);
     options.MapInboundClaims = false;
     options.TokenValidationParameters = new TokenValidationParameters
     {
         // ValidIssuer alone would also accept the issuer named in the metadata
-        IssuerValidator = (tokenIssuer, _, _) => tokenIssuer == issuer
-            ? tokenIssuer
-            : throw new SecurityTokenInvalidIssuerException("Unexpected issuer"),
+        IssuerValidatorUsingConfiguration = (tokenIssuer, _, _, configuration) =>
+            tokenIssuer == issuer && configuration?.Issuer == issuer
+                ? tokenIssuer
+                : throw new SecurityTokenInvalidIssuerException("Unexpected issuer"),
         ValidAudience = mcpServerUrl,
+        IgnoreTrailingSlashWhenValidatingAudience = false,
+        ClockSkew = TimeSpan.FromSeconds(30),
+        NameClaimType = "sub",
         ValidAlgorithms = [SecurityAlgorithms.RsaSha256],
     };
     options.Events = new JwtBearerEvents
     {
+        // Point clients to the PRM document and name the scope they need
+        OnChallenge = context =>
+        {
+            context.HandleResponse();
+            var error = context.AuthenticateFailure is null ? "" : "error=\"invalid_token\", ";
+            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+            context.Response.Headers.WWWAuthenticate =
+                $"Bearer {error}scope=\"mcp:tools\", resource_metadata=\"{resourceMetadataUrl}\"";
+            return Task.CompletedTask;
+        },
+        // If the signing keys were never downloaded, this throws and the client gets a 500
+        OnAuthenticationFailed = context => context.Options.ConfigurationManager!
+            .GetConfigurationAsync(context.HttpContext.RequestAborted),
         // Tell clients which scope they need when a valid token lacks it
         OnForbidden = context =>
         {
@@ -633,7 +660,7 @@ var app = builder.Build();
 app.Use(async (context, next) =>
 {
     var origin = context.Request.Headers.Origin.ToString();
-    if (origin.Length > 0 && context.Request.Path.StartsWithSegments("/mcp")
+    if (origin.Length > 0 && context.Request.Path.StartsWithSegments(mcpPath)
         && !allowedOrigins.Contains(origin))
     {
         context.Response.StatusCode = StatusCodes.Status403Forbidden;
@@ -645,7 +672,7 @@ app.Use(async (context, next) =>
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapMcp("/mcp").RequireAuthorization("mcp:tools");
+app.MapMcp(mcpPath).RequireAuthorization("mcp:tools");
 
 app.Run("http://localhost:3000");
 
@@ -657,12 +684,13 @@ public sealed class MathTools
 }
 ```
 
-- `AddMcp` serves the PRM document at `/.well-known/oauth-protected-resource/mcp` and adds the `resource_metadata` pointer to `401` challenges.
-- `AddJwtBearer` downloads the signing keys and validates the signature, issuer, audience, and lifetime. The example sets `MetadataAddress` because the `Authority` option only looks for OpenID Connect Discovery metadata.
-- The `mcp:tools` policy enforces the scope. `RequireAuthorization()` on its own accepts any valid token. `OnForbidden` adds the `403` challenge, which the SDK doesn't send by itself.
-- The SDK's `401` challenge has no `scope`. Clients find the scopes in `scopes_supported` instead.
-- JWT bearer authentication only downloads metadata over HTTPS. If your local authorization server uses plain HTTP, set `options.RequireHttpsMetadata = false`. Do this only in development.
-- ASP.NET Core answers `401` when it can't download the signing keys. Check its logs to tell this apart from an invalid token.
+- `AddMcp` serves the PRM document at `/.well-known/oauth-protected-resource/mcp`.
+- `AddJwtBearer` downloads the signing keys and validates the signature, issuer, audience, and lifetime. By default it accepts tokens for five minutes after they expire, so the example sets `ClockSkew`. The example sets `MetadataAddress` because the `Authority` option only looks for OpenID Connect Discovery metadata.
+- The `mcp:tools` policy enforces the scope. `RequireAuthorization()` on its own accepts any valid token.
+- `OnChallenge` and `OnForbidden` write the `401` and `403` challenges. The SDK's own `401` challenge has no `scope`, and behind a proxy its `resource_metadata` URL can be wrong. It sends no `403` challenge.
+- JWT bearer authentication only downloads metadata over HTTPS. With any other URL, requests fail with a `500`. If your local authorization server uses plain HTTP, set `options.RequireHttpsMetadata = false` in `AddJwtBearer`. Do this only in development.
+- `OnAuthenticationFailed` makes the server answer `500` if it has never been able to download the signing keys. Without it, ASP.NET Core answers `401`.
+- ASP.NET Core downloads the signing keys again every 12 hours, or when it sees an unknown key. It answers `401` for an unknown key until the download is done. By default it does this at most once every five minutes, so a new key can be refused for that long. The example sets `RefreshInterval` to shorten this.
 - The [transport specification](/specification/draft/basic/transports/streamable-http) requires servers to validate the `Origin` header. The SDK doesn't do this, so the example does it in middleware.
 
 Run the server:
@@ -671,24 +699,34 @@ Run the server:
 dotnet run
 ```
 
-For per-tool authorization with `[Authorize]`, see [Identity and Role Propagation](https://csharp.sdk.modelcontextprotocol.io/concepts/identity/identity.html) in the C# SDK documentation.
+For per-tool authorization with `[Authorize]`, see [Identity and Role Propagation](https://csharp.sdk.modelcontextprotocol.io/concepts/identity/identity.html) in the C# SDK documentation. A failed `[Authorize]` check on a tool returns a JSON-RPC error and no `403` challenge, so clients can't start step-up authorization from it.
 
 </Tab>
 </Tabs>
 
 ### Opaque Tokens
 
-If your authorization server issues opaque tokens, use its [token introspection](https://datatracker.ietf.org/doc/html/rfc7662) endpoint instead of validating a JWT. The endpoint requires authorization, so your MCP server needs its own credentials at the authorization server. Check that the response has `active` set to `true`, and use its `aud`, `scope`, and `exp` values as the examples use the JWT claims. In TypeScript and Python, make the call in the verifier. In C#, replace `AddJwtBearer` with an authentication handler that supports introspection.
+If your authorization server issues opaque tokens, use its [token introspection](https://datatracker.ietf.org/doc/html/rfc7662) endpoint instead of validating a JWT. Its URL is the `introspection_endpoint` value in the metadata.
+
+The endpoint requires authorization, so your MCP server needs its own credentials at the authorization server. If you use HTTP Basic authentication, form-encode the client ID and secret first. The credentials must be allowed to introspect tokens for this server. If they aren't, the response for a valid token has `active` set to `false`.
+
+If `active` is `false`, reject the token. If it is `true`, check that `aud` contains the expected audience before you report the resource to the SDK. Check `scope` and `exp` too. These values are optional in the RFC, so make sure your authorization server returns them, and reject a token whose `aud` is missing. If the endpoint can't be reached or returns an error status, even a `401`, treat that as an outage.
+
+In TypeScript and Python, make the call in the verifier. In C#, replace `AddJwtBearer` with an authentication handler that supports introspection.
 
 ### Deploying Beyond Localhost
 
-Change the server URL to the exact `https` URL that clients connect to. It is used as the PRM `resource` and as the expected audience.
+Change the server URL to the exact `https` URL that clients connect to. It is used as the PRM `resource` and as the expected audience. If its path isn't `/mcp`, change the route too. It is the `app.all` path in TypeScript and the `streamable_http_path` argument of `mcp.run` in Python. The C# example takes it from the URL. In TypeScript, `new URL()` adds a trailing slash to a URL that has no path, and the token's `aud` then has to include it.
 
-The examples listen only on localhost, and the TypeScript and Python SDKs reject requests with any other `Host` header. Configure the hosts and browser origins you accept:
+The examples serve plain HTTP, so put them behind a reverse proxy or load balancer that terminates TLS and keeps the original `Host` header. If it runs on the same machine, keep listening on localhost and change only the accepted hosts and origins.
 
-- **TypeScript**: Pass `host`, `allowedHosts`, and `allowedOrigins` to `createMcpExpressApp`, and change the address given to `app.listen`.
-- **Python**: Pass `host` and a `TransportSecuritySettings` object as `transport_security` to `mcp.run`.
-- **C#**: Change the URL given to `app.Run`, add entries to `allowedOrigins`, and set `AllowedHosts` in the configuration.
+The examples listen only on localhost and reject requests with any other `Host` header. Configure the hosts and browser origins you accept:
+
+- **TypeScript**: Pass `host`, `allowedHosts`, and `allowedOrigins` to `createMcpExpressApp`, and change the address given to `app.listen`. Both lists take host names without a scheme or port. If no browser client connects, pass an empty `allowedOrigins` list, because the SDK doesn't check `Origin` without it. Set `NODE_ENV=production` so that Express doesn't send stack traces to clients.
+- **Python**: Pass `host` and a `TransportSecuritySettings` object as `transport_security` to `mcp.run`. Import the class from `mcp.server.transport_security`, and set its `allowed_hosts` and `allowed_origins`. The SDK checks neither header if you change `host` and leave this out. A host must match the `Host` header exactly, including the port if it has one, and an origin must include its scheme. End an entry with `:*` to accept any port.
+- **C#**: Change the URL given to `app.Run` to the address to listen on, such as `http://0.0.0.0:3000`. Change `allowedOrigins`, whose entries include the scheme, and `allowedHosts`, whose entries have no scheme or port.
+
+Accepting an origin doesn't enable CORS. Clients that run in a browser also need CORS middleware that answers preflight requests before authentication and exposes the `WWW-Authenticate` header.
 
 ## Testing the Server
 
@@ -701,6 +739,8 @@ curl http://localhost:3000/.well-known/oauth-protected-resource/mcp
 
 The first command should print a `401` with a `WWW-Authenticate` header. The second should print the PRM document, which contains your server's URL and your issuer.
 
+Also open your `METADATA_URL` and check that it contains `code_challenge_methods_supported`. Some clients work without it and others refuse to connect.
+
 Then run the full flow with the [MCP Inspector](/docs/draft/tools/inspector/authorization), which needs Node.js 22.19 or later. The command below opens a browser for login and calls the tool:
 
 ```bash
@@ -712,7 +752,7 @@ npx @modelcontextprotocol/inspector --cli http://localhost:3000/mcp --transport 
 
 `--protocol-era modern` makes the Inspector use the 2026-07-28 protocol.
 
-`--client-metadata-url` is the URL of a metadata document that you host. Its `redirect_uris` must include `http://127.0.0.1:6276/oauth/callback`. If your authorization server supports DCR, you can leave this option out. For a pre-registered client, use `--client-id` instead.
+The Inspector's redirect URI is `http://127.0.0.1:6276/oauth/callback`. `--client-metadata-url` is the URL of a metadata document that you host, with this redirect URI in its `redirect_uris`. If your authorization server supports DCR and accepts registration from your machine, you can leave this option out. For a pre-registered client, register the redirect URI and use `--client-id` instead, with `--client-secret` if the client has a secret.
 
 You can also connect from a client such as [Visual Studio Code](https://code.visualstudio.com). Run **MCP: Add Server** from the Command Palette, choose HTTP, and enter `http://localhost:3000/mcp`.
 
@@ -720,9 +760,12 @@ You can also connect from a client such as [Visual Studio Code](https://code.vis
 **Common Issues**
 
 - **The authorization server rejects the client ID.** It must be able to fetch the `client_id` URL from its own network. If it has a list of trusted client domains, the list must include the URL's host.
-- **The metadata document is invalid.** Its `client_id` must be identical to its URL, including any trailing slash. The redirect URI in the request must be in `redirect_uris`.
-- **Every token gets a `401`.** Decode a test token. `iss` must be exactly the same as `ISSUER`, and `aud` must contain exactly `http://localhost:3000/mcp`.
-- **Every token gets a `403`.** If the response has an `insufficient_scope` error, the token's `scope` claim doesn't contain `mcp:tools`. Some authorization servers put scopes in a different claim or format. If there is no such error, the `Host` or `Origin` header might have been refused. The Python SDK answers `421` for a refused `Host`.
+- **The metadata document is invalid.** Its `client_id` must be identical to its URL, including any trailing slash. The redirect URI in the request must be in `redirect_uris`. Authorization servers should accept any port for a loopback IP address, but some compare the port too.
+- **The authorization server rejects the `resource` value.** Register your server's URL exactly as clients send it, including the path and any trailing slash. The error might be `invalid_target`.
+- **The Inspector prints `auth_required` after a successful login.** Your server refused the new token. The command prints the same message for a `401` and a `403`. To see which one it is, send the token with `curl -i -X POST http://localhost:3000/mcp -H "Content-Type: application/json" -H "Authorization: Bearer <token>"`.
+- **The Inspector still fails after you fix the configuration.** It keeps tokens and registered clients between runs. Add `--relogin` to discard them.
+- **Every token gets a `401`.** Decode a test token. `iss` must be exactly the same as `ISSUER`, and `aud` must contain exactly the expected audience, `http://localhost:3000/mcp` in the examples. If the token isn't a JWT, see [Opaque Tokens](#opaque-tokens). Check too that the clocks of the two servers agree.
+- **Every token gets a `403`.** If the response has an `insufficient_scope` error, the token's `scope` claim doesn't contain `mcp:tools`. Some authorization servers use a claim such as `scp`, or an array instead of a string. Change the code that reads the claim. If the token uses a shorter name than clients request, convert it to the full name there. If there is no such error, the `Host` or `Origin` header might have been refused. For a refused `Host`, the Python SDK answers `421` and ASP.NET Core answers `400`.
 - **The client refuses to start the flow.** Check that the authorization server metadata has `code_challenge_methods_supported` and that its `issuer` matches the PRM document.
 
 </Note>
@@ -732,14 +775,16 @@ You can also connect from a client such as [Visual Studio Code](https://code.vis
 For attacks and how to prevent them, read [Security Best Practices](/docs/draft/tutorials/security/security_best_practices) and the specification's [Security Considerations](/specification/draft/basic/authorization/security-considerations). Some common problems are listed below.
 
 - **Don't write your own token validation**. Use well-tested libraries for signature checks, claims validation, and authorization decisions.
-- **Always validate the audience**. A correctly signed token from your authorization server might be meant for another service. Compare the audience with your server's URL exactly, and don't accept generic values such as `api`.
+- **Always validate the audience**. A correctly signed token from your authorization server might be meant for another service. Compare the audience exactly with your server's URL, or with the identifier your authorization server uses for this server only. Don't accept a value that several servers share, such as `api`.
 - **Never pass tokens through**. If your server calls an upstream API, it must obtain a separate token for it. See [Token Passthrough](/docs/draft/tutorials/security/security_best_practices#token-passthrough).
+- **Get consent for each client if you proxy OAuth**. If your server sends users to a third-party authorization server with one static client ID, it must get the user's consent for each MCP client first. See [Confused Deputy Problem](/docs/draft/tutorials/security/security_best_practices#confused-deputy-problem).
+- **Accept only access tokens**. Never accept an ID token. If your authorization server follows [RFC 9068](https://datatracker.ietf.org/doc/html/rfc9068), check that the token's `typ` header is `at+jwt` or `application/at+jwt`. The examples don't check it, because many authorization servers use another value.
 - **Accept only one issuer**. Reject tokens from other issuers or tenants, unless your server is meant to be multi-tenant.
-- **Use short-lived access tokens**. A stolen token is useful only until it expires. Authorization servers must also rotate refresh tokens for public clients.
-- **Enforce HTTPS**. Authorization server endpoints must use HTTPS, and redirect URIs must use HTTPS or be on `localhost`. Use HTTPS for your MCP server too, except during local development.
-- **Use narrow scopes**. Split access by tool or capability where you can. See [Scope Minimization](/docs/draft/tutorials/security/security_best_practices#scope-minimization).
-- **Return complete challenges**. Where your SDK allows it, include `resource_metadata` and `scope` in `401` and `403` challenges. List every scope the operation needs at once. Leave out `offline_access`, because your server doesn't need refresh tokens.
-- **Return `5xx` during an outage**. If your server can't reach the JWKS or introspection endpoint, return a `5xx` status, as the TypeScript and Python examples do. A `401` makes users log in again, and that doesn't fix the problem.
+- **Use short-lived access tokens**. A stolen token works until it expires. Authorization servers must also rotate refresh tokens for public clients.
+- **Enforce HTTPS**. Authorization server endpoints and your MCP server must use HTTPS. Redirect URIs must use HTTPS, `localhost`, or a loopback address such as `127.0.0.1`. Use plain HTTP elsewhere only on your own machine during development.
+- **Use narrow scopes**. Split access by tool or capability where you can. In `scopes_supported`, list only the scopes needed for basic use, because clients request all of them when the challenge names none. Ask for the others with a `403` challenge that names them. If a broad scope implies narrower ones, your server must accept it where a narrower one is required. See [Scope Minimization](/docs/draft/tutorials/security/security_best_practices#scope-minimization).
+- **Return complete challenges**. Where your SDK allows it, include `resource_metadata` and `scope` in `401` and `403` challenges. List every scope the operation needs at once. Leave `offline_access` out of challenges and `scopes_supported`, because your server doesn't need refresh tokens.
+- **Return `5xx` during an outage**. If your server can't reach the JWKS or introspection endpoint, return a `5xx` status, as the TypeScript and Python examples do. The C# example does this only until it has downloaded the keys once. A `401` makes users log in again, and that doesn't fix the problem.
 - **Protect stored tokens and secrets**. If you have to cache tokens, encrypt them and delete them when they expire. Keep client secrets in a secret manager.
 - **Separate client and server credentials**. Don't use your MCP server's introspection credentials in end-user flows.
 - **Don't log credentials**. Remove `Authorization` headers, tokens, authorization codes, and secrets from your logs. Return generic errors to clients and keep the details in your own logs.
