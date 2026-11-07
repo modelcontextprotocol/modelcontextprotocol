@@ -143,7 +143,31 @@ The server checks with the storage that the bytes arrived, runs the tool, and re
 
 All of this happens inside the client. The model made one tool call and got one result, and neither the bytes nor the upload URL entered its context.
 
-> **[Placeholder: image or animation showing the upload and download flow]**
+Here's the whole upload:
+
+```mermaid
+sequenceDiagram
+    participant M as Model
+    participant H as Host and client
+    participant S as MCP server
+    participant T as Target
+
+    M->>H: Call save_to_folder
+    Note over H: User or operator policy approves sending the file
+    H->>S: tools/call with file metadata
+    alt Server rejects the file
+        S-->>H: Result with isError: true
+    else Server accepts the file
+        S-->>H: upload_required with uploads and requestState
+        H->>T: PUT or POST file bytes
+        T-->>H: 2xx
+        H->>S: tools/call with same arguments and requestState
+        Note over S: Confirm with storage that the bytes arrived
+        Note over S: Finalize if needed, then run the tool
+        S-->>H: Tool result
+    end
+    H-->>M: Result, with no target
+```
 
 ### Getting a file back
 
@@ -172,6 +196,25 @@ Downloads are simpler. A tool lists the file in the `_meta` of its result, and t
     }
   }
 }
+```
+
+And here's the whole download:
+
+```mermaid
+sequenceDiagram
+    participant M as Model
+    participant H as Host and client
+    participant S as MCP server
+    participant T as Target
+
+    M->>H: Call export_orders
+    H->>S: tools/call
+    S-->>H: Result with download target in _meta
+    opt Client wants the file and policy permits
+        H->>T: GET
+        T-->>H: 200 or 206 with bytes
+    end
+    H-->>M: Result, with no target
 ```
 
 ## Who gets to see your credentials
