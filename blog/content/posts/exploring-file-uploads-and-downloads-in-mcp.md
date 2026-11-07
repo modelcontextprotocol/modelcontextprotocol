@@ -88,30 +88,23 @@ Once the host has the user's approval to send the file, the client calls the too
 
 We send metadata first so the server can say no cheaply. It sees the destination folder along with the file, so it can check permissions and quota, and return a normal tool error if something's off. Nobody uploads 40 MB only to find out the folder is read-only.
 
-If the server is fine with the file, it responds with an upload target through [multi round-trip requests](https://modelcontextprotocol.io/specification/2026-07-28/basic/patterns/mrtr) (MRTR):
+If the server is fine with the file, it responds with an upload target, using a new `upload_required` result type that the extension adds:
 
 ```json
 {
   "jsonrpc": "2.0",
   "id": 1,
   "result": {
-    "resultType": "input_required",
-    "inputRequests": {
-      "uploads": {
-        "method": "io.modelcontextprotocol/files/upload",
-        "params": {
-          "files": [
-            {
-              "fileId": "file-1",
-              "url": "https://upload.example.com/u/01JD3V7K2M?sig=...",
-              "headers": { "Content-Type": "application/pdf" },
-              "credentials": "omit",
-              "expiresAt": "2026-11-04T18:30:00Z"
-            }
-          ]
-        }
+    "resultType": "upload_required",
+    "uploads": [
+      {
+        "fileId": "file-1",
+        "url": "https://upload.example.com/u/01JD3V7K2M?sig=...",
+        "headers": { "Content-Type": "application/pdf" },
+        "credentials": "omit",
+        "expiresAt": "2026-11-04T18:30:00Z"
       }
-    },
+    ],
     "requestState": "..."
   }
 }
@@ -141,7 +134,6 @@ Once it gets a `2xx`, the client retries the tool call with the same arguments a
         "size": 41204133
       }
     },
-    "inputResponses": { "uploads": {} },
     "requestState": "..."
   }
 }
