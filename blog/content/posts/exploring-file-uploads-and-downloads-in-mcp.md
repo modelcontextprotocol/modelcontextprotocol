@@ -194,7 +194,7 @@ The second case is for deployments that don't allow pre-signed URLs, or where a 
 
 The client resolves that `path` under the MCP address it already uses, so with `https://gateway.example.com/mcp/abc`, the file goes to `https://gateway.example.com/mcp/abc/uploads`. The bytes take the same route as the client's MCP calls, which also helps a client in a sandbox that can't reach a public storage host at all. The client attaches its MCP credential here because it's going where that credential already goes. `include` also works on a `url` with the same origin as the server, and the client rejects it on any other `url`.
 
-A target can't set its own `Authorization` header, and the client won't follow redirects, so the token can't be sent elsewhere.
+A target can't set its own `Authorization` header, and the client won't follow redirects, so the token can't leave the server's origin.
 
 ## We'd love your help
 
