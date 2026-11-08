@@ -203,17 +203,29 @@ Prompts provide structured templates for common tasks. In the travel planning co
   "description": "Guide through vacation planning process",
   "arguments": [
     { "name": "destination", "description": "City to visit", "required": true },
-    { "name": "duration", "description": "Length of the trip in days" },
-    { "name": "budget", "description": "Total budget in USD" },
+    { "name": "departure_date", "description": "Departure date (YYYY-MM-DD)" },
+    { "name": "return_date", "description": "Return date (YYYY-MM-DD)" },
+    {
+      "name": "duration",
+      "description": "Length of the trip in days, if no dates are given"
+    },
+    {
+      "name": "budget",
+      "description": "Total budget in USD",
+      "required": false
+    },
+    { "name": "travelers", "description": "Number of travelers" },
     { "name": "interests", "description": "Comma-separated list of interests" }
   ]
 }
 ```
 
+Unlike tool inputs, prompt arguments have no type or schema. Every value is passed as a string, so use `description` to tell users what format to provide. Arguments are optional unless `required` is `true`, so `budget` would be optional even without `"required": false`.
+
 Rather than unstructured natural language input, the prompt system enables:
 
 1. Selection of the "Plan a vacation" template
-2. Structured input, passed as strings: `"Barcelona"`, `"7"`, `"3000"`, `"beaches, architecture, food"`
+2. Structured input: Barcelona (`"Barcelona"`), 7 days (`"7"`), $3000 (`"3000"`), and a list of interests (`"beaches, architecture, food"`)
 3. Consistent workflow execution based on the template
 
 #### User Interaction Model
@@ -253,8 +265,10 @@ Consider a personalized AI travel planner application, with three connected serv
      "name": "plan-vacation",
      "arguments": {
        "destination": "Barcelona",
-       "duration": "7",
+       "departure_date": "2024-06-15",
+       "return_date": "2024-06-22",
        "budget": "3000",
+       "travelers": "2",
        "interests": "beaches, architecture, food"
      }
    }
