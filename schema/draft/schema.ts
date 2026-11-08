@@ -363,7 +363,7 @@ export interface MethodNotFoundError extends Error {
  *
  * In MCP, this error is returned in various contexts when request parameters fail validation:
  *
- * - **Tools**: Unknown tool name, or a request that does not satisfy the {@link CallToolRequest} schema. Invalid tool arguments are instead reported as tool execution errors, with {@link CallToolResult.isError} set to true
+ * - **Tools**: Unknown tool name, or a request that does not satisfy the `CallToolRequest` schema. Invalid tool arguments are instead reported as tool execution errors, with `isError` set to true
  * - **Prompts**: Unknown prompt name or missing required arguments
  * - **Pagination**: Invalid or expired cursor values
  * - **Logging**: Invalid log level
