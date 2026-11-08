@@ -252,8 +252,6 @@ Roots are a mechanism for clients to communicate filesystem access boundaries to
 
 Roots are exclusively filesystem paths and always use the `file://` URI scheme. They help servers understand project boundaries, workspace organization, and accessible directories. The roots list can change as users work with different projects or folders. Servers pick up the updated boundaries the next time they request the roots list.
 
-Roots follow the same [Multi Round-Trip Requests](/specification/draft/basic/patterns/mrtr) flow described under [elicitation](#elicitation), with the `InputRequiredResult` carrying a `roots/list` request. Clients that support roots declare the `roots` capability in each request.
-
 #### Example: Travel Planning Workspace
 
 A travel agent working with multiple client trips benefits from roots to organize filesystem access. Consider a workspace with different directories for various aspects of travel planning.
@@ -298,7 +296,7 @@ Sampling allows servers to request language model completions through the client
 
 Sampling enables servers to perform AI-dependent tasks without directly integrating with or paying for AI models. Instead, servers can request that the client—which already has AI model access—handle these tasks on their behalf. This approach puts the client in complete control of user permissions and security measures. Because sampling requests occur within the context of other operations—like a tool analyzing data—and are processed as separate model calls, they maintain clear boundaries between different contexts, allowing for more efficient use of the context window.
 
-Sampling follows the same [Multi Round-Trip Requests](/specification/draft/basic/patterns/mrtr) flow described under [elicitation](#elicitation), with the `InputRequiredResult` carrying a `sampling/createMessage` request. Clients that support sampling declare the `sampling` capability in each request.
+Sampling follows the same [Multi Round-Trip Requests](/specification/draft/basic/patterns/mrtr) flow described under [elicitation](#elicitation), with the `InputRequiredResult` carrying a `sampling/createMessage` request.
 
 Servers can also request tool use during sampling by including a `tools` array and an optional `toolChoice` field in the request. The tool definitions are scoped to that sampling request and do not need to correspond to tools the server exposes. Clients declare support through the `sampling.tools` capability, and servers must not send tool-enabled sampling requests to clients that have not declared it. See [sampling](/specification/draft/client/sampling#tools-in-sampling) in the specification for details.
 
@@ -361,7 +359,7 @@ The flow ensures security through multiple human-in-the-loop checkpoints. Users 
 }
 ```
 
-The `modelPreferences` suggest a Sonnet-class model and prioritize intelligence over cost and speed, since the task involves complex trade-offs. These preferences are advisory, and the client makes the final model selection.
+The `modelPreferences` suggest a Sonnet-class model and prioritize intelligence over cost and speed, since the task involves complex trade-offs.
 
 #### Example: Flight Analysis Tool
 
@@ -369,7 +367,7 @@ Consider a travel booking server with a tool called `findBestFlight` that uses s
 
 The tool queries airline APIs and gathers 47 flight options. It then requests AI assistance to analyze these options: "Analyze these flight options and recommend the best choice: [47 flights with prices, times, airlines, and layovers] User preferences: morning departure, max 1 layover."
 
-The client sends the request to its LLM, allowing the AI to evaluate trade-offs—like cheaper red-eye flights versus convenient morning departures. It then retries the tool call with the LLM's response, and the tool uses this analysis to present its recommendation. Clients should let the user review the request before it is sent to the LLM and the response before it is returned to the server.
+The client sends the request to its LLM, allowing the AI to evaluate trade-offs—like cheaper red-eye flights versus convenient morning departures. The tool uses this analysis to present its recommendation.
 
 #### User Interaction Model
 
