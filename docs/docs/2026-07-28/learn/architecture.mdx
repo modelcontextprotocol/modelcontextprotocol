@@ -104,7 +104,7 @@ The transport layer abstracts communication details from the protocol layer, ena
 
 A core part of MCP is defining the schema and semantics between MCP clients and MCP servers. Developers will likely find the data layer — in particular, the set of [primitives](#primitives) — to be the most interesting part of MCP. It is the part of MCP that defines the ways developers can share context from MCP servers to MCP clients.
 
-MCP uses [JSON-RPC 2.0](https://www.jsonrpc.org/) as its underlying RPC protocol. Clients send requests and servers respond to them. When a server needs input from the client, it asks for it in its result through the [Multi Round-Trip Requests](/specification/2026-07-28/basic/patterns/mrtr) pattern. Notifications can be used when no response is required.
+MCP uses [JSON-RPC 2.0](https://www.jsonrpc.org/) as its underlying RPC protocol. Clients send requests and servers respond to them. Servers request input from the client through the [Multi Round-Trip Requests](/specification/2026-07-28/basic/patterns/mrtr) pattern. Notifications can be used when no response is required.
 
 #### Statelessness and discovery
 
@@ -120,7 +120,7 @@ MCP defines three core primitives that _servers_ can expose:
 - **Resources**: Data sources that provide contextual information to AI applications (e.g., file contents, database records, API responses)
 - **Prompts**: Reusable templates that help structure interactions with language models (e.g., system prompts, few-shot examples)
 
-Each primitive type has associated methods: all three have discovery (`*/list`), resources and prompts have retrieval (`resources/read` and `prompts/get`), and tools have execution (`tools/call`).
+Each primitive type has associated methods for discovery (`*/list`), and for either retrieval (`resources/read`, `prompts/get`) or execution (`tools/call`).
 MCP clients will use the `*/list` methods to discover available primitives. For example, a client can first list all available tools (`tools/list`) and then execute them. This design allows listings to be dynamic.
 
 As a concrete example, consider an MCP server that provides context about a database. It can expose tools for querying the database, a resource that contains the schema of the database, and a prompt that includes few-shot examples for interacting with the tools.
@@ -133,7 +133,7 @@ MCP also defines primitives that _clients_ can expose. These primitives allow MC
 
 Elicitation requests are delivered through the [Multi Round-Trip Requests](/specification/2026-07-28/basic/patterns/mrtr) pattern, explained in the [elicitation overview](/docs/2026-07-28/learn/client-concepts#elicitation).
 
-**Deprecated**: The following client primitives are deprecated as of protocol version `2026-07-28`. The [deprecated features registry](/specification/2026-07-28/deprecated) lists what to use instead.
+**Deprecated**: The following client primitives are [deprecated](/specification/2026-07-28/deprecated) as of protocol version `2026-07-28`.
 
 - **Sampling**: Allows servers to request language model completions from the client's AI application. This is useful when server authors want access to a language model, but want to stay model-independent and not include a language model SDK in their MCP server. Servers request completions with the `sampling/createMessage` method, also delivered through the Multi Round-Trip Requests pattern. New implementations should integrate directly with LLM provider APIs.
 - **Roots**: Allows clients to tell servers which directories to focus on. Servers request the list with the `roots/list` method, also delivered through the Multi Round-Trip Requests pattern. New implementations should pass directories or files through tool parameters, resource URIs, or server configuration.
@@ -432,7 +432,7 @@ The response demonstrates MCP's flexible content system:
 
 2. **Content Types**: Each content object has a `type` field. In this example, `"type": "text"` indicates plain text content, but MCP supports various content types for different use cases.
 
-3. **Structured Content** (optional): This tool returns only text. A tool can also return machine-readable data in an optional `structuredContent` field, as described in [structured content](/specification/2026-07-28/server/tools#structured-content).
+3. **Structured Content** (optional): Tools can also return machine-readable data as [structured content](/specification/2026-07-28/server/tools#structured-content) in the `structuredContent` field. The tool in this example returns only text.
 
 This execution pattern allows AI applications to dynamically invoke server functionality and receive responses that can be integrated into conversations with language models.
 
@@ -556,8 +556,8 @@ Upon receiving this notification, the client typically reacts by requesting the 
 This notification system is crucial for several reasons:
 
 1. **Dynamic Environments**: Tools may come and go based on server state, external dependencies, or user permissions
-2. **Efficiency**: Clients learn about updates when they occur, so they can poll less often
-3. **Consistency**: Helps clients keep accurate information about available server capabilities, together with freshness checks based on `ttlMs`
+2. **Efficiency**: Clients are notified when updates occur, so they can poll less often
+3. **Consistency**: Helps clients keep their view of available server capabilities up to date
 4. **Real-time Collaboration**: Enables responsive AI applications that can adapt to changing contexts
 
 This notification pattern extends beyond tools to other MCP primitives, enabling comprehensive real-time synchronization between clients and servers.

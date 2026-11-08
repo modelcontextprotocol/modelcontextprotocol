@@ -32,7 +32,7 @@ Elicitation supports two modes:
 
 Elicitation follows the [Multi Round-Trip Requests](/specification/2026-07-28/basic/patterns/mrtr) (MRTR) pattern. When a server needs user input while processing a request such as `tools/call`, it responds with an `InputRequiredResult` whose `inputRequests` field carries one or more `elicitation/create` requests. The client gathers the input and retries the original request, attaching the collected `inputResponses` and echoing back any `requestState` the server included.
 
-A client declares the modes it supports in the `elicitation` capability on each request. An empty object (`{}`) means form mode only, and `{ "form": {}, "url": {} }` declares both. Servers must not use a mode that the client has not declared.
+Clients declare the modes they support in the `elicitation` capability of each request, and servers must not use any other mode. An empty object (`{}`) declares form mode only, while `{ "form": {}, "url": {} }` declares both.
 
 **Elicitation flow:**
 
@@ -61,7 +61,7 @@ The flow enables dynamic information gathering. Servers can request specific dat
 
 **Elicitation example:**
 
-These are the complete messages of one exchange. They continue the [travel planning scenario](/docs/2026-07-28/learn/server-concepts#the-complete-flow) from the page about servers. The client first calls the Travel Server's `bookVacation` tool. Its capabilities say that it supports form mode:
+The following messages continue building on the [travel planning scenario](/docs/2026-07-28/learn/server-concepts#the-complete-flow). The client calls the `bookVacation` tool:
 
 ```json
 {
@@ -89,7 +89,7 @@ These are the complete messages of one exchange. They continue the [travel plann
 }
 ```
 
-The server needs the user to confirm the booking, so it responds with an `InputRequiredResult`. The `resultType` of `"input_required"` tells the client that this is not the final result:
+The server needs the user to confirm the booking, so it responds with an `InputRequiredResult`:
 
 ```json
 {
@@ -142,7 +142,7 @@ The server needs the user to confirm the booking, so it responds with an `InputR
 }
 ```
 
-The client shows the form to the user. It then retries the same tool call with the same arguments, a new `id`, the user's answer under the same `bookingConfirmation` key, and the `requestState` unchanged:
+After the user fills in the form, the client retries the call with a new `id`. It adds the user's answers under the matching `bookingConfirmation` key and echoes back the `requestState`:
 
 ```json
 {
@@ -182,7 +182,7 @@ The client shows the form to the user. It then retries the same tool call with t
 }
 ```
 
-The server now has what it needs, and returns the final result:
+The server completes the booking and returns the final result:
 
 ```json
 {
@@ -220,7 +220,7 @@ Elicitation interactions are designed to be clear, contextual, and respectful of
 
 **Request presentation**: Clients display elicitation requests with clear context about which server is asking, why the information is needed, and how it will be used. The request message explains the purpose while the schema provides structure and validation.
 
-**Response options**: Users can provide the requested information through appropriate UI controls (text fields, dropdowns, checkboxes), explicitly decline to provide it, or dismiss the request without making a choice. The client reports these as the `accept`, `decline`, and `cancel` actions. Clients validate responses against the provided schema before returning them to servers.
+**Response options**: Users can provide the requested information through appropriate UI controls (text fields, dropdowns, checkboxes), explicitly decline to provide it, or dismiss the request without making a choice. These map to the `accept`, `decline`, and `cancel` actions. Clients validate responses against the provided schema before returning them to servers.
 
 **URL handling**: For URL mode, clients show the full URL and gather explicit consent before opening it, and never fetch the URL automatically. The client only learns whether the user consented. The interaction itself stays between the user and the target site.
 
@@ -252,7 +252,7 @@ Roots are a mechanism for clients to communicate filesystem access boundaries to
 
 Roots are exclusively filesystem paths and always use the `file://` URI scheme. They help servers understand project boundaries, workspace organization, and accessible directories. The roots list can change as users work with different projects or folders. Servers pick up the updated boundaries the next time they request the roots list.
 
-Roots follow the same [Multi Round-Trip Requests](/specification/2026-07-28/basic/patterns/mrtr) flow described under [elicitation](#elicitation), with the `InputRequiredResult` carrying a `roots/list` request. Clients that support it declare the `roots` capability on each request.
+Roots follow the same [Multi Round-Trip Requests](/specification/2026-07-28/basic/patterns/mrtr) flow described under [elicitation](#elicitation), with the `InputRequiredResult` carrying a `roots/list` request. Clients that support roots declare the `roots` capability in each request.
 
 #### Example: Travel Planning Workspace
 
@@ -272,7 +272,7 @@ For a complete implementation of a server that respects roots, see the [filesyst
 
 #### Design Philosophy
 
-Roots serve as a coordination mechanism between clients and servers, not a security boundary. The specification says that servers **SHOULD** respect root boundaries. It does not say that they **MUST** enforce them, because servers run code the client cannot control.
+Roots serve as a coordination mechanism between clients and servers, not a security boundary. Servers **SHOULD** respect root boundaries, but the specification does not require them to enforce those boundaries, because servers run code the client cannot control.
 
 Roots work best when servers are trusted or vetted, users understand their advisory nature, and the goal is preventing accidents rather than stopping malicious behavior. They excel at context scoping (telling servers where to focus), accident prevention (helping well-behaved servers stay in bounds), and workflow organization (such as managing project boundaries automatically).
 
@@ -298,7 +298,7 @@ Sampling allows servers to request language model completions through the client
 
 Sampling enables servers to perform AI-dependent tasks without directly integrating with or paying for AI models. Instead, servers can request that the client—which already has AI model access—handle these tasks on their behalf. This approach puts the client in complete control of user permissions and security measures. Because sampling requests occur within the context of other operations—like a tool analyzing data—and are processed as separate model calls, they maintain clear boundaries between different contexts, allowing for more efficient use of the context window.
 
-Sampling follows the same [Multi Round-Trip Requests](/specification/2026-07-28/basic/patterns/mrtr) flow described under [elicitation](#elicitation), with the `InputRequiredResult` carrying a `sampling/createMessage` request. Clients that support it declare the `sampling` capability on each request.
+Sampling follows the same [Multi Round-Trip Requests](/specification/2026-07-28/basic/patterns/mrtr) flow described under [elicitation](#elicitation), with the `InputRequiredResult` carrying a `sampling/createMessage` request. Clients that support sampling declare the `sampling` capability in each request.
 
 Servers can also request tool use during sampling by including a `tools` array and an optional `toolChoice` field in the request. The tool definitions are scoped to that sampling request and do not need to correspond to tools the server exposes. Clients declare support through the `sampling.tools` capability, and servers must not send tool-enabled sampling requests to clients that have not declared it. See [sampling](/specification/2026-07-28/client/sampling#tools-in-sampling) in the specification for details.
 
@@ -334,7 +334,7 @@ sequenceDiagram
 
 The flow ensures security through multiple human-in-the-loop checkpoints. Users review and can modify both the initial request and the generated response before the client retries the original request with it.
 
-**Sampling request example (one value in `InputRequiredResult.inputRequests`):**
+**Sampling request example (delivered inside `InputRequiredResult.inputRequests`):**
 
 ```json
 {
@@ -361,12 +361,7 @@ The flow ensures security through multiple human-in-the-loop checkpoints. Users 
 }
 ```
 
-In this request:
-
-- `hints` asks for Sonnet-class models if the client has one
-- `costPriority` is low because the server is less concerned about API cost
-- `speedPriority` is low because the server can wait for thorough analysis
-- `intelligencePriority` is high because the task needs complex trade-off evaluation
+The `modelPreferences` ask for a Sonnet-class model and favor intelligence over cost and speed, since the task involves complex trade-offs.
 
 #### Example: Flight Analysis Tool
 
@@ -374,7 +369,7 @@ Consider a travel booking server with a tool called `findBestFlight` that uses s
 
 The tool queries airline APIs and gathers 47 flight options. It then requests AI assistance to analyze these options: "Analyze these flight options and recommend the best choice: [47 flights with prices, times, airlines, and layovers] User preferences: morning departure, max 1 layover."
 
-The client gives the user the chance to review the sampling request, then sends it to its LLM, allowing the AI to evaluate trade-offs—like cheaper red-eye flights versus convenient morning departures. After the user has had the chance to review the response, the client retries the tool call with it. The tool uses this analysis to present its recommendation.
+The client sends the request to its LLM, allowing the AI to evaluate trade-offs—like cheaper red-eye flights versus convenient morning departures. It then retries the tool call with the LLM's response, and the tool uses this analysis to present its recommendation. The user can review both the request and the response along the way.
 
 #### User Interaction Model
 
