@@ -244,7 +244,7 @@ The AI application reads each resource with a `resources/read` request:
 }
 ```
 
-The result contains the resource contents and two [caching hints](/specification/2026-07-28/server/utilities/caching). `ttlMs` is how long the client may consider the result fresh, in milliseconds, and a `cacheScope` of `"private"` means that the result must not be shared with other users:
+The result contains the resource contents and two [caching hints](/specification/2026-07-28/server/utilities/caching). `ttlMs` is how long the client may consider the result fresh, in milliseconds, and a `cacheScope` of `"private"` means that caches must not share it across authorization contexts:
 
 ```json
 {
