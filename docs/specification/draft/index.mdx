@@ -76,8 +76,9 @@ Clients may offer the following features to servers:
 
 Beyond the core protocol, MCP defines optional [extensions](/extensions/overview)
 that add modular, specialized, or experimental functionality. Extensions
-are always opt-in and require explicit support from both client and server, declared
-through [capabilities](/specification/draft/basic/versioning#extension-negotiation).
+are always opt-in and require explicit support from both client and server, [negotiated
+through capabilities](/extensions/overview#negotiation) that clients declare on each
+request and servers declare in their `server/discover` result.
 Notable extensions include:
 
 - **[Tasks](/extensions/tasks/overview)**: Asynchronous execution of long-running
