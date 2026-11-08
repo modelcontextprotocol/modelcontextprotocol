@@ -86,7 +86,7 @@ This layer includes:
 
 - **Discovery**: Lets clients query a server's supported protocol versions, capabilities, and identity through the `server/discover` request
 - **Server features**: Enables servers to provide core functionality including tools for AI actions, resources for context data, and prompts for interaction templates from and to the client
-- **Client features**: Enables servers to elicit input from the user. Sampling is [deprecated](/specification/draft/deprecated) as of protocol version `2026-07-28`.
+- **Client features**: Enables servers to elicit input from the user. Sampling and roots are [deprecated](/specification/draft/deprecated) as of protocol version `2026-07-28`.
 - **Utility features**: Supports additional capabilities like notifications for real-time updates and progress tracking for long-running operations
 
 #### Transport layer
@@ -120,7 +120,7 @@ MCP defines three core primitives that _servers_ can expose:
 - **Resources**: Data sources that provide contextual information to AI applications (e.g., file contents, database records, API responses)
 - **Prompts**: Reusable templates that help structure interactions with language models (e.g., system prompts, few-shot examples)
 
-Each primitive type has associated methods for discovery (`*/list`), retrieval (`*/get`), and in some cases, execution (`tools/call`).
+Each primitive type has associated methods: all three have discovery (`*/list`), resources and prompts have retrieval (`resources/read` and `prompts/get`), and tools have execution (`tools/call`).
 MCP clients will use the `*/list` methods to discover available primitives. For example, a client can first list all available tools (`tools/list`) and then execute them. This design allows listings to be dynamic.
 
 As a concrete example, consider an MCP server that provides context about a database. It can expose tools for querying the database, a resource that contains the schema of the database, and a prompt that includes few-shot examples for interacting with the tools.
@@ -136,9 +136,10 @@ Elicitation requests are delivered through the [Multi Round-Trip Requests](/spec
 **Deprecated**: The following client primitives are deprecated as of protocol version `2026-07-28`.
 
 - **Sampling**: Allows servers to request language model completions from the client's AI application. This is useful when server authors want access to a language model, but want to stay model-independent and not include a language model SDK in their MCP server. Servers request completions with the `sampling/createMessage` method, also delivered through the Multi Round-Trip Requests pattern. New implementations should integrate directly with LLM provider APIs.
+- **Roots**: Allows clients to tell servers which directories to focus on. Servers request the list with the `roots/list` method, also delivered through the Multi Round-Trip Requests pattern. New implementations should pass directories or files through tool parameters, resource URIs, or server configuration.
 - **Logging**: Enables servers to send log messages to clients for debugging and monitoring purposes. New implementations should log to `stderr` (stdio transport) or use OpenTelemetry.
 
-For more details about client primitives see [client concepts](./client-concepts).
+For more details about client primitives see [client concepts](./client-concepts), and for logging see the [logging specification](/specification/draft/server/utilities/logging).
 
 Besides server and client primitives, the protocol supports optional [extensions](/extensions/overview) that build on the core protocol. For example, the [Tasks extension](/extensions/tasks/overview) lets servers return a durable handle for long-running requests, so clients can poll for status and retrieve the result later.
 
@@ -308,7 +309,13 @@ The client can discover available tools by sending a `tools/list` request. This 
         }
       ],
       "ttlMs": 300000,
-      "cacheScope": "public"
+      "cacheScope": "public",
+      "_meta": {
+        "io.modelcontextprotocol/serverInfo": {
+          "name": "example-server",
+          "version": "1.0.0"
+        }
+      }
     }
   }
   ```
@@ -391,7 +398,13 @@ The `tools/call` request follows a structured format that ensures type safety an
           "type": "text",
           "text": "Current weather in San Francisco: 68°F, partly cloudy with light winds from the west at 8 mph. Humidity: 65%"
         }
-      ]
+      ],
+      "_meta": {
+        "io.modelcontextprotocol/serverInfo": {
+          "name": "example-server",
+          "version": "1.0.0"
+        }
+      }
     }
   }
   ```
@@ -419,9 +432,9 @@ The response demonstrates MCP's flexible content system:
 
 2. **Content Types**: Each content object has a `type` field. In this example, `"type": "text"` indicates plain text content, but MCP supports various content types for different use cases.
 
-3. **Structured Output**: The response provides actionable information that the AI application can use as context for language model interactions.
+3. **Optional Structured Output**: This tool returns only text. A tool can also return machine-readable data in an optional `structuredContent` field, as described in [structured content](/specification/draft/server/tools#structured-content).
 
-This execution pattern allows AI applications to dynamically invoke server functionality and receive structured responses that can be integrated into conversations with language models.
+This execution pattern allows AI applications to dynamically invoke server functionality and receive responses that can be integrated into conversations with language models.
 
 #### How This Works in AI Applications
 
@@ -543,8 +556,8 @@ Upon receiving this notification, the client typically reacts by requesting the 
 This notification system is crucial for several reasons:
 
 1. **Dynamic Environments**: Tools may come and go based on server state, external dependencies, or user permissions
-2. **Efficiency**: Clients don't need to poll for changes; they're notified when updates occur
-3. **Consistency**: Ensures clients always have accurate information about available server capabilities
+2. **Efficiency**: Clients learn about updates when they occur, so they can poll less often
+3. **Consistency**: Helps clients keep accurate information about available server capabilities, together with freshness checks based on `ttlMs`
 4. **Real-time Collaboration**: Enables responsive AI applications that can adapt to changing contexts
 
 This notification pattern extends beyond tools to other MCP primitives, enabling comprehensive real-time synchronization between clients and servers.

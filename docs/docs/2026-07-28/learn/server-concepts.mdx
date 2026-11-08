@@ -17,7 +17,9 @@ Servers provide functionality through three building blocks:
 | **Resources** | Passive data sources that provide read-only access to information for context, such as file contents, database schemas, or API documentation.                                           | Retrieve documents<br />Access knowledge bases<br />Read calendars | Application     |
 | **Prompts**   | Pre-built instruction templates that tell the model to work with specific tools and resources.                                                                                          | Plan a vacation<br />Summarize my meetings<br />Draft an email     | User            |
 
-We will use a hypothetical scenario to demonstrate the role of each of these features, and show how they can work together.
+We will use a hypothetical scenario to demonstrate the role of each of these features, and show how they can work together. The server names, tools, resources, and prompts in it are made up. The JSON follows the protocol schema: an example with a `jsonrpc` field is a complete message, and the others are the part of a message that the text describes. Each complete message stands on its own, so its `id` does not depend on the other examples.
+
+Every request carries the protocol version and the client's capabilities in `_meta`, and every result has a `resultType`. See [statelessness and discovery](/docs/2026-07-28/learn/architecture#statelessness-and-discovery) and [responses](/specification/2026-07-28/basic/index#responses).
 
 ### Tools
 
@@ -34,20 +36,42 @@ Tools are schema-defined interfaces that LLMs can invoke. MCP uses JSON Schema f
 | `tools/list` | Discover available tools | Array of tool definitions with schemas |
 | `tools/call` | Execute a specific tool  | Tool execution result                  |
 
-**Example tool definition:**
+**Example tool definition (one entry in a `tools/list` result):**
 
-```typescript
+```json
 {
-  name: "searchFlights",
-  description: "Search for available flights",
-  inputSchema: {
-    type: "object",
-    properties: {
-      origin: { type: "string", description: "Departure city" },
-      destination: { type: "string", description: "Arrival city" },
-      date: { type: "string", format: "date", description: "Travel date" }
+  "name": "searchFlights",
+  "title": "Search Flights",
+  "description": "Search for available flights",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "origin": { "type": "string", "description": "Departure city" },
+      "destination": { "type": "string", "description": "Arrival city" },
+      "date": {
+        "type": "string",
+        "format": "date",
+        "description": "Travel date"
+      }
     },
-    required: ["origin", "destination", "date"]
+    "required": ["origin", "destination", "date"]
+  },
+  "outputSchema": {
+    "type": "object",
+    "properties": {
+      "flights": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "flightNumber": { "type": "string" },
+            "priceUsd": { "type": "number" }
+          },
+          "required": ["flightNumber", "priceUsd"]
+        }
+      }
+    },
+    "required": ["flights"]
   }
 }
 ```
@@ -58,27 +82,90 @@ Tools enable AI applications to perform actions on behalf of users. In a travel 
 
 **Flight Search**
 
-```
-searchFlights(origin: "NYC", destination: "Barcelona", date: "2024-06-15")
+Queries multiple airlines and returns structured flight options. The client sends a `tools/call` request with arguments that match the tool's `inputSchema`:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "tools/call",
+  "params": {
+    "name": "searchFlights",
+    "arguments": {
+      "origin": "New York",
+      "destination": "Barcelona",
+      "date": "2027-06-15"
+    },
+    "_meta": {
+      "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+      "io.modelcontextprotocol/clientInfo": {
+        "name": "example-client",
+        "version": "1.0.0"
+      },
+      "io.modelcontextprotocol/clientCapabilities": { "elicitation": {} }
+    }
+  }
+}
 ```
 
-Queries multiple airlines and returns structured flight options.
+The server returns `structuredContent` that matches the tool's `outputSchema`, and the same data as text for clients that do not read structured output:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    "resultType": "complete",
+    "content": [
+      {
+        "type": "text",
+        "text": "{\"flights\":[{\"flightNumber\":\"EX101\",\"priceUsd\":640}]}"
+      }
+    ],
+    "structuredContent": {
+      "flights": [{ "flightNumber": "EX101", "priceUsd": 640 }]
+    },
+    "_meta": {
+      "io.modelcontextprotocol/serverInfo": {
+        "name": "travel-server",
+        "version": "1.0.0"
+      }
+    }
+  }
+}
+```
+
+The other tools are called in the same way. Only the `name` and `arguments` of each call are shown.
 
 **Calendar Blocking**
 
-```
-createCalendarEvent(title: "Barcelona Trip", startDate: "2024-06-15", endDate: "2024-06-22")
-```
-
 Marks the travel dates in the user's calendar.
+
+```json
+{
+  "name": "createCalendarEvent",
+  "arguments": {
+    "title": "Barcelona Trip",
+    "startDate": "2027-06-15",
+    "endDate": "2027-06-22"
+  }
+}
+```
 
 **Email notification**
 
-```
-sendEmail(to: "team@work.com", subject: "Out of Office", body: "...")
-```
-
 Sends an automated out-of-office message to colleagues.
+
+```json
+{
+  "name": "sendEmail",
+  "arguments": {
+    "to": "team@example.com",
+    "subject": "Out of Office",
+    "body": "I am out of the office from June 15 to June 22."
+  }
+}
+```
 
 #### User Interaction Model
 
@@ -99,16 +186,14 @@ Resources provide structured access to information that the AI application can r
 
 Resources expose data from files, APIs, databases, or any other source that an AI needs to understand context. Applications can access this information directly and decide how to use it - whether that's selecting relevant portions, searching with embeddings, or passing it all to the model.
 
-Each resource has a unique URI (e.g., `file:///path/to/document.md`) and declares its MIME type for appropriate content handling.
+Each resource has a unique URI (e.g., `file:///path/to/document.md`) and can declare its MIME type for appropriate content handling.
 
 Resources support two discovery patterns:
 
-- **Direct Resources** - fixed URIs that point to specific data. Example: `calendar://events/2024` - returns calendar availability for 2024
-- **Resource Templates** - dynamic URIs with parameters for flexible queries. Example:
-  - `travel://activities/{city}/{category}` - returns activities by city and category
-  - `travel://activities/barcelona/museums` - returns all museums in Barcelona
+- **Direct Resources** - fixed URIs that point to specific data. Example: `calendar://events/2027-06` - returns calendar availability for June 2027
+- **Resource Templates** - parameterized URIs for flexible queries. Example: `travel://activities/{city}/{category}` - returns activities by city and category. Filling in the parameters gives a URI that can be read, such as `travel://activities/Barcelona/museums`, which returns all museums in Barcelona
 
-Resource Templates include metadata such as title, description, and expected MIME type, making them discoverable and self-documenting.
+Resource Templates can include metadata such as title, description, and expected MIME type, making them discoverable and self-documenting.
 
 **Protocol operations:**
 
@@ -117,23 +202,78 @@ Resource Templates include metadata such as title, description, and expected MIM
 | `resources/list`           | List available direct resources | Array of resource descriptors          |
 | `resources/templates/list` | Discover resource templates     | Array of resource template definitions |
 | `resources/read`           | Retrieve resource contents      | Resource data with metadata            |
+| `completion/complete`      | Suggest parameter values        | Array of suggested values              |
 | `subscriptions/listen`     | Monitor resource changes        | Stream of update notifications         |
 
-To watch specific resources for changes, a client sends a [`subscriptions/listen`](/specification/2026-07-28/basic/patterns/subscriptions) request with the resource URIs listed in the `resourceSubscriptions` filter. The server delivers `notifications/resources/updated` on the resulting stream whenever a watched resource changes.
+To watch specific resources for changes, a client sends a [`subscriptions/listen`](/specification/2026-07-28/basic/patterns/subscriptions) request with the resource URIs listed in the `resourceSubscriptions` filter. This is available from servers that declare `"subscribe": true` in their `resources` capability. The server delivers `notifications/resources/updated` on the resulting stream whenever a watched resource changes.
 
 #### Example: Getting Travel Planning Context
 
 Continuing with the travel planning example, resources provide the AI application with access to relevant information:
 
-- **Calendar data** (`calendar://events/2024`) - Checks user availability
+- **Calendar data** (`calendar://events/2027-06`) - Checks user availability
 - **Travel documents** (`file:///Documents/Travel/passport.pdf`) - Accesses important documents
-- **Previous itineraries** (`trips://history/barcelona-2023`) - References past trips and preferences
+- **Travel preferences** (`travel://preferences/europe`) - Looks up preferred airlines and hotel types
+- **Previous itineraries** (`travel://past-trips/spain-2023`) - References past trips
+- **Weather forecast** (`weather://forecast/Barcelona/2027-06-15`) - Looks up the weather for a travel date
 
 The AI application retrieves these resources and decides how to process them, whether selecting a subset of data using embeddings or keyword search, or passing raw data directly to the model.
 
-In this case, it provides calendar data, weather information, and travel preferences to the model, enabling it to check availability, look up weather patterns, and reference past travel preferences.
+In this case, it provides calendar data, weather information, travel preferences, and past trips to the model, enabling it to check availability, look up weather patterns, and follow the user's preferences.
 
-**Resource Template Examples:**
+The AI application reads each resource with a `resources/read` request. Here it reads the calendar:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 2,
+  "method": "resources/read",
+  "params": {
+    "uri": "calendar://events/2027-06",
+    "_meta": {
+      "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+      "io.modelcontextprotocol/clientInfo": {
+        "name": "example-client",
+        "version": "1.0.0"
+      },
+      "io.modelcontextprotocol/clientCapabilities": {
+        "elicitation": {}
+      }
+    }
+  }
+}
+```
+
+The server returns the contents, along with how long they can be cached and by whom:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 2,
+  "result": {
+    "resultType": "complete",
+    "contents": [
+      {
+        "uri": "calendar://events/2027-06",
+        "mimeType": "application/json",
+        "text": "{\"busy\":[{\"startDate\":\"2027-06-03\",\"endDate\":\"2027-06-04\"}]}"
+      }
+    ],
+    "ttlMs": 60000,
+    "cacheScope": "private",
+    "_meta": {
+      "io.modelcontextprotocol/serverInfo": {
+        "name": "calendar-email-server",
+        "version": "1.0.0"
+      }
+    }
+  }
+}
+```
+
+**Resource template examples:**
+
+The Weather Server lists this template in its `resources/templates/list` result:
 
 ```json
 {
@@ -143,24 +283,84 @@ In this case, it provides calendar data, weather information, and travel prefere
   "description": "Get weather forecast for any city and date",
   "mimeType": "application/json"
 }
+```
 
+The Travel Server lists this one in its own:
+
+```json
 {
   "uriTemplate": "travel://flights/{origin}/{destination}",
   "name": "flight-search",
   "title": "Flight Search",
-  "description": "Search available flights between cities",
+  "description": "Search available flights between two airports",
   "mimeType": "application/json"
 }
 ```
 
-These templates enable flexible queries. For weather data, users can access forecasts for any city/date combination. For flights, they can search routes between any two airports. When a user has input "NYC" as the `origin` airport and begins to input "Bar" as the `destination` airport, the system can suggest "Barcelona (BCN)" or "Barbados (BGI)".
+These templates enable flexible queries. For weather data, users can access forecasts for any city/date combination. For flights, they can search routes between any two airports.
 
 #### Parameter Completion
 
-Dynamic resources support parameter completion. For example:
+Servers that declare the `completions` capability can suggest values for template parameters. For example:
 
-- Typing "Par" as input for `weather://forecast/{city}` might suggest "Paris" or "Park City"
-- Typing "JFK" for `flights://search/{airport}` might suggest "JFK - John F. Kennedy International"
+- Typing "Par" for `city` in `weather://forecast/{city}/{date}` might suggest "Paris" or "Park City" (the client percent-encodes the space when it builds the URI)
+- Typing "JF" for `origin` in `travel://flights/{origin}/{destination}` might suggest "JFK"
+
+Parameters that already have a value are sent as context, so that the server can narrow its suggestions. Here the user has chosen `JFK` as the `origin` and typed "Bar" for the `destination`:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 3,
+  "method": "completion/complete",
+  "params": {
+    "ref": {
+      "type": "ref/resource",
+      "uri": "travel://flights/{origin}/{destination}"
+    },
+    "argument": {
+      "name": "destination",
+      "value": "Bar"
+    },
+    "context": {
+      "arguments": {
+        "origin": "JFK"
+      }
+    },
+    "_meta": {
+      "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+      "io.modelcontextprotocol/clientInfo": {
+        "name": "example-client",
+        "version": "1.0.0"
+      },
+      "io.modelcontextprotocol/clientCapabilities": { "elicitation": {} }
+    }
+  }
+}
+```
+
+In this example, the server matches the text against the names of places with flights from JFK, and finds Barcelona (BCN) and Barbados (BGI). It returns the airport codes. Each suggestion is a plain string that the client can use as the parameter's value, with no separate display label:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 3,
+  "result": {
+    "resultType": "complete",
+    "completion": {
+      "values": ["BCN", "BGI"],
+      "total": 2,
+      "hasMore": false
+    },
+    "_meta": {
+      "io.modelcontextprotocol/serverInfo": {
+        "name": "travel-server",
+        "version": "1.0.0"
+      }
+    }
+  }
+}
+```
 
 The system helps discover valid values without requiring exact format knowledge.
 
@@ -185,16 +385,17 @@ Prompts are structured templates that define expected inputs and interaction pat
 
 **Protocol operations:**
 
-| Method         | Purpose                    | Returns                               |
-| -------------- | -------------------------- | ------------------------------------- |
-| `prompts/list` | Discover available prompts | Array of prompt descriptors           |
-| `prompts/get`  | Retrieve prompt details    | Full prompt definition with arguments |
+| Method                | Purpose                                     | Returns                                                               |
+| --------------------- | ------------------------------------------- | --------------------------------------------------------------------- |
+| `prompts/list`        | Discover available prompts                  | Array of prompt definitions, including the arguments each one accepts |
+| `prompts/get`         | Retrieve a prompt, filled in with arguments | Messages for the conversation with the model                          |
+| `completion/complete` | Suggest argument values                     | Array of suggested values                                             |
 
 #### Example: Streamlined Workflows
 
 Prompts provide structured templates for common tasks. In the travel planning context:
 
-**"Plan a vacation" prompt:**
+**"Plan a vacation" prompt (one entry in a `prompts/list` result):**
 
 ```json
 {
@@ -202,30 +403,50 @@ Prompts provide structured templates for common tasks. In the travel planning co
   "title": "Plan a vacation",
   "description": "Guide through vacation planning process",
   "arguments": [
-    { "name": "destination", "description": "City to visit", "required": true },
-    { "name": "departure_date", "description": "Departure date (YYYY-MM-DD)" },
-    { "name": "return_date", "description": "Return date (YYYY-MM-DD)" },
     {
-      "name": "duration",
-      "description": "Length of the trip in days, if no dates are given"
+      "name": "origin",
+      "description": "City to depart from",
+      "required": true
+    },
+    {
+      "name": "destination",
+      "description": "City to visit",
+      "required": true
+    },
+    {
+      "name": "departureDate",
+      "description": "First day of the trip, as YYYY-MM-DD",
+      "required": true
+    },
+    {
+      "name": "returnDate",
+      "description": "Last day of the trip, as YYYY-MM-DD",
+      "required": true
     },
     {
       "name": "budget",
       "description": "Total budget in USD",
       "required": false
     },
-    { "name": "travelers", "description": "Number of travelers" },
-    { "name": "interests", "description": "Comma-separated list of interests" }
+    {
+      "name": "travelers",
+      "description": "Number of travelers",
+      "required": false
+    },
+    {
+      "name": "interests",
+      "description": "Comma-separated list of interests"
+    }
   ]
 }
 ```
 
-Unlike tool inputs, prompt arguments have no type or schema. Every value is passed as a string, so use `description` to tell users what format to provide. Arguments are optional unless `required` is `true`, so `budget` would be optional even without `"required": false`.
+A prompt argument has a name and an optional title, description, and `required` flag. An argument is optional unless `required` is `true`, so `budget` and `interests` are both optional here. Unlike a tool's input, an argument has no type or JSON Schema. Every value is sent as a string, so the description is where a server says what format it expects.
 
 Rather than unstructured natural language input, the prompt system enables:
 
 1. Selection of the "Plan a vacation" template
-2. Structured input: Barcelona (`"Barcelona"`), 7 days (`"7"`), $3000 (`"3000"`), and a list of interests (`"beaches, architecture, food"`)
+2. Structured input, with each value sent as a string: `"New York"`, `"Barcelona"`, `"2027-06-15"`, `"2027-06-22"`, `"3000"`, `"2"`, and `"beaches, architecture, food"`
 3. Consistent workflow execution based on the template
 
 #### User Interaction Model
@@ -260,39 +481,84 @@ Consider a personalized AI travel planner application, with three connected serv
 
 1. **User invokes a prompt with parameters:**
 
+   The user picks "Plan a vacation" and fills in its arguments. The client sends them to the Travel Server in a `prompts/get` request:
+
    ```json
    {
-     "name": "plan-vacation",
-     "arguments": {
-       "destination": "Barcelona",
-       "departure_date": "2024-06-15",
-       "return_date": "2024-06-22",
-       "budget": "3000",
-       "travelers": "2",
-       "interests": "beaches, architecture, food"
+     "jsonrpc": "2.0",
+     "id": 4,
+     "method": "prompts/get",
+     "params": {
+       "name": "plan-vacation",
+       "arguments": {
+         "origin": "New York",
+         "destination": "Barcelona",
+         "departureDate": "2027-06-15",
+         "returnDate": "2027-06-22",
+         "budget": "3000",
+         "travelers": "2",
+         "interests": "beaches, architecture, food"
+       },
+       "_meta": {
+         "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+         "io.modelcontextprotocol/clientInfo": {
+           "name": "example-client",
+           "version": "1.0.0"
+         },
+         "io.modelcontextprotocol/clientCapabilities": { "elicitation": {} }
+       }
+     }
+   }
+   ```
+
+   The server returns messages that the AI application adds to the conversation:
+
+   ```json
+   {
+     "jsonrpc": "2.0",
+     "id": 4,
+     "result": {
+       "resultType": "complete",
+       "description": "Guide through vacation planning process",
+       "messages": [
+         {
+           "role": "user",
+           "content": {
+             "type": "text",
+             "text": "Plan a vacation from New York to Barcelona for 2 travelers, from 2027-06-15 to 2027-06-22, with a total budget of $3000. Interests: beaches, architecture, food.\n\nUse the calendar, travel preferences, and past trips provided as context. Search for flights and hotels within the budget, and check the weather for the travel dates. Propose one package. After the user agrees, book it, add the trip to the calendar, and email a confirmation."
+           }
+         }
+       ],
+       "_meta": {
+         "io.modelcontextprotocol/serverInfo": {
+           "name": "travel-server",
+           "version": "1.0.0"
+         }
+       }
      }
    }
    ```
 
 2. **User selects resources to include:**
-   - `calendar://my-calendar/June-2024` (from Calendar Server)
+   - `calendar://events/2027-06` (from Calendar/Email Server)
    - `travel://preferences/europe` (from Travel Server)
-   - `travel://past-trips/Spain-2023` (from Travel Server)
+   - `travel://past-trips/spain-2023` (from Travel Server)
 
 3. **AI processes the request using tools:**
 
-   The AI first reads all selected resources to gather context - identifying available dates from the calendar, learning preferred airlines and hotel types from travel preferences, and discovering previously enjoyed locations from past trips.
+   The AI application first reads all selected resources and gives their contents to the model as context - identifying available dates from the calendar, learning preferred airlines and hotel types from travel preferences, and discovering previously enjoyed locations from past trips.
 
-   Using this context, the AI then executes the prompt provided by the AI application. In our example, the AI application exposes the weather tools from the connected MCP weather server to the model. Because weather can affect travel plans, the AI chooses to call `checkWeather()` when interpreting the prompt.
+   Using this context, the model then follows the prompt provided by the Travel Server. In our example, the AI application exposes the tools from all three connected servers to the model. Because the prompt asks for the weather, the model calls `checkWeather` even though that tool comes from a different server than the prompt.
 
-   As a result the AI executes a series of tools:
+   As a result, the model calls a series of tools:
 
-   - `searchFlights()` - Queries airlines for NYC to Barcelona flights
-   - `checkWeather()` - Retrieves climate forecasts for travel dates
+   - `searchFlights` (from Travel Server) - Queries airlines for New York to Barcelona flights
+   - `searchHotels` (from Travel Server) - Finds hotels within the specified budget
+   - `checkWeather` (from Weather Server) - Retrieves climate forecasts for travel dates
 
-   The AI then uses this information to create the booking and following steps, requesting approval from the user where necessary:
-   - `bookHotel()` - Finds hotels within the specified budget
-   - `createCalendarEvent()` - Adds the trip to the user's calendar
-   - `sendEmail()` - Sends confirmation with trip details
+   The model then uses this information to create the booking and following steps, with the AI application requesting approval from the user where necessary:
+   - `bookVacation` (from Travel Server) - Books the flights and hotel. The server first asks the user to confirm, as shown in [elicitation](/docs/2026-07-28/learn/client-concepts#elicitation)
+   - `createCalendarEvent` (from Calendar/Email Server) - Adds the trip to the user's calendar
+   - `sendEmail` (from Calendar/Email Server) - Sends confirmation with trip details
 
-**The result:** Through multiple MCP servers, the user researched and booked a Barcelona trip tailored to their schedule. The "Plan a Vacation" prompt guided the AI to combine Resources (calendar availability and travel history) with Tools (searching flights, booking hotels, updating calendars) across different servers—gathering context and executing the booking. A task that could have taken hours was completed in minutes using MCP.
+**The result:** Through multiple MCP servers, the user researched and booked a Barcelona trip tailored to their schedule. The "Plan a vacation" prompt guided the AI to combine Resources (calendar availability and travel history) with Tools (searching flights and hotels, booking them, updating the calendar) across different servers—gathering context and executing the booking. A task that could have taken hours was completed in minutes using MCP.
