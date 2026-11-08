@@ -116,7 +116,7 @@ To support Enterprise-Managed Authorization, your client must:
    - `requested_token_type`: `urn:ietf:params:oauth:token-type:id-jag`
    - `subject_token` and `subject_token_type`: the Identity Assertion and its type. SAML clients can instead exchange the assertion for a Refresh Token and send that.
    - `audience`: the issuer identifier of the MCP Authorization Server
-   - `resource`: the resource identifier of the MCP Server. This parameter is optional. If included, the resulting access token is restricted to that server.
+   - `resource`: the resource identifier of the MCP Server. This parameter is optional. If it is included, the access token issued for the ID-JAG is audience-restricted to that MCP Server.
 
    Exchange this ID-JAG for an access token from the MCP Authorization Server's token endpoint, using the `urn:ietf:params:oauth:grant-type:jwt-bearer` grant. Do not redirect the user to the MCP Authorization Server's authorization endpoint.
 

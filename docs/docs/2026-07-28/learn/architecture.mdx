@@ -136,7 +136,7 @@ Elicitation requests are delivered through the [Multi Round-Trip Requests](/spec
 **Deprecated**: The following client primitives are [deprecated](/specification/2026-07-28/deprecated) as of protocol version `2026-07-28`.
 
 - **Sampling**: Allows servers to request language model completions from the client's AI application. This is useful when server authors want access to a language model, but want to stay model-independent and not include a language model SDK in their MCP server. Servers request completions with the `sampling/createMessage` method, also delivered through the Multi Round-Trip Requests pattern. New implementations should integrate directly with LLM provider APIs.
-- **Roots**: Allows clients to tell servers which directories to focus on. Servers request the list with the `roots/list` method, also delivered through the Multi Round-Trip Requests pattern. New implementations should pass directories or files through tool parameters, resource URIs, or server configuration.
+- **Roots**: Allows clients to inform servers about the directories and files they consider relevant. Servers request the list of roots with the `roots/list` method, also delivered through the Multi Round-Trip Requests pattern. New implementations should pass directories or files through tool parameters, resource URIs, or server configuration.
 - **Logging**: Enables servers to send log messages to clients for debugging and monitoring purposes. New implementations should log to `stderr` (stdio transport) or use OpenTelemetry.
 
 For more details about client primitives see [client concepts](./client-concepts).
@@ -432,7 +432,7 @@ The response demonstrates MCP's flexible content system:
 
 2. **Content Types**: Each content object has a `type` field. In this example, `"type": "text"` indicates plain text content, but MCP supports various content types for different use cases.
 
-3. **Structured Content** (optional): Tools can also return machine-readable data as [structured content](/specification/2026-07-28/server/tools#structured-content) in the `structuredContent` field. The tool in this example returns only text.
+3. **Structured Content** (optional): Tools can also return [structured content](/specification/2026-07-28/server/tools#structured-content), a JSON value in the `structuredContent` field of the result. The tool in this example returns only text.
 
 This execution pattern allows AI applications to dynamically invoke server functionality and receive responses that can be integrated into conversations with language models.
 

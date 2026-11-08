@@ -82,7 +82,7 @@ Tools enable AI applications to perform actions on behalf of users. In a travel 
 
 **Flight Search**
 
-Queries multiple airlines and returns structured flight options. The arguments in the `tools/call` request match the tool's `inputSchema`:
+Queries multiple airlines and returns structured flight options. The arguments in the `tools/call` request conform to the tool's `inputSchema`:
 
 ```json
 {
@@ -108,7 +108,7 @@ Queries multiple airlines and returns structured flight options. The arguments i
 }
 ```
 
-The result's `structuredContent` matches the tool's `outputSchema`. The same data is also returned as text, for clients that don't support structured content:
+The result's `structuredContent` conforms to the tool's `outputSchema`. For backwards compatibility, the result also includes the serialized JSON as text:
 
 ```json
 {
@@ -205,7 +205,7 @@ Resource Templates can include metadata such as title, description, and expected
 | `completion/complete`      | Suggest parameter values        | Array of suggested values              |
 | `subscriptions/listen`     | Monitor resource changes        | Stream of update notifications         |
 
-To watch specific resources for changes, a client sends a [`subscriptions/listen`](/specification/2026-07-28/basic/patterns/subscriptions) request with the resource URIs listed in the `resourceSubscriptions` filter. Servers that support this declare `"subscribe": true` in their `resources` capability. The server delivers `notifications/resources/updated` on the resulting stream whenever a watched resource changes.
+To watch specific resources for changes, a client sends a [`subscriptions/listen`](/specification/2026-07-28/basic/patterns/subscriptions) request with the resource URIs listed in the `resourceSubscriptions` filter. Servers that support update notifications for individual resources declare `"subscribe": true` in their `resources` capability. The server delivers `notifications/resources/updated` on the resulting stream whenever a watched resource changes.
 
 #### Example: Getting Travel Planning Context
 
@@ -244,7 +244,7 @@ The AI application reads each resource with a `resources/read` request:
 }
 ```
 
-The result includes the contents and how they can be [cached](/specification/2026-07-28/server/utilities/caching):
+The result contains the resource contents and two [caching hints](/specification/2026-07-28/server/utilities/caching). `ttlMs` is how long the client may consider the result fresh, in milliseconds, and a `cacheScope` of `"private"` means that the result must not be shared with other users:
 
 ```json
 {
@@ -306,7 +306,7 @@ Servers that declare the `completions` capability can suggest values for templat
 - Typing "Par" for `city` in `weather://forecast/{city}/{date}` might suggest "Paris" or "Park City"
 - Typing "JF" for `origin` in `travel://flights/{origin}/{destination}` might suggest "JFK"
 
-Values the user has already chosen are sent as context, so the server can narrow its suggestions. Here, the user has chosen `JFK` as the `origin` and typed "Bar" for the `destination`:
+When a template has multiple parameters, the client includes the values that are already resolved in `context.arguments`, so the server can narrow its suggestions. Here, the user has chosen `JFK` as the `origin` and typed "Bar" for the `destination`:
 
 ```json
 {
@@ -388,7 +388,7 @@ Prompts are structured templates that define expected inputs and interaction pat
 | Method                | Purpose                    | Returns                                                               |
 | --------------------- | -------------------------- | --------------------------------------------------------------------- |
 | `prompts/list`        | Discover available prompts | Array of prompt definitions, including the arguments each one accepts |
-| `prompts/get`         | Retrieve a prompt          | Prompt messages with the argument values filled in                    |
+| `prompts/get`         | Retrieve a prompt          | Array of prompt messages                                              |
 | `completion/complete` | Suggest argument values    | Array of suggested values                                             |
 
 #### Example: Streamlined Workflows

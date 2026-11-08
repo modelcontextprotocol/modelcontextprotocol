@@ -89,7 +89,7 @@ The following messages continue building on the [travel planning scenario](/docs
 }
 ```
 
-The server needs the user to confirm the booking, so it responds with an `InputRequiredResult`:
+The server needs the user to confirm the booking, so it responds with an `InputRequiredResult`. Its `resultType` of `"input_required"` indicates that the client must provide additional input before the server can complete the request:
 
 ```json
 {
@@ -142,7 +142,7 @@ The server needs the user to confirm the booking, so it responds with an `InputR
 }
 ```
 
-After the user fills in the form, the client retries the call with a new `id`. It adds the user's answers under the matching `bookingConfirmation` key and echoes back the `requestState`:
+After the user fills in the form, the client retries the call with a new `id`. The retry carries the user's answers in `inputResponses`, under the same `bookingConfirmation` key as the server's request, and the exact `requestState` value from the result:
 
 ```json
 {
@@ -182,7 +182,7 @@ After the user fills in the form, the client retries the call with a new `id`. I
 }
 ```
 
-The server completes the booking and returns the final result:
+The server completes the booking and returns a `CallToolResult`. Its `resultType` of `"complete"` indicates that the request completed successfully:
 
 ```json
 {
@@ -361,7 +361,7 @@ The flow ensures security through multiple human-in-the-loop checkpoints. Users 
 }
 ```
 
-The `modelPreferences` ask for a Sonnet-class model and favor intelligence over cost and speed, since the task involves complex trade-offs.
+The `modelPreferences` suggest a Sonnet-class model and prioritize intelligence over cost and speed, since the task involves complex trade-offs. These preferences are advisory, and the client makes the final model selection.
 
 #### Example: Flight Analysis Tool
 
@@ -369,7 +369,7 @@ Consider a travel booking server with a tool called `findBestFlight` that uses s
 
 The tool queries airline APIs and gathers 47 flight options. It then requests AI assistance to analyze these options: "Analyze these flight options and recommend the best choice: [47 flights with prices, times, airlines, and layovers] User preferences: morning departure, max 1 layover."
 
-The client sends the request to its LLM, allowing the AI to evaluate trade-offs—like cheaper red-eye flights versus convenient morning departures. It then retries the tool call with the LLM's response, and the tool uses this analysis to present its recommendation. The user can review both the request and the response along the way.
+The client sends the request to its LLM, allowing the AI to evaluate trade-offs—like cheaper red-eye flights versus convenient morning departures. It then retries the tool call with the LLM's response, and the tool uses this analysis to present its recommendation. Clients should let the user review the request before it is sent to the LLM and the response before it is returned to the server.
 
 #### User Interaction Model
 
