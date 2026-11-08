@@ -208,7 +208,7 @@ A client that supports both should try them in that order. If neither is availab
 
 <Warning>
 
-Dynamic Client Registration is [deprecated](/specification/draft/deprecated) as of protocol version `2026-07-28`. New implementations should use Client ID Metadata Documents instead. Existing clients can still fall back to it, before asking the user, when the authorization server doesn't support Client ID Metadata Documents.
+Dynamic Client Registration is [deprecated](/specification/draft/deprecated) as of protocol version `2026-07-28`. New implementations should use Client ID Metadata Documents instead. Clients that already support it can use it as a fallback for authorization servers that don't support Client ID Metadata Documents, before asking the user to enter the client information.
 
 </Warning>
 

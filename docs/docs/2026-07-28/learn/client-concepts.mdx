@@ -9,7 +9,7 @@ Understanding the distinction is important: the _host_ is the application users 
 
 ## Core Client Features
 
-In addition to making use of context provided by servers, clients can provide features to servers, such as elicitation. These allow server authors to build richer interactions.
+Clients can offer features that servers use while processing a request. For example, a server can use elicitation to ask the user for missing information.
 
 ### Elicitation
 
@@ -224,9 +224,9 @@ Elicitation interactions are designed to be clear, contextual, and respectful of
 
 <Warning>
 
-Roots and sampling are [deprecated](/specification/2026-07-28/deprecated) as of protocol version `2026-07-28` and scheduled for removal. New implementations should not use them:
+Roots and sampling are [deprecated](/specification/2026-07-28/deprecated) as of protocol version `2026-07-28` and scheduled for removal. New implementations should use the following alternatives:
 
-- Instead of **roots**, pass directories or files through tool parameters, resource URIs, or server configuration.
-- Instead of **sampling**, integrate directly with LLM provider APIs.
+- **Roots**: Pass directories or files through tool parameters, resource URIs, or server configuration.
+- **Sampling**: Integrate directly with LLM provider APIs.
 
 </Warning>

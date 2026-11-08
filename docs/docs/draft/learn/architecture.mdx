@@ -133,7 +133,11 @@ MCP also defines primitives that _clients_ can expose. These primitives allow MC
 
 Elicitation requests are delivered through the [Multi Round-Trip Requests](/specification/draft/basic/patterns/mrtr) pattern, explained in the [elicitation overview](/docs/draft/learn/client-concepts#elicitation).
 
-Roots, sampling, and logging over the protocol are [deprecated](/specification/draft/deprecated) as of protocol version `2026-07-28`. New implementations should pass directories or files through tool parameters, resource URIs, or server configuration, integrate directly with LLM provider APIs, and [log to `stderr` or use OpenTelemetry](/docs/draft/tools/debugging#implementing-logging).
+Roots, sampling, and protocol logging are [deprecated](/specification/draft/deprecated) as of protocol version `2026-07-28`. New implementations should use the following alternatives:
+
+- **Roots**: Pass directories or files through tool parameters, resource URIs, or server configuration.
+- **Sampling**: Integrate directly with LLM provider APIs.
+- **Logging**: [Log to `stderr`](/docs/draft/tools/debugging#implementing-logging) for stdio servers, or use [OpenTelemetry](https://opentelemetry.io/).
 
 For more details about client primitives see [client concepts](./client-concepts).
 
