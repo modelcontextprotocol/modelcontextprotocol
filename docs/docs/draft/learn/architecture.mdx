@@ -104,7 +104,7 @@ The transport layer abstracts communication details from the protocol layer, ena
 
 A core part of MCP is defining the schema and semantics between MCP clients and MCP servers. Developers will likely find the data layer — in particular, the set of [primitives](#primitives) — to be the most interesting part of MCP. It is the part of MCP that defines the ways developers can share context from MCP servers to MCP clients.
 
-MCP uses [JSON-RPC 2.0](https://www.jsonrpc.org/) as its underlying RPC protocol. Clients send requests and servers respond to them. Servers request input from the client through the [Multi Round-Trip Requests](/specification/draft/basic/patterns/mrtr) pattern. Notifications can be used when no response is required.
+MCP uses [JSON-RPC 2.0](https://www.jsonrpc.org/) as its underlying RPC protocol. Clients send requests and servers respond to them. Servers can request input from the client through the [Multi Round-Trip Requests](/specification/draft/basic/patterns/mrtr) pattern. Notifications can be used when no response is required.
 
 #### Statelessness and discovery
 
@@ -136,7 +136,7 @@ Elicitation requests are delivered through the [Multi Round-Trip Requests](/spec
 **Deprecated**: The following client primitives are [deprecated](/specification/draft/deprecated) as of protocol version `2026-07-28`.
 
 - **Sampling**: Allows servers to request language model completions from the client's AI application. This is useful when server authors want access to a language model, but want to stay model-independent and not include a language model SDK in their MCP server. Servers request completions with the `sampling/createMessage` method, also delivered through the Multi Round-Trip Requests pattern. New implementations should integrate directly with LLM provider APIs.
-- **Roots**: Allows clients to inform servers about the directories and files they consider relevant. Servers request the list of roots with the `roots/list` method, also delivered through the Multi Round-Trip Requests pattern. New implementations should pass directories or files through tool parameters, resource URIs, or server configuration.
+- **Roots**: Allows clients to inform servers about the directories and files they consider relevant. Servers can request the list of roots with the `roots/list` method, also delivered through the Multi Round-Trip Requests pattern. New implementations should pass directories or files through tool parameters, resource URIs, or server configuration.
 - **Logging**: Enables servers to send log messages to clients for debugging and monitoring purposes. New implementations should log to `stderr` (stdio transport) or use OpenTelemetry.
 
 For more details about client primitives see [client concepts](./client-concepts).

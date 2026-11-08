@@ -306,7 +306,7 @@ Servers that declare the `completions` capability can suggest values for templat
 - Typing "Par" for `city` in `weather://forecast/{city}/{date}` might suggest "Paris" or "Park City"
 - Typing "JF" for `origin` in `travel://flights/{origin}/{destination}` might suggest "JFK"
 
-When a template has multiple parameters, the client includes the values that are already resolved in `context.arguments`, so the server can narrow its suggestions. Here, the user has chosen `JFK` as the `origin` and typed "Bar" for the `destination`:
+When a template has multiple parameters, clients should include the values that are already resolved in `context.arguments`, so the server can narrow its suggestions. Here, the user has chosen `JFK` as the `origin` and typed "Bar" for the `destination`:
 
 ```json
 {
