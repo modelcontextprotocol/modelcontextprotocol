@@ -363,7 +363,7 @@ export interface MethodNotFoundError extends Error {
  *
  * In MCP, this error is returned in various contexts when request parameters fail validation:
  *
- * - **Tools**: Unknown tool name, or a request that does not satisfy the `CallToolRequest` schema. Input validation errors SHOULD be reported as tool execution errors instead, with `isError` set to true
+ * - **Tools**: Unknown tool name, or a request that does not satisfy the {@link CallToolRequest} schema. Invalid tool arguments are instead reported as tool execution errors, with {@link CallToolResult.isError | isError} set to true
  * - **Prompts**: Unknown prompt name or missing required arguments
  * - **Pagination**: Invalid or expired cursor values
  * - **Logging**: Invalid log level
@@ -374,6 +374,9 @@ export interface MethodNotFoundError extends Error {
  *
  * @example Unknown tool
  * {@includeCode ./examples/InvalidParamsError/unknown-tool.json}
+ *
+ * @example Malformed tool call
+ * {@includeCode ./examples/InvalidParamsError/malformed-tool-call.json}
  *
  * @example Unknown prompt
  * {@includeCode ./examples/InvalidParamsError/unknown-prompt.json}
@@ -1800,6 +1803,9 @@ export interface ListToolsResultResponse extends JSONRPCResultResponse {
  *
  * @example Invalid tool input error
  * {@includeCode ./examples/CallToolResult/invalid-tool-input-error.json}
+ *
+ * @example Missing required tool argument
+ * {@includeCode ./examples/CallToolResult/missing-required-argument-error.json}
  *
  * @category `tools/call`
  */
