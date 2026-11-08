@@ -366,7 +366,7 @@ export interface MethodNotFoundError extends Error {
  * - **Tools**: Unknown tool name, or a request that does not satisfy the `CallToolRequest` schema. Invalid tool arguments are instead reported as tool execution errors, with `isError` set to true
  * - **Prompts**: Unknown prompt name or missing required arguments
  * - **Pagination**: Invalid or expired cursor values
- * - **Logging**: Invalid log level
+ * - **Logging** (deprecated): Invalid log level
  * - **Elicitation**: Server requests an elicitation mode not declared in client capabilities
  * - **Sampling**: Missing tool result or tool results mixed with other content
  *
