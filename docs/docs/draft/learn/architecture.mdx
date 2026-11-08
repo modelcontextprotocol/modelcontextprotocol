@@ -121,7 +121,7 @@ MCP defines three core primitives that _servers_ can expose:
 - **Prompts**: Reusable templates that help structure interactions with language models (e.g., system prompts, few-shot examples)
 
 Each primitive type has associated methods for discovery (`*/list`), and for either retrieval (`resources/read`, `prompts/get`) or execution (`tools/call`).
-MCP clients will use the `*/list` methods to discover available primitives. For example, a client can first list all available tools (`tools/list`) and then execute them. This design allows listings to be dynamic.
+MCP clients will use the `*/list` methods to discover available primitives. For example, a client can list the available tools (`tools/list`), provide them to a model, and execute the ones that the model calls (`tools/call`). This design allows listings to be dynamic.
 
 As a concrete example, consider an MCP server that provides context about a database. It can expose tools for querying the database, a resource that contains the schema of the database, and a prompt that includes few-shot examples for interacting with the tools.
 
@@ -133,10 +133,10 @@ MCP also defines primitives that _clients_ can expose. These primitives allow MC
 
 Elicitation requests are delivered through the [Multi Round-Trip Requests](/specification/draft/basic/patterns/mrtr) pattern, explained in the [elicitation overview](/docs/draft/learn/client-concepts#elicitation).
 
-Roots, sampling, and protocol logging are [deprecated](/specification/draft/deprecated) as of protocol version `2026-07-28`. New implementations should use the following alternatives:
+Roots, sampling, and protocol logging are [deprecated](/specification/draft/deprecated) as of protocol version `2026-07-28`. New implementations should not adopt them. The migration paths are:
 
 - **Roots**: Pass directories or files through tool parameters, resource URIs, or server configuration.
-- **Sampling**: Integrate directly with LLM provider APIs.
+- **Sampling**: Integrate directly with LLM provider APIs. The protocol does not define a replacement for requesting completions through the client.
 - **Logging**: [Log to `stderr`](/docs/draft/tools/debugging#implementing-logging) for stdio servers, or use [OpenTelemetry](https://opentelemetry.io/).
 
 For more details about client primitives see [client concepts](./client-concepts).
@@ -430,7 +430,7 @@ The response demonstrates MCP's flexible content system:
 
 1. **`content` Array**: Tool responses return an array of content objects, allowing for rich, multi-format responses (text, images, resources, etc.)
 
-2. **Content Types**: Each content object has a `type` field. In this example, `"type": "text"` indicates plain text content, but MCP supports various content types for different use cases.
+2. **Content Types**: Each content object has a `type` field. In this example, `"type": "text"` indicates [text content](/specification/draft/server/tools#text-content). Tool results can also contain [images](/specification/draft/server/tools#image-content) (`image`), [audio](/specification/draft/server/tools#audio-content) (`audio`), [resource links](/specification/draft/server/tools#resource-links) (`resource_link`), and [embedded resources](/specification/draft/server/tools#embedded-resources) (`resource`). Not every model accepts all of these types, so clients may need to handle content that their model does not support.
 
 3. **Structured Content** (optional): Tools can also return [structured content](/specification/draft/server/tools#structured-content), a JSON value in the `structuredContent` field of the result. The tool in this example returns only text.
 
