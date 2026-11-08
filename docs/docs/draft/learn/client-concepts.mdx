@@ -9,17 +9,11 @@ Understanding the distinction is important: the _host_ is the application users 
 
 ## Core Client Features
 
-In addition to making use of context provided by servers, clients may provide several features to servers. These client features allow server authors to build richer interactions.
-
-| Feature         | Explanation                                                                                                                                                                                                                                                   | Example                                                                                                                                |
-| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| **Elicitation** | Elicitation enables servers to request specific information from users during interactions, providing a structured way for servers to gather information on demand.                                                                                           | A server booking travel may ask for the user's preferences on airplane seats, room type or their contact number to finalize a booking. |
-| **Roots**       | Roots allow clients to specify which directories servers should focus on, communicating intended scope through a coordination mechanism. Roots are [deprecated](/specification/draft/deprecated) as of protocol version `2026-07-28`.                         | A server for booking travel may be given access to a specific directory, from which it can read a user's calendar.                     |
-| **Sampling**    | Sampling allows servers to request LLM completions through the client, enabling an agentic workflow. This approach puts the client in complete control of user permissions and security measures. Sampling is deprecated as of protocol version `2026-07-28`. | A server for booking travel may send a list of flights to an LLM and request that the LLM pick the best flight for the user.           |
+In addition to making use of context provided by servers, clients can provide features to servers, such as elicitation. These allow server authors to build richer interactions.
 
 ### Elicitation
 
-Elicitation enables servers to request specific information from users during interactions, creating more dynamic and responsive workflows.
+Elicitation enables servers to request specific information from users during interactions, creating more dynamic and responsive workflows. For example, a server booking travel may ask for the user's preferences on airplane seats, room type or their contact number to finalize a booking.
 
 #### Overview
 
@@ -226,157 +220,13 @@ Elicitation interactions are designed to be clear, contextual, and respectful of
 
 **Privacy considerations**: Servers must not use form mode to request sensitive information such as passwords, API keys, access tokens, or payment credentials. Those interactions belong in URL mode, which keeps the data out of band so it never passes through the client or the LLM context. Clients warn about suspicious requests and let users review form data before sending.
 
-### Roots
+## Deprecated Features
 
 <Warning>
-  Roots are [deprecated](/specification/draft/deprecated) as of protocol version
-  `2026-07-28` and scheduled for removal. New implementations should pass
-  directories or files via tool parameters, resource URIs, or server
-  configuration instead.
+
+Roots and sampling are [deprecated](/specification/draft/deprecated) as of protocol version `2026-07-28` and scheduled for removal. New implementations should not use them:
+
+- Instead of **roots**, pass directories or files through tool parameters, resource URIs, or server configuration.
+- Instead of **sampling**, integrate directly with LLM provider APIs.
+
 </Warning>
-
-Roots define filesystem boundaries for server operations, allowing clients to specify which directories servers should focus on.
-
-#### Overview
-
-Roots are a mechanism for clients to communicate filesystem access boundaries to servers. They consist of file URIs that indicate directories where servers can operate, helping servers understand the scope of available files and folders. While roots communicate intended boundaries, they do not enforce security restrictions. Actual security must be enforced at the operating system level, via file permissions and/or sandboxing.
-
-**Root structure:**
-
-```json
-{
-  "uri": "file:///Users/agent/travel-planning",
-  "name": "Travel Planning Workspace"
-}
-```
-
-Roots are exclusively filesystem paths and always use the `file://` URI scheme. They help servers understand project boundaries, workspace organization, and accessible directories. The roots list can change as users work with different projects or folders. Servers pick up the updated boundaries the next time they request the roots list.
-
-#### Example: Travel Planning Workspace
-
-A travel agent working with multiple client trips benefits from roots to organize filesystem access. Consider a workspace with different directories for various aspects of travel planning.
-
-The client provides filesystem roots to the travel planning server:
-
-- `file:///Users/agent/travel-planning` - Main workspace containing all travel files
-- `file:///Users/agent/travel-templates` - Reusable itinerary templates and resources
-- `file:///Users/agent/client-documents` - Client passports and travel documents
-
-When the agent creates a Barcelona itinerary, well-behaved servers respect these boundaries—accessing templates, saving the new itinerary, and referencing client documents within the specified roots. Servers typically access files within roots by using relative paths from the root directories or by utilizing file search tools that respect the root boundaries.
-
-If the agent opens an archive folder like `file:///Users/agent/archive/2023-trips`, the client adds it to the roots list, and the server sees the new boundary on its next `roots/list` request.
-
-For a complete implementation of a server that respects roots, see the [filesystem server](https://github.com/modelcontextprotocol/servers/tree/main/src/filesystem) in the official servers repository.
-
-#### Design Philosophy
-
-Roots serve as a coordination mechanism between clients and servers, not a security boundary. Servers **SHOULD** respect root boundaries, but the specification does not require them to enforce those boundaries, because servers run code the client cannot control.
-
-Roots work best when servers are trusted or vetted, users understand their advisory nature, and the goal is preventing accidents rather than stopping malicious behavior. They excel at context scoping (telling servers where to focus), accident prevention (helping well-behaved servers stay in bounds), and workflow organization (such as managing project boundaries automatically).
-
-#### User Interaction Model
-
-Roots are typically managed automatically by host applications based on user actions, though some applications may expose manual root management:
-
-**Automatic root detection**: When users open folders, clients automatically expose them as roots. Opening a travel workspace allows the client to expose that directory as a root, helping servers understand which itineraries and documents are in scope for the current work.
-
-**Manual root configuration**: Advanced users can specify roots through configuration. For example, adding `file:///Users/agent/travel-templates` for reusable resources while excluding directories with financial records.
-
-### Sampling
-
-<Warning>
-  Sampling is [deprecated](/specification/draft/deprecated) as of protocol
-  version `2026-07-28` and scheduled for removal. New implementations should
-  integrate directly with LLM provider APIs instead.
-</Warning>
-
-Sampling allows servers to request language model completions through the client, enabling agentic behaviors while maintaining security and user control.
-
-#### Overview
-
-Sampling enables servers to perform AI-dependent tasks without directly integrating with or paying for AI models. Instead, servers can request that the client—which already has AI model access—handle these tasks on their behalf. This approach puts the client in complete control of user permissions and security measures. Because sampling requests occur within the context of other operations—like a tool analyzing data—and are processed as separate model calls, they maintain clear boundaries between different contexts, allowing for more efficient use of the context window.
-
-Sampling follows the same [Multi Round-Trip Requests](/specification/draft/basic/patterns/mrtr) flow described under [elicitation](#elicitation), with the `InputRequiredResult` carrying a `sampling/createMessage` request.
-
-Servers can also request tool use during sampling by including a `tools` array and an optional `toolChoice` field in the request. The tool definitions are scoped to that sampling request and do not need to correspond to tools the server exposes. Clients declare support through the `sampling.tools` capability, and servers must not send tool-enabled sampling requests to clients that have not declared it. See [sampling](/specification/draft/client/sampling#tools-in-sampling) in the specification for details.
-
-**Sampling flow:**
-
-```mermaid
-sequenceDiagram
-    participant LLM
-    participant User
-    participant Client
-    participant Server
-
-    Client->>Server: tools/call (id: 1)
-    Note over Server: Server needs an LLM completion
-    Server-->>Client: InputRequiredResult with sampling/createMessage request
-
-    Note over Client,User: Human-in-the-loop review
-    Client->>User: Present request for approval
-    User-->>Client: Review and approve/modify
-
-    Note over Client,LLM: Model interaction
-    Client->>LLM: Forward approved request
-    LLM-->>Client: Return generation
-
-    Note over Client,User: Response review
-    Client->>User: Present response for approval
-    User-->>Client: Review and approve/modify
-
-    Note over Client,Server: Retry request with approved response
-    Client->>Server: tools/call (id: 2, inputResponses)
-    Server-->>Client: Final result
-```
-
-The flow ensures security through multiple human-in-the-loop checkpoints. Users review and can modify both the initial request and the generated response before the client retries the original request with it.
-
-**Sampling request example (delivered inside `InputRequiredResult.inputRequests`):**
-
-```json
-{
-  "method": "sampling/createMessage",
-  "params": {
-    "messages": [
-      {
-        "role": "user",
-        "content": {
-          "type": "text",
-          "text": "Analyze these flight options and recommend the best choice:\n[47 flights with prices, times, airlines, and layovers]\nUser preferences: morning departure, max 1 layover"
-        }
-      }
-    ],
-    "modelPreferences": {
-      "hints": [{ "name": "claude-sonnet" }],
-      "costPriority": 0.3,
-      "speedPriority": 0.2,
-      "intelligencePriority": 0.9
-    },
-    "systemPrompt": "You are a travel expert helping users find the best flights based on their preferences",
-    "maxTokens": 1500
-  }
-}
-```
-
-The `modelPreferences` suggest a Sonnet-class model and prioritize intelligence over cost and speed, since the task involves complex trade-offs.
-
-#### Example: Flight Analysis Tool
-
-Consider a travel booking server with a tool called `findBestFlight` that uses sampling to analyze available flights and recommend the optimal choice. When a user asks "Book me the best flight to Barcelona next month," the tool needs AI assistance to evaluate complex trade-offs.
-
-The tool queries airline APIs and gathers 47 flight options. It then requests AI assistance to analyze these options: "Analyze these flight options and recommend the best choice: [47 flights with prices, times, airlines, and layovers] User preferences: morning departure, max 1 layover."
-
-The client sends the request to its LLM, allowing the AI to evaluate trade-offs—like cheaper red-eye flights versus convenient morning departures. The tool uses this analysis to present its recommendation.
-
-#### User Interaction Model
-
-While not a requirement, sampling is designed to allow human-in-the-loop control. Users can maintain oversight through several mechanisms:
-
-**Approval controls**: Sampling requests may require explicit user consent. Clients can show what the server wants to analyze and why. Users can approve, deny, or modify requests.
-
-**Transparency features**: Clients can display the exact prompt, model selection, and token limits, allowing users to review AI responses before they return to the server.
-
-**Configuration options**: Users can set model preferences, configure auto-approval for trusted operations, or require approval for everything. Clients may provide options to redact sensitive information.
-
-**Security considerations**: Both clients and servers must handle sensitive data appropriately during sampling. Clients should implement rate limiting and validate all message content. The human-in-the-loop design ensures that server-requested AI interactions cannot compromise security or access sensitive data without explicit user consent.
