@@ -21,6 +21,19 @@ hints, a mandatory operator `correlationId`, and a short `agentGuidance`
 string aimed at the calling model. The extension is fully additive: servers
 and clients that ignore it see no change in behavior.
 
+## Coordination status
+
+This SEP remains Draft pending Core Primitives Working Group discussion.
+The prototype is preserved in the author's
+[fork](https://github.com/johnyzaguirre-glean/modelcontextprotocol/tree/draft/tool-failure-classification).
+The authorization cases need alignment with
+[SEP-2643](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2643)
+through the Auth IG. Classification, correlation, and retry semantics also
+need alignment with the
+[shared error-policy draft](https://github.com/YoadElkayam/mcp-fuse/blob/main/sep/SEP-error-policy.md),
+which incorporates contributions from discussion #2930 and credits this
+proposal's author. The choices below remain proposals for group review.
+
 ## Motivation
 
 [Discussion #2930](https://github.com/modelcontextprotocol/modelcontextprotocol/discussions/2930)
@@ -45,29 +58,32 @@ means:
   diagnostic text wastes context when all the model needs is a short
   instruction ("ask the user to reconnect their account").
 
-The discussion converged on three ideas that this SEP formalizes:
+This SEP builds on three ideas raised in the discussion:
 
 1. Split a broad **behavioral class** from a granular **code**, so clients
    can dispatch on class while servers keep the freedom to define new codes
    (@HarperZ9).
-2. Make the operator **correlation ID mandatory** within the classification
-   object — an optional field doesn't get implemented consistently, and the
-   entire point is reliable cross-referencing (this proposal's author,
-   agreed by @YoadElkayam).
+2. Provide an operator **correlation ID** for reliable cross-referencing
+   (this proposal's author and @YoadElkayam). This draft proposes mandatory
+   presence within `ToolFailure`; the shared draft uses SHOULD for server
+   generation. The requirement strength remains open for alignment.
 3. Keep a short, separate **agent-facing guidance** string apart from
    verbose diagnostics, to avoid wasting model context (@YoadElkayam,
    mcp-fuse).
 
 ## Specification
 
-### Placement: `CallToolResult`, not a protocol-level error
+### Placement for tool execution failures
 
 Per the existing specification (`schema/draft/schema.ts`, see the
 `isError` doc comment on `CallToolResult`), errors that originate from the
-tool itself must stay inside the result object so the calling model can
-see them and self-correct — they must not be reported as an MCP
-protocol-level (JSON-RPC) error. This SEP follows that rule: the new types
-extend `CallToolResult`, and no new JSON-RPC error code is allocated.
+tool itself SHOULD be reported inside the result object with `isError: true`
+so the calling model can see actionable feedback and self-correct. This
+SEP follows that guidance by extending `CallToolResult` without allocating
+a new JSON-RPC error code. Protocol-level failures, such as an unknown
+tool, retain their existing error response. A shared classification
+vocabulary could also be carried in `Error.data` for those failures;
+vocabulary reuse and response placement are separate design questions.
 
 ### Extension point: `_meta`
 
@@ -83,10 +99,11 @@ new required field appears on `CallToolResult` itself.
  * react independent of the specific ToolFailure.code:
  *
  * - `capability`: the operation itself cannot succeed as requested (e.g. an
- *   unsupported feature, missing permission). Stop and surface to the user
+ *   unsupported feature). Stop and surface to the user
  *   or agent for a different approach — retrying as-is will not help.
- * - `reliability`: a transient condition. Safe to retry, honoring
- *   `retryable`/`retryNotBefore` and the tool's declared `idempotentHint`.
+ * - `reliability`: a transient condition. Retry eligibility depends on
+ *   the client behavior rules, including `retryable`, `retryNotBefore`,
+ *   and the tool's declared `idempotentHint`.
  * - `governance`: refused by policy (auth, approval, audit). Requires
  *   out-of-band action (e.g. a human approval), not a retry.
  */
@@ -211,22 +228,19 @@ extension at all.
 
 **Alternatives considered:**
 
-- _Encode classification in the JSON-RPC `Error.data` field instead._
-  Rejected: tool execution failures are explicitly required by the existing
-  spec to travel as `CallToolResult.isError`, not as protocol-level errors,
-  so the model can see and self-correct. Using `Error.data` would be
-  inconsistent with that rule and would only apply to the narrower set of
-  failures that are legitimately protocol-level (e.g. unknown tool).
+- _Carry classification in the JSON-RPC `Error.data` field._ The existing
+  specification recommends `CallToolResult.isError` for tool execution
+  failures, which is this draft's initial scope. Reusing the vocabulary in
+  `Error.data` for legitimate protocol errors remains an alignment question.
 - _A single closed enum of failure codes._ Rejected per the `class`/`code`
   rationale above — a closed enum would need a spec revision every time a
   new failure shape emerged.
 - _Bundling retry/idempotency "contract" fields (caller keys, dedup
   behavior, tri-state `idempotentHint`) into this proposal._ Out of scope.
-  [Discussion #3188](https://github.com/modelcontextprotocol/modelcontextprotocol/discussions/3188)
-  is actively developing a separate, more detailed retry-contract proposal;
-  this SEP only reuses the existing `idempotentHint` as a gating condition
-  and leaves deeper retry semantics to that effort to avoid duplicating or
-  preempting unsettled work.
+  The [shared error-policy draft](https://github.com/YoadElkayam/mcp-fuse/blob/main/sep/SEP-error-policy.md)
+  develops these semantics from discussion #3188. This SEP's current
+  idempotency gate needs alignment with that work, including read-only
+  tools, trust in annotations, and ambiguous execution outcomes.
 
 ## Backward Compatibility
 
@@ -254,14 +268,18 @@ removed fields, and no new JSON-RPC error codes.
 ## Reference Implementation
 
 A working prototype schema change (types, doc comments, and a passing
-example) is implemented in
-[PR #3312](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/3312),
+example) was submitted in
+[PR #3312](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/3312)
+and remains available in the
+[prototype branch](https://github.com/johnyzaguirre-glean/modelcontextprotocol/tree/draft/tool-failure-classification),
 which adds `ToolFailureClass`, `ToolFailure`, and `CallToolErrorMetaObject`
 to `schema/draft/schema.ts`, wires `_meta?: CallToolErrorMetaObject` onto
 `CallToolResult`, and includes
-`schema/draft/examples/ToolFailure/policy-blocked.json`. All schema checks
-pass: `npm run check:schema:ts` (tsc/eslint/prettier) and `npm run
-check:schema` (259/259 example validations, including the new example).
+`schema/draft/examples/ToolFailure/policy-blocked.json`. The original
+prototype reported passing `npm run check:schema:ts` (tsc/eslint/prettier)
+and `npm run check:schema` (259/259 example validations, including the new
+example). Those checks validate schema shape; client behavior remains to
+be demonstrated.
 
 A client-side reference implementation demonstrating retry dispatch on
 `class` (a small proxy or SDK patch) is not yet linked; this is required
@@ -270,6 +288,25 @@ before the SEP can move past `Draft`/`In-Review`, per the
 
 ## Open Questions
 
+- How should auth and permission failures map to classes? This draft groups
+  them under `governance`; the shared draft uses `capability` and reserves
+  `governance` for policy refusal. Authorization remediation should align
+  with SEP-2643, including precedence if both metadata objects appear.
+- Should operator `correlationId` be required or recommended? How should it
+  relate to SEP-2643's `authorizationContextId`, which is echoed on retry?
+  Debug correlation, authorization correlation, and continuation state
+  have distinct roles.
+- Can the vocabulary be reused across tool results and legitimate
+  protocol errors without changing the existing response boundaries?
+- How should retry eligibility account for `readOnlyHint`, `idempotentHint`,
+  and trust in server annotations? A timing hint alone does not establish
+  replay safety. Ambiguous outcomes and failed reconciliation must retain
+  their uncertainty.
+- Should retry timing use this draft's absolute `retryNotBefore` or the
+  shared draft's relative `retry.afterMs`?
+- How should clients expose `agentGuidance` to the model while retaining
+  diagnostics for operators? Placement in `_meta` alone does not define
+  model visibility or replace the existing tool-result content fallback.
 - Should `retryNotBefore` also be exposable via an HTTP response header for
   transports where inspecting `_meta` before the body is fully parsed would
   help proxies/gateways? Raised informally by @YoadElkayam in the related
@@ -281,7 +318,25 @@ before the SEP can move past `Draft`/`In-Review`, per the
   discussion raised "documentation-first before a formal SEP" as an option;
   this SEP and such a guide are not mutually exclusive.
 
+## Review scenarios
+
+These non-normative scenarios define the next client/server validation
+work. Both SEPs and the shared error-policy draft remain proposals.
+
+| Scenario                                                            | Response under discussion                                                                                                                                                                                                                               | Expected client action                                                                                                                                                        | Operator correlation                                                                                                                                       |
+| ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| A credential lacks authorization for a tool call.                   | SEP-2643 uses `CallToolResult` with `isError: true` and authorization metadata containing `reason: "insufficient_authorization"`, `remediation: "available"`, and an `authorization_remediation` hint. An HTTP challenge is authoritative when present. | Obtain the required authorization through the applicable flow before retrying. Echo `authorizationContextId` if supplied.                                                     | Relate the denial and retry through the authorization handle. Decide whether a separate log-correlation ID is needed and how the user receives it.         |
+| Policy permanently disallows an operation.                          | For an authorization denial, SEP-2643 uses `CallToolResult` with `isError: true`, `remediation: "unavailable"`, and no remediation hints. This prototype would describe the case as `governance` / `policy_blocked`; their coexistence is unresolved.   | Stop and show the denial. Avoid unchanged retries or reauthorization for a terminal denial. Preserve an operator-visible reference.                                           | Match the reported denial to the server's policy-decision log without exposing sensitive policy details.                                                   |
+| A trusted, idempotent tool encounters a transient upstream failure. | This prototype uses `CallToolResult` with `isError: true` and `toolFailure` metadata containing `class: "reliability"`, `code: "retryable_transient_error"`, `retryable: true`, `retryNotBefore`, and `correlationId`.                                  | Apply the replay-safety gate and the retry bound. A side-effecting call with an uncertain outcome needs separate handling; the failure class alone does not establish safety. | Preserve the failure's correlation ID through the client and match it to server logs. Keep operation identity and per-attempt diagnostics distinguishable. |
+
+Validation should exercise the response, the client's action, and the
+user-visible support reference for each case. It should also confirm that
+clients ignoring the metadata retain the existing `isError` and `content`
+fallback. A runnable client/server demonstration is still pending.
+
 ## Acknowledgments
 
 Thanks to @Mohataseem89, @HarperZ9, and @YoadElkayam for the ideas
-developed in discussion #2930 that this SEP formalizes.
+developed in discussion #2930. Thanks also to @aurumflux20 for the shared
+retry-safety work and to @nbarbettini and @monmohan for connecting the
+authorization-denial work.
