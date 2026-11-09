@@ -133,7 +133,9 @@ prototype taught you.
 ## Submitting Changes
 
 1. Push your changes to your fork
-2. Submit a pull request to the main repository
+2. Open a pull request against the main repository. This needs write access. Without it, ask a
+   maintainer to open one from your branch, as described in
+   [Change the specification or docs](https://modelcontextprotocol.io/community/contributing#change-the-specification-or-docs)
 3. Follow the pull request template
 4. Wait for review
 
