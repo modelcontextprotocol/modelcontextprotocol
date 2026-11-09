@@ -23,7 +23,7 @@ Bug fixes, clarifications, editorial changes, new examples for existing features
 - Standards Track: a new protocol feature or implementation, or an interoperability standard supported outside the core specification.
 - Informational: a design issue or guidance for the community, with no new feature.
 - Process: a process surrounding MCP, or a change to one.
-- Extensions Track: a protocol extension. It receives the same review and acceptance as Standards Track (see [Creating Extensions](/extensions/overview#creating-extensions) for the extension lifecycle).
+- Extensions Track: a protocol extension. It receives the same review and acceptance as Standards Track. An accepted Extensions Track SEP moves the extension to Beta, and a second one moves it to Stable (see [Extension Lifecycle](/extensions/overview#extension-lifecycle) for the stages).
 
 ## Before you write
 
@@ -63,8 +63,8 @@ flowchart TD
 ```
 
 1. Copy [`seps/TEMPLATE.md`](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/seps/TEMPLATE.md) to `seps/0000-<slug>.md` and fill it in.
-2. Open a pull request against the [specification repository](https://github.com/modelcontextprotocol/modelcontextprotocol). The repository accepts pull requests from collaborators only.
-3. The SEP number is the PR number. Rename the file (PR #1850 becomes `seps/1850-<slug>.md`), update the header, and run `npm run generate:seps`, or the `check:seps` CI job fails.
+2. Open a pull request against the [specification repository](https://github.com/modelcontextprotocol/modelcontextprotocol), titled `sep: <description>` as in `sep: propose task cancellation`, following the [pull request title guidelines](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/CONTRIBUTING.md#pull-request-titles). The repository accepts pull requests from collaborators only.
+3. The SEP number is the PR number. Rename the file (PR #1850 becomes `seps/1850-<slug>.md`), update the header, and run `npm run generate:seps`, or the `check:seps` CI job fails. Rename the pull request to `sep(SEP-1850): <description>`; a follow-up commit is enough, with no amend or force-push. Later pull requests about this SEP keep `SEP-1850` as their scope and link to it in the description.
 4. The PR is labeled `proposal`, meaning awaiting sponsor. `proposal` is a PR label only; the `Status` header in the SEP stays unset.
 5. A [sponsor](#sponsors) assigns themselves to the PR and sets `draft`. Review takes place in PR comments.
 6. When the SEP is ready, the sponsor confirms that the prior discussion happened and is linked in the pull request description, sets `in-review`, and puts it on the Core Maintainer meeting agenda. The author and sponsor may present it.

@@ -1,0 +1,20 @@
+{{- /*
+  Date and reading time. The post list and the post header both call this
+  partial, so the two facts are marked up the same way in both places. Where
+  they go and how they are set is under "Metadata" in custom.css.
+
+  Takes a dict: "page" is the post, "format" is the date layout. The list sits
+  under a year heading and passes "Jan 2". The post header passes the year too.
+*/ -}}
+{{- $p := .page }}
+<div class="when">
+  {{- if not $p.Date.IsZero }}
+  <time class="when-date" datetime="{{ $p.Date.Format "2006-01-02" }}">{{ $p.Date | time.Format $.format }}</time>
+  {{- end }}
+  {{- if ($p.Param "ShowReadingTime") }}
+  <span class="when-read">{{ $p.ReadingTime }} min read</span>
+  {{- end }}
+  {{- if ($p.Param "ShowWordCount") }}
+  <span class="when-read">{{ i18n "words" $p.WordCount | default (printf "%d words" $p.WordCount) }}</span>
+  {{- end }}
+</div>

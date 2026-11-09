@@ -1,357 +1,435 @@
-/* ─── Color tokens ───────────────────────────────────────────────────────── */
-/* --link is the one brand accent. indigo-600 light / indigo-400 dark both
-   clear WCAG AA against the theme background. PaperMod renders prose links
-   with `box-shadow: 0 1px 0` in currentColor, which is invisible when link
-   text matches body text — this gives them a distinguishable hue. */
+/* ═══════════════════════════════════════════════════════════════════════════
+   The blog's design language. Everything below the token block uses the
+   tokens. The only literals left are percentages, viewport units, breakpoints
+   and a few em values that have to scale with the text they sit in.
+
+   Three ideas:
+   1. Type does the work. There are no rules, boxes or separator characters
+      between things. Size, weight, color and space say what a thing is and
+      what it belongs to.
+   2. One typeface, Geist. JetBrains Mono is for code and nothing else. Things
+      that share a line share its size and line height, so they line up at the
+      top as well as at the bottom.
+   3. One text edge. The logo, every title, every paragraph and the footer
+      start on the left edge of one 720px column. On a wide screen the time
+      facts hang outside it, in the left margin.
+
+   Sections: Fonts, Tokens, Base, Links hover focus, Page frame, Header, Page
+   header, Metadata, Post list, Post body, Table of contents, Tags, Search,
+   Footer, Previous and next post, Wide screens, Phones, Print.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ─── Fonts ──────────────────────────────────────────────────────────────── */
+/* Self-hosted, 121 KB in four files. static/fonts/README.md says where each
+   came from, its licence, and how the mono file was cut down.
+   Geist comes in three weights because the whole design rests on the
+   letterforms and their spacing, and the system stack gives a different face,
+   width and weight on every platform. JetBrains Mono is the docs site's code
+   font. The paths are relative to the built stylesheet in /assets/css/, so
+   they also work when a preview is served from a sub-path. */
+@font-face {
+    font-family: "Geist";
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url("../../fonts/Geist-latin-400.woff2") format("woff2");
+}
+
+@font-face {
+    font-family: "Geist";
+    font-style: normal;
+    font-weight: 500;
+    font-display: swap;
+    src: url("../../fonts/Geist-latin-500.woff2") format("woff2");
+}
+
+@font-face {
+    font-family: "Geist";
+    font-style: normal;
+    font-weight: 600;
+    font-display: swap;
+    src: url("../../fonts/Geist-latin-600.woff2") format("woff2");
+}
+
+/* The range is the list the file was cut to. Keep it in step with the command
+   in static/fonts/README.md. */
+@font-face {
+    font-family: "JetBrains Mono";
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url("../../fonts/JetBrainsMono-Regular-latin.woff2") format("woff2");
+    unicode-range: U+0020-007E, U+00A0-00FF, U+0131, U+0152-0153, U+2010-2015,
+        U+2018-201E, U+2020-2022, U+2026, U+2030, U+2039-203A, U+20AC, U+2122,
+        U+2190-2199, U+21D0-21D4, U+2212, U+2248, U+2260, U+2264-2265,
+        U+2500-257F, U+2713, U+2717;
+}
+
+/* ─── Tokens ─────────────────────────────────────────────────────────────── */
 :root {
-    --link: #4f46e5;
-    --hairline: rgba(112, 112, 112, 0.08);
+    --font-sans: "Geist", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+    /* Type ramp. Seven sizes: 18px times 1.2 to the power of -2, -1, 0, 1, 2,
+       3 and 5, rounded to a whole pixel. Step 4 (37px) is skipped so the page
+       title stands well clear of everything else. They are written in rem, so
+       a reader who sets a larger font size in the browser gets one. The pixel
+       values below are at the usual 16px.
+         1  13/20  back link, tags, list authors, byline roles, footer
+         2  15/24  navigation, list summaries, byline names, code, tables
+         3  18/28  h3, homepage lead, search results (18/30 for body text)
+         4  22/28  list titles, dates and years (22/32 for the standfirst)
+         5  26/32  h2
+         6  31/36  page titles on a phone
+         7  45/48  page titles
+       Always use a size with its own line height and tracking. Steps 3 and 4
+       have a second, looser line height for running text. */
+    --fs-1: 0.8125rem;
+    --fs-2: 0.9375rem;
+    --fs-3: 1.125rem;
+    --fs-4: 1.375rem;
+    --fs-5: 1.625rem;
+    --fs-6: 1.9375rem;
+    --fs-7: 2.8125rem;
+
+    --lh-1: 1.25rem;
+    --lh-2: 1.5rem;
+    --lh-3: 1.75rem;
+    --lh-3-prose: 1.875rem;
+    --lh-4: 1.75rem;
+    --lh-4-prose: 2rem;
+    --lh-5: 2rem;
+    --lh-6: 2.25rem;
+    --lh-7: 3rem;
+
+    /* Tracking tightens as the size grows. Code is always 0. */
+    --ls-1: 0;
+    --ls-2: 0;
+    --ls-3: -0.005em;
+    --ls-4: -0.015em;
+    --ls-5: -0.02em;
+    --ls-6: -0.025em;
+    --ls-7: -0.03em;
+
+    /* Three weights. Headings are semibold, never bold. */
+    --fw-regular: 400;
+    --fw-medium: 500;
+    --fw-strong: 600;
+
+    /* The page title is the one style that changes size. On a phone it drops
+       to step 6 (see "Phones"). */
+    --title-fs: var(--fs-7);
+    --title-lh: var(--lh-7);
+    --title-ls: var(--ls-7);
+
+    /* Spacing. One unit of 4px. The number in the name is the multiple.
+       Inside a group use 1 to 4, between groups 6 to 12, between sections
+       16 and 24. */
+    --s-half: 2px;
+    --s-1: 4px;
+    --s-2: 8px;
+    --s-3: 12px;
+    --s-4: 16px;
+    --s-5: 20px;
+    --s-6: 24px;
+    --s-8: 32px;
+    --s-10: 40px;
+    --s-12: 48px;
+    --s-16: 64px;
+    --s-24: 96px;
+
+    /* The vertical rhythm of a page. Four gaps, taken from the scale above:
+         text     between paragraphs and lists
+         block    above and below anything that is not running text: code,
+                  diagrams, images, video, tables, quotations, buttons, the
+                  table of contents
+         section  above an h2
+         page     above the footer, and above the tags that close a post, so
+                  the tags stand midway between the text and the footer
+       They are always set as margins on block-level boxes, so where two meet
+       they collapse and the larger one wins. They never add up. */
+    --gap-text: var(--s-6);
+    --gap-block: var(--s-8);
+    --gap-section: var(--s-12);
+    --gap-page: var(--s-12);
+
+    /* Two radii: small for things inside a line of text, large for blocks. */
+    --r-sm: 6px;
+    --r-lg: 10px;
+
+    /* Strokes: hairlines in tables, and the heavier mark of the focus ring
+       and the quotation bar. */
+    --hair: 1px;
+    --stroke: 2px;
+
+    /* Icons are line drawings with a 2px stroke on a 24px grid, shown at --icon.
+       Most are inline SVG in the templates. This one is drawn by CSS. */
+    --icon-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+
+    /* Columns that hold text, so they grow with it.
+       --when-col fits "Oct 30, 2026" on a post, the widest thing in it at
+       about 90px, and leaves 30px before the text. --year-col fits "2026" at
+       step 4. Together they are the rail that hangs in the margin on a wide
+       screen: 200px. */
+    --when-col: 7.5rem;
+    --year-col: 5rem;
+    --rail: calc(var(--year-col) + var(--when-col));
+
+    /* Longest line of small text in the post list: 620px, under 90 letters. */
+    --measure: 38.75rem;
+
+    /* The byline: how many authors stand side by side, and how far apart. */
+    --author-cols: 3;
+    --author-gap: var(--s-10);
+
+    /* Icons that sit beside 15px text. */
+    --icon: 18px;
+
+    /* Colors, light theme. Paper and ink are the docs site's near-white and
+       near-black, and they swap in the dark theme. The greys between them are
+       on or next to Tailwind's zinc scale, which the docs site uses too. The
+       numbers after each text color are its contrast ratio on --paper, then
+       on --surface. All clear WCAG AA (4.5) on both. */
+    --paper: #fafafa;
+    --surface: #efeff1; /* inline code, tags, search box, contents panel */
+    --surface-2: #e2e2e6; /* a control on --surface while the pointer is on it */
+    --line: #e4e4e7;    /* table rows and <hr> inside a post, decoration only */
+    --edge: #85858f;    /* search box outline, quote bar: 3.5 on paper */
+    --ink: #09090b;     /* 19.1  17.3  titles, headings, years, byline names */
+    --text: #27272a;    /* 14.3  13.0  body text, dates, names in the list */
+    --muted: #52525b;   /*  7.4   6.7  standfirst, summaries, navigation, tags */
+    --faint: #696973;   /*  5.2   4.7  reading time, roles, counts, footer */
+
+    /* Code blocks are dark in both themes, because the syntax colors are
+       Hugo's monokai and are written into the HTML. */
+    --code-paper: #18181b;
+    --code-ink: #d4d4d8;     /* 12.0 on --code-paper */
+    --code-comment: #a1a1aa; /*  6.9 on --code-paper */
+    --code-button: #3f3f46;  /* copy button, --code-ink on it is 7.1 */
+
+    /* Tells the browser which way to draw its own parts: scrollbars, the
+       search box's clear button, form controls. */
+    color-scheme: light;
 }
 
+/* Dark theme. PaperMod's script puts .dark on <body>. It is limited to
+   screens so that paper always gets the light tokens. */
+@media screen {
+    .dark {
+        --paper: #09090b;
+        --surface: #1f1f23;
+        --surface-2: #2e2e33;
+        --line: #27272a;
+        --edge: #71717a;    /* 4.1 on paper */
+        --ink: #fafafa;     /* 19.1  15.7 */
+        --text: #d4d4d8;    /* 13.5  11.1 */
+        --muted: #a1a1aa;   /*  7.8   6.4 */
+        --faint: #8a8a94;   /*  5.8   4.8 */
+        color-scheme: dark;
+    }
+
+    /* The page's own scrollbar belongs to the root element. */
+    :root:has(body.dark) {
+        color-scheme: dark;
+    }
+}
+
+/* Without JavaScript nothing adds .dark, so the system setting decides. This
+   is the block above again and the two must stay the same. It is set on
+   <body> because PaperMod handles this case with a <noscript> block that puts
+   its own dark palette on :root after this stylesheet. What is set on <body>
+   wins over that. A browser that does not know this media feature shows the
+   light theme, whole. */
+@media screen and (scripting: none) and (prefers-color-scheme: dark) {
+    body {
+        --paper: #09090b;
+        --surface: #1f1f23;
+        --surface-2: #2e2e33;
+        --line: #27272a;
+        --edge: #71717a;
+        --ink: #fafafa;
+        --text: #d4d4d8;
+        --muted: #a1a1aa;
+        --faint: #8a8a94;
+    }
+
+    :root {
+        color-scheme: dark;
+    }
+}
+
+/* PaperMod's own variables, pointed at the tokens. Any theme rule that is not
+   overridden below still lands on the same palette and spacing. Three
+   selectors: .dark because PaperMod sets its dark values there, body for the
+   no-JavaScript case above, :root for the page scrollbar. */
+:root,
+body,
 .dark {
-    --link: #818cf8;
-    --hairline: rgba(206, 206, 206, 0.08);
+    --theme: var(--paper);
+    --entry: var(--surface);
+    --primary: var(--ink);
+    --secondary: var(--muted);
+    --tertiary: var(--line);
+    --content: var(--text);
+    --code-bg: var(--surface);
+    --code-block-bg: var(--code-paper);
+    --border: var(--line);
+    --radius: var(--r-lg);
+    --gap: var(--s-6);
+    --content-gap: var(--s-6);
+    --header-height: var(--s-16);
+    /* The header is as wide as the text column, so the logo shares the left
+       edge with every title and the theme toggle ends on the right edge.
+       PaperMod's default is 1024px against a 720px column. */
+    --nav-width: var(--main-width);
 }
 
-/* ─── Links ──────────────────────────────────────────────────────────────── */
-.post-content a {
-    color: var(--link);
+/* ─── Base ───────────────────────────────────────────────────────────────── */
+body {
+    color: var(--text);
+    font-family: var(--font-sans);
+    font-size: var(--fs-3);
+    line-height: var(--lh-3-prose);
+    letter-spacing: var(--ls-3);
+    /* Geist has no italic to ship, so <em> is the upright face slanted by the
+       browser. That is allowed on purpose. A faked bold is not: it smears, and
+       every weight the design uses is loaded. */
+    font-synthesis: style;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
 }
 
-.post-content a code {
-    color: var(--link);
-    box-shadow: 0 -1px 0 var(--link) inset;
+/* PaperMod paints list pages grey in the light theme. One paper everywhere,
+   including the scrollbar track. */
+.list,
+.dark.list,
+.list:not(.dark)::-webkit-scrollbar-track {
+    background: var(--paper);
 }
 
-/* ─── Keyboard focus ─────────────────────────────────────────────────────── */
-/* PaperMod zeroes outlines on #theme-toggle, .top-link, input, textarea with
-   no replacement. :focus-visible keeps mouse clicks ring-free while giving
-   keyboard/switch users a visible indicator. */
-:focus-visible {
-    outline: 2px solid var(--primary);
-    outline-offset: 3px;
-    border-radius: 2px;
-    transition: outline-offset 0.1s ease-out;
+.list:not(.dark)::-webkit-scrollbar-thumb {
+    border-color: var(--paper);
 }
 
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+strong,
+b {
+    font-weight: var(--fw-strong);
+}
+
+/* Only the regular weight of the mono is loaded, so code inside a heading or
+   <strong> stays regular. */
+code,
+pre,
+kbd,
+samp {
+    font-family: var(--font-mono);
+    font-weight: var(--fw-regular);
+    font-variant-ligatures: none;
+    letter-spacing: 0;
+}
+
+::selection {
+    color: var(--ink);
+    background: var(--surface-2);
+}
+
+/* ─── Links, hover, focus ────────────────────────────────────────────────── */
+/* The site has no accent color, like the docs. What can be clicked is told by
+   an underline, a fill or an outline, and the pointer always makes it one step
+   stronger. Nothing moves, grows or fades.
+     in running text      ink, with a grey underline. The underline turns ink.
+     quiet links          (navigation, contents, footer) grey. They turn ink.
+     titles, already ink  (post list, search results) gain an underline.
+     controls             (tags, buttons, arrows) a stronger fill or outline. */
+.post-content a,
+.post-description a,
+.footer span a {
+    color: var(--ink);
+    text-decoration: underline;
+    text-decoration-thickness: var(--hair);
+    text-underline-offset: 0.2em;
+    text-decoration-color: var(--edge);
+    /* PaperMod fakes underlines with a box-shadow and a border. */
+    border: 0;
+    box-shadow: none;
+}
+
+.post-content a:hover,
+.post-description a:hover,
+.footer span a:hover {
+    color: var(--ink);
+    text-decoration-color: currentColor;
+    border: 0;
+}
+
+#menu a:hover,
+#theme-toggle:hover,
+.breadcrumbs a:hover,
+.toc a:hover,
+.footer-nav a:hover,
+.page-rss:hover {
+    color: var(--ink);
+}
+
+#searchResults a:hover,
+#searchResults .focus a {
+    text-decoration: underline;
+    text-decoration-thickness: var(--hair);
+    text-underline-offset: 0.2em;
+}
+
+/* PaperMod removes outlines from the theme toggle, the top link, inputs, the
+   contents toggle and search results, and puts nothing in their place.
+   :focus-visible leaves mouse clicks alone and gives keyboard users the same
+   ring on everything. */
+:focus-visible,
 #theme-toggle:focus-visible,
-.top-link:focus-visible {
-    outline: 2px solid var(--primary);
-    outline-offset: 3px;
+.top-link:focus-visible,
+.toc summary:focus-visible,
+#searchResults a:focus-visible {
+    outline: var(--stroke) solid var(--ink);
+    outline-offset: var(--s-half);
+    border-radius: var(--r-sm);
 }
 
-/* ─── Search box ─────────────────────────────────────────────────────────── */
-/* Match the docs site's search affordance: 1px ~30% gray ring, 36px tall,
-   12px radius, 14px text, normal weight. PaperMod's default is a thick
-   2px --tertiary border with bold text. Focus indicator is the border-color
-   shift alone — no outline ring, which would make the box appear to jump
-   size given it's already 100% width. */
-#searchbox input {
-    height: 36px;
-    padding: 0 14px;
-    font-size: 14px;
-    font-weight: normal;
-    background: var(--theme);
-    border: 1px solid rgba(112, 112, 112, 0.3);
-    border-radius: 12px;
-    transition: border-color 0.15s ease;
+/* PaperMod shrinks tags and search results while the mouse button is down. */
+.terms-tags a,
+.terms-tags a:active,
+#searchResults li:active,
+#searchResults .focus {
+    transform: none;
+    transition: none;
 }
 
-#searchbox input::placeholder {
-    color: var(--secondary);
-}
-
-#searchbox input:focus,
-#searchbox input:focus-visible {
-    outline: none;
-    border-color: rgba(112, 112, 112, 0.5);
-    border-radius: 12px;
-}
-
-.dark #searchbox input {
-    border-color: rgba(206, 206, 206, 0.2);
-}
-
-.dark #searchbox input:focus,
-.dark #searchbox input:focus-visible {
-    border-color: rgba(206, 206, 206, 0.4);
-}
-
-/* ─── Skip link ──────────────────────────────────────────────────────────── */
 .skip-link {
     position: absolute;
-    top: -100px;
-    left: 8px;
+    top: calc(var(--s-24) * -1);
+    left: var(--s-2);
     z-index: 100;
-    padding: 8px 16px;
-    background: var(--primary);
-    color: var(--theme);
-    border-radius: 4px;
-    transition: top 0.2s ease;
+    padding: var(--s-2) var(--s-4);
+    color: var(--paper);
+    font-size: var(--fs-2);
+    line-height: var(--lh-2);
+    background: var(--ink);
+    border-radius: var(--r-sm);
 }
 
 .skip-link:focus {
-    top: 8px;
+    top: var(--s-2);
 }
 
-/* ─── Homepage intro card ────────────────────────────────────────────────── */
-/* PaperMod forces min-height: 320px regardless of content. With a two-line
-   intro that is ~240px of dead scroll before the first post card on mobile. */
-.first-entry {
-    min-height: auto;
-}
-
-/* ─── Reading rhythm ─────────────────────────────────────────────────────── */
-.post-content {
-    line-height: 1.7;
-}
-
-.post-content h2 {
-    margin-top: 56px;
-}
-
-.post-content h3 {
-    margin-top: 40px;
-}
-
-.post-title {
-    letter-spacing: -0.02em;
-    margin-bottom: 0;
-}
-
-/* PaperMod's spacing in the post header is uneven: title→description is 12px
-   (margin-bottom:2px + margin-top:10px), description→meta is 5px, meta→content
-   is --content-gap (20px). Normalize the intra-header gaps to the same 20px. */
-.post-description {
-    margin: var(--content-gap) 0 0;
-}
-
-.post-header .post-meta {
-    margin-top: var(--content-gap);
-}
-
-/* PaperMod's .toc has margin: 0 2px 40px 2px — zero top (so byline→TOC is
-   already --content-gap via .post-header's margin-bottom) but 40px bottom. */
-.toc {
-    margin-bottom: var(--content-gap);
-}
-
-/* PaperMod's .post-footer (the tags row) has margin-top: 56px. */
-.post-footer {
-    margin-top: var(--content-gap);
-}
-
-/* ─── Card hover ─────────────────────────────────────────────────────────── */
-@media (hover: hover) {
-    .post-entry {
-        transition: border-color 0.15s ease;
-    }
-
-    .post-entry:hover {
-        border-color: var(--primary);
-    }
-}
-
-/* ─── Archives page ──────────────────────────────────────────────────────── */
-.archive-count {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 20px;
-    height: 20px;
-    padding: 0 7px;
-    margin-inline-start: 8px;
-    vertical-align: 3px;
-    font-size: 13px;
-    font-weight: normal;
-    font-variant-numeric: tabular-nums;
-    background: var(--code-bg);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-}
-
-/* ─── Post footer tags ───────────────────────────────────────────────────── */
-.post-tags a {
-    text-transform: lowercase;
-}
-
-/* ─── Header ─────────────────────────────────────────────────────────────── */
-/* Match the docs site's framed layout: a hairline rule below the nav and
-   above the footer. modelcontextprotocol.io uses border-gray-500/5 on the
-   navbar and border-gray-100 on the footer — both nearly invisible until
-   you look for them. Nav link size/weight matches the docs site's
-   .nav-tabs (text-sm font-medium = 14px / 500). */
-.header {
-    border-bottom: 1px solid var(--hairline);
-}
-
-/* modelcontextprotocol.io displays its wordmark at h-7 (28px); the effective
-   letter cap-height inside that image is ~18px. PaperMod's default 24px
-   .logo a text reads one size louder than the docs header. */
-.logo a {
-    font-size: 18px;
-    font-weight: 500;
-}
-
-.logo a .logo-svg {
-    margin-inline-end: 8px;
-    vertical-align: -7px;
-}
-
-#menu a {
-    font-size: 14px;
-    font-weight: 500;
-}
-
-#menu a:hover {
-    color: var(--link);
-}
-
-/* ─── Buttons ────────────────────────────────────────────────────────────── */
-/* Shared treatment for the homepage "All posts" link and the list-page
-   paginator. PaperMod's default .pagination a is an inverted high-contrast
-   pill (bg:--primary, color:--theme) — restyle to match .paginav and the
-   tag chips. */
-.all-posts-link,
-.pagination a {
-    display: inline-block;
-    padding: 8px 16px;
-    color: var(--primary);
-    font-size: 14px;
-    line-height: inherit;
-    background: var(--code-bg);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    transition: border-color 0.15s ease;
-}
-
-@media (hover: hover) {
-    .all-posts-link:hover,
-    .pagination a:hover {
-        border-color: var(--primary);
-    }
-}
-
-/* ─── Footer ─────────────────────────────────────────────────────────────── */
-/* PaperMod's .footer is max-width constrained to the content column, so the
-   full-viewport separator lives on a full-width wrapper div (added in the
-   footer partial) as a plain border. The old approach — a ::before escaping
-   the column via the 100vw-centered trick — overflowed the page by half the
-   scrollbar width on browsers with classic scrollbars (100vw includes the
-   scrollbar; clientWidth doesn't), causing a horizontal scrollbar. */
-/* width:100% — same flex-item fix as .main below. PaperMod's margin:auto +
-   max-width shrinks to content as a flex item; explicit width restores the
-   block-flow "cap at max-width, center" behavior. */
-.footer-wrap {
-    border-top: 1px solid var(--hairline);
-}
-
-.footer {
-    padding-top: 24px;
-    width: 100%;
-}
-
-/* PaperMod sets white-space:nowrap on .footer span:last-child for its short
-   "Powered by Hugo" line. Our copyright is two sentences — let it wrap.
-   Selector matches PaperMod's specificity (0,2,1) to actually override it. */
-.footer > span:last-child {
-    display: block;
-    white-space: normal;
-    overflow-wrap: break-word;
-}
-
-.footer-nav {
-    margin-bottom: 8px;
-}
-
-.footer-nav a {
-    border-bottom: none;
-}
-
-.footer-nav a:hover {
-    color: var(--link);
-    border-bottom: none;
-}
-
-.footer-sep {
-    color: var(--border);
-}
-
-/* ─── Mobile ─────────────────────────────────────────────────────────────── */
-@media screen and (max-width: 768px) {
-    /* "Model Context Protocol Blog" at 18px is ~216px of text. With the
-       glyph it's tight at phone widths, and .nav's flex-wrap means the
-       title can sit on its own line when the menu drops below — but the
-       title itself never wraps. Shrink it so both fit. */
-    .logo a {
-        font-size: 16px;
-    }
-
-    .logo a .logo-svg {
-        width: 24px;
-        height: 24px;
-        vertical-align: -6px;
-    }
-
-    /* .nav inherits the 60px desktop header-height as line-height. With three
-       stacked rows (logo, text nav, icons) that's 180px of header before any
-       padding. Tighten everything. */
-    .nav {
-        line-height: 40px;
-        padding-bottom: 8px;
-    }
-
-    /* PaperMod's #menu is white-space:nowrap + overflow-x:auto — a horizontal
-       scroller. With four nav items plus RSS/GitHub/LinkedIn icons plus the
-       theme toggle, it's wider than most phones. Let it wrap instead.
-       PaperMod spaces items with li+li margin-inline-start, which leaves the
-       visually-first item on a wrapped row indented — gap doesn't. */
-    #menu {
-        white-space: normal;
-        flex-wrap: wrap;
-        gap: 0 var(--gap);
-        overflow-x: visible;
-        line-height: 32px;
-    }
-
-    #menu li + li {
-        margin-inline-start: 0;
-    }
-
-    /* Text nav (Docs/Posts/Archives/Search) on one row, icon row below. */
-    .menu-break {
-        flex-basis: 100%;
-        height: 0;
-    }
-
-    /* Footer: eight links + separators wrap across 2–3 lines at phone width. */
-    .footer {
-        padding-top: 20px;
-    }
-
-    .footer-nav {
-        line-height: 2;
-        margin-bottom: 12px;
-    }
-}
-
-/* Hidden at desktop — icons sit inline after the text nav. */
-.menu-break {
-    display: none;
-}
-
-@media screen and (max-width: 768px) {
-    .menu-break {
-        display: block;
-    }
-}
-
-/* ─── Sticky footer layout ───────────────────────────────────────────────── */
-/* PaperMod sizes .main with calc(100vh - 60px - 60px), assuming a single-line
-   footer. Ours is taller (nav row, extra padding), so that calc overshoots
-   and forces a small scroll even when content fits the viewport. Flex column
-   on body lets the footer sit at the bottom regardless of its actual height.
-   100dvh avoids the mobile-address-bar jump; 100vh is the fallback. */
+/* ─── Page frame ─────────────────────────────────────────────────────────── */
+/* PaperMod sizes .main with calc(100vh - 60px - 60px), assuming a one-line
+   footer. Ours is taller, so that calc forces a small scroll even when the
+   content fits. A flex column lets the footer sit at the bottom whatever its
+   height. 100dvh avoids the mobile address-bar jump, 100vh is the fallback. */
 body {
     display: flex;
     flex-direction: column;
@@ -359,64 +437,1127 @@ body {
     min-height: 100dvh;
 }
 
-/* .main has margin:auto + max-width. As a flex item, margin:auto makes it
-   shrink-to-fit then center (vs block flow where it just centers a capped
-   box). Explicit width:100% restores the block-flow behavior so pages like
-   /search/ don't start at placeholder-width and grow as results appear. */
+/* .main has margin:auto and max-width. As a flex item that would shrink to
+   fit its content. width:100% restores "fill up to max-width, then center",
+   so /search/ does not grow as results appear. */
 .main {
     flex: 1;
-    min-height: auto;
     width: 100%;
+    min-height: auto;
+    padding-top: 0;
+    padding-bottom: 0;
 }
 
-/* ─── Page chrome ────────────────────────────────────────────────────────── */
-/* GIF-style demo videos in post content size to the prose column the same
-   way images do. The width/height attributes on the element keep the
-   aspect ratio reserved before load, so no layout shift. */
+/* ─── Header ─────────────────────────────────────────────────────────────── */
+/* See layouts/partials/header.html. No rule under it. The site name is
+   semibold ink, the links are medium and muted, and the page you are on is
+   ink. PaperMod gets the bar's height from a 60px line-height on every link,
+   which makes focus rings 60px tall, and #menu clips them. The height is set
+   on the bar instead. */
+.nav {
+    align-items: center;
+    min-height: var(--header-height);
+    line-height: var(--lh-2);
+}
+
+.logo,
+#menu {
+    align-items: center;
+}
+
+#menu {
+    overflow: visible;
+}
+
+.logo a {
+    display: flex;
+    align-items: center;
+    gap: var(--s-2);
+    font-size: var(--fs-2);
+    font-weight: var(--fw-strong);
+    letter-spacing: var(--ls-2);
+}
+
+/* PaperMod nudges the mark up by 10% and adds a margin. The flex row above
+   centers it on the text instead. */
+.logo a .logo-svg {
+    width: var(--s-6);
+    height: var(--s-6);
+    /* The drawing starts 2px inside its box. Pulling it back puts the ink,
+       not the box, on the column edge. */
+    margin: 0 0 0 calc(var(--s-half) * -1);
+    transform: none;
+}
+
+/* Empty on a single-language site, but it has a margin. */
+.logo-switches {
+    display: none;
+}
+
+#menu a,
+#theme-toggle {
+    color: var(--muted);
+    font-size: var(--fs-2);
+    font-weight: var(--fw-medium);
+    letter-spacing: var(--ls-2);
+}
+
+#menu .active {
+    color: var(--ink);
+    font-weight: var(--fw-medium);
+    border-bottom: 0;
+}
+
+#menu a:hover .active {
+    color: inherit;
+}
+
+/* display is set with the id alone, on purpose. PaperMod hides the toggle for
+   readers without JavaScript with "#theme-toggle { display: none }" in a
+   <noscript> block after this stylesheet, and a stronger selector here would
+   bring the dead button back. */
+#theme-toggle {
+    display: flex;
+    align-items: center;
+    height: var(--lh-2);
+}
+
+button#theme-toggle {
+    margin: 0;
+}
+
+/* With the button hidden, its list item would still hold the last link 24px
+   off the right edge. */
+@media (scripting: none) {
+    .menu-theme {
+        display: none;
+    }
+}
+
+/* The icon is drawn 18px in a 24px wide box. Cropping the box to the drawing
+   puts it exactly on the column's right edge. */
+#theme-toggle svg {
+    width: var(--icon);
+    height: var(--icon);
+}
+
+/* ─── Page header ────────────────────────────────────────────────────────── */
+/* Every page opens the same way: a small line, the title, an introduction.
+   The padding keeps a slot for the small line, and the line pulls itself up
+   into it. The homepage has no small line and leaves the slot empty, so the
+   title is at the same height on every page. */
+.home-intro,
+.page-header,
+.post-header {
+    --slot: calc(var(--lh-1) + var(--s-4));
+    margin: var(--s-8) 0 var(--s-12);
+    padding-top: var(--slot);
+}
+
+.home-intro h1,
+.page-header h1,
+.post-title {
+    margin: 0;
+    color: var(--ink);
+    font-size: var(--title-fs);
+    font-weight: var(--fw-strong);
+    line-height: var(--title-lh);
+    letter-spacing: var(--title-ls);
+    text-wrap: balance;
+}
+
+/* The standfirst of a post. One step above the body text and two shades
+   quieter, so it reads as an introduction and not as the first paragraph. */
+.post-description {
+    margin: var(--s-5) 0 0;
+    color: var(--muted);
+    font-size: var(--fs-4);
+    line-height: var(--lh-4-prose);
+    letter-spacing: var(--ls-4);
+    text-wrap: pretty;
+}
+
+/* The homepage's lead is smaller. It says the same thing on every visit, and
+   the posts under it are what people came for. */
+.home-intro-text {
+    margin: var(--s-3) 0 0;
+    color: var(--muted);
+    font-size: var(--fs-3);
+    line-height: var(--lh-3);
+    letter-spacing: var(--ls-3);
+    text-wrap: pretty;
+}
+
+/* The small line: one link back to the list this page belongs to (see
+   layouts/partials/breadcrumbs.html), or the number on the 404 page. */
+.breadcrumbs,
+.page-eyebrow {
+    display: block;
+    margin: calc(var(--slot) * -1) 0 var(--s-4);
+    color: var(--muted);
+    font-size: var(--fs-1);
+    font-weight: var(--fw-medium);
+    line-height: var(--lh-1);
+    letter-spacing: var(--ls-1);
+}
+
+.breadcrumbs a {
+    color: inherit;
+    font-size: inherit;
+}
+
+/* ─── Metadata ───────────────────────────────────────────────────────────── */
+/* Date, reading time and authors, in the post list and on a post
+   (layouts/partials/post_when.html, authors.html, post_meta.html).
+
+   One rule places them: whatever shares a line shares that line's size and
+   line height, so the tops of the letters line up as well as the bottoms.
+   Weight and color tell the parts apart, never a second typeface.
+     in the list   the date sits beside the title and is set like it. The
+                   reading time sits beside the summary and is set like it.
+     on a post     the date sits beside the author's name, the reading time
+                   beside the role.
+   Digits are all one width, so dates line up under each other. */
+.when {
+    display: flex;
+    flex-direction: column;
+    font-variant-numeric: tabular-nums;
+}
+
+/* Each fact stays whole. The pair may still wrap where it is set as a row. */
+.when > * {
+    white-space: nowrap;
+}
+
+.when-date {
+    color: var(--muted);
+}
+
+.when-read {
+    color: var(--faint);
+}
+
+.post-meta .when-date {
+    font-size: var(--fs-2);
+    line-height: var(--lh-2);
+    letter-spacing: var(--ls-2);
+}
+
+.post-meta .when-read {
+    font-size: var(--fs-1);
+    line-height: var(--lh-1);
+    letter-spacing: var(--ls-1);
+}
+
+/* Under a post's title: when on the left, who on the right, the same two
+   columns as a row of the post list. ("Wide screens" moves the first one into
+   the margin.) Each author is a name over a role. Space above and below holds
+   it in place.
+   !important beats PaperMod's inline-flex, see
+   https://github.com/adityatelange/hugo-PaperMod/issues/1789 */
+.post-header .post-meta {
+    display: grid !important;
+    grid-template-columns: var(--when-col) minmax(0, 1fr);
+    column-gap: var(--s-6);
+    align-items: start;
+    margin-top: var(--s-8);
+}
+
+/* Each column is as wide as the longest name or role in it, and the gap
+   between columns is always the same. Two authors stand next to each other,
+   nine line up three by three. A column stops growing at its share of the
+   width, and a longer role wraps. */
+.authors {
+    display: grid;
+    grid-template-columns: repeat(
+        var(--author-cols),
+        fit-content(calc((100% - (var(--author-cols) - 1) * var(--author-gap)) / var(--author-cols)))
+    );
+    gap: var(--s-4) var(--author-gap);
+    list-style: none;
+}
+
+.author {
+    display: flex;
+    flex-direction: column;
+}
+
+.author-name {
+    color: var(--ink);
+    font-size: var(--fs-2);
+    font-weight: var(--fw-medium);
+    line-height: var(--lh-2);
+    letter-spacing: var(--ls-2);
+}
+
+.author-role {
+    color: var(--faint);
+    font-size: var(--fs-1);
+    line-height: var(--lh-1);
+    letter-spacing: var(--ls-1);
+}
+
+/* ─── Post list ──────────────────────────────────────────────────────────── */
+/* See layouts/partials/post_list.html. No rules and no cards. Inside a row
+   the parts are 8 to 12px apart, rows are 48px apart and years 96px, so the
+   eye groups them without help. Only the title is large and bright, so
+   running down the page picks out titles and nothing else.
+
+   This is the layout for a middling screen: the year above its group, the
+   date column inside the text column. "Wide screens" and "Phones" change it. */
+.post-year + .post-year {
+    margin-top: var(--s-24);
+}
+
+/* Set exactly like a post title, because on a wide screen it stands on the
+   same line as one, and because it is what you look for when scrolling back
+   through the list. */
+.post-year-heading {
+    margin-bottom: var(--s-6);
+    color: var(--ink);
+    font-size: var(--fs-4);
+    font-weight: var(--fw-strong);
+    line-height: var(--lh-4);
+    letter-spacing: var(--ls-4);
+    font-variant-numeric: tabular-nums;
+}
+
+.post-list {
+    list-style: none;
+}
+
+/* A row is a grid of two columns and three lines:
+     date          | title
+     reading time  | summary
+                   | authors
+   The two wrappers step aside (display: contents) so that their children are
+   placed on the grid themselves. That keeps the reading time level with the
+   first line of the summary however many lines the title takes. */
+.post-item {
+    position: relative;
+    display: grid;
+    grid-template-columns: var(--when-col) minmax(0, 1fr);
+    column-gap: var(--s-6);
+    align-items: start;
+}
+
+.post-item + .post-item {
+    margin-top: var(--s-12);
+}
+
+.post-item .when,
+.post-item-body {
+    display: contents;
+}
+
+.post-item .when > * {
+    grid-column: 1;
+}
+
+.post-item-body > * {
+    grid-column: 2;
+}
+
+.post-item .when-date,
+.post-item-title {
+    grid-row: 1;
+    font-size: var(--fs-4);
+    line-height: var(--lh-4);
+    letter-spacing: var(--ls-4);
+}
+
+.post-item .when-read,
+.post-item-summary {
+    grid-row: 2;
+    margin-top: var(--s-2);
+    font-size: var(--fs-2);
+    line-height: var(--lh-2);
+    letter-spacing: var(--ls-2);
+}
+
+.post-item-title {
+    text-wrap: balance;
+}
+
+.post-item-title a {
+    color: var(--ink);
+}
+
+/* Makes the whole row clickable. */
+.post-item-title a::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+}
+
+.post-item-summary {
+    max-width: var(--measure);
+    color: var(--muted);
+    text-wrap: pretty;
+}
+
+.post-item-authors {
+    max-width: var(--measure);
+    margin-top: var(--s-3);
+    color: var(--text);
+    font-size: var(--fs-1);
+    font-weight: var(--fw-medium);
+    line-height: var(--lh-1);
+    letter-spacing: var(--ls-1);
+}
+
+/* Around a spec version (keep_together.html) or a person's name
+   (post_list.html). */
+.nowrap {
+    white-space: nowrap;
+}
+
+/* Plain words after the title. Only a tag gets a pill. */
+.post-item-draft {
+    margin-inline-start: var(--s-2);
+    color: var(--faint);
+    font-size: var(--fs-1);
+    font-weight: var(--fw-regular);
+    letter-spacing: var(--ls-1);
+}
+
+@media (hover: hover) {
+    .post-item:hover .post-item-title a {
+        text-decoration: underline;
+        text-decoration-thickness: var(--hair);
+        text-underline-offset: 0.2em;
+    }
+}
+
+/* ─── Post body ──────────────────────────────────────────────────────────── */
+.post-content {
+    color: var(--text);
+    line-height: var(--lh-3-prose);
+}
+
+/* See --gap-text and --gap-block in the tokens. Buttons are in this group too
+   and get their margin further down, with the rest of their style. */
+.post-content p,
+.post-content ul,
+.post-content ol,
+.post-content dl {
+    margin-bottom: var(--gap-text);
+}
+
+.post-content figure,
+.post-content blockquote,
+.post-content table:not(.highlighttable, .highlight table),
+.post-content .highlight:not(table),
+.post-content > pre,
+.post-content img,
+.post-content video,
+.post-content .youtube-container {
+    margin: var(--gap-block) 0;
+}
+
+/* The header above already keeps its distance. */
+.post-content > :first-child,
+.post-content > p:first-child > img:first-child {
+    margin-top: 0;
+}
+
+/* Headings sit at least three times closer to the text they introduce than to
+   the text before them. h2 is set apart by size. h3 is the size of the text
+   and set apart by weight and color, h4 and below one step smaller again. */
+.post-content h1,
+.post-content h2 {
+    margin: var(--gap-section) 0 var(--s-4);
+    font-size: var(--fs-5);
+    line-height: var(--lh-5);
+    letter-spacing: var(--ls-5);
+}
+
+.post-content h3 {
+    margin: var(--gap-block) 0 var(--s-2);
+    font-size: var(--fs-3);
+    line-height: var(--lh-3);
+    letter-spacing: var(--ls-3);
+}
+
+.post-content h4,
+.post-content h5,
+.post-content h6 {
+    margin: var(--gap-text) 0 var(--s-1);
+    font-size: var(--fs-2);
+    line-height: var(--lh-2);
+    letter-spacing: var(--ls-2);
+}
+
+.post-content h1,
+.post-content h2,
+.post-content h3,
+.post-content h4,
+.post-content h5,
+.post-content h6 {
+    color: var(--ink);
+    text-wrap: balance;
+}
+
+.post-content strong {
+    color: var(--ink);
+}
+
+/* A bold link is still a link. */
+.post-content a strong {
+    color: inherit;
+}
+
+h1:hover .anchor,
+h2:hover .anchor,
+h3:hover .anchor,
+h4:hover .anchor,
+h5:hover .anchor,
+h6:hover .anchor {
+    margin-inline-start: var(--s-2);
+    color: var(--faint);
+    font-weight: var(--fw-regular);
+    text-decoration: none;
+}
+
+/* Written to outweigh the rule above, which also matches a hovered anchor. */
+:is(h1, h2, h3, h4, h5, h6) .anchor:hover {
+    color: var(--ink);
+}
+
+.post-content ul,
+.post-content ol {
+    padding-inline-start: var(--s-6);
+}
+
+.post-content li {
+    margin-top: var(--s-2);
+}
+
+.post-content li > ul,
+.post-content li > ol {
+    margin-bottom: 0;
+}
+
+.post-content li::marker {
+    color: var(--faint);
+}
+
+/* Inline code is one step below the text around it, because JetBrains Mono
+   is drawn larger than Geist at the same size. */
+.post-content code {
+    margin: 0;
+    padding: var(--s-half) var(--s-1);
+    color: var(--ink);
+    font-size: var(--fs-2);
+    /* Keeps the taller mono font from pushing its line apart. */
+    line-height: 1;
+    background: var(--surface);
+    border-radius: var(--r-sm);
+    /* When it wraps, both halves keep their padding and round corners. */
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
+}
+
+.post-content h1 code,
+.post-content h2 code {
+    font-size: var(--fs-4);
+}
+
+.post-content a code {
+    color: inherit;
+    border-radius: var(--r-sm);
+    box-shadow: none;
+}
+
+.post-content h4 code,
+.post-content table code,
+.post-content figcaption code {
+    font-size: var(--fs-1);
+}
+
+/* Code blocks. */
+.post-content .highlight:not(table),
+.post-content > pre {
+    border-radius: var(--r-lg);
+}
+
+/* Hugo writes monokai's own background onto the <pre>, where it shows as
+   square corners behind the rounded block. */
+.post-content .highlight pre {
+    background: none !important;
+}
+
+.post-content pre code {
+    padding: var(--s-4) var(--s-5);
+    color: var(--code-ink);
+    font-size: var(--fs-2);
+    line-height: var(--lh-2);
+    border-radius: var(--r-lg);
+    word-break: normal;
+}
+
+/* PaperMod pulls code blocks inside lists 48px to the left, out of the list
+   and past the column edge on a phone. */
+.post-content ul pre {
+    margin-inline-start: 0;
+}
+
+/* Two of monokai's colors fail on contrast and are written into the HTML as
+   inline styles, so they need !important. Comments are 3.6:1. "Error" tokens
+   are what the highlighter could not parse, shown dark red on maroon at 2:1.
+   They are valid code, so they get the plain color. */
+.post-content .highlight span[style*="#75715e"] {
+    color: var(--code-comment) !important;
+}
+
+.post-content .highlight span[style*="#960050"] {
+    color: inherit !important;
+    background: none !important;
+}
+
+/* On the first line of the code: the same distance from the top as the code
+   and the same line height, so it is level with a one-line block. */
+.copy-code {
+    top: var(--s-4);
+    right: var(--s-4);
+    padding: 0 var(--s-2);
+    color: var(--code-ink);
+    font-size: var(--fs-1);
+    line-height: var(--lh-2);
+    letter-spacing: var(--ls-1);
+    background: var(--code-button);
+    border-radius: var(--r-sm);
+}
+
+/* Quotations: the text color, indented behind a bar. */
+.post-content blockquote {
+    padding: 0 0 0 var(--s-6);
+    color: var(--text);
+    border-inline-start: var(--stroke) solid var(--edge);
+}
+
+.post-content blockquote > :last-child {
+    margin-bottom: 0;
+}
+
+/* Tables are the one place where hairlines stay: they separate rows of data.
+   A one-line row is 40px. A table fills the column, so its right edge is the
+   same as that of the text and the code blocks. One that needs more room
+   scrolls inside .table-wrap (layouts/_markup/render-table.html), not the
+   whole page. PaperMod gets the scrolling from display:block on the table,
+   which also stops the table at the width of its content. */
+.post-content .table-wrap {
+    margin: var(--gap-block) 0;
+    overflow-x: auto;
+}
+
+/* The wrapper has the margin. :not() is there to outweigh the rule that gives
+   every table one. */
+.post-content .table-wrap > table:not(.highlighttable) {
+    display: table;
+    width: 100%;
+    margin: 0;
+}
+
+.post-content table:not(.highlighttable, .highlight table) {
+    font-size: var(--fs-2);
+    line-height: var(--lh-2);
+    letter-spacing: var(--ls-2);
+}
+
+.post-content table th,
+.post-content table:not(.highlighttable, .highlight table, .gist .highlight) td {
+    padding: var(--s-2) var(--s-4) calc(var(--s-2) - var(--hair)) 0;
+    line-height: var(--lh-2);
+    vertical-align: top;
+    border-bottom: var(--hair) solid var(--line);
+}
+
+.post-content table th {
+    color: var(--ink);
+    font-weight: var(--fw-strong);
+}
+
+.post-content hr {
+    height: var(--hair);
+    margin: var(--gap-section) 0;
+    background: var(--line);
+}
+
+/* A block, so that its margin collapses with that of the paragraph Markdown
+   puts around it, and with whatever comes before and after that. */
+.post-content img,
 .post-content video {
+    display: block;
     max-width: 100%;
     height: auto;
+    border-radius: var(--r-lg);
 }
 
-/* Override list page background to white in light mode */
-.list {
-    background: var(--theme);
+/* The figure has the margin. */
+.post-content figure img {
+    margin: 0;
 }
 
-/* Dark mode remains unchanged */
-.dark.list {
-    background: var(--theme);
+.post-content figure > figcaption,
+.post-content figure > figcaption > p {
+    margin: var(--s-3) 0 0;
+    color: var(--faint);
+    font-size: var(--fs-1);
+    font-weight: var(--fw-regular);
+    line-height: var(--lh-1);
+    letter-spacing: var(--ls-1);
 }
 
-/* Mermaid diagram styling for dark mode */
-.dark .mermaid {
-    filter: invert(0.85) hue-rotate(180deg);
+/* Screens only: paper gets the light theme whatever the reader has chosen. */
+@media screen {
+    .dark .mermaid {
+        filter: invert(0.85) hue-rotate(180deg);
+    }
 }
 
-/* Prevent awkward wrapping in post metadata. See https://github.com/adityatelange/hugo-PaperMod/issues/1789 */
-.post-meta {
-    display: block !important;
+/* layouts/shortcodes/youtube.html */
+.youtube-container {
+    position: relative;
+    width: 100%;
+    padding-bottom: 56.25%; /* 16:9 */
 }
 
-.post-description {
-    color: var(--secondary);
-    font-style: italic;
+.youtube-container iframe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: var(--r-lg);
 }
 
-/* Split prev/next post nav into two separate buttons (PaperMod joins them in one box) */
-/* Match the 10px margin-bottom that .post-footer > * puts between the tags
-   row and these buttons, so the prev/next pair sits on the same grid. */
+/* layouts/shortcodes/button.html. Ink on paper, reversed. The selectors outrank
+   the prose link style above. Every button has a border, inside its 40px, so a
+   filled and an outlined one are the same box. */
+.post-content a.mcp-button {
+    display: inline-block;
+    margin: 0 var(--s-2) 0 0;
+    padding: calc(var(--s-2) - var(--hair)) calc(var(--s-4) - var(--hair));
+    color: var(--paper);
+    font-size: var(--fs-2);
+    font-weight: var(--fw-medium);
+    line-height: var(--lh-2);
+    letter-spacing: var(--ls-2);
+    text-decoration: none;
+    background: var(--ink);
+    border: var(--hair) solid var(--ink);
+    border-radius: var(--r-sm);
+}
+
+.post-content a.mcp-button:hover {
+    color: var(--paper);
+    background: var(--text);
+    border-color: var(--text);
+}
+
+/* Of two side by side only the first is filled, so one of them leads. The
+   second is drawn as an outline, which shows its full height and width. */
+.post-content a.mcp-button + a.mcp-button {
+    color: var(--ink);
+    background: none;
+    border-color: var(--edge);
+}
+
+.post-content a.mcp-button + a.mcp-button:hover {
+    color: var(--ink);
+    background: var(--surface);
+    border-color: var(--ink);
+}
+
+/* The block gap around buttons. An inline-block's own margin would be added to
+   the margins around it, so the margin goes on a block-level box: the button
+   itself where Markdown leaves it bare, the paragraph where it wraps several.
+   A browser without :has() falls back to the paragraph's text gap. */
+.post-content > a.mcp-button {
+    display: block;
+    width: fit-content;
+    margin: var(--gap-block) 0;
+}
+
+.post-content p:has(> a.mcp-button) {
+    display: flex;
+    flex-wrap: wrap;
+    row-gap: var(--s-2);
+    margin: var(--gap-block) 0;
+}
+
+.mcp-button-arrow {
+    margin-inline-start: var(--s-1);
+}
+
+/* ─── Table of contents ──────────────────────────────────────────────────── */
+/* A panel between the header and the text, so it reads as a control and not as
+   the first line of the article. It is built like a code block: the same
+   radius, the same 20px inside, the full width of the column, and the block
+   gap above and below. Closed, it is a 48px bar with the label on the left and
+   a chevron on the right. The label is set in i18n/en.yaml.
+
+   The header above ends with a larger gap than that, which the negative margin
+   takes back. "Phones" has its own value. */
+.toc,
+.dark .toc {
+    margin: calc(var(--gap-block) - var(--s-12)) 0 var(--gap-block);
+    padding: 0;
+    background: var(--surface);
+    border: 0;
+    border-radius: var(--r-lg);
+}
+
+.toc details summary,
+.toc details[open] summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--s-4);
+    margin: 0;
+    padding: var(--s-3) var(--s-5);
+    color: var(--ink);
+    font-size: var(--fs-2);
+    line-height: var(--lh-2);
+    letter-spacing: var(--ls-2);
+    list-style: none;
+    cursor: pointer;
+}
+
+.toc details summary:hover {
+    background: var(--surface-2);
+    border-radius: var(--r-lg);
+}
+
+/* The browser's own triangle, which sits tight against the label. */
+.toc summary::-webkit-details-marker {
+    display: none;
+}
+
+/* A line icon like the others on the site, in the color of the label. It is a
+   mask so that it can take that color. It points down when there is something
+   to open and up when there is something to close. */
+.toc summary::after {
+    content: "";
+    flex: none;
+    width: var(--icon);
+    height: var(--icon);
+    background: currentColor;
+    -webkit-mask: var(--icon-chevron) center / contain no-repeat;
+    mask: var(--icon-chevron) center / contain no-repeat;
+}
+
+.toc details[open] summary::after {
+    transform: rotate(180deg);
+}
+
+/* The ring follows the panel's corners, just inside its edge. */
+.toc summary:focus-visible {
+    outline-offset: calc(var(--stroke) * -1);
+    border-radius: var(--r-lg);
+}
+
+.toc .details {
+    font-weight: var(--fw-medium);
+}
+
+.toc .inner {
+    margin: 0;
+    padding: 0 var(--s-5) var(--s-4);
+    opacity: 1;
+}
+
+.toc ul {
+    list-style: none;
+}
+
+.toc li ul {
+    margin-inline-start: var(--s-4);
+}
+
+.toc a {
+    display: block;
+    padding: var(--s-half) 0;
+    color: var(--muted);
+    font-size: var(--fs-2);
+    line-height: var(--lh-2);
+    letter-spacing: var(--ls-2);
+}
+
+.toc .inner > ul > li > a:not(:hover) {
+    color: var(--text);
+}
+
+.toc a:hover {
+    box-shadow: none;
+}
+
+/* ─── Tags ───────────────────────────────────────────────────────────────── */
+/* One chip, three places: under a post (.post-tags), on /tags/ (.terms-tags)
+   and in the title of a tag page (.tag-current). Always lowercase, which is
+   done here and nowhere else. It is the only pill on the site. */
+/* The same distance to the eye as from the tags to the footer. A line of body
+   text keeps 4px more under its baseline than the footer's small text keeps
+   above its capitals, so that much is taken off here. */
+.post-footer {
+    margin-top: calc(var(--gap-page) - var(--s-1));
+}
+
+.post-footer > * {
+    margin-bottom: 0;
+}
+
+.post-tags,
+.terms-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s-2);
+    list-style: none;
+}
+
+.terms-tags li {
+    margin: 0;
+    font-weight: var(--fw-regular);
+}
+
+.post-tags a,
+.terms-tags a {
+    display: block;
+    padding: var(--s-1) var(--s-3);
+    color: var(--muted);
+    font-size: var(--fs-1);
+    font-weight: var(--fw-medium);
+    line-height: var(--lh-1);
+    letter-spacing: var(--ls-1);
+    text-transform: lowercase;
+    background: var(--surface);
+    border: 0;
+    border-radius: var(--r-sm);
+}
+
+.post-tags a:hover,
+.terms-tags a:hover,
+.terms-tags a:active {
+    color: var(--ink);
+    background: var(--surface-2);
+}
+
+.tag-count {
+    margin-inline-start: var(--s-1);
+    color: var(--faint);
+    font-weight: var(--fw-regular);
+    font-variant-numeric: tabular-nums;
+}
+
+a:hover .tag-count {
+    color: inherit;
+}
+
+/* Tag page title: "2 posts tagged ruby". It is a page title like any other,
+   in size, weight and place. The tag is what the page is about, so it alone is
+   in ink, on the chip's fill, and the words that lead up to it step back. */
+.tag-lead {
+    color: var(--faint);
+}
+
+.tag-current {
+    margin-inline-start: 0.06em;
+    padding: 0 0.18em;
+    color: var(--ink);
+    text-transform: lowercase;
+    background: var(--surface);
+    border-radius: var(--r-lg);
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
+}
+
+/* The tag's feed, on a line of its own under the title. The flex row centers
+   the icon on its label. */
+.page-rss {
+    display: flex;
+    align-items: center;
+    gap: var(--s-2);
+    width: fit-content;
+    margin-top: var(--s-5);
+    color: var(--muted);
+    font-size: var(--fs-2);
+    font-weight: var(--fw-medium);
+    line-height: var(--lh-2);
+    letter-spacing: var(--ls-2);
+}
+
+/* The drawing starts 3px inside its box. Pulled back so that the ink is on
+   the column's edge, as with the logo. */
+.page-rss svg {
+    width: var(--icon);
+    height: var(--icon);
+    margin-inline-start: calc(var(--s-half) * -1);
+}
+
+/* ─── Search ─────────────────────────────────────────────────────────────── */
+/* The box is filled like a tag and outlined, because an input has to be
+   recognisable as one (3:1 against the page). Focus changes the outline to
+   ink and doubles it inward, so the box does not change size. */
+#searchbox input {
+    height: var(--s-12);
+    padding: 0 var(--s-4);
+    color: var(--ink);
+    font-size: var(--fs-3);
+    font-weight: var(--fw-regular);
+    letter-spacing: var(--ls-3);
+    background: var(--surface);
+    border: var(--hair) solid var(--edge);
+    border-radius: var(--r-lg);
+}
+
+#searchbox input::placeholder {
+    color: var(--faint);
+    opacity: 1;
+}
+
+#searchbox input:focus,
+#searchbox input:focus-visible {
+    outline: none;
+    border-color: var(--ink);
+    border-radius: var(--r-lg);
+    box-shadow: inset 0 0 0 var(--hair) var(--ink);
+}
+
+/* Results are a plain list of titles (see assets/js/fastsearch.js), lighter
+   than the titles of the post list because nothing stands between them.
+   .focus is the one picked with the arrow keys. */
+#searchResults {
+    margin: var(--s-6) 0 0;
+}
+
+#searchResults li,
+#searchResults .focus {
+    margin: var(--s-2) 0 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+}
+
+/* The negative margin keeps the text on the column edge. With the ring drawn
+   2px inside the box, that leaves 6px between it and the text. */
+#searchResults a {
+    position: static;
+    display: block;
+    width: auto;
+    height: auto;
+    margin: 0 calc(var(--s-2) * -1);
+    padding: var(--s-1) var(--s-2);
+    color: var(--ink);
+    font-size: var(--fs-3);
+    font-weight: var(--fw-medium);
+    line-height: var(--lh-3);
+    letter-spacing: var(--ls-3);
+}
+
+#searchResults a:focus-visible {
+    outline-offset: calc(var(--stroke) * -1);
+}
+
+/* ─── Footer ─────────────────────────────────────────────────────────────── */
+/* On the same left edge as everything else, without a rule above it. The
+   links repeat the header's look one step smaller, the legal text is faint.
+   width:100% for the same reason as .main above. */
+.footer-wrap {
+    margin-top: var(--gap-page);
+}
+
+.footer {
+    width: 100%;
+    padding: 0 var(--gap) var(--s-12);
+    color: var(--faint);
+    font-size: var(--fs-1);
+    line-height: var(--lh-1);
+    letter-spacing: var(--ls-1);
+    text-align: start;
+}
+
+.footer-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s-2) var(--s-6);
+    margin-bottom: var(--s-4);
+}
+
+.footer-nav a {
+    color: var(--muted);
+    font-weight: var(--fw-medium);
+}
+
+.footer-nav a,
+.footer-nav a:hover {
+    border-bottom: 0;
+}
+
+/* PaperMod sets white-space:nowrap on .footer span:last-child for its short
+   "Powered by Hugo" line. Our copyright is two sentences, so let it wrap.
+   The selector matches PaperMod's specificity. */
+.footer > span:last-child {
+    display: block;
+    margin: 0;
+    white-space: normal;
+    overflow-wrap: break-word;
+}
+
+.footer span a,
+.footer span a:hover {
+    color: inherit;
+}
+
+/* Back to top, shown after some scrolling. PaperMod draws a 42px circle with a
+   solid triangle that sits on the text baseline, below the middle. This is the
+   outlined button from a post (.mcp-button) as a square: the same 40px, radius
+   and border, with a line icon like the others on the site, centered by the
+   grid. It floats over text, so it is filled with the page color. */
+.top-link {
+    display: grid;
+    place-items: center;
+    right: var(--s-8);
+    bottom: var(--s-8);
+    width: var(--s-10);
+    height: var(--s-10);
+    padding: 0;
+    color: var(--ink);
+    background: var(--paper);
+    border: var(--hair) solid var(--edge);
+    border-radius: var(--r-sm);
+    transition: visibility 0.2s, opacity 0.2s linear;
+}
+
+.top-link,
+.top-link svg {
+    filter: none;
+}
+
+.top-link:hover {
+    color: var(--ink);
+    background: var(--surface);
+    border-color: var(--ink);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .top-link {
+        transition: none;
+    }
+}
+
+/* ─── Previous and next post ─────────────────────────────────────────────── */
+/* Off at the moment (ShowPostNavLinks in hugo.toml). Splits PaperMod's one
+   joined box into two. */
 .paginav {
+    gap: var(--s-3);
     background: none;
     border: none;
-    gap: 10px;
 }
 
 .paginav a {
-    background: var(--code-bg);
-    border: 1px solid var(--border);
-    padding: 10px 16px;
+    padding: var(--s-3) var(--s-4);
     overflow: hidden;
+    background: var(--surface);
 }
 
 .paginav a > span:not(.title) {
@@ -433,8 +1574,222 @@ body {
     text-decoration: underline;
 }
 
-#menu a.menu-icon {
-    display: flex;
-    align-items: center;
-    height: 100%;
+/* ─── Wide screens ───────────────────────────────────────────────────────── */
+/* From 1168px (73em at the usual font size) there is room beside the column
+   for the rail: 720 + 2 x 200 + 48. The column stays centered. Only the time
+   facts move out of it, so post titles start on the same edge as the page
+   title, the logo and the text. In em, so the breakpoint grows with the rail
+   when the reader's font size does. */
+@media screen and (min-width: 73em) {
+    /* The list. Each year is pulled left by the width of the rail and split
+       in two: the year, then its posts. Each post is split in two again: the
+       date, then the rest, which lands back on the column's edge. */
+    .post-year {
+        display: grid;
+        grid-template-columns: var(--year-col) minmax(0, 1fr);
+        align-items: start;
+        margin-inline-start: calc(var(--rail) * -1);
+    }
+
+    /* On the first title's line, and it stays in view while its posts scroll
+       past. */
+    .post-year-heading {
+        position: sticky;
+        top: var(--s-6);
+        margin: 0;
+    }
+
+    .post-item {
+        column-gap: 0;
+    }
+
+    /* A post. The metadata keeps its two columns and is pulled left by the
+       width of the first, so the date lands in the list's date column and the
+       authors on the column's edge. */
+    .post-header .post-meta {
+        column-gap: 0;
+        margin-inline-start: calc(var(--when-col) * -1);
+    }
+}
+
+/* ─── Phones ─────────────────────────────────────────────────────────────── */
+@media screen and (max-width: 768px) {
+    /* PaperMod drops --gap, the page gutter, to 14px here. The title moves
+       down one used step of the ramp. */
+    :root,
+    body,
+    .dark {
+        --gap: var(--s-5);
+        --author-cols: 2;
+        --author-gap: var(--s-6);
+        --title-fs: var(--fs-6);
+        --title-lh: var(--lh-6);
+        --title-ls: var(--ls-6);
+    }
+
+    /* Two rows: the site name, then the links with the theme toggle at the
+       far right. PaperMod's #menu is a sideways scroller, which hides items. */
+    .nav {
+        gap: var(--s-2) 0;
+        padding: var(--s-4) 0 0;
+    }
+
+    #menu {
+        flex: 1 0 calc(100% - var(--gap) * 2);
+        flex-wrap: wrap;
+        gap: 0 var(--s-5);
+        white-space: normal;
+    }
+
+    /* A gap, not a margin: a margin would indent the first link of a second
+       row when the links wrap. */
+    #menu li + li {
+        margin-inline-start: 0;
+    }
+
+    #menu li.menu-theme {
+        margin-inline-start: auto;
+    }
+
+    .home-intro,
+    .page-header,
+    .post-header {
+        margin: var(--s-6) 0 var(--s-8);
+    }
+
+    /* Nothing to line up with here, and the space is better spent on posts. */
+    .home-intro {
+        padding-top: 0;
+    }
+
+    .post-description {
+        margin-top: var(--s-4);
+    }
+
+    /* Date and reading time move above the title, side by side, in the list
+       and on a post alike. They share a line now, so they share a size. */
+    .post-item,
+    .post-item-body,
+    .post-header .post-meta {
+        display: block !important;
+    }
+
+    .when,
+    .post-item .when {
+        display: flex;
+        flex-flow: row wrap;
+        gap: 0 var(--s-4);
+        margin-bottom: var(--s-1);
+    }
+
+    .when .when-date,
+    .when .when-read {
+        margin-top: 0;
+        font-size: var(--fs-1);
+        line-height: var(--lh-1);
+        letter-spacing: var(--ls-1);
+    }
+
+    /* On a narrow screen with enlarged text a full name may not fit. */
+    .post-item-authors .nowrap {
+        white-space: normal;
+    }
+
+    .post-meta .when {
+        margin-bottom: var(--s-4);
+    }
+
+    .authors {
+        row-gap: var(--s-3);
+    }
+
+    .post-year + .post-year {
+        margin-top: var(--s-16);
+    }
+
+    /* The year stays at the top of the screen while its posts scroll under
+       it. It needs the page color behind it for that. */
+    .post-year-heading {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+        margin-bottom: var(--s-2);
+        padding: var(--s-2) 0;
+        background: var(--paper);
+    }
+
+    .post-content h1,
+    .post-content h2 {
+        margin-top: var(--s-10);
+    }
+
+    /* More characters per line where there are few to begin with. */
+    .post-content pre code {
+        padding: var(--s-4);
+        font-size: var(--fs-1);
+        line-height: var(--lh-1);
+    }
+
+    /* The header ends with the block gap here, so there is nothing to take
+       back. */
+    .toc,
+    .dark .toc {
+        margin-top: 0;
+    }
+
+    /* Its right edge on the right edge of the text. */
+    .top-link {
+        right: var(--gap);
+        bottom: var(--gap);
+    }
+
+    .footer {
+        padding: 0 var(--gap) var(--s-8);
+    }
+}
+
+/* At 22px a standfirst runs to six or seven lines on a phone. The color, and
+   the metadata between it and the text, still set it apart. */
+@media screen and (max-width: 600px) {
+    .post-description {
+        font-size: var(--fs-3);
+        line-height: var(--lh-3);
+        letter-spacing: var(--ls-3);
+    }
+}
+
+/* ─── Print ──────────────────────────────────────────────────────────────── */
+/* Paper gets the light tokens and the middling layout, because the dark
+   theme, the rail and the sticky years above are all limited to screens. What
+   is left to do is to drop what cannot be clicked on paper and to keep code
+   blocks dark, since their syntax colors only work on a dark ground. */
+@media print {
+    #menu,
+    .skip-link,
+    .breadcrumbs a,
+    .page-rss,
+    .top-link,
+    .copy-code,
+    .toc,
+    .mcp-quotes-nav,
+    .footer-nav {
+        display: none;
+    }
+
+    .post-content .highlight,
+    .post-content pre code {
+        print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
+    }
+
+    .post-content pre code {
+        white-space: pre-wrap;
+    }
+
+    .post-item,
+    .post-content pre,
+    .post-content img,
+    .post-content blockquote {
+        break-inside: avoid;
+    }
 }
