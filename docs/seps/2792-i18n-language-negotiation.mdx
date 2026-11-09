@@ -259,10 +259,12 @@ A receiver determines agreement as follows:
    normalize it.
 2. Take the HTTP field value after normal field parsing. Optional whitespace
    surrounding a field line is not part of the field value
-   ([RFC 9110 §5.5]). If the HTTP API exposes repeated field lines
-   separately, join every value in received order with a comma and a space
-   (`", "`), per the consistency recommendation in [RFC 9110 §5.3]; if it
-   exposes the complete combined field value, use that directly.
+   ([RFC 9110 §5.5]). If the HTTP API exposes a field line value with
+   leading or trailing SP or HTAB, remove it before joining. If the HTTP API
+   exposes repeated field lines separately, join every value in received
+   order with a comma and a space (`", "`), per the consistency
+   recommendation in [RFC 9110 §5.3]; if it exposes the complete combined
+   field value, use that directly.
 3. Compare the two strings character for character. Implementations
    **MUST NOT** parse, normalize, or re-serialize either value beyond the join
    in step 2. Both grammars are ASCII, so this is equivalent to comparing
@@ -318,8 +320,8 @@ Language-dependent responses remain cacheable. Existing `ttlMs` and
 Any MCP or client cache that reuses a response **MUST** include the request's
 `acceptLanguage` value in its cache key when the representation varies by
 language. A cached response for one preference **MUST NOT** be served for a
-different preference. This applies even when both preferences happen to select
-the same language.
+different preference. Omitting the preference counts as a different preference.
+This applies even when both preferences happen to select the same language.
 
 An HTTP response that varies by language **MUST** include
 `Vary: Accept-Language`. If a shared cache cannot observe the language signal,
