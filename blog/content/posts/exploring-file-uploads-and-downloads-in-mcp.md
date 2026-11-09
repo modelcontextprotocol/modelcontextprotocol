@@ -25,7 +25,7 @@ This came up enough that we spun up the [File Uploads Working Group](https://mod
 
 This is an experimental effort, and we're not sure yet that the shapes we started with are the ones we'll end up with. The best way to find out is contact with reality. So we'd love for you to try it out, and maybe help us prototype it, so we can all see what works and what doesn't.
 
-It hasn't been approved, it's not part of the MCP specification, and it may change a lot. It's an optional extension, so tools that don't adopt it keep working the way they do today.
+It hasn't been approved, it's not part of the MCP specification, and it may change a lot. There's no reference implementation yet, and the working group plans to submit the draft as a Specification Enhancement Proposal (SEP) once there is one. It's an optional extension, so tools that don't adopt it keep working the way they do today. The draft covers tools only, and resources behave as they do in the base protocol.
 
 ## What we had in mind
 
@@ -39,32 +39,43 @@ The agent needs to know about the file in each of these, but the model doesn't n
 
 ## How it works
 
+The extension's identifier is `io.modelcontextprotocol/files`, and it works with protocol revision `2026-07-28` and later. A server advertises it in its `server/discover` response, with `upload` if it accepts files out of band and `maxInlineBytes` if it accepts them inline. A client declares it in the `io.modelcontextprotocol/clientCapabilities` metadata of every request that may need it, including `tools/list`, with `upload` if it can upload out of band and `download` if it accepts download targets.
+
 Let's walk through one upload. Say a server has a `save_to_folder` tool, and a user wants to save a PDF with it.
 
 ### Marking a file argument
 
-The server marks the argument with `x-mcp-file` in the tool's input schema. This is the same pattern as [`x-mcp-header`](https://modelcontextprotocol.io/specification/draft/server/tools#x-mcp-header), and it tells the client that this argument is a file, so the client fills it in and the model doesn't have to:
+The server marks the argument with `x-mcp-file` in the tool's input schema. This is the same pattern as [`x-mcp-header`](https://modelcontextprotocol.io/specification/2026-07-28/server/tools#x-mcp-header), and it tells the client that this argument is a file, so the client fills it in and the model doesn't have to:
 
 ```json
-"file": {
+{
   "type": "object",
-  "x-mcp-file": { "accept": ["application/pdf"], "maxSize": 157286400 },
   "properties": {
-    "id": { "type": "string" },
-    "name": { "type": "string" },
-    "mimeType": { "type": "string" },
-    "size": { "type": "integer", "minimum": 0 },
-    "data": { "type": "string" }
+    "folderId": { "type": "string" },
+    "file": {
+      "type": "object",
+      "x-mcp-file": { "accept": ["application/pdf"], "maxSize": 157286400 },
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "name": { "type": "string" },
+        "mimeType": { "type": "string" },
+        "size": { "type": "integer", "minimum": 0 },
+        "data": { "type": "string" }
+      },
+      "required": ["id", "mimeType", "size"]
+    }
   },
-  "required": ["id", "mimeType", "size"]
+  "required": ["folderId", "file"]
 }
 ```
 
-A small file can go inline as base64 in `data`, as long as the request's inline files total no more than the `maxInlineBytes` the server advertises. For anything bigger, the client leaves `data` out and the upload happens in the steps below.
+A small file can go inline as base64 in `data`, as long as the request's inline files total no more than the `maxInlineBytes` the server advertises. For anything bigger, if the server advertises `upload`, the client leaves `data` out and the upload happens in the steps below. `maxSize` limits each file however it travels. The full `FileInput` shape also has an optional SHA-256 `digest`, and a tool that needs one requires it in its schema.
+
+A client without this extension ignores the `x-mcp-file` keyword and sees an object argument it can't fill in correctly, so for requests that didn't declare the extension, servers should leave the tool out or list a variant that takes the file another way.
 
 ### Asking before sending
 
-Once the host has the user's approval to send the file, the client calls the tool with the file's metadata and no bytes. We've left the `_meta` fields out of these examples:
+Once the host has approval to send the file, from the user or from operator policy when no user is present, the client calls the tool with the file's metadata and no bytes. We've left `_meta`, where the client's declaration goes, out of these examples:
 
 ```json
 {
@@ -110,13 +121,13 @@ If the server is fine with the file, it responds with an upload target, using a 
 }
 ```
 
-The `requestState` is opaque to the client, and it's how the server avoids keeping protocol session state. The server binds the tool name, the arguments, the target, and the authenticated user into it, so any instance that can reach the storage can handle the next step.
+The `requestState` is opaque to the client, and it's how the server avoids keeping protocol session state. The server binds the tool name, the arguments, each file's target, and the authenticated principal, if there is one, into it, so any instance that can reach the storage can handle the next step. A tool that's unsafe to run twice also needs a record that every instance shares, so that each `requestState` is accepted only once.
 
 ### Moving the bytes and finishing the call
 
-The client sends the file to the target with an ordinary HTTPS request, here a `PUT`. Targets can also use `POST` or a multipart form, because that's what a lot of storage APIs expect. The bytes never touch a JSON-RPC message.
+The client sends the file to the target with an ordinary HTTPS request, here a `PUT`. Targets can also use `POST`, including a `multipart/form-data` body, because that's what a lot of storage APIs expect. The bytes never touch a JSON-RPC message.
 
-Once it gets a `2xx`, the client retries the tool call with the same arguments and the `requestState` it was given:
+Once it gets a `2xx`, the client retries the tool call with the same arguments and the `requestState` it was given, the same retry pattern as [Multi Round-Trip Requests](https://modelcontextprotocol.io/specification/2026-07-28/basic/patterns/mrtr):
 
 ```json
 {
@@ -139,7 +150,7 @@ Once it gets a `2xx`, the client retries the tool call with the same arguments a
 }
 ```
 
-The server checks with the storage that the bytes arrived, runs the tool, and returns an ordinary tool result. If a transfer fails, the client doesn't retry the call, and the tool doesn't run.
+A retry isn't proof that the bytes arrived, so the server verifies `requestState`, confirms with the storage that the bytes are there, re-checks their size, and only then runs the tool and returns an ordinary tool result. If a transfer fails, the client doesn't retry the call, and the tool doesn't run.
 
 All of this happens inside the client. The model made one tool call and got one result, and neither the bytes nor the upload URL entered its context.
 
@@ -174,11 +185,13 @@ Downloads are simpler. A tool lists the file in the `_meta` of its result, and t
 }
 ```
 
+The working group has discussed downloads but hasn't reviewed this shape yet, and one open question is whether it should use `resource_link` instead of `_meta`. As drafted, a server lists a target only in the result of a call that declared `download`, and it still has to describe the result in `content`. The target stays out of the model's context, the same as an upload target. The client checks `size` and any `digest`, can use HTTP range requests to split or resume the download, and treats the file as untrusted.
+
 ## Who gets to see your credentials
 
 Every target has a `credentials` field, and it tells the client whether to attach the credential it uses for this MCP server.
 
-We need that field because the server picks the target. If a client attached its token to any URL a server handed it, a server could point it at another host and collect the token. So the client attaches it only when the server asks and the target is somewhere that credential already goes.
+We need that field because the server picks the target. If a client attached its token to any URL a server handed it, a server could point it at another host and collect the token. So the client attaches it only when the server asks and the target is under the MCP address or on the server's own origin.
 
 The first case is `"credentials": "omit"`, which is what you saw above. The URL carries its own authorization, like a pre-signed URL from an object store. The client sends the file with no token, cookie, or other credential, so a third-party storage host never sees anything that works against your MCP server.
 
@@ -192,12 +205,16 @@ The second case is for deployments that don't allow pre-signed URLs, or where a 
 }
 ```
 
-The client resolves that `path` under the MCP address it already uses, so with `https://gateway.example.com/mcp/abc`, the file goes to `https://gateway.example.com/mcp/abc/uploads`. The bytes take the same route as the client's MCP calls, which also helps a client in a sandbox that can't reach a public storage host at all. The client attaches its MCP credential here because it's going where that credential already goes. `include` also works on a `url` with the same origin as the server, and the client rejects it on any other `url`.
+The client resolves that `path` under the MCP address it already uses, so with `https://gateway.example.com/mcp/abc`, the file goes to `https://gateway.example.com/mcp/abc/uploads`. The bytes take the same route as the client's MCP calls, which also helps a client in a sandbox that can't reach a public storage host at all. The client attaches its MCP credential here because it's going where that credential already goes. `include` also works on a `url` with the same origin as the server's canonical URI, and the client rejects it on any other `url`. A server on stdio has no MCP address, so it can issue only `url` targets with `omit`.
 
-A target can't set its own `Authorization` header, and the client won't follow redirects, so the token can't leave the server's origin.
+The client won't follow redirects, so a target can't bounce the token to another origin. A target also can't set its own `Authorization` header, so the only one on a transfer is the one `credentials` controls.
+
+These rules protect the token, not the file. A malicious server can name any public URL as an `omit` target and receive the file there, and host approval can't limit where the file goes, because the host gets that approval before the target is known. Clients refuse `url` targets at addresses that aren't globally reachable unless an operator allows them, and the draft recommends that hosts restrict `omit` targets to an allowlist of origins where an operator can provide one. Whether that allowlist should be mandatory is an open question. The origin check also can't tell apart applications on one origin, so operators shouldn't host an MCP server on an origin shared with applications it doesn't control.
 
 ## We'd love your help
 
-Try this against something real. Read the draft, point it at the storage or the agent you work with, and tell us what happens. If you're up for building a prototype, even better.
+Try this against something real. We don't have anything for you to install yet, so that means reading the draft, prototyping it against the storage or the agent you work with, and telling us what happens.
+
+The draft's [open questions](https://github.com/modelcontextprotocol/experimental-ext-file-uploads/blob/main/specification/draft/file-uploads.md#open-questions) are where we most need input. If your storage needs an explicit commit after the upload, does doing that when the retry arrives work for you? If your gateway exposes a single generic tool, how should file arguments work behind it? Should `digest` be required? Chunked and resumable uploads, multipart `tools/call`, and out-of-band uploads in elicitation forms are on the [future work](https://github.com/modelcontextprotocol/experimental-ext-file-uploads/blob/main/specification/draft/file-uploads.md#future-work) list, so tell us if you need those too.
 
 You can [open an issue](https://github.com/modelcontextprotocol/experimental-ext-file-uploads/issues) in the extension repository, or come talk to us in the working group's thread on the [MCP Discord](https://modelcontextprotocol.io/community/communication#discord).
