@@ -232,12 +232,18 @@ This operation supports [pagination](/specification/draft/server/utilities/pagin
 ### List Changed Notification
 
 When the list of available resources changes, servers that declared the `listChanged`
-capability **SHOULD** send a notification:
+capability **SHOULD** send a notification to clients that have opened a
+[`subscriptions/listen`][subscriptions] stream with `resourcesListChanged: true`:
 
 ```json
 {
   "jsonrpc": "2.0",
-  "method": "notifications/resources/list_changed"
+  "method": "notifications/resources/list_changed",
+  "params": {
+    "_meta": {
+      "io.modelcontextprotocol/subscriptionId": "listen-1"
+    }
+  }
 }
 ```
 

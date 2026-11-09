@@ -526,7 +526,9 @@ a `content` field representing the message data.
 The list of messages in a sampling request **SHOULD NOT** be retained between
 separate requests.
 
-The `content` field can contain:
+The `content` field contains a single content block or an array of content blocks. Each
+block is one of the following types, subject to the
+[message content constraints](#message-content-constraints):
 
 #### Text Content
 
@@ -554,6 +556,32 @@ The `content` field can contain:
   "type": "audio",
   "data": "base64-encoded-audio-data",
   "mimeType": "audio/wav"
+}
+```
+
+#### Tool Use Content
+
+```json
+{
+  "type": "tool_use",
+  "id": "call_abc123",
+  "name": "get_weather",
+  "input": { "city": "Paris" }
+}
+```
+
+#### Tool Result Content
+
+```json
+{
+  "type": "tool_result",
+  "toolUseId": "call_abc123",
+  "content": [
+    {
+      "type": "text",
+      "text": "Weather in Paris: 18°C, partly cloudy"
+    }
+  ]
 }
 ```
 

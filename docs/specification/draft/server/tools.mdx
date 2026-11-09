@@ -243,7 +243,12 @@ capability **SHOULD** send a notification to clients that have opened a
 ```json
 {
   "jsonrpc": "2.0",
-  "method": "notifications/tools/list_changed"
+  "method": "notifications/tools/list_changed",
+  "params": {
+    "_meta": {
+      "io.modelcontextprotocol/subscriptionId": "listen-1"
+    }
+  }
 }
 ```
 

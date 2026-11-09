@@ -2878,8 +2878,8 @@ export interface ElicitRequest {
 }
 
 /**
- * Restricted schema definitions that only allow primitive types
- * without nested objects or arrays.
+ * Restricted schema definitions for strings, numbers, booleans, and enums,
+ * without nested objects. The only arrays allowed are multi-select enums.
  *
  * @category `elicitation/create`
  */

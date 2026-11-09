@@ -2359,7 +2359,7 @@
                     "$ref": "#/$defs/LegacyTitledEnumSchema"
                 }
             ],
-            "description": "Restricted schema definitions that only allow primitive types\nwithout nested objects or arrays."
+            "description": "Restricted schema definitions for strings, numbers, booleans, and enums,\nwithout nested objects. The only arrays allowed are multi-select enums."
         },
         "ProgressNotification": {
             "description": "An out-of-band notification used to inform the receiver of a progress update for a long-running request.",
