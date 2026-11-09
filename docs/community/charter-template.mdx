@@ -3,17 +3,22 @@ title: Group Charter Template
 description: The charter template for MCP working groups and interest groups, and how to submit a charter.
 ---
 
-This page gives the charter template that every working group and interest group must follow and explains how to submit a charter. The template was adopted by [SEP-2149](/seps/2149-working-group-charter-template), a Specification Enhancement Proposal (SEP), and is changed, together with the rules in [Working Groups and Interest Groups](/community/working-interest-groups), by a Process SEP. Each charter lives at `docs/community/working-groups/<name>.mdx` or `docs/community/interest-groups/<name>.mdx` in the [modelcontextprotocol repository](https://github.com/modelcontextprotocol/modelcontextprotocol), records only the group's mission, scope, leadership, membership and operations, and does not restate those rules, which apply to every group. Sections marked **(WG only)** are required for working groups and optional for interest groups. To start a group, see [Forming a group](/community/working-interest-groups#forming-a-group).
+This page gives the charter template that every working group and interest group must follow and explains how to submit a charter. The template was adopted by [SEP-2149](/seps/2149), a Specification Enhancement Proposal (SEP), and is changed, together with the rules in [Working Groups and Interest Groups](/community/working-interest-groups), by a Process SEP. Each charter lives at `docs/community/working-groups/<name>.mdx` or `docs/community/interest-groups/<name>.mdx` in the [modelcontextprotocol repository](https://github.com/modelcontextprotocol/modelcontextprotocol), records only the group's mission, scope, leadership, membership and operations, and does not restate those rules, which apply to every group. Sections marked **(WG only)** are required for working groups and optional for interest groups. To start a group, see [Forming a group](/community/working-interest-groups#forming-a-group).
 
 ## Submitting a charter
 
 - The group must already be sponsored under [Forming a group](/community/working-interest-groups#forming-a-group).
 - Copy the template below into the charter file and replace the placeholders. Delete the `{/* */}` guidance comments or leave them as written: HTML comments break the MDX build, and `npm run format` corrupts a `{/* */}` comment that spans lines.
+- Run `npm run prep`, then push.
 - Open a pull request that adds the charter file, a navigation entry under Working Groups or Interest Groups in `docs/docs.json`, and a line under [Current groups](/community/working-interest-groups#current-groups).
-- Run `npm run prep` before pushing.
 - A Core Maintainer will review the pull request, as outlined in the [Amending or retiring a group](/community/working-interest-groups#amending-or-retiring-a-group) requirements.
-- Use [Transports](/community/working-groups/transports) (working group) or [Security](/community/interest-groups/security) (interest group) as a filled-in example.
 - Later changes follow [Amending or retiring a group](/community/working-interest-groups#amending-or-retiring-a-group) and add a row to the charter's Changelog.
+
+<Note>
+  [Transports](/community/working-groups/transports) and
+  [Security](/community/interest-groups/security) are filled-in examples, for a
+  working group and an interest group respectively.
+</Note>
 
 ## Template
 

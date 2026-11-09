@@ -3,7 +3,7 @@ title: SEP Guidelines
 description: When a Specification Enhancement Proposal is required and the procedure a proposal follows from pull request to Final.
 ---
 
-This page describes when a Specification Enhancement Proposal (SEP) is required and the procedure from pull request to Final. A SEP is a design document that gives a concise technical specification of a feature or process and its rationale. Its author is responsible for building consensus and recording dissenting opinions. [SEP-1850](/seps/1850-pr-based-sep-workflow) adopted the process and [SEP-2484](/seps/2484-conformance-tests-required-for-final-seps) the conformance gate. Changing either requires a Process SEP.
+This page describes when a Specification Enhancement Proposal (SEP) is required and the procedure from pull request to Final. A SEP is a design document that gives a concise technical specification of a feature or process and its rationale. Its author is responsible for building consensus and recording dissenting opinions. [SEP-1850](/seps/1850) adopted the process and [SEP-2484](/seps/2484) the conformance gate. Changing either requires a Process SEP.
 
 ## When you need a SEP
 
@@ -16,7 +16,7 @@ Write a SEP for:
 - A governance or process change
 - Anything controversial or with several plausible designs, such as a change to how authorization works
 
-Bug fixes, clarifications, editorial changes, new examples for existing features, schema fixes that do not change behavior, and tests go in an ordinary pull request. Amendments to the governance document itself follow the procedure in [SEP-2085](/seps/2085-governance-succession-and-amendment), not this process. If unsure, ask in [Discord](/community/communication#discord) first.
+Bug fixes, clarifications, editorial changes, new examples for existing features, schema fixes that do not change behavior, and tests go in an ordinary pull request. Amendments to the governance document itself follow the procedure in [SEP-2085](/seps/2085), not this process. If unsure, ask in [Discord](/community/communication#discord) first.
 
 ## SEP types
 
@@ -115,7 +115,7 @@ A Standards Track SEP that introduces or modifies observable protocol behavior c
 
 Process SEPs, Informational SEPs, and Standards Track SEPs with no observable protocol behavior (documentation clarifications, schema annotations that do not change validation, implementation-hardening recommendations) are exempt.
 
-Anyone may write the scenario: the SEP author, an SDK maintainer, or any other contributor. The sponsor confirms that it exists and that `sep-NNNN.yaml` covers every normative statement, and the conformance repository's maintainers review the scenario PR for technical correctness. Writing the scenario before Core Maintainer review is encouraged, not required. [SEP-2484](/seps/2484-conformance-tests-required-for-final-seps) defines the traceability format and the dispute process.
+Anyone may write the scenario: the SEP author, an SDK maintainer, or any other contributor. The sponsor confirms that it exists and that `sep-NNNN.yaml` covers every normative statement, and the conformance repository's maintainers review the scenario PR for technical correctness. Writing the scenario before Core Maintainer review is encouraged, not required. [SEP-2484](/seps/2484) defines the traceability format and the dispute process.
 
 ## After the decision
 
@@ -131,4 +131,4 @@ Ownership of a SEP may pass to a new author when the original author no longer h
 
 SEP files live in [`seps/`](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/seps), and each file's git history is the record of the proposal. [`seps/TEMPLATE.md`](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/seps/TEMPLATE.md) gives the structure: a preamble, then Abstract, Motivation, Specification, Rationale, Backward Compatibility, Security Implications and Reference Implementation. The Abstract is about 200 words. Insufficient Motivation is by itself grounds for rejection. The Specification must be detailed enough for independent, interoperable implementations. In the Rationale, record the alternatives considered, the objections raised and the evidence of consensus. Backward Compatibility is mandatory whenever the SEP introduces an incompatibility, and states its severity and the migration path. Security Implications are stated explicitly, including when there are none.
 
-`npm run generate:seps` renders the files into `docs/seps/`, and `npm run check:seps` verifies that the rendered pages are current. For a worked example, see [SEP-2567](/seps/2567-sessionless-mcp), a recent Final Standards Track SEP.
+`npm run generate:seps` renders the files into `docs/seps/`, and `npm run check:seps` verifies that the rendered pages are current. For a worked example, see [SEP-2567](/seps/2567), a recent Final Standards Track SEP.
