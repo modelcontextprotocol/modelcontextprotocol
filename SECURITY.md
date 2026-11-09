@@ -244,7 +244,7 @@ When evaluating whether to report a potential security issue:
 If you are a maintainer and you learn of an actively exploited vulnerability or a severe
 incident, such as a compromise of the release process, notify the Linux Foundation CRA steward
 immediately at steward@linuxfoundation.org. Notify the steward while you fix the problem,
-never instead of fixing it.
+never instead of fixing it. Inform the Core Maintainers and Lead Maintainers at the same time.
 
 The CRA steward files the regulatory reports that the CRA requires of the steward. This
 address is for maintainers. Reporters must use GitHub Security Advisories.
