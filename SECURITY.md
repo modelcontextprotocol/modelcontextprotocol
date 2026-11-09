@@ -2,6 +2,19 @@
 
 Thank you for helping keep the Model Context Protocol and its ecosystem secure.
 
+## EU Cyber Resilience Act (CRA) Stewardship
+
+The Model Context Protocol project publishes software, including the official SDKs, that is
+ultimately intended for commercial activities.
+
+CRA stewardship: This project is supported under the Linux Foundation CRA stewardship
+framework, as described at https://www.linuxfoundation.org/security.
+
+Security vulnerabilities should be reported through the mechanisms described below, which we
+will coordinate with our CRA steward. For actively exploited vulnerabilities and severe
+incidents that may require CRA escalation, please use the project's emergency security
+reporting mechanisms as appropriate.
+
 ## Reporting Security Issues
 
 If you discover a security vulnerability in this repository, please report it through
@@ -10,6 +23,12 @@ for this repository.
 
 Please **do not** report security vulnerabilities through public GitHub issues, discussions,
 or pull requests.
+
+GitHub Security Advisories are also the project's emergency security reporting mechanism.
+Report actively exploited vulnerabilities and severe incidents through a GitHub Security
+Advisory on the affected repository.
+State at the start of the report that the vulnerability is being actively exploited or that
+an incident is under way.
 
 ## What to Include
 
@@ -219,3 +238,13 @@ When evaluating whether to report a potential security issue:
    trust boundaries.
 4. **Provide context.** If you believe you have found a genuine vulnerability,
    explain how it violates the intended security boundaries.
+
+## CRA Escalation for Maintainers
+
+If you are a maintainer and you learn of an actively exploited vulnerability or a severe
+incident, such as a compromise of the release process, notify the Linux Foundation CRA steward
+immediately at steward@linuxfoundation.org. Notify the steward while you fix the problem,
+never instead of fixing it.
+
+The CRA steward files the regulatory reports that the CRA requires of the steward. This
+address is for maintainers. Reporters must use GitHub Security Advisories.
