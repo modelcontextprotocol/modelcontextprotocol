@@ -21,6 +21,19 @@ These protocol layers establish clear separation of concerns while enabling rich
 interactions between clients and servers. The modular design allows implementations to
 support exactly the features they need.
 
+## Intended Audiences and Use
+
+Fields in MCP serve different purposes. Some provide information for programmatic
+processing; others provide context to an agent, information to a person, or both.
+These purposes can overlap. In particular, “human-readable” describes the form of a
+value; it does not, by itself, mean that the value is intended only for people. A
+human-facing diagnostic is not necessarily text intended for an end user.
+
+The field-specific specification defines each field's meaning and intended use.
+Audience annotations are available only on the types that define them; where present,
+they provide the hint described for that annotation. The absence of an audience
+annotation does not establish a default audience.
+
 ## Messages
 
 All messages between MCP clients and servers **MUST** follow the
