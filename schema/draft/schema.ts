@@ -368,7 +368,7 @@ export interface MethodNotFoundError extends Error {
  * - **Pagination**: Invalid or expired cursor values
  * - **Logging** (deprecated): Invalid log level
  * - **Elicitation**: Server requests an elicitation mode not declared in client capabilities
- * - **Sampling**: Missing tool result or tool results mixed with other content
+ * - **Sampling** (deprecated): Missing tool result or tool results mixed with other content
  *
  * @see {@link https://www.jsonrpc.org/specification#error_object | JSON-RPC 2.0 Error Object}
  *

@@ -732,7 +732,7 @@ The first command should print a `401` with a `WWW-Authenticate` header. The sec
 
 Also open your `METADATA_URL` and check that it contains `code_challenge_methods_supported`. Some clients work without it and others refuse to connect.
 
-Then run the full flow with the [MCP Inspector](/docs/2026-07-28/tools/inspector/authorization), which needs Node.js 22.19 or later. The command below opens a browser for login and calls the tool:
+Then run the full flow with the [MCP Inspector](/docs/2026-07-28/tools/inspector/authorization), which needs Node.js 22.23.4+, 24.22.1+, or 26.12.1+. The command below runs the login flow and calls the tool:
 
 ```bash
 npx @modelcontextprotocol/inspector --cli http://localhost:3000/mcp --transport http \
@@ -743,7 +743,7 @@ npx @modelcontextprotocol/inspector --cli http://localhost:3000/mcp --transport 
 
 `--protocol-era modern` makes the Inspector use the 2026-07-28 protocol.
 
-The Inspector's redirect URI is `http://127.0.0.1:6276/oauth/callback`. `--client-metadata-url` is the URL of a metadata document that you host, with this redirect URI in its `redirect_uris`. The authorization server must be able to fetch it. For a pre-registered client, register the redirect URI and use `--client-id` instead, with `--client-secret` if the client has a secret.
+By default, the Inspector's redirect URI is `http://127.0.0.1:6276/oauth/callback` (change it with `--callback-url`; it must be a loopback address). `--client-metadata-url` is the URL of a metadata document that you host, with this redirect URI in its `redirect_uris`. The authorization server must be able to fetch it. For a pre-registered client, register the redirect URI and use `--client-id` instead, with `--client-secret` if the client has a secret.
 
 You can also connect from a client such as [Visual Studio Code](https://code.visualstudio.com). Run **MCP: Add Server** from the Command Palette, choose HTTP, and enter `http://localhost:3000/mcp`.
 
