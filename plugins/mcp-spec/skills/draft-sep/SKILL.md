@@ -20,7 +20,7 @@ This skill guides an author through producing a SEP that conforms to `docs/commu
 
 Phase 6 references `{canonical}` for the branch start-point and `origin` for the push target; these are the same remote for maintainers and different remotes for fork-based contributors.
 
-**Discuss before drafting.** The SEP guidelines require an idea to go through a Working Group before a SEP is opened: check whether it fits the current focus on the roadmap (`docs/development/roadmap.mdx`), raise it with the relevant Working Group, and reach consensus on a SEP the group wants to sponsor. If the user has not done this yet, say so explicitly and ask whether they want to proceed anyway. A SEP without a linked prior discussion is not accepted, and a SEP with no sponsor after 6 months may be closed as `dormant`.
+**Discuss before drafting.** The SEP guidelines require an idea to go through a Working Group before a SEP is opened: check whether it fits the current focus on the roadmap (`docs/development/roadmap.mdx`), raise it with the relevant Working Group, and reach consensus on a SEP the group wants to sponsor. A SEP pull request may only be opened once that Working Group has explicitly approved it (see `CONTRIBUTING.md`). If the user has not done this yet, say so explicitly and tell them to take the idea to the Working Group first. The skill can still write a draft for the user to share with the group, and it stops after Phase 5. A SEP without a linked prior discussion is not accepted.
 
 The SEP author is responsible for building consensus within the community and documenting dissenting opinions — capture both as you go.
 
@@ -55,7 +55,7 @@ Ask the user these six questions before touching any files. The answers feed dir
 2. **Is this a breaking change?** Determines how much weight the Backward Compatibility section carries.
 3. **Prototype status?** There are two distinct gates: a working prototype is required before a SEP can be **accepted**, and a complete reference implementation is required before it can reach **Final**. The prototype proves feasibility — it doesn't need to be production-ready, but it must be runnable, not pseudocode. Does one exist, is one in progress, or is it still TBD?
 4. **Where was this discussed?** Discord thread, Working Group or Interest Group meeting, GitHub Discussion — the link becomes the consensus evidence in the Rationale section. If the answer is "nowhere," flag it (see above).
-5. **Author and sponsor?** Capture the author's name, email, and GitHub username for the `Author(s)` preamble field. Then ask about a sponsor: the relevant Working Group sponsors the SEP and names a WG Lead, Maintainer or Core Maintainer from the group to act as sponsor on the PR. The sponsor sets `draft` status and brings the SEP to the Core Maintainers. Until a sponsor signs on, the SEP sits in an "awaiting sponsor" state (Core Maintainers may close it as `dormant` after 6 months). If the user has a sponsor lined up, capture their GitHub username without the `@`, since `gh pr create --reviewer` expects a bare handle. If not, the preamble should read `Sponsor: None` and the user should get the Working Group's sponsorship as described in `docs/community/sep-guidelines.mdx`.
+5. **Author and sponsor?** Capture the author's name, email, and GitHub username for the `Author(s)` preamble field. Then ask about a sponsor: the relevant Working Group sponsors the SEP and names a WG Lead, Maintainer or Core Maintainer from the group to act as sponsor on the PR. The sponsor sets `draft` status and brings the SEP to the Core Maintainers. If the Working Group has approved the SEP and named a sponsor, capture the sponsor's GitHub username without the `@`, since `gh pr create --reviewer` expects a bare handle. If not, record that there is no Working Group approval yet. The draft's preamble reads `Sponsor: None` for now, and the skill stops after Phase 5 so the user can take the draft to the Working Group as described in `docs/community/sep-guidelines.mdx`.
 6. **Security implications?** Does this proposal touch the attack surface — new transports, auth flows, data exposure, trust boundaries? The Security Implications section is required in `seps/TEMPLATE.md`; even "none identified" needs to be stated explicitly with reasoning.
 
 ## Phase 3 — Research
@@ -126,7 +126,9 @@ Tell the user:
 - The path to the draft file
 - A one-line summary of what went into each section
 
-Then **ask**: open a draft PR now, or stop here so they can edit the file first?
+If Q5 recorded no Working Group approval, stop here. Tell the user to take the draft to the Working Group first, and to return to Phase 6 once the group has approved the SEP and named a sponsor.
+
+Otherwise **ask**: open a draft PR now, or stop here so they can edit the file first?
 
 **Do not proceed to Phase 6 without a yes.**
 
@@ -149,7 +151,7 @@ gh pr create --repo modelcontextprotocol/modelcontextprotocol --base main \
   --title "sep: {title}" --body-file /tmp/sep-pr-body.md --draft --reviewer {sponsor-username}
 ```
 
-`{canonical}` is the remote established in the Prerequisite (either `origin` or `upstream`); `origin` is always the push target. If the `sep/{slug}` branch already exists (e.g., re-entering this phase after a checkpoint pause), reuse it instead of creating a new one. Omit `--reviewer` if Q5 answered `None`. If `gh` prompts for a default repository, run `gh repo set-default modelcontextprotocol/modelcontextprotocol` and retry.
+`{canonical}` is the remote established in the Prerequisite (either `origin` or `upstream`); `origin` is always the push target. If the `sep/{slug}` branch already exists (e.g., re-entering this phase after a checkpoint pause), reuse it instead of creating a new one. If `gh` prompts for a default repository, run `gh repo set-default modelcontextprotocol/modelcontextprotocol` and retry.
 
 Capture the PR number `{N}` from `gh pr create` output, then backfill:
 
@@ -171,4 +173,4 @@ branch commits. `npm run generate:seps` still renders `docs/seps/{N}-{slug}.mdx`
 and updates `docs/docs.json` for the existing `render-seps.yml` check; commit those
 files. `npm run format:docs` keeps the formatting check green.
 
-**If Q5 answered `None`, the next step after the PR is open is getting the Working Group's sponsorship.** Share the PR in the group's Discord channel or bring it to a group meeting, and ask the group to name a sponsor. The 6-month clock starts now.
+Once the PR is open, share it in the Working Group's Discord channel so the sponsor can assign themselves and set `draft`.
