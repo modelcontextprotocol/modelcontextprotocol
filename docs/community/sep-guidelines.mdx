@@ -34,9 +34,7 @@ A protocol change reaches the Core Maintainers through a working group:
 3. Reach [consensus](/community/working-interest-groups#making-decisions) in the working group, then draft a SEP that the group wants to [sponsor](#sponsors). Read the [design principles](/community/design-principles), try the idea as an [extension](/extensions/overview) first where its shape allows, and build a prototype that meets the [Prototype Requirements](#prototype-requirements).
 4. The working group's leads bring the SEP to the Core Maintainers for review through the [Workflow](#workflow).
 
-If an interest group covers the area and no working group does, the interest group can start a working group for the idea through the [forming a group](/community/working-interest-groups#forming-a-group) process, and that working group sponsors the SEP. This is the normal path for areas an interest group owns. If no working or interest group covers the area, propose a new working group through the [forming a group](/community/working-interest-groups#forming-a-group) process, and that group sponsors the SEP. A thread in `#general` on Discord can help find people to join it. A SEP without a sponsoring working group does not proceed to review. Until a working group agrees to sponsor it, a proposal developed in the open stays in a draft pull request and is not yet in the SEP process.
-
-Prior discussion is required, and the pull request description must link to it: a Discord thread or meeting notes. A SEP without a linked prior discussion is not accepted. Specification changes are slow by design (see [Stability over velocity](/community/design-principles#stability-over-velocity)).
+If an interest group covers the area and no working group does, the interest group can start a working group for the idea through the [forming a group](/community/working-interest-groups#forming-a-group) process, and that working group sponsors the SEP. This is the normal path for areas an interest group owns. If no working or interest group covers the area, propose a new working group through the [forming a group](/community/working-interest-groups#forming-a-group) process. A thread in `#general` on Discord can help find people to join it.
 
 ## Workflow
 
@@ -57,7 +55,7 @@ flowchart TD
     Idea -->|"Working group agrees to sponsor"| Draft
     DraftPR -->|"Working group agrees to sponsor"| Draft
     Draft --> Withdrawn
-    Draft -->|"Working group leads set in-review"| InReview
+    Draft -->|"Working group lead submits to<br/>voting.modelcontextprotocol.io"| InReview
     InReview --> Decision
     Decision --> Accepted
     Decision --> Rejected
@@ -70,8 +68,8 @@ flowchart TD
 2. Open a pull request against the [specification repository](https://github.com/modelcontextprotocol/modelcontextprotocol), titled `sep: <description>` as in `sep: propose task cancellation`, following the [pull request title guidelines](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/CONTRIBUTING.md#pull-request-titles). Authors who are not members of the `modelcontextprotocol` GitHub organization ask the leads of the [sponsoring working group](#sponsors) to open the pull request and name them as the author.
 3. The SEP number is the PR number. Rename the file (PR #1850 becomes `seps/1850-<slug>.md`), update the header, and run `npm run generate:seps`, or the `check:seps` CI job fails. Rename the pull request to `sep(SEP-1850): <description>`; a follow-up commit is enough, with no amend or force-push. Later pull requests about this SEP keep `SEP-1850` as their scope and link to it in the description.
 4. Until a working group has agreed to sponsor the SEP, it stays a draft pull request. A draft pull request is for developing a proposal in the open. It is not yet in the SEP process, the `Status` header in the SEP stays unset, and the `wg-support-needed` label marks it.
-5. Once a working group has agreed to [sponsor](#sponsors) the SEP, the pull request is marked ready for review, the `Sponsor` header names the group, and the working group's leads set `draft` status. Review takes place in PR comments.
-6. When the SEP is ready, the working group's leads confirm that the working group discussion happened and is linked in the pull request description, set `in-review`, and put it on the Core Maintainer meeting agenda. The author and a working group lead may present it.
+5. Once a working group has agreed to [sponsor](#sponsors) the SEP, the pull request is marked ready for review and the `Sponsor` header names the group. The SEP is then in `draft` status, and review takes place in PR comments.
+6. When the SEP is ready, a working group lead confirms that the working group discussion is linked in the pull request description and submits the SEP to [voting.modelcontextprotocol.io](https://voting.modelcontextprotocol.io) for the Core Maintainers' decision. The SEP is then `in-review`. The author and a working group lead may present it.
 7. Core Maintainers decide under [Review and acceptance](#review-and-acceptance). The working group's leads record the outcome, `accepted` or `rejected`, on the PR and in the SEP header.
 8. For an accepted SEP, the author adds to the same PR: the specification prose, the `schema.ts` changes with regenerated output (see [CONTRIBUTING.md](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/CONTRIBUTING.md#schema-changes)), a changelog entry, and any required documentation edits (for a deprecation, the four edits under [Deprecating a Feature](/community/feature-lifecycle#deprecating-a-feature)). The reference implementation is completed where it lives: an SDK branch, a fork or a standalone repository (see [Prototype Requirements](#prototype-requirements)). For a Standards Track SEP with observable protocol behavior, the conformance scenario and `sep-NNNN.yaml` are merged (see [Conformance Test Requirement](#conformance-test-requirement)). SDK implementations are not required for Final.
 9. The working group's leads verify these artifacts and set `final`. The PR is then merged.
@@ -88,11 +86,11 @@ The seven `Status` values, also defined on the [SEP index](/seps):
 | `final`      | All artifacts complete and the PR merged                                                          | Working group leads                                     |
 | `superseded` | Replaced by a newer SEP                                                                           | Working group leads                                     |
 
-Core Maintainers close a SEP pull request that has had no progress for about 180 days, whether it is a draft pull request or ready for review. No `Status` value records the close, and the pull request can be reopened when work resumes.
+SEP pull requests that have had no progress for about 180 days will be closed.
 
 ## Sponsors
 
-The sponsor of a SEP is the working group whose scope it falls in. When the idea falls in an interest group's area, the interest group can start a working group for it through the [forming a group](/community/working-interest-groups#forming-a-group) process, and that working group sponsors the SEP. The group agrees to sponsor it once the group reaches consensus on the idea (see [Before you write](#before-you-write)). Core Maintainers can sponsor a SEP directly as an exception, for example cross-cutting work that no working group covers. The `Sponsor` header in the SEP holds the group's name, such as `Transports Working Group`, or `Core Maintainers`.
+The sponsor of a SEP is the working group whose scope it falls in. [Before you write](#before-you-write) covers how a working group comes to sponsor a SEP and what to do when no working group covers the area. Core Maintainers can sponsor a SEP directly as an exception, for example cross-cutting work that no working group covers. The `Sponsor` header in the SEP holds the group's name, such as `Transports Working Group`, or `Core Maintainers`.
 
 The working group, its leads and the author are responsible for moving the SEP forward. When the author cannot open pull requests on the repository, one of the group's leads opens the pull request and names the author. The SEP is numbered from that pull request as usual.
 

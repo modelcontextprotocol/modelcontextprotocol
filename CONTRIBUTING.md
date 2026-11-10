@@ -149,8 +149,9 @@ for how to get a pull request opened from your branch.
    [access repository](https://github.com/modelcontextprotocol/access)
 3. Push your changes to your fork
 4. Open a pull request against the main repository and follow the pull request template
-5. For SEPs, the working group's leads bring the SEP to the Core Maintainers for review, as described in the
-   [SEP guidelines](https://modelcontextprotocol.io/community/sep-guidelines)
+5. For SEPs, a working group lead submits the SEP to
+   [voting.modelcontextprotocol.io](https://voting.modelcontextprotocol.io) for the Core Maintainers'
+   decision, as described in the [SEP guidelines](https://modelcontextprotocol.io/community/sep-guidelines)
 
 ### Pull request titles
 
