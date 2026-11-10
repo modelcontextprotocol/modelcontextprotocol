@@ -118,7 +118,6 @@ function getStatusBadgeColor(status: string): string {
   if (statusLower === "in-review") return "yellow";
   if (statusLower === "draft") return "gray";
   if (statusLower === "rejected" || statusLower === "withdrawn") return "red";
-  if (statusLower === "dormant") return "orange";
   if (statusLower === "superseded") return "purple";
   return "gray";
 }
@@ -234,14 +233,13 @@ ${tableRows}
 
 | Status | Definition |
 | --- | --- |
-| <Badge color="gray" shape="pill">Draft</Badge> | SEP proposal with a sponsor, undergoing informal review |
+| <Badge color="gray" shape="pill">Draft</Badge> | SEP proposal sponsored by a working group, undergoing informal review |
 | <Badge color="yellow" shape="pill">In-Review</Badge> | SEP proposal ready for formal review by Core Maintainers |
 | <Badge color="blue" shape="pill">Accepted</Badge> | SEP accepted, awaiting reference implementation |
 | <Badge color="green" shape="pill">Final</Badge> | SEP finalized with reference implementation complete |
 | <Badge color="red" shape="pill">Rejected</Badge> | SEP rejected by Core Maintainers |
 | <Badge color="red" shape="pill">Withdrawn</Badge> | SEP withdrawn by the author |
 | <Badge color="purple" shape="pill">Superseded</Badge> | SEP replaced by a newer SEP |
-| <Badge color="orange" shape="pill">Dormant</Badge> | SEP without a sponsor, closed after 6 months |
 `;
 }
 
@@ -270,7 +268,7 @@ function groupSepsByStatus(seps: SEPMetadata[]): Record<string, SEPMetadata[]> {
   const groups: Record<string, SEPMetadata[]> = {};
 
   // Define status order for navigation
-  const statusOrder = ["Final", "Accepted", "In-Review", "Draft", "Withdrawn", "Rejected", "Superseded", "Dormant"];
+  const statusOrder = ["Final", "Accepted", "In-Review", "Draft", "Withdrawn", "Rejected", "Superseded"];
 
   for (const sep of seps) {
     // Normalize status to title case (handling hyphenated statuses like "In-Review")
