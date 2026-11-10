@@ -262,7 +262,7 @@ Check these points before you choose one:
 - **Audience.** Your MCP server must reject tokens that weren't issued for it. The `resource` value from the client should become the token's audience, which is the `aud` claim in a JWT. Some products need a setting for this, or let you configure the audience on a scope instead. Others always use their own identifier. In that case, compare the audience with that identifier, and keep your server's URL as the PRM `resource`. The identifier must belong to this MCP server only, so don't share one application registration between servers.
 - **Metadata.** It must serve metadata through RFC 8414 or OpenID Connect Discovery. The metadata must contain `code_challenge_methods_supported`. Look at the real document, because some products support PKCE but leave this value out, and clients that follow the specification then refuse to connect.
 - **CIMD.** It should support CIMD, which it advertises with `client_id_metadata_document_supported`. In some products you have to enable this, or list the client domains you accept.
-- **Token format.** The examples below need signed JWT access tokens. Otherwise, you need an introspection endpoint.
+- **Token format.** The examples below need signed JWT access tokens. Otherwise, you need another way to validate tokens, such as a vendor SDK or an introspection endpoint.
 - **Public clients.** Many MCP clients have no secret. The authorization server must accept them, and its `token_endpoint_auth_methods_supported` should contain `none`.
 - **Scopes.** Define a scope such as `mcp:tools` and make it available to the clients that will connect. Some products add a prefix to scope names. If yours does, use the full name everywhere the examples use `mcp:tools`. If you define more than one scope, read [Scope Minimization](/docs/draft/tutorials/security/security_best_practices#scope-minimization), and list only the scopes needed for basic use in `scopes_supported`.
 - **Token lifetime.** Access tokens should be short-lived, because a stolen token works until it expires. The authorization server must rotate refresh tokens for public clients.
@@ -707,15 +707,39 @@ For per-tool authorization with `[Authorize]`, see [Identity and Role Propagatio
 
 ### Opaque Tokens
 
-If your authorization server issues opaque tokens, use its [token introspection](https://datatracker.ietf.org/doc/html/rfc7662) endpoint instead of validating a JWT. Its URL is the `introspection_endpoint` value in the metadata.
+If your authorization server issues opaque tokens, use its SDK or validation API (if one is available). If it supports [token introspection](https://datatracker.ietf.org/doc/html/rfc7662), its metadata lists the endpoint as `introspection_endpoint`.
 
-The endpoint requires authorization, so your MCP server needs its own credentials at the authorization server. If you use HTTP Basic authentication, form-encode the client ID and secret first. The credentials must be allowed to introspect tokens for this server. If they aren't, the response for a valid token has `active` set to `false`.
+<Note>
+  To call the introspection endpoint, your MCP server needs its own credentials
+  at the authorization server, with permission to introspect tokens issued for
+  your MCP server. If those credentials lack the required permissions, the
+  authorization server might not return an error, and instead report valid
+  tokens as inactive, leading to rejection.
+</Note>
 
-If `active` is `false`, reject the token. If it is `true`, check that `aud` contains the expected audience before you report the resource to the SDK. Check `scope` and `exp` too. These values are optional in the RFC, so make sure your authorization server returns them, and reject a token whose `aud` is missing. If the endpoint can't be reached or returns an error status, even a `401`, treat that as an outage.
+With introspection, reject the token unless the response meets all of these:
 
-If you cache tokens or results, encrypt the tokens and delete each entry no later than the token expires. Keep your server's credentials in a secret manager.
+| Field    | Requirement                                    |
+| -------- | ---------------------------------------------- |
+| `active` | Must be `true`.                                |
+| `aud`    | Must be present and contain your server's URL. |
+| `scope`  | Must include the scopes your server requires.  |
+| `exp`    | Must be in the future.                         |
 
-In TypeScript and Python, make the call in the verifier. In C#, replace `AddJwtBearer` with an authentication handler that supports introspection.
+<Note>
+  RFC 7662 makes `aud`, `scope`, and `exp` optional, and some authorization
+  servers might not include them. Check your introspection response and enable
+  any missing fields if the authorization server allows it. Reject any token
+  whose response lacks required fields.
+</Note>
+
+If the introspection endpoint can't be reached or returns an error, respond to the client with a `5xx` status, not a `401`. A `401` response from the MCP server will result in the client attempting to sign the user in again. This also covers a `401` from the introspection endpoint, which means the authorization server rejected your MCP server's own credentials to introspect the token, not the user's token.
+
+If you cache tokens or results, encrypt the tokens and delete each entry no later than the token expiration time.
+
+With the TypeScript and Python SDKs, validate the token in your verifier. The SDK compares the `resource` value your verifier returns with your server's URL, but it doesn't check the token's audience. Check `aud` yourself before returning `resource`.
+
+For MCP servers written in C#, use your authorization server's ASP.NET Core library in place of `AddJwtBearer`, if one exists. Otherwise, if the authorization server supports introspection, use `AddOAuth2Introspection` from the [`Duende.AspNetCore.Authentication.OAuth2Introspection`](https://www.nuget.org/packages/Duende.AspNetCore.Authentication.OAuth2Introspection) package. The handler requires the developer to implement `aud` validation in its `OnTokenValidated` event.
 
 ### Deploying Beyond Localhost
 
