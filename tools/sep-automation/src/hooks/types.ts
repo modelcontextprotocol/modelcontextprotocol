@@ -29,7 +29,7 @@ export interface TransitionEvent extends SEPEvent {
 /** Ping event */
 export interface PingEvent extends SEPEvent {
   type: 'ping';
-  pingTarget: 'author' | 'sponsor' | 'maintainer';
+  pingTarget: 'author' | 'maintainer';
   targetUser: string;
   daysSinceActivity: number;
 }
@@ -53,8 +53,7 @@ export interface SummaryEvent {
   timestamp: Date;
   dryRun: boolean;
   transitions: Array<{ item: SEPItem; fromState: SEPState | null; toState: SEPState; sponsor: string }>;
-  pings: Array<{ item: SEPItem; pingTarget: 'author' | 'sponsor' | 'maintainer'; targetUser: string; daysSinceActivity: number }>;
-  needsSponsor: Array<{ item: SEPItem; daysSinceActivity: number }>;
+  pings: Array<{ item: SEPItem; pingTarget: 'author' | 'maintainer'; targetUser: string; daysSinceActivity: number }>;
   dormant: Array<{ item: SEPItem; daysSinceActivity: number; wasClosed: boolean }>;
   totalProcessed: number;
   failed: number;
