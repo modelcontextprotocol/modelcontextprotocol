@@ -15,11 +15,11 @@ The Core Primitives Working Group coordinates proposals that improve MCP's core 
 
 ### In Scope
 
-The group currently focuses on three items:
+The group currently focuses on three problems with tool results:
 
-- **Tool result shape**: Redesigning the `tools/call` interface to resolve fidelity disparities among return types and streamline the handling of structured and unstructured output.
-- **Tool result stability**: Tools can return different `structuredContent` depending on input parameters or other effects, with no guarantees. Approaches such as code mode rely on stable return types.
-- **Tool result audience**: A tool result has no way to signal which content is for the model and which is for other consumers. MCP Apps uses `content` and `structuredContent` to make that distinction.
+- **Tool result shape**: The result contract mixes format and audience across `content`, `structuredContent`, `outputSchema`, and audience annotations, and specifications, extensions, and host documentation give conflicting guidance on how results are handled. The work covers explicit result selection and routing that is independent of format, and return types that clients can discover before generating code. The problem statement is under review in [core-primitives-wg#2](https://github.com/modelcontextprotocol/core-primitives-wg/pull/2).
+- **Tool result stability**: Client implementations have no stability guarantee for tool result types. The same tool and inputs can yield different result schemas across calls, across time, and across clients. The work covers what stability means for a result type, an identity for that type that clients can compare and pin, and how compatible and breaking schema changes are classified and signalled.
+- **Tool result audience**: `content` and `structuredContent` encode a result's format and leave its destination open. The model, programmatic code, an MCP App view, and the user can each need different data from the same call. The work covers keeping audience distinct from format in the result contract.
 
 The roadmap also assigns primitive annotations to the group: deciding whether [content annotations](/specification/2026-07-28/server/resources#annotations) apply to tool results and resources, or are deprecated if they are not useful.
 
@@ -70,11 +70,11 @@ Discord: `#core-primitives-wg`.
 
 ### Active Work Items
 
-| Item                  | Status          | Target Date     | Champion        |
-| --------------------- | --------------- | --------------- | --------------- |
-| Tool result shape     | To be confirmed | To be confirmed | To be confirmed |
-| Tool result stability | To be confirmed | To be confirmed | To be confirmed |
-| Tool result audience  | To be confirmed | To be confirmed | To be confirmed |
+| Item                  | Status                             | Target Date     | Champion          |
+| --------------------- | ---------------------------------- | --------------- | ----------------- |
+| Tool result shape     | Problem statement approved         | To be confirmed | Kurtis Van Gent   |
+| Tool result stability | Problem statement seeking feedback | To be confirmed | David Soria Parra |
+| Tool result audience  | To be confirmed                    | To be confirmed | To be confirmed   |
 
 Proposals are developed in the [core-primitives-wg repository](https://github.com/modelcontextprotocol/core-primitives-wg).
 
