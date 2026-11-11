@@ -1,0 +1,38 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ if not .IsHome }}{{ .Title }} | {{ end }}{{ site.Title }}</title>
+{{- $description := .Description | default site.Params.description -}}
+{{- if and .IsPage (not .Description) -}}
+  {{- $description = .Summary | plainify -}}
+{{- end }}
+<meta name="description" content="{{ $description }}">
+{{- $authors := slice -}}
+{{- range partial "authors.html" . -}}
+  {{- $authors = $authors | append .name -}}
+{{- end }}
+<meta name="author" content="{{ delimit $authors ", " }}">
+<meta name="keywords" content="{{ delimit (.Params.keywords | default .Params.tags | default slice) ", " }}">
+<meta name="robots" content="{{ if and hugo.IsProduction (not .Params.robotsNoIndex) }}index, follow{{ else }}noindex, nofollow{{ end }}">
+<link rel="canonical" href="{{ .Params.canonicalURL | default .Permalink }}">
+<link rel="icon" href="{{ site.Params.assets.favicon | relURL }}" type="image/svg+xml">
+
+{{- $styles := slice (resources.Get "css/base.css") -}}
+{{- range resources.Match "css/extended/*.css" -}}
+  {{- $styles = $styles | append . -}}
+{{- end -}}
+{{- $stylesheet := $styles | resources.Concat "assets/css/blog.css" | minify | fingerprint }}
+<link rel="stylesheet" href="{{ $stylesheet.RelPermalink }}" integrity="{{ $stylesheet.Data.Integrity }}" crossorigin="anonymous">
+
+{{- if eq .Layout "search" -}}
+  {{- $search := resources.Get "js/search.js" | minify -}}
+  {{- $bundle := slice (resources.Get "js/vendor/fuse.basic.min.js") $search | resources.Concat "assets/js/search.js" | fingerprint }}
+<script defer src="{{ $bundle.RelPermalink }}" integrity="{{ $bundle.Data.Integrity }}" crossorigin="anonymous"></script>
+{{- end }}
+
+{{- range .AlternativeOutputFormats }}
+<link rel="{{ .Rel }}" type="{{ .MediaType.Type }}" href="{{ .Permalink }}">
+{{- end }}
+{{- partial "extend_head.html" . }}
+{{- partial "social_meta.html" . }}
+{{- partial "templates/schema_json.html" . }}
+<noscript><style>#theme-toggle, .top-link { display: none; }</style></noscript>

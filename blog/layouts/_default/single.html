@@ -1,13 +1,3 @@
-{{- /*
-  Override of PaperMod's single.html. The only change is how the title and the
-  description are set, which is the way post_list.html does it: both go through
-  keep_together.html, so "2026-07-28" and "Tier 1" stay on one line, and the
-  description's last three words are joined so it never ends on a short word.
-
-  The title gets a <span> around it because PaperMod makes the <h1> a flex row
-  (for the draft icon), where each piece of text would otherwise become a
-  column of its own.
-*/ -}}
 {{- define "main" }}
 
 <article class="post-single">
@@ -32,9 +22,6 @@
     {{- if not (.Param "hideMeta") }}
     <div class="post-meta">
       {{- partial "post_meta.html" . -}}
-      {{- partial "translation_list.html" . -}}
-      {{- partial "edit_post.html" . -}}
-      {{- partial "post_canonical.html" . -}}
     </div>
     {{- end }}
   </header>
@@ -46,9 +33,7 @@
 
   {{- if .Content }}
   <div class="post-content">
-    {{- if not (.Param "disableAnchoredHeadings") }}
-    {{- partial "anchored_headings.html" .Content -}}
-    {{- else }}{{ .Content }}{{ end }}
+    {{ .Content }}
   </div>
   {{- end }}
 
@@ -62,14 +47,7 @@
     {{- if (.Param "ShowPostNavLinks") }}
     {{- partial "post_nav_links.html" . }}
     {{- end }}
-    {{- if (and site.Params.ShowShareButtons (ne .Params.disableShare true)) }}
-    {{- partial "share_icons.html" . -}}
-    {{- end }}
   </footer>
-
-  {{- if (.Param "comments") }}
-  {{- partial "comments.html" . }}
-  {{- end }}
 </article>
 
 {{- end }}{{/* end main */}}
