@@ -17,6 +17,8 @@ ShowToc: true
 
 The Model Context Protocol (MCP) started out as a simple way to connect models to tools, and that principle is still very much at its heart. Over the past two years, the things people build with the protocol have become more ambitious. _Much_ more ambitious. Many of those MCP server projects now need to work with files - often driven by increasing agent capabilities and autonomy.
 
+![Animation of an MCP client, an MCP server, and storage. The file, a cube of amber blocks, sits in a tray next to the client's laptop. A label with the file's details goes to the MCP server, which sends back a ticket. The blocks lift out and travel straight to a tray at storage, the ticket goes back to the server, and the server checks storage. Then the blocks travel back from storage to the client.](/posts/images/file-uploads-and-downloads/file-transfer-round-trip.gif)
+
 Saving a PDF from a conversation to cloud storage and pulling a CSV into a sandbox have become very common requests from developers adopting MCP. Today, implementing these scenarios would require a bunch of bespoke tool conventions and transfer mechanisms - not something we'd want folks doing over and over.
 
 Because this request kept coming up in customer discussions, we bootstapped the [File Uploads Working Group](https://modelcontextprotocol.io/community/working-groups/file-uploads). We've spent the last month working through what a solution could look like.
@@ -44,10 +46,6 @@ When we first jumped into discussions for what the extension may be, we had a fe
 - You want to upload a large presentation, or an HTML deck with all of its assets in a ZIP file to a third-party remote server.
 
 In each of these scenarios, the agent needs to know a bunch of things about the file, but the model doesn't need to read every byte or even handle it directly. The file should go directly to its destination. This led to the design you will read about below.
-
-Here's the whole round trip at a glance. The client sends the file's details to the MCP server and gets a ticket back, the bytes go straight to storage, and the server confirms they arrived before the tool runs. A download takes the same direct path back, from storage to the client:
-
-![Animation of an MCP client, an MCP server, and storage. The file, a cube of amber blocks, sits in a tray next to the client's laptop. A label with the file's details goes to the MCP server, which sends back a ticket. The blocks lift out and travel straight to a tray at storage, the ticket goes back to the server, and the server checks storage. Then the blocks travel back from storage to the client.](/posts/images/file-uploads-and-downloads/file-transfer-round-trip.gif)
 
 The extension identifies itself as `io.modelcontextprotocol/files`, and it works with protocol revision `2026-07-28` and later. A server can advertise it in its `server/discover` response, with `upload` if it accepts files out of band and `maxInlineBytes` if it accepts them inline. A client declares it in the `io.modelcontextprotocol/clientCapabilities` metadata of every request that may need it, including `tools/list`, with `upload` if it can upload out of band and `download` if it accepts download targets.
 

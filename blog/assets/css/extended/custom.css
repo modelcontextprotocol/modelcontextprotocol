@@ -1249,11 +1249,13 @@ h6:hover .anchor {
     letter-spacing: var(--ls-1);
 }
 
-/* Screens only: paper gets the light theme whatever the reader has chosen. */
-@media screen {
-    .dark .mermaid {
-        filter: invert(0.85) hue-rotate(180deg);
-    }
+/* layouts/_markup/render-codeblock-mermaid.html. Diagrams sit on the page, not on the dark code paper;
+   baseof.html renders them with mermaid's light or dark theme to match the reader's choice. */
+.post-content pre.mermaid {
+    display: flex;
+    justify-content: center;
+    background: transparent;
+    overflow-x: auto;
 }
 
 /* layouts/shortcodes/youtube.html */
