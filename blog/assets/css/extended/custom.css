@@ -1078,6 +1078,8 @@ h6:hover .anchor {
     color: var(--code-ink);
     font-size: var(--fs-2);
     line-height: var(--lh-2);
+    /* Not the inline code background, which is light in the light theme. */
+    background: var(--code-paper);
     border-radius: var(--r-lg);
     word-break: normal;
 }
