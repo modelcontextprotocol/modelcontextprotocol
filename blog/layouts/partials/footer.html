@@ -1,21 +1,12 @@
 {{- if not (.Param "hideFooter") }}
 <div class="footer-wrap">
 <footer class="footer">
-    <nav class="footer-nav">
-        {{- range site.Menus.main }}
-        <a href="{{ .URL | absLangURL }}">{{ .Name }}</a>
-        {{- end }}
-        <a href="https://github.com/modelcontextprotocol">GitHub</a>
-        <a href="https://linkedin.com/company/modelcontextprotocol">LinkedIn</a>
-        {{- with site.Home.OutputFormats.Get "rss" }}
-        <a href="{{ .RelPermalink }}">RSS</a>
-        {{- end }}
-    </nav>
+    {{- partial "social_links.html" . }}
     {{- if not site.Params.footer.hideCopyright }}
         {{- if site.Copyright }}
-        <span>{{ site.Copyright | markdownify }}</span>
+        <div class="footer-copyright">{{ site.Copyright | markdownify }}</div>
         {{- else }}
-        <span>&copy; {{ now.Year }} <a href="{{ "" | absLangURL }}">{{ site.Title }}</a></span>
+        <div class="footer-copyright">&copy; {{ now.Year }} <a href="{{ "" | absLangURL }}">{{ site.Title }}</a></div>
         {{- end }}
     {{- end }}
     {{- with site.Params.footer.text }}
@@ -34,8 +25,6 @@
     </svg>
 </a>
 {{- end }}
-
-{{- partial "extend_footer.html" . }}
 
 <script>
     let menu = document.getElementById('menu');
