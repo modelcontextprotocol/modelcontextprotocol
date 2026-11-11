@@ -17,7 +17,7 @@ ShowToc: true
 
 The Model Context Protocol (MCP) started out as a simple way to connect models to tools, and that principle is still very much at its heart. Over the past two years, the things people build with the protocol have become more ambitious. _Much_ more ambitious. Many of those MCP server projects now need to work with files - often driven by increasing agent capabilities and autonomy.
 
-Saving a PDF from a conversation to cloud storage or pulling a CSV into a sandbox have become very common requests from developers adopting MCP. Today, implementing this scenario would require a bunch of bespoke tool conventions and transfer mechanisms - not something we'd want folks doing over and over.
+Saving a PDF from a conversation to cloud storage and pulling a CSV into a sandbox have become very common requests from developers adopting MCP. Today, implementing these scenarios would require a bunch of bespoke tool conventions and transfer mechanisms - not something we'd want folks doing over and over.
 
 Because this request kept coming up in customer discussions, we bootstapped the [File Uploads Working Group](https://modelcontextprotocol.io/community/working-groups/file-uploads). We've spent the last month working through what a solution could look like.
 
@@ -51,7 +51,7 @@ Let's walk through one simple upload. Let's say a server has a `save_to_folder` 
 
 ### Marking a file argument
 
-The server marks the argument with `x-mcp-file` in the tool's input schema. This is the same pattern as [`x-mcp-header`](https://modelcontextprotocol.io/specification/2026-07-28/server/tools#x-mcp-header), and it tells the client that this argument is a file, so the client fills it in (and, by proxy, the model doesn't have to):
+The server marks the argument with `x-mcp-file` in the tool's input schema. This is the same pattern as [`x-mcp-header`](https://modelcontextprotocol.io/specification/2026-07-28/server/tools#x-mcp-header), and it tells the client that this argument is a file, so the client fills it in (and, as a result, the model doesn't have to):
 
 ```json
 {
@@ -84,7 +84,7 @@ A client that doesn't support the extension ignores `x-mcp-file` and treats the 
 Before sending the file, the host gets the user's approval. When no user is present, agent policy determines whether the transfer is allowed. The client then calls the tool with just the **file's metadata**, not its contents.
 
 {{< note >}}
-We've left `_meta` out of the examples to keep them readable. In a real request, that's where the client declares support for the extension.
+We've left `_meta` out of the request examples to keep them readable. In a real request, that's where the client declares support for the extension.
 {{< /note >}}
 
 ```json
@@ -107,7 +107,7 @@ We've left `_meta` out of the examples to keep them readable. In a real request,
 }
 ```
 
-Sending metadata first lets the server check permissions and storage quota before the upload starts. If either check fails, the server returns a normal tool error. That way, you don't have to upload 40MB of data only to discover that the destination folder is read-only.
+Sending metadata first lets the server check permissions and storage quota before the upload starts. If either check fails, the server returns a normal tool error. That way, you don't have to upload 40 MB of data only to discover that the destination folder is read-only.
 
 If the checks pass, the server asks the client to upload the file before it runs the tool. It does this through the extension's new `upload_required` result type. The response tells the client where and how to upload the file, and includes a `requestState` value to send back when retrying the tool call afterward:
 
@@ -141,7 +141,7 @@ In a few scenarios, tools need protection against running twice - for example if
 
 The client uploads the PDF to the provided URL using an HTTPS `PUT` request. For storage services that need it, upload targets can instead specify `POST`, including a `multipart/form-data` body. The file's contents will then travel directly to the upload target, outside JSON-RPC.
 
-When the upload succeeds with an HTTP `2xx` response, the client calls our `save_to_folder` tool again. It sends the same arguments and returns `requestState` unchanged, following the newly-shipped [Multi Round-Trip Requests](https://modelcontextprotocol.io/specification/2026-07-28/basic/patterns/mrtr) pattern:
+When the upload succeeds with an HTTP `2xx` response, the client calls our `save_to_folder` tool again. It sends the same arguments and returns `requestState` unchanged, following the newly shipped [Multi Round-Trip Requests](https://modelcontextprotocol.io/specification/2026-07-28/basic/patterns/mrtr) pattern:
 
 ```json
 {
@@ -168,7 +168,7 @@ The server still needs to check the upload, though. It will verify `requestState
 
 Only after those checks pass does it run `save_to_folder` and return the result. If the upload fails, the client doesn't send the retry, and the tool doesn't run.
 
-All of the above happen exclusively inside the client. The model made the tool call and got the result - neither the bytes nor the upload URL entered its context.
+The client coordinates all of this without involving the model again. The model made the tool call and got the result - neither the bytes nor the upload URL entered its context.
 
 If you are curious about the end-to-end flow, it looks something like this:
 
@@ -198,9 +198,9 @@ sequenceDiagram
 
 ### Downloading a file
 
-To no surprise, we're also exploring the reverse flow: a tool can produce a file, and the client will need to download it. Like uploads, the file contents travel outside JSON-RPC.
+Unsurprisingly, we're also exploring the reverse flow: a tool can produce a file, and the client will need to download it. Like uploads, the file contents travel outside JSON-RPC.
 
-The key difference is, however, that the tool can return download details with its completed result, so the client doesn't need to retry the tool call after the transfer.
+The key difference, however, is that the tool can return download details with its completed result, so the client doesn't need to retry the tool call after the transfer.
 
 {{< note title="Why different response formats?" >}}
 An observant reader might notice that upload targets arrive in an `upload_required` result, while download targets appear in `_meta`.
@@ -237,11 +237,11 @@ The draft defines a download response format using the result's `_meta`. In the 
 }
 ```
 
-How download details should be represented in tool results is still an [open design question](https://github.com/modelcontextprotocol/experimental-ext-file-uploads/blob/main/specification/draft/file-uploads.md#open-questions). While we currently are eyeing using `_meta`, we'd very much like feedback on how this approach works in practice.
+How download details should be represented in tool results is still an [open design question](https://github.com/modelcontextprotocol/experimental-ext-file-uploads/blob/main/specification/draft/file-uploads.md#open-questions). While we're currently using `_meta`, we'd very much like feedback on how this approach works in practice.
 
 The client declares `download` support in its tool call to tell the server it knows how to handle download targets. Only then can the server include them in its response. The result's `content` still tells the model what was produced, such as "Exported q3-orders.csv.", while the client handles the download target without exposing it to the model.
 
-After downloading, the client checks the file's byte count against `size`. If the server supplied a `digest`, the client can also calculate the file's hash and compare it with that value. A mismatch means the file must be discarded.
+After downloading, the client checks the file's byte count against `size`. If the server supplied a `digest`, the client also calculates the file's hash and compares it with that value. A mismatch means the file must be discarded.
 
 {{< note title="Integrity is not safety" >}}
 It's worth noting that a matching `digest` confirms that the bytes match the supplied hash, not that the file is safe. A server can provide a harmful file and a matching digest - clients must still treat downloaded files as untrusted.
@@ -276,7 +276,7 @@ With `"credentials": "omit"`, used in the examples above, the client doesn't att
 
 With `"credentials": "include"`, the client attaches its MCP credential, but **only** to a `path` under its MCP address or a URL on the server's own origin. This is useful when pre-signed URLs aren't an option or file transfers need to pass through a gateway.
 
-In the example below, the server provides a `path` instead of a separate URL when upoading a file:
+In the example below, the server provides a `path` instead of a separate URL when uploading a file:
 
 ```json
 {
@@ -290,9 +290,9 @@ For a client using `https://gateway.example.com/mcp/abc`, that `path` resolves t
 
 The client must also refuse redirects and reject targets that supply an `Authorization` header. This helps prevent scenarios where a target redirects the transfer to another origin or overrides the credential handling defined by `credentials`.
 
-These safeguards control where the client's MCP credential is sent, but they don't by themselves control **where the file goes**. With `omit`, a malicious server could still direct an upload to a public endpoint it controls. The host, in this context, should implement safeguards to allow getting approval before the server returns the target.
+These safeguards control where the client's MCP credential is sent, but they don't by themselves control **where the file goes**. With `omit`, a malicious server could still direct an upload to a public endpoint it controls. The host gets approval before it knows the target, so that approval doesn't cover the specific destination.
 
-To limit the risk, our draft recommends that hosts restrict `omit` targets to an allowlist of permitted origins. Whether to make that restriction mandatory introduced yet another [open question](https://github.com/modelcontextprotocol/experimental-ext-file-uploads/blob/main/specification/draft/file-uploads.md#open-questions) that we'd love your thoughts on.
+To limit the risk, our draft recommends that hosts restrict `omit` targets to an allowlist of permitted origins. Whether that restriction should be mandatory is another [open question](https://github.com/modelcontextprotocol/experimental-ext-file-uploads/blob/main/specification/draft/file-uploads.md#open-questions) that we'd love your thoughts on.
 
 The draft's [Security Implications](https://github.com/modelcontextprotocol/experimental-ext-file-uploads/blob/main/specification/draft/file-uploads.md#security-implications) section discusses these risks in more detail, along with our thinking on how to mitigate them.
 
