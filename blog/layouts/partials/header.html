@@ -1,12 +1,3 @@
-{{- /*
-  Override of PaperMod's header.html: theme toggle moved from .logo-switches
-  (next to the site title) to the end of #menu (top-right, after the nav
-  links). .logo-switches remains for the lang-switch conditional but is
-  empty on this single-language site.
-
-  The menu is the three text links and the toggle. RSS, GitHub and LinkedIn
-  are in the footer, by name (footer.html).
-*/ -}}
 
 {{- /* theme-toggle is enabled */}}
 {{- if (not site.Params.disableThemeToggle) }}
@@ -52,34 +43,13 @@
 <header class="header">
     <nav class="nav">
         <div class="logo">
-            {{- $label_text := (site.Params.label.text | default site.Title) }}
+            {{- $label_text := site.Title }}
             {{- if site.Title }}
-            <a href="{{ "" | absLangURL }}" accesskey="h" title="{{ $label_text }} (Alt + H)">
-                {{- if site.Params.label.icon }}
-                {{- $img := resources.Get site.Params.label.icon }}
-                {{- if $img }}
-                    {{- $processableFormats := (slice "jpg" "jpeg" "png" "tif" "bmp" "gif") -}}
-                    {{- if hugo.IsExtended -}}
-                        {{- $processableFormats = $processableFormats | append "webp" -}}
-                    {{- end -}}
-                    {{- $prod := (hugo.IsProduction | or (eq site.Params.env "production")) }}
-                    {{- if and (in $processableFormats $img.MediaType.SubType) (eq $prod true)}}
-                        {{- if site.Params.label.iconHeight }}
-                            {{- $img = $img.Resize (printf "x%d" site.Params.label.iconHeight) }}
-                        {{ else }}
-                            {{- $img = $img.Resize "x30" }}
-                        {{- end }}
-                    {{- end }}
-                    <img src="{{ $img.Permalink }}" alt="" aria-label="logo"
-                        height="{{- site.Params.label.iconHeight | default "30" -}}">
-                {{- else }}
-                <img src="{{- site.Params.label.icon | absURL -}}" alt="" aria-label="logo"
-                    height="{{- site.Params.label.iconHeight | default "30" -}}">
-                {{- end -}}
-                {{- else if hasPrefix site.Params.label.iconSVG "<svg" }}
-                    {{ site.Params.label.iconSVG | safeHTML }}
-                {{- end -}}
-                {{- $label_text -}}
+            <a href="{{ "" | absLangURL }}" accesskey="h" title="{{ $label_text }} (Alt + H)" aria-label="Model Context Protocol Blog home">
+                {{- $lightLogo := resources.Get "logo/light.svg" | fingerprint }}
+                {{- $darkLogo := resources.Get "logo/dark.svg" | fingerprint }}
+                <img class="brand-light" src="{{ $lightLogo.RelPermalink }}" width="1338" height="195" alt="">
+                <img class="brand-dark" src="{{ $darkLogo.RelPermalink }}" width="1338" height="195" alt="">
             </a>
             {{- end }}
             <div class="logo-switches">
@@ -111,16 +81,20 @@
             {{- $menu_item_url := (cond (strings.HasSuffix .URL "/") .URL (printf "%s/" .URL) ) | absLangURL }}
             {{- $page_url:= $currentPage.Permalink | absLangURL }}
             {{- $is_search := eq (site.GetPage .KeyName).Layout `search` }}
-            <li>
-                <a href="{{ .URL | absLangURL }}" title="{{ .Title | default .Name }} {{- cond $is_search (" (Alt + /)" | safeHTMLAttr) ("" | safeHTMLAttr ) }}"
+            <li class="menu-item{{ if .Params.shortname }} menu-item-short{{ end }}{{ if $is_search }} menu-search{{ end }}">
+                <a href="{{ .URL | absLangURL }}" aria-label="{{ if .Params.shortname }}{{ .Params.shortname }} ({{ .Name }}){{ else }}{{ .Name }}{{ end }}" title="{{ .Title | default .Name }} {{- cond $is_search (" (Alt + /)" | safeHTMLAttr) ("" | safeHTMLAttr ) }}"
                 {{- cond $is_search (" accesskey=/" | safeHTMLAttr) ("" | safeHTMLAttr ) }}>
-                    <span {{- if eq $menu_item_url $page_url }} class="active" {{- end }}>
+                    <span class="menu-item-text{{ if eq $menu_item_url $page_url }} active{{ end }}">
                         {{- .Pre }}
-                        {{- .Name -}}
+                        <span class="menu-label">{{ .Name }}</span>
+                        {{- with .Params.shortname }}<span class="menu-label-short" aria-hidden="true">{{ . }}</span>{{ end -}}
                         {{ .Post -}}
                     </span>
-                    {{- if (findRE "://" .URL) }}&nbsp;
-                    <svg fill="none" shape-rendering="geometricPrecision" stroke="currentColor" stroke-linecap="round"
+                    {{- if $is_search }}
+                    <span class="menu-search-icon" aria-hidden="true">{{ (resources.Get "icons/search.svg").Content | safeHTML }}</span>
+                    {{- end }}
+                    {{- if (findRE "://" .URL) }}
+                    <svg class="menu-external" fill="none" shape-rendering="geometricPrecision" stroke="currentColor" stroke-linecap="round"
                         stroke-linejoin="round" stroke-width="2.5" viewBox="0 0 24 24" height="12" width="12">
                         <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"></path>
                         <path d="M15 3h6v6"></path>
@@ -130,9 +104,12 @@
                 </a>
             </li>
             {{- end }}
+        </ul>
+        <div class="header-actions">
+            {{- partial "social_links.html" . }}
             {{- if (not site.Params.disableThemeToggle) }}
-            <li class="menu-theme">
-                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+            <div class="menu-theme">
+                <button id="theme-toggle" accesskey="t" title="Toggle theme (Alt + T)" aria-label="Toggle theme">
                     <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
                         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                         stroke-linejoin="round">
@@ -152,8 +129,8 @@
                         <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
                     </svg>
                 </button>
-            </li>
+            </div>
             {{- end }}
-        </ul>
+        </div>
     </nav>
 </header>
