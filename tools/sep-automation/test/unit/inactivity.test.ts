@@ -197,6 +197,31 @@ describe("inactivity rule for SEP pull requests", () => {
     expect(github.addComment).not.toHaveBeenCalled();
   });
 
+  it.each([
+    ["at 150 days", 150, []],
+    ["at 180 days and beyond", 400, [warning(30)]],
+  ])("leaves a pull request matched by its title only alone %s", async (_name, days, timeline) => {
+    const result = await run(pr(days, { title: "docs: describe the SEP process", labels: ["documentation"] }), timeline);
+
+    expect(result.results).toEqual([]);
+    expect(github.getTimeline).not.toHaveBeenCalled();
+    expect(github.addComment).not.toHaveBeenCalled();
+    expect(github.closeIssue).not.toHaveBeenCalled();
+  });
+
+  it("covers a pull request that carries wg-support-needed without the SEP label", async () => {
+    const sep = pr(150, { title: "SEP: Structured Tool-Failure Classification", isDraft: true, labels: ["wg-support-needed"] });
+
+    await run(sep);
+    expect(postedComments()).toHaveLength(1);
+    expect(postedComments()[0]).toContain(INACTIVITY_WARNING_MARKER);
+
+    github.addComment.mockClear();
+    await run({ ...sep, createdAt: daysAgo(180) }, [warning(30)]);
+    expect(github.closeIssue).toHaveBeenCalledWith(sep.number);
+    expect(postedComments()).toHaveLength(1);
+  });
+
   it("leaves SEP issues alone", async () => {
     const result = await run(pr(400, { type: "issue" }));
 

@@ -85,7 +85,8 @@ export const STALENESS_RULES: StalenessRule[] = [
 ];
 
 /**
- * Inactivity rule for every open SEP pull request, draft or ready for review.
+ * Inactivity rule for every open pull request that carries the `SEP` or
+ * `wg-support-needed` label, draft or ready for review.
  *
  * Progress is a new commit, a submitted review or a comment from a non-bot
  * account. After INACTIVITY_WARNING_DAYS without progress the bot posts one
