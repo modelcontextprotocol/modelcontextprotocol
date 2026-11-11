@@ -1,6 +1,6 @@
 # SEP-3415: Events Extension
 
-- **Status**: Draft
+- **Status**: Accepted
 - **Type**: Extensions Track
 - **Created**: 2026-10-05
 - **Author(s)**: Peter Alexander (@pja-ant)
