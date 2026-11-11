@@ -856,6 +856,12 @@
               "seps/2640-skills-extension",
               "seps/2663-tasks-extension"
             ]
+          },
+          {
+            "group": "Accepted",
+            "pages": [
+              "seps/3415-events-extension"
+            ]
           }
         ]
       },
@@ -1418,6 +1424,10 @@
     {
       "source": "/seps/2663",
       "destination": "/seps/2663-tasks-extension"
+    },
+    {
+      "source": "/seps/3415",
+      "destination": "/seps/3415-events-extension"
     }
   ],
   "contextual": {
