@@ -137,15 +137,16 @@ SDK bugs belong in the respective SDK repository.
 
 ## Submitting Changes
 
-Only members of the `modelcontextprotocol` GitHub organization may open pull requests. If you
-are not a member, see
+Only members of the `modelcontextprotocol` GitHub organization may open pull requests.
+Membership comes from being active on issues or in working groups and interest groups. If you
+are not a member yet, see
 [Change the specification or docs](https://modelcontextprotocol.io/community/contributing#change-the-specification-or-docs)
-for how to get a pull request opened from your branch.
+for how to get a fix picked up or a pull request opened from your branch.
 
 1. Discuss your change with the relevant
    [working group](https://modelcontextprotocol.io/community/working-interest-groups) and get its approval
-2. Make sure you are a member of the `modelcontextprotocol` organization; request membership in the
-   [access repository](https://github.com/modelcontextprotocol/access)
+2. Check that you are a member of the `modelcontextprotocol` organization, as defined by the
+   [Member](https://modelcontextprotocol.io/community/contributor-ladder#member) role on the contributor ladder
 3. Push your changes to your fork
 4. Open a pull request against the main repository and follow the pull request template
 5. For SEPs, schedule a review with the Core Maintainers via [voting.modelcontextprotocol.io](https://voting.modelcontextprotocol.io)
