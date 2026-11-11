@@ -126,7 +126,7 @@ Lists prompt templates with their arguments, and renders the generated messages 
 
 - The sandbox listens on its own port, `6275` by default (set it with `MCP_SANDBOX_PORT`). An app whose UI resource declares `_meta.ui.domain` has its document served from a third listener, the app origin, on `6278` by default (`MCP_APP_ORIGIN_PORT`). Expose or forward both along with the web port.
 - The sandbox is gated by a `frame-ancestors` CSP, and a bracketed IPv6 literal is not a valid CSP host-source, so browse the Inspector at `localhost`, `127.0.0.1`, a hostname, or a LAN IPv4, **not** at a bare `http://[::1]:...`.
-- By default the sandbox URL is plain `http` on the bind address, so an `https://` Inspector page blocks the frame as mixed content. Behind a TLS reverse proxy, set `MCP_SANDBOX_FULL_ADDRESS` (and `MCP_APP_ORIGIN_FULL_ADDRESS`) to the public `https://` address the browser reaches each listener at. Neither may share an origin with the Inspector UI; a value that does is ignored with a warning.
+- By default the sandbox URL is plain `http` on the bind address, so an `https://` Inspector page blocks the frame as mixed content. That applies whether the page is `https` through a proxy or through `INSPECTOR_TLS_KEY_PATH` and `INSPECTOR_TLS_CERT_PATH`, which cover the UI listener only. Behind a TLS reverse proxy, set `MCP_SANDBOX_FULL_ADDRESS` (and `MCP_APP_ORIGIN_FULL_ADDRESS`) to the public `https://` address the browser reaches each listener at. Neither may share an origin with the Inspector UI; a value that does is ignored with a warning.
 
 See [Recipes](/docs/draft/tools/inspector/recipes#reviewing-an-mcp-app) for the CLI-first automated review flow.
 
@@ -167,6 +167,8 @@ Three further parameters land you on a _rendered app_: `openApp=<toolName>` name
 ## Host binding and origins
 
 By default the Inspector binds `127.0.0.1` and accepts requests only from the loopback origins for its port. Treat both defaults as security boundaries, since the backend spawns processes on your machine.
+
+A `Host` header allow-list runs ahead of every route, including `GET /`. A request is answered `403` unless its `Host` is `localhost` or a `*.localhost` name, an IPv4 or bracketed IPv6 literal, the bind host, the hostname of an `ALLOWED_ORIGINS` entry, or an entry of `MCP_INSPECTOR_ALLOWED_HOSTS`. The port is not compared. A same-origin `GET /` carries no `Origin` header, so the origin allow-list never sees it, and the `Host` check is what stops a DNS-rebinding page from loading the page and reading the token out of it.
 
 Binding all interfaces (`HOST=0.0.0.0`) is **refused** unless you set `DANGEROUSLY_BIND_ALL_INTERFACES=true`. Binding a _specific_ non-loopback address is allowed with no opt-in, since that's a single deliberate exposure rather than every interface at once.
 

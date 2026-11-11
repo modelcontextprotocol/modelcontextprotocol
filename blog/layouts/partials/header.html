@@ -1,9 +1,3 @@
-{{- /*
-  Override of PaperMod's header.html: theme toggle moved from .logo-switches
-  (next to the site title) to the end of #menu (top-right, after the nav
-  links). .logo-switches remains for the lang-switch conditional but is
-  empty on this single-language site.
-*/ -}}
 
 {{- /* theme-toggle is enabled */}}
 {{- if (not site.Params.disableThemeToggle) }}
@@ -49,34 +43,13 @@
 <header class="header">
     <nav class="nav">
         <div class="logo">
-            {{- $label_text := (site.Params.label.text | default site.Title) }}
+            {{- $label_text := site.Title }}
             {{- if site.Title }}
-            <a href="{{ "" | absLangURL }}" accesskey="h" title="{{ $label_text }} (Alt + H)">
-                {{- if site.Params.label.icon }}
-                {{- $img := resources.Get site.Params.label.icon }}
-                {{- if $img }}
-                    {{- $processableFormats := (slice "jpg" "jpeg" "png" "tif" "bmp" "gif") -}}
-                    {{- if hugo.IsExtended -}}
-                        {{- $processableFormats = $processableFormats | append "webp" -}}
-                    {{- end -}}
-                    {{- $prod := (hugo.IsProduction | or (eq site.Params.env "production")) }}
-                    {{- if and (in $processableFormats $img.MediaType.SubType) (eq $prod true)}}
-                        {{- if site.Params.label.iconHeight }}
-                            {{- $img = $img.Resize (printf "x%d" site.Params.label.iconHeight) }}
-                        {{ else }}
-                            {{- $img = $img.Resize "x30" }}
-                        {{- end }}
-                    {{- end }}
-                    <img src="{{ $img.Permalink }}" alt="" aria-label="logo"
-                        height="{{- site.Params.label.iconHeight | default "30" -}}">
-                {{- else }}
-                <img src="{{- site.Params.label.icon | absURL -}}" alt="" aria-label="logo"
-                    height="{{- site.Params.label.iconHeight | default "30" -}}">
-                {{- end -}}
-                {{- else if hasPrefix site.Params.label.iconSVG "<svg" }}
-                    {{ site.Params.label.iconSVG | safeHTML }}
-                {{- end -}}
-                {{- $label_text -}}
+            <a href="{{ "" | absLangURL }}" accesskey="h" title="{{ $label_text }} (Alt + H)" aria-label="Model Context Protocol Blog home">
+                {{- $lightLogo := resources.Get "logo/light.svg" | fingerprint }}
+                {{- $darkLogo := resources.Get "logo/dark.svg" | fingerprint }}
+                <img class="brand-light" src="{{ $lightLogo.RelPermalink }}" width="1338" height="195" alt="">
+                <img class="brand-dark" src="{{ $darkLogo.RelPermalink }}" width="1338" height="195" alt="">
             </a>
             {{- end }}
             <div class="logo-switches">
@@ -108,16 +81,20 @@
             {{- $menu_item_url := (cond (strings.HasSuffix .URL "/") .URL (printf "%s/" .URL) ) | absLangURL }}
             {{- $page_url:= $currentPage.Permalink | absLangURL }}
             {{- $is_search := eq (site.GetPage .KeyName).Layout `search` }}
-            <li>
-                <a href="{{ .URL | absLangURL }}" title="{{ .Title | default .Name }} {{- cond $is_search (" (Alt + /)" | safeHTMLAttr) ("" | safeHTMLAttr ) }}"
+            <li class="menu-item{{ if .Params.shortname }} menu-item-short{{ end }}{{ if $is_search }} menu-search{{ end }}">
+                <a href="{{ .URL | absLangURL }}" aria-label="{{ if .Params.shortname }}{{ .Params.shortname }} ({{ .Name }}){{ else }}{{ .Name }}{{ end }}" title="{{ .Title | default .Name }} {{- cond $is_search (" (Alt + /)" | safeHTMLAttr) ("" | safeHTMLAttr ) }}"
                 {{- cond $is_search (" accesskey=/" | safeHTMLAttr) ("" | safeHTMLAttr ) }}>
-                    <span {{- if eq $menu_item_url $page_url }} class="active" {{- end }}>
+                    <span class="menu-item-text{{ if eq $menu_item_url $page_url }} active{{ end }}">
                         {{- .Pre }}
-                        {{- .Name -}}
+                        <span class="menu-label">{{ .Name }}</span>
+                        {{- with .Params.shortname }}<span class="menu-label-short" aria-hidden="true">{{ . }}</span>{{ end -}}
                         {{ .Post -}}
                     </span>
-                    {{- if (findRE "://" .URL) }}&nbsp;
-                    <svg fill="none" shape-rendering="geometricPrecision" stroke="currentColor" stroke-linecap="round"
+                    {{- if $is_search }}
+                    <span class="menu-search-icon" aria-hidden="true">{{ (resources.Get "icons/search.svg").Content | safeHTML }}</span>
+                    {{- end }}
+                    {{- if (findRE "://" .URL) }}
+                    <svg class="menu-external" fill="none" shape-rendering="geometricPrecision" stroke="currentColor" stroke-linecap="round"
                         stroke-linejoin="round" stroke-width="2.5" viewBox="0 0 24 24" height="12" width="12">
                         <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"></path>
                         <path d="M15 3h6v6"></path>
@@ -127,10 +104,12 @@
                 </a>
             </li>
             {{- end }}
-            <li class="menu-break" aria-hidden="true"></li>
+        </ul>
+        <div class="header-actions">
+            {{- partial "social_links.html" . }}
             {{- if (not site.Params.disableThemeToggle) }}
-            <li>
-                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+            <div class="menu-theme">
+                <button id="theme-toggle" accesskey="t" title="Toggle theme (Alt + T)" aria-label="Toggle theme">
                     <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
                         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                         stroke-linejoin="round">
@@ -150,41 +129,8 @@
                         <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
                     </svg>
                 </button>
-            </li>
+            </div>
             {{- end }}
-            {{- with site.Home.OutputFormats.Get "rss" }}
-            <li>
-                <a class="menu-icon" href="{{ .RelPermalink }}" title="RSS" aria-label="RSS">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <path d="M4 11a9 9 0 0 1 9 9" />
-                        <path d="M4 4a16 16 0 0 1 16 16" />
-                        <circle cx="5" cy="19" r="1" />
-                    </svg>
-                </a>
-            </li>
-            {{- end }}
-            <li>
-                <a class="menu-icon" href="https://github.com/modelcontextprotocol" title="GitHub" aria-label="GitHub">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22" />
-                    </svg>
-                </a>
-            </li>
-            <li>
-                <a class="menu-icon" href="https://linkedin.com/company/modelcontextprotocol" title="LinkedIn" aria-label="LinkedIn">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" />
-                        <rect x="2" y="9" width="4" height="12" />
-                        <circle cx="4" cy="4" r="2" />
-                    </svg>
-                </a>
-            </li>
-        </ul>
+        </div>
     </nav>
 </header>

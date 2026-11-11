@@ -37,7 +37,7 @@ jobs:
     if: inputs.kind == 'rc'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
       - name: Validate version
         run: |
@@ -79,10 +79,10 @@ jobs:
     if: inputs.kind == 'final'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
-          node-version: '24'
+          node-version-file: .nvmrc
           cache: npm
 
       - name: Validate version
@@ -217,8 +217,8 @@ jobs:
         uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
         with:
           branch: release/${{ inputs.version }}
-          title: "Add ${{ inputs.version }} MCP specification"
-          commit-message: "Add ${{ inputs.version }} MCP specification"
+          title: "chore(release): publish ${{ inputs.version }} specification"
+          commit-message: "chore(release): publish ${{ inputs.version }} specification"
           labels: release
           body: |
             Promotes `docs/specification/draft/`, `docs/docs/draft/`, and `schema/draft/` to `${{ inputs.version }}`.

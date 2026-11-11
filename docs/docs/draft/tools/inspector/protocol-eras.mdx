@@ -130,7 +130,7 @@ Reproduce with `test-servers/configs/tasks-legacy-http.json`.
 
 Tasks are an **extension** (`io.modelcontextprotocol/tasks`, [SEP-2663](/seps/2663-tasks-extension)), so the tab is gated on the server _advertising that extension_ rather than on `capabilities.tasks`.
 
-Run a tool as a task and `tools/call` returns a `CreateTaskResult` (`resultType: "task"`, visible in the Protocol and Network tabs). The Inspector polls **`tasks/get`** only; there is no `tasks/list`, so **Refresh** re-polls the handles the client already knows about. A completed task **inlines its result**, with no blocking `tasks/result` call.
+There is no **Run as task** control on a modern connection. Task creation is server-directed, so the server decides per request whether `tools/call` returns a `CreateTaskResult` (`resultType: "task"`, visible in the Protocol and Network tabs). The Inspector polls **`tasks/get`** only; there is no `tasks/list`, so **Refresh** re-polls the handles the client already knows about. A completed task **inlines its result**, with no blocking `tasks/result` call.
 
 A task that needs more information moves to `input_required` and surfaces an embedded [elicitation](/specification/draft/client/elicitation) in the pending-request modal (the dialog the web client opens whenever a request is waiting on you). Answering it sends **`tasks/update`** carrying the `inputResponses`, and the next poll completes.
 
