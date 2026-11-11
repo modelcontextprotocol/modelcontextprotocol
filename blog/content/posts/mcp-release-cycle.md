@@ -38,7 +38,7 @@ This changes how we prepare a release, not MCP messages or version negotiation, 
 
 Preparing a specification release involves proposal authors, Working Groups, and the maintainers of several SDKs, each with their own work to finish. We need people who can keep track of that work across the project, spot when one team is waiting on another, and help resolve problems before a deadline. That's the job we're formalizing with the Release Manager role.
 
-We'll be working with proposal authors and SDK maintainers throughout the cycle, and **[Luca Chang](https://github.com/LucaButBoring)** will join David and me as a Release Manager for the next specification cycle.
+We'll be working with proposal authors and SDK maintainers throughout the cycle, and **[Luca Chang](https://github.com/LucaButBoring)** will join David and myself as a Release Manager for the next specification cycle.
 
 For those who haven't met Luca yet, he co-authored the [original Tasks proposal](https://modelcontextprotocol.io/seps/1686-tasks), which introduced experimental support for long-running work in the November 2025 specification. He then worked with Caitie McCaffrey on the next iteration of that capability - the [Tasks extension](https://modelcontextprotocol.io/seps/2663-tasks-extension).
 
