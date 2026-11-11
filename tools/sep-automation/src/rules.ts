@@ -14,11 +14,6 @@ import type { SEPState } from './types.js';
  * The automation will reject any transition not listed here.
  */
 export const STATE_TRANSITIONS: Record<SEPState, SEPState[]> = {
-  // Proposal: Initial state for new SEPs
-  // - Can become 'draft' when a core maintainer sponsors it
-  // - Can become 'dormant' if abandoned
-  proposal: ['draft', 'dormant'],
-
   // Draft: Active development with a sponsor
   // - Can move to 'in-review' when ready for review
   // - Can become 'dormant' if abandoned
@@ -40,8 +35,8 @@ export const STATE_TRANSITIONS: Record<SEPState, SEPState[]> = {
   final: [],
 
   // Dormant: Inactive/abandoned SEP
-  // - Can be revived to 'proposal' or 'draft'
-  dormant: ['proposal', 'draft'],
+  // - Can be revived to 'draft'
+  dormant: ['draft'],
 };
 
 /**
@@ -49,7 +44,6 @@ export const STATE_TRANSITIONS: Record<SEPState, SEPState[]> = {
  * These are the GitHub labels used to track SEP lifecycle.
  */
 export const STATE_LABELS: SEPState[] = [
-  'proposal',
   'draft',
   'in-review',
   'accepted',
@@ -64,32 +58,23 @@ export const STATE_LABELS: SEPState[] = [
  * - state: Which SEP state this rule applies to
  * - pingAfterDays: Days of inactivity before pinging
  * - dormantAfterDays: Days of inactivity before marking dormant (optional)
- * - pingTarget: Who to ping (author, sponsor, or maintainer)
+ * - pingTarget: Who to ping
  * - closeOnDormant: Whether to close the issue/PR when marking dormant
  */
 export interface StalenessRule {
   state: SEPState;
   pingAfterDays: number;
   dormantAfterDays?: number;
-  pingTarget: 'author' | 'sponsor';
+  pingTarget: 'author';
   closeOnDormant?: boolean;
 }
 
 export const STALENESS_RULES: StalenessRule[] = [
   {
-    // Proposals without a sponsor get pinged after 90 days
-    // and marked dormant (closed) after 180 days
-    state: 'proposal',
-    pingAfterDays: 90,
-    dormantAfterDays: 180,
-    pingTarget: 'author',
-    closeOnDormant: true,
-  },
-  {
-    // Drafts with inactive sponsors get pinged after 90 days
+    // Quiet drafts get a check-in for the author and assignees after 90 days
     state: 'draft',
     pingAfterDays: 90,
-    pingTarget: 'sponsor',
+    pingTarget: 'author',
   },
   {
     // Accepted SEPs awaiting implementation get pinged after 30 days
@@ -114,22 +99,6 @@ export const MAINTAINER_INACTIVITY_DAYS = 14;
  * for this many days.
  */
 export const PING_COOLDOWN_DAYS = 14;
-
-/**
- * Auto-transition rules.
- *
- * These define automatic state changes based on events.
- */
-export const AUTO_TRANSITION_RULES = {
-  // When a core maintainer assigns themselves to a proposal,
-  // automatically transition it to draft
-  proposalToDraftOnMaintainerAssign: {
-    fromState: 'proposal' as SEPState,
-    toState: 'draft' as SEPState,
-    trigger: 'maintainer_assigned',
-    description: 'Auto-transition proposal to draft when a core maintainer assigns themselves',
-  },
-};
 
 /**
  * Helper: Check if a label is a valid SEP state
