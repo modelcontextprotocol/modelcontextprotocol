@@ -52,8 +52,6 @@ export class SEPAnalyzer {
 
     // Analyze based on state
     switch (item.state) {
-      case 'proposal':
-        return this.analyzeProposal(item, daysSinceActivity);
       case 'draft':
         return this.analyzeDraft(item, daysSinceActivity);
       case 'accepted':
@@ -71,46 +69,8 @@ export class SEPAnalyzer {
     }
   }
 
-  private analyzeProposal(item: SEPItem, daysSinceActivity: number): StaleAnalysis {
-    // 180+ days: mark dormant and close
-    if (daysSinceActivity >= this.config.proposalDormantDays) {
-      return {
-        item,
-        daysSinceActivity,
-        shouldPing: false,
-        shouldMarkDormant: true,
-        shouldClose: true,
-        pingTarget: null,
-        reason: `Proposal inactive for ${daysSinceActivity} days (threshold: ${this.config.proposalDormantDays})`,
-      };
-    }
-
-    // 90+ days: ping author
-    if (daysSinceActivity >= this.config.proposalPingDays) {
-      return {
-        item,
-        daysSinceActivity,
-        shouldPing: true,
-        shouldMarkDormant: false,
-        shouldClose: false,
-        pingTarget: 'author',
-        reason: `Proposal inactive for ${daysSinceActivity} days (threshold: ${this.config.proposalPingDays})`,
-      };
-    }
-
-    return {
-      item,
-      daysSinceActivity,
-      shouldPing: false,
-      shouldMarkDormant: false,
-      shouldClose: false,
-      pingTarget: null,
-      reason: null,
-    };
-  }
-
   private analyzeDraft(item: SEPItem, daysSinceActivity: number): StaleAnalysis {
-    // 90+ days: ping sponsor
+    // 90+ days: check in with the author and assignees
     if (daysSinceActivity >= this.config.draftPingDays) {
       return {
         item,
@@ -118,7 +78,7 @@ export class SEPAnalyzer {
         shouldPing: true,
         shouldMarkDormant: false,
         shouldClose: false,
-        pingTarget: 'sponsor',
+        pingTarget: 'author',
         reason: `Draft inactive for ${daysSinceActivity} days (threshold: ${this.config.draftPingDays})`,
       };
     }
@@ -180,8 +140,8 @@ export class SEPAnalyzer {
   /**
    * Find the last activity date of the person responsible for the SEP.
    *
-   * For 'proposal' and 'accepted' states, this is the author.
-   * For 'draft' state, this is the first assignee (sponsor), falling back to author.
+   * For 'accepted' state, this is the author.
+   * For 'draft' state, this is the first assignee, falling back to author.
    *
    * Falls back to item.createdAt when no user-specific activity is found.
    */

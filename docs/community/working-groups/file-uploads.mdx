@@ -30,7 +30,7 @@ or that needs authorization to fetch.
 - **Reference Implementations**: SDK types and helpers for `FileInputDescriptor`, data URI encoding,
   and a sample host flow demonstrating picker invocation and value substitution.
 - **Cross-Cutting Concerns**: Coordination with the MCP Apps WG where embedded UI surfaces present
-  their own file pickers, and with the Security WG on host-side validation requirements.
+  their own file pickers, and with the Security IG on host-side validation requirements.
 - **Documentation**: Specification sections covering file input declaration and a migration guide
   for servers currently using ad-hoc base64 instructions.
 
@@ -47,7 +47,7 @@ than a charter constraint.
 
 - **MCP Apps WG** — embedded app UIs may surface their own file pickers; the descriptor format
   should be reusable in that context.
-- **Security WG** — host-side validation requirements for user-supplied file content (the SEP
+- **[Security IG](/community/interest-groups/security)** — host-side validation requirements for user-supplied file content (the SEP
   references [OWASP ASVS V5](https://owasp.org/projects/asvs)
   for general upload hygiene).
 - **Tool Annotations IG** — file input descriptors are a form of input-parameter metadata and should
