@@ -1,8 +1,3 @@
-{{- /*
-  Override of PaperMod's search.html: drops the magnifying-glass SVG that
-  PaperMod inlines inside the <h1> next to the page title, and adds the same
-  link back to the posts that every other page has above its title.
-*/ -}}
 {{- define "main" }}
 
 <header class="page-header">
@@ -16,8 +11,9 @@
 </header>
 
 <div id="searchbox">
-    <input id="searchInput" autofocus placeholder="{{ .Params.placeholder | default (printf "%s ↵" .Title) }}"
-        aria-label="search" type="search" autocomplete="off" maxlength="64">
+    <input id="searchInput" autofocus placeholder="{{ .Params.placeholder | default .Title }}"
+        aria-label="Search posts" type="search" autocomplete="off" maxlength="64" data-index="{{ "index.json" | relURL }}">
+    <p id="searchStatus" role="status" aria-live="polite"></p>
     <ul id="searchResults" aria-label="search results"></ul>
 </div>
 

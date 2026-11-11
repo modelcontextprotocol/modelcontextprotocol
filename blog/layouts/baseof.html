@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ site.Language }}" dir="{{ .Language.LanguageDirection | default "auto" }}">
+<html lang="{{ site.Language.Lang }}" dir="auto">
 
 <head>
     {{- partial "head.html" . }}
@@ -23,7 +23,24 @@
     {{- if .Store.Get "hasMermaid" }}
     <script type="module">
         import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.esm.min.mjs';
-        mermaid.initialize({ startOnLoad: true });
+        // Render with mermaid's own light or dark theme to match the page, and re-render when the reader
+        // flips the theme toggle (it sets or clears the "dark" class on body).
+        const diagrams = [...document.querySelectorAll('pre.mermaid')];
+        diagrams.forEach((el) => { el.dataset.source = el.textContent; });
+        let rendered;
+        async function render() {
+            const dark = document.body.classList.contains('dark');
+            if (dark === rendered) return;
+            rendered = dark;
+            mermaid.initialize({ startOnLoad: false, theme: dark ? 'dark' : 'default' });
+            diagrams.forEach((el) => {
+                el.removeAttribute('data-processed');
+                el.textContent = el.dataset.source;
+            });
+            await mermaid.run({ nodes: diagrams });
+        }
+        render();
+        new MutationObserver(render).observe(document.body, { attributes: true, attributeFilter: ['class'] });
     </script>
     {{- end }}
 </body>

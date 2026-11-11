@@ -1,13 +1,3 @@
-{{- /*
-  Override of PaperMod's post_meta.html, which joins the date, reading time
-  and author into one string with " · ". This is the metadata under a post's
-  title: when it was published (post_when.html, the same partial the post
-  list uses), then who wrote it, each role under its name.
-
-  The layout is in custom.css under "Metadata": the date beside the first
-  author's name, the reading time beside the role. On a wide screen the date
-  and reading time hang in the left margin, as they do in the list.
-*/ -}}
 {{- partial "post_when.html" (dict "page" . "format" (default "Jan 2, 2006" site.Params.DateFormat)) }}
 {{- if not (.Param "hideAuthor") }}
 {{- with (partial "authors.html" .) }}
