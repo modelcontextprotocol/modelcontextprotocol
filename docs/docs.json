@@ -900,6 +900,7 @@
               {
                 "group": "Working Groups",
                 "pages": [
+                  "community/working-groups/overview",
                   "community/working-groups/apps",
                   "community/working-groups/file-uploads",
                   "community/working-groups/filesystems",
