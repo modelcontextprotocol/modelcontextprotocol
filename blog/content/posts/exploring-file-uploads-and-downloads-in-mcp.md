@@ -150,7 +150,7 @@ Once it gets a `2xx`, the client retries the tool call with the same arguments a
 }
 ```
 
-A retry isn't proof that the bytes arrived, so the server verifies `requestState`, confirms with the storage that the bytes are there, re-checks their size, and only then runs the tool and returns an ordinary tool result. If a transfer fails, the client doesn't retry the call, and the tool doesn't run.
+A retry isn't proof that the bytes arrived, so the server verifies `requestState` and checks that the call matches it, confirms with the storage that the bytes are there, re-checks their size and type, and only then runs the tool and returns an ordinary tool result. If a transfer fails, the client doesn't retry the call, and the tool doesn't run.
 
 All of this happens inside the client. The model made one tool call and got one result, and neither the bytes nor the upload URL entered its context.
 
@@ -248,11 +248,11 @@ The second case is for deployments that don't allow pre-signed URLs, or where a 
 }
 ```
 
-The client resolves that `path` under the MCP address it already uses, so with `https://gateway.example.com/mcp/abc`, the file goes to `https://gateway.example.com/mcp/abc/uploads`. The bytes take the same route as the client's MCP calls, which also helps a client in a sandbox that can't reach a public storage host at all. The client attaches its MCP credential here because it's going where that credential already goes. `include` also works on a `url` with the same origin as the server's canonical URI, and the client rejects it on any other `url`. A server on stdio has no MCP address, so it can issue only `url` targets with `omit`.
+The client resolves that `path` under the MCP address it already uses, so with `https://gateway.example.com/mcp/abc`, the file goes to `https://gateway.example.com/mcp/abc/uploads`. The bytes take the same route as the client's MCP calls, which also helps a client in a sandbox that can't reach a public storage host at all. The client attaches its MCP credential here because it's going where that credential already goes.
 
 The client won't follow redirects, so a target can't bounce the token to another origin. A target also can't set its own `Authorization` header, so the only one on a transfer is the one `credentials` controls.
 
-These rules protect the token, not the file. A malicious server can name any public URL as an `omit` target and receive the file there, and host approval can't limit where the file goes, because the host gets that approval before the target is known. Clients refuse `url` targets at addresses that aren't globally reachable unless an operator allows them, and the draft recommends that hosts restrict `omit` targets to an allowlist of origins where an operator can provide one. Whether that allowlist should be mandatory is an open question. The origin check also can't tell apart applications on one origin, so operators shouldn't host an MCP server on an origin shared with applications it doesn't control.
+These rules protect the token, not the file. A malicious server can name any public URL as an `omit` target and receive the file there, and host approval can't limit where the file goes, because the host gets that approval before the target is known. The draft recommends that hosts restrict `omit` targets to an allowlist of origins, and whether that allowlist should be mandatory is one of the [open questions](https://github.com/modelcontextprotocol/experimental-ext-file-uploads/blob/main/specification/draft/file-uploads.md#open-questions). The [Security Implications](https://github.com/modelcontextprotocol/experimental-ext-file-uploads/blob/main/specification/draft/file-uploads.md#security-implications) section covers the rest.
 
 ## We'd love your help
 
