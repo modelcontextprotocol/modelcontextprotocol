@@ -9,28 +9,30 @@ description: Charter for the MCP Core Primitives Working Group.
 
 ## Mission Statement
 
-The Core Primitives Working Group coordinates proposals that improve MCP's core primitives. The [roadmap](/development/roadmap#4-improved-primitives) names the group under its Improved Primitives priority area and assigns it three items for the current roadmap period: tool result shape, progressive discovery, and primitive annotations.
+The Core Primitives Working Group coordinates proposals that improve MCP's core primitives. The [roadmap](/development/roadmap#4-improved-primitives) names the group under its Improved Primitives priority area. The group currently focuses on tool results: their shape, their stability, and their audience.
 
 ## Scope
 
 ### In Scope
 
-The roadmap assigns the group these items:
+The group currently focuses on three items:
 
 - **Tool result shape**: Redesigning the `tools/call` interface to resolve fidelity disparities among return types and streamline the handling of structured and unstructured output.
-- **Progressive discovery**: Clients learn a server's tools and resources as they need them instead of ingesting the full catalog up front.
-- **Primitive annotations**: Deciding whether [content annotations](/specification/2026-07-28/server/resources#annotations) apply to tool results and resources, or are deprecated if they are not useful.
+- **Tool result stability**: Tools can return different `structuredContent` depending on input parameters or other effects, with no guarantees. Approaches such as code mode rely on stable return types.
+- **Tool result audience**: A tool result has no way to signal which content is for the model and which is for other consumers. MCP Apps uses `content` and `structuredContent` to make that distinction.
+
+The roadmap also assigns primitive annotations to the group: deciding whether [content annotations](/specification/2026-07-28/server/resources#annotations) apply to tool results and resources, or are deprecated if they are not useful.
 
 The roadmap leaves the rest of the priority area open for the group to define.
 
 ### Out of Scope
 
-To be defined by the leads.
+- **Progressive discovery**: Handled by the [Progressive Disclosure WG](/community/working-groups/progressive-disclosure).
 
 ### Related Groups
 
+- **[Progressive Disclosure WG](/community/working-groups/progressive-disclosure)**: Handles progressive discovery, the roadmap item in the same priority area on clients learning a server's tools and resources as they need them.
 - **[File Uploads WG](/community/working-groups/file-uploads)**: The roadmap places its work on scoped file operations and filesystem-like resource semantics in the same priority area.
-- **[Transports WG](/community/working-groups/transports)**: The roadmap assigns caching to the Transports WG under [HTTP-Native Transport Unification and Hardening](/development/roadmap#2-http-native-transport-unification-and-hardening) and calls for a defined interaction between progressive discovery and that caching work.
 
 ## Leadership
 
@@ -71,8 +73,8 @@ Discord: `#core-primitives-wg`.
 | Item                  | Status          | Target Date     | Champion        |
 | --------------------- | --------------- | --------------- | --------------- |
 | Tool result shape     | To be confirmed | To be confirmed | To be confirmed |
-| Progressive discovery | To be confirmed | To be confirmed | To be confirmed |
-| Primitive annotations | To be confirmed | To be confirmed | To be confirmed |
+| Tool result stability | To be confirmed | To be confirmed | To be confirmed |
+| Tool result audience  | To be confirmed | To be confirmed | To be confirmed |
 
 Proposals are developed in the [core-primitives-wg repository](https://github.com/modelcontextprotocol/core-primitives-wg).
 
