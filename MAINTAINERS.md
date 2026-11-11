@@ -192,7 +192,7 @@ This document lists current maintainers in the Model Context Protocol project.
 - [Sambhav Kothari](https://github.com/sambhav)
 - [Peder Holdgaard Pedersen](https://github.com/PederHP)
 
-### Transports Interest Group
+### Transports Working Group
 
 - [Kurtis Van Gent](https://github.com/kurtisvg)
 - [Jonathan Hefner](https://github.com/jonathanhefner)
@@ -205,7 +205,7 @@ This document lists current maintainers in the Model Context Protocol project.
 - [David Soria Parra](https://github.com/dsp-ant)
 - [Sam Morrow](https://github.com/SamMorrowDrums)
 
-### Agents Working Group
+### Agents Interest Group
 
 - [Peter Alexander](https://github.com/poita)
 - [Luca Chang](https://github.com/LucaButBoring)
