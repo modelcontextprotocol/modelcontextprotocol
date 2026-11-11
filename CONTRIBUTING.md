@@ -122,9 +122,9 @@ When contributing to the documentation:
 Specification changes follow the [SEP process](https://modelcontextprotocol.io/community/sep-guidelines).
 Proposals must be submitted to and discussed in the relevant
 [working group](https://modelcontextprotocol.io/community/working-interest-groups).
-A SEP pull request may only be marked ready for review once that working group has agreed to
-sponsor it. Before that, work in progress lives in a draft pull request. The
-pull request description must link that discussion, as required by the
+A SEP pull request may only be marked ready for review once that working group or the Core
+Maintainers have agreed to sponsor it. Before that, work in progress lives in a draft pull
+request. The pull request description must link that discussion, as required by the
 [SEP guidelines](https://modelcontextprotocol.io/community/sep-guidelines#workflow).
 Before drafting a proposal, review the [MCP design principles](https://modelcontextprotocol.io/community/design-principles)
 — proposals that align with these principles move faster through review.
@@ -150,9 +150,7 @@ for how to get a fix picked up or a pull request opened from your branch.
    [Member](https://modelcontextprotocol.io/community/contributor-ladder#member) role on the contributor ladder
 3. Push your changes to your fork
 4. Open a pull request against the main repository and follow the pull request template
-5. For SEPs, a working group lead submits the SEP to
-   [voting.modelcontextprotocol.io](https://voting.modelcontextprotocol.io) for the Core Maintainers'
-   decision, as described in the [SEP guidelines](https://modelcontextprotocol.io/community/sep-guidelines)
+5. For SEPs, schedule a review with the Core Maintainers via [voting.modelcontextprotocol.io](https://voting.modelcontextprotocol.io)
 
 ### Pull request titles
 

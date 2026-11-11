@@ -3,7 +3,7 @@ title: SEP Guidelines
 description: When a Specification Enhancement Proposal is required and the procedure a proposal follows from pull request to Final.
 ---
 
-This page describes when a Specification Enhancement Proposal (SEP) is required and the procedure from pull request to Final. A SEP is a design document that gives a concise technical specification of a feature or process and its rationale. Its author is responsible for building consensus and recording dissenting opinions. [SEP-1850](/seps/1850) adopted the process and [SEP-2484](/seps/2484) the conformance gate. Changing either requires a Process SEP.
+This page describes when a Specification Enhancement Proposal (SEP) is required and the procedure from pull request to Final. A SEP is a design document that gives a concise technical specification of a feature or process and its rationale. Its author is responsible for building consensus and recording dissenting opinions. [SEP-1850](/seps/1850) adopted the process and [SEP-2484](/seps/2484) the conformance gate. Changing either requires a Process SEP. The sponsorship rules on this page follow [SEP-3398](/seps/3398).
 
 ## When you need a SEP
 
@@ -27,14 +27,18 @@ Bug fixes, clarifications, editorial changes, new examples for existing features
 
 ## Before you write
 
-A protocol change reaches the Core Maintainers through a working group:
+A SEP needs a sponsor before formal review: a working group or the Core Maintainers. [Sponsors](#sponsors) describes both paths.
+
+With a working group as sponsor:
 
 1. Check whether the idea fits the current focus on the [roadmap](/development/roadmap). SEPs outside its priority areas face a longer queue and a higher bar (see [SEP Prioritization](/development/roadmap#sep-prioritization)).
 2. Bring the idea to the working group that covers the area, in its Discord channel or at a meeting (see [Joining a group](/community/working-interest-groups#joining-a-group)). An interest group can help frame the problem first, and a working group sponsors the SEP.
 3. Reach [consensus](/community/working-interest-groups#making-decisions) in the working group, then draft a SEP that the group wants to [sponsor](#sponsors). Read the [design principles](/community/design-principles), try the idea as an [extension](/extensions/overview) first where its shape allows, and build a prototype that meets the [Prototype Requirements](#prototype-requirements).
-4. The working group's leads bring the SEP to the Core Maintainers for review through the [Workflow](#workflow).
+4. The working group brings the SEP to the Core Maintainers for review through the [Workflow](#workflow).
 
-If an interest group covers the area and no working group does, the interest group can start a working group for the idea through the [forming a group](/community/working-interest-groups#forming-a-group) process, and that working group sponsors the SEP. This is the normal path for areas an interest group owns. If no working or interest group covers the area, propose a new working group through the [forming a group](/community/working-interest-groups#forming-a-group) process. A thread in `#general` on Discord can help find people to join it.
+With the Core Maintainers as sponsor, the roadmap check and the [Prototype Requirements](#prototype-requirements) still apply, and the Core Maintainer who represents them brings the SEP to review through the same [Workflow](#workflow).
+
+If an interest group covers the area and no working group does, the interest group can start a working group for the idea through the [forming a group](/community/working-interest-groups#forming-a-group) process, and that working group sponsors the SEP. This is the normal path for areas an interest group owns. If no working or interest group covers the area, propose a new working group through the [forming a group](/community/working-interest-groups#forming-a-group) process, or ask the Core Maintainers to sponsor the SEP. A thread in `#general` on Discord can help find people to join a new working group.
 
 ## Workflow
 
@@ -43,6 +47,7 @@ flowchart TD
     Idea["Idea"]
     DraftPR["Draft pull request<br/>(not yet in the SEP process)"]
     Draft["draft status<br/>(pull request ready for review)"]
+    Dormant["dormant"]
     Withdrawn["withdrawn"]
     InReview["in-review"]
     Decision{"Core Maintainers decide"}
@@ -51,11 +56,13 @@ flowchart TD
     Final["final"]
     Superseded["superseded"]
 
-    Idea -->|"Developed in the open,<br/>no working group sponsor yet"| DraftPR
-    Idea -->|"Working group agrees to sponsor"| Draft
-    DraftPR -->|"Working group agrees to sponsor"| Draft
+    Idea -->|"Developed in the open,<br/>no sponsor yet"| DraftPR
+    Idea -->|"Working group or Core Maintainers<br/>agree to sponsor"| Draft
+    DraftPR -->|"Working group or Core Maintainers<br/>agree to sponsor"| Draft
+    DraftPR -->|"180 days without a sponsor"| Dormant
+    Dormant -->|"Sponsor found, PR reopened"| Draft
     Draft --> Withdrawn
-    Draft -->|"Working group lead submits to<br/>voting.modelcontextprotocol.io"| InReview
+    Draft -->|"Sponsor sets in-review"| InReview
     InReview --> Decision
     Decision --> Accepted
     Decision --> Rejected
@@ -65,36 +72,42 @@ flowchart TD
 ```
 
 1. Copy [`seps/TEMPLATE.md`](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/seps/TEMPLATE.md) to `seps/0000-<slug>.md` and fill it in.
-2. Open a pull request against the [specification repository](https://github.com/modelcontextprotocol/modelcontextprotocol), titled `sep: <description>` as in `sep: propose task cancellation`, following the [pull request title guidelines](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/CONTRIBUTING.md#pull-request-titles). Authors who are not members of the `modelcontextprotocol` GitHub organization ask the leads of the [sponsoring working group](#sponsors) to open the pull request and name them as the author.
+2. Open a pull request against the [specification repository](https://github.com/modelcontextprotocol/modelcontextprotocol), titled `sep: <description>` as in `sep: propose task cancellation`, following the [pull request title guidelines](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/CONTRIBUTING.md#pull-request-titles). Authors who are not members of the `modelcontextprotocol` GitHub organization ask the working group's leads or the [sponsor](#sponsors) to open the pull request and name them as the author.
 3. The SEP number is the PR number. Rename the file (PR #1850 becomes `seps/1850-<slug>.md`), update the header, and run `npm run generate:seps`, or the `check:seps` CI job fails. Rename the pull request to `sep(SEP-1850): <description>`; a follow-up commit is enough, with no amend or force-push. Later pull requests about this SEP keep `SEP-1850` as their scope and link to it in the description.
-4. Until a working group has agreed to sponsor the SEP, it stays a draft pull request. A draft pull request is for developing a proposal in the open. It is not yet in the SEP process, the `Status` header in the SEP stays unset, and the `wg-support-needed` label marks it.
-5. Once a working group has agreed to [sponsor](#sponsors) the SEP, the pull request is marked ready for review and the `Sponsor` header names the group. The SEP is then in `draft` status, and review takes place in PR comments.
-6. When the SEP is ready, a working group lead confirms that the working group discussion is linked in the pull request description and submits the SEP to [voting.modelcontextprotocol.io](https://voting.modelcontextprotocol.io) for the Core Maintainers' decision. The SEP is then `in-review`. The author and a working group lead may present it.
-7. Core Maintainers decide under [Review and acceptance](#review-and-acceptance). The working group's leads record the outcome, `accepted` or `rejected`, on the PR and in the SEP header.
+4. Until a working group or the Core Maintainers have agreed to sponsor the SEP, it stays a draft pull request. A draft pull request is for developing a proposal in the open. It is not yet in the SEP process, the `Status` header in the SEP stays unset, and the `wg-support-needed` label marks it.
+5. Once a working group or the Core Maintainers have agreed to [sponsor](#sponsors) the SEP, the pull request is marked ready for review. The `Sponsor` header names the person who acts on the sponsoring group's behalf, and that person sets `draft`. Review takes place in PR comments.
+6. When the SEP is ready, the sponsor confirms that the prior discussion happened and is linked in the pull request description, sets `in-review`, and puts it on the Core Maintainer meeting agenda. The author and sponsor may present it.
+7. Core Maintainers decide under [Review and acceptance](#review-and-acceptance). The sponsor records the outcome, `accepted` or `rejected`, on the PR and in the SEP header.
 8. For an accepted SEP, the author adds to the same PR: the specification prose, the `schema.ts` changes with regenerated output (see [CONTRIBUTING.md](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/CONTRIBUTING.md#schema-changes)), a changelog entry, and any required documentation edits (for a deprecation, the four edits under [Deprecating a Feature](/community/feature-lifecycle#deprecating-a-feature)). The reference implementation is completed where it lives: an SDK branch, a fork or a standalone repository (see [Prototype Requirements](#prototype-requirements)). For a Standards Track SEP with observable protocol behavior, the conformance scenario and `sep-NNNN.yaml` are merged (see [Conformance Test Requirement](#conformance-test-requirement)). SDK implementations are not required for Final.
-9. The working group's leads verify these artifacts and set `final`. The PR is then merged.
+9. The sponsor verifies these artifacts and sets `final`. The PR is then merged.
 
-The seven `Status` values, also defined on the [SEP index](/seps):
+The eight `Status` values, also defined on the [SEP index](/seps):
 
-| Status       | Meaning                                                                                           | Set by                                                  |
-| ------------ | ------------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
-| `draft`      | Sponsored by a working group, pull request ready for review, under informal review in PR comments | Working group leads                                     |
-| `in-review`  | On the Core Maintainer agenda for formal review                                                   | Working group leads                                     |
-| `accepted`   | Approved, awaiting specification text, reference implementation and conformance                   | Working group leads, after the Core Maintainer decision |
-| `rejected`   | Declined by Core Maintainers                                                                      | Working group leads, after the Core Maintainer decision |
-| `withdrawn`  | Withdrawn by the author                                                                           | Author or working group leads                           |
-| `final`      | All artifacts complete and the PR merged                                                          | Working group leads                                     |
-| `superseded` | Replaced by a newer SEP                                                                           | Working group leads                                     |
+| Status       | Meaning                                                                            | Set by                                      |
+| ------------ | ---------------------------------------------------------------------------------- | ------------------------------------------- |
+| `draft`      | Has a sponsor, pull request ready for review, under informal review in PR comments | Sponsor                                     |
+| `in-review`  | On the Core Maintainer agenda for formal review                                    | Sponsor                                     |
+| `accepted`   | Approved, awaiting specification text, reference implementation and conformance    | Sponsor, after the Core Maintainer decision |
+| `rejected`   | Declined by Core Maintainers                                                       | Sponsor, after the Core Maintainer decision |
+| `withdrawn`  | Withdrawn by the author                                                            | Author or sponsor                           |
+| `final`      | All artifacts complete and the PR merged                                           | Sponsor                                     |
+| `superseded` | Replaced by a newer SEP                                                            | Sponsor                                     |
+| `dormant`    | No sponsor after 180 days, PR closed, may be revived                               | Core Maintainers                            |
 
-SEP pull requests that have had no progress for about 180 days will be closed.
+A SEP that has no sponsor after 180 days is marked `dormant` and its PR is closed. Dormant is not rejected: a dormant SEP is revived by finding a sponsor and reopening the PR, which returns it to `draft`.
 
 ## Sponsors
 
-The sponsor of a SEP is the working group whose scope it falls in. [Before you write](#before-you-write) covers how a working group comes to sponsor a SEP and what to do when no working group covers the area. Core Maintainers can sponsor a SEP directly as an exception, for example cross-cutting work that no working group covers. The `Sponsor` header in the SEP holds the group's name, such as `Transports Working Group`, or `Core Maintainers`.
+A working group or the Core Maintainers sponsor a SEP. Both paths lead to the same review and the same acceptance requirements.
 
-The working group, its leads and the author are responsible for moving the SEP forward. When the author cannot open pull requests on the repository, one of the group's leads opens the pull request and names the author. The SEP is numbered from that pull request as usual.
+- Working group sponsorship: the working group whose scope the SEP falls in approves it through its [decision-making process](/community/working-interest-groups#making-decisions). [Before you write](#before-you-write) covers how a working group comes to sponsor a SEP.
+- Core Maintainer sponsorship: the Core Maintainers agree to sponsor the SEP and designate a Core Maintainer to represent them. No separate working group approval is required, and the designated Core Maintainer consults the relevant working groups. This path serves process changes, proposals that span several groups, and topics without an established working group.
 
-The working group's leads review the proposal and request changes, present it with the author, bring it to the Core Maintainers for review, verify the Final artifacts, and make every status change in the [Workflow](#workflow). That covers the `Status` field in the SEP file, which is canonical, and the matching PR label, which is for filtering. A lead without write access to the branch sets the field through the author. Authors do not edit `Status` or labels themselves. They ask the working group's leads. For a SEP that the Core Maintainers sponsor, a Core Maintainer takes these steps.
+The `Sponsor` header names the Maintainer or Core Maintainer who acts on the sponsoring group's behalf, as in `Name (@handle), on behalf of the Transports Working Group` or `Name (@handle), on behalf of the Core Maintainers`. A qualified WG Lead may fill this role for a working group. For the Core Maintainers, the designated Core Maintainer does. The rest of this page calls this person the sponsor.
+
+The sponsor is responsible for the SEP's status and labels and for tracking its implementation. The sponsor reviews the proposal and requests changes, presents it with the author, brings it to the Core Maintainers for review, verifies the Final artifacts, and makes every status change in the [Workflow](#workflow). That covers the `Status` field in the SEP file, which is canonical, and the matching PR label, which is for filtering. A sponsor without write access to the branch sets the field through the author. Authors do not edit `Status` or labels themselves. They ask their sponsor.
+
+The sponsoring group, the sponsor and the author are responsible for moving the SEP forward. When the author cannot open pull requests on the repository, one of the working group's leads or the sponsor opens the pull request and names the author. The SEP is numbered from that pull request as usual.
 
 A WG Lead may also triage and close in-scope SEPs under [Leadership](/community/working-interest-groups#leadership), subject to appeal to Core Maintainers.
 
@@ -116,7 +129,7 @@ A Standards Track SEP that introduces or modifies observable protocol behavior c
 
 Process SEPs, Informational SEPs, and Standards Track SEPs with no observable protocol behavior (documentation clarifications, schema annotations that do not change validation, implementation-hardening recommendations) are exempt.
 
-Anyone may write the scenario: the SEP author, an SDK maintainer, or any other contributor. The working group's leads confirm that it exists and that `sep-NNNN.yaml` covers every normative statement, and the conformance repository's maintainers review the scenario PR for technical correctness. Writing the scenario before Core Maintainer review is encouraged, not required. [SEP-2484](/seps/2484) defines the traceability format and the dispute process.
+Anyone may write the scenario: the SEP author, an SDK maintainer, or any other contributor. The sponsor confirms that it exists and that `sep-NNNN.yaml` covers every normative statement, and the conformance repository's maintainers review the scenario PR for technical correctness. Writing the scenario before Core Maintainer review is encouraged, not required. [SEP-2484](/seps/2484) defines the traceability format and the dispute process.
 
 ## After the decision
 
@@ -124,7 +137,7 @@ A rejected SEP may be revised against the recorded feedback and resubmitted, or 
 
 Before Final, raise problems on the SEP's PR. A Final SEP is a frozen record of the design as accepted. Where the specification has since diverged, the specification governs: report problems as issues against it, not as edits to the SEP.
 
-A SEP is withdrawn at the author's request. The author or the working group's leads set `withdrawn`. A SEP that replaces an earlier one carries a `Supersedes:` line in its header, and the earlier SEP is set `superseded`.
+A SEP is withdrawn at the author's request. The author or the sponsor sets `withdrawn`. A SEP that replaces an earlier one carries a `Supersedes:` line in its header, and the earlier SEP is set `superseded`.
 
 Ownership of a SEP may pass to a new author when the original author no longer has time for it or cannot be reached. The original author stays on as co-author if they wish. Disagreement with the author's direction is not grounds for transfer. Write a competing SEP instead.
 

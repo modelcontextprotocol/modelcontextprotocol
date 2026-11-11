@@ -2,11 +2,11 @@
 
 > **Note**: This template provides a standard structure for SEPs. You may adapt sections based on the specific needs of your proposal. For example, Process SEPs may not need a "Backward Compatibility" section, while Standards Track SEPs should include detailed technical specifications.
 
-- **Status**: Draft | In-Review | Accepted | Rejected | Withdrawn | Final | Superseded
+- **Status**: Draft | In-Review | Accepted | Rejected | Withdrawn | Final | Superseded | Dormant
 - **Type**: Standards Track | Informational | Process | Extensions Track
 - **Created**: YYYY-MM-DD
 - **Author(s)**: Name <email> (@github-username)
-- **Sponsor**: Name of the sponsoring working group, or "Core Maintainers" ("None" until a working group agrees to sponsor)
+- **Sponsor**: Name (@github-username), on behalf of the X Working Group or the Core Maintainers ("None" until one of them agrees to sponsor)
 - **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/{NUMBER}
 
 ## Abstract
