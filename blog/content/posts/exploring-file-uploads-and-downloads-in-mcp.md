@@ -3,7 +3,7 @@ title: "Exploring File Uploads and Downloads in MCP"
 date: "2026-11-10T09:00:00+00:00"
 publishDate: "2026-11-10T09:00:00+00:00"
 slug: exploring-file-uploads-and-downloads-in-mcp
-description: "We're working on an extension for moving files between clients and tools in MCP. We'd love your help testing it out."
+description: "We're working on an extension for moving files between clients and tools in MCP. It's early, and we'd love your help trying it out."
 author:
   - Den Delimarsky (Lead Maintainer)
   - Wil St. Charles (Google)
@@ -15,11 +15,11 @@ tags:
 ShowToc: true
 ---
 
-The Model Context Protocol (MCP) started out as a simple way to connect models to tools, and that's very much still the heart of it. But, as the past two years have shown, the things people build with the protocol keep getting more ambitious - sooner or later a lot of MCP server projects we see need to work with files.
+The Model Context Protocol (MCP) started out as a simple way to connect models to tools, and that principle is still very much at its heart. Over the past two years, the things people build with the protocol have become more ambitious. _Much_ more ambitious. Many of those MCP server projects now need to work with files - often driven by increasing agent capabilities and autonomy.
 
-You don't really need to look too far - saving a PDF out of a conversation or pulling a CSV into a sandbox seems to be a very common request that folks want to accomplish with the help of MCP. Today, there is no elegant way to do this without going through existing tool constructs and only working with smaller files.
+Saving a PDF from a conversation to cloud storage or pulling a CSV into a sandbox have become very common requests from developers adopting MCP. Today, implementing this scenario would require a bunch of bespoke tool conventions and transfer mechanisms - not something we'd want folks doing over and over.
 
-Because this problem came up enough times in all sorts of customer discussions, we spun up the [File Uploads Working Group](https://modelcontextprotocol.io/community/working-groups/file-uploads). We've spent the last month trying to draw out what a potential solution could look like.
+Because this request kept coming up in customer discussions, we bootstapped the [File Uploads Working Group](https://modelcontextprotocol.io/community/working-groups/file-uploads). We've spent the last month working through what a solution could look like.
 
 Thanks to the effort of our community and developers, we now have a rough extension definition, and we'd love for you to poke at it as we start prototyping and trying out how it works in the wild.
 
