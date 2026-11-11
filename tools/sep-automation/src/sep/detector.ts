@@ -86,6 +86,7 @@ export class SEPDetector {
       updatedAt: new Date(item.updated_at),
       url: item.html_url,
       isClosed: item.state === 'closed',
+      isDraft: item.draft === true,
     };
   }
 

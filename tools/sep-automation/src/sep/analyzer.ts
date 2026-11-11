@@ -4,10 +4,47 @@
 
 import type { Config } from '../config.js';
 import type { GitHubClient } from '../github/client.js';
-import type { GitHubComment, GitHubEvent } from '../github/types.js';
+import type { GitHubComment, GitHubEvent, GitHubTimelineEntry } from '../github/types.js';
 import type { SEPItem, StaleAnalysis } from '../types.js';
-import { BOT_COMMENT_MARKER } from '../types.js';
+import { BOT_COMMENT_MARKER, INACTIVITY_WARNING_MARKER } from '../types.js';
 import { daysBetween } from '../utils/index.js';
+
+/** Result of checking a SEP pull request against the inactivity rule */
+export interface InactivityAnalysis {
+  readonly daysSinceProgress: number;
+  readonly action: 'warn' | 'close' | null;
+}
+
+/** Bot accounts, plus anything this bot posted from a regular account */
+function isFromBot(entry: GitHubTimelineEntry): boolean {
+  return (
+    entry.user?.type === 'Bot' ||
+    entry.user?.login.endsWith('[bot]') === true ||
+    entry.body?.includes(BOT_COMMENT_MARKER) === true
+  );
+}
+
+/**
+ * Time of a timeline entry if it counts as progress, NaN otherwise. Progress is
+ * a commit, a submitted review or a comment from a non-bot account. Reopening
+ * also restarts the clock, so a reopened pull request is not closed again on
+ * the next run. Everything else is ignored, including the `mentioned` and
+ * `subscribed` events that the bot's own pings create.
+ */
+function progressTime(entry: GitHubTimelineEntry): number {
+  switch (entry.event) {
+    case 'committed':
+      return Date.parse(entry.committer?.date ?? '');
+    case 'reviewed':
+      return isFromBot(entry) ? NaN : Date.parse(entry.submitted_at ?? '');
+    case 'commented':
+      return isFromBot(entry) ? NaN : Date.parse(entry.created_at ?? '');
+    case 'reopened':
+      return Date.parse(entry.created_at ?? '');
+    default:
+      return NaN;
+  }
+}
 
 export class SEPAnalyzer {
   private readonly config: Config;
@@ -67,6 +104,40 @@ export class SEPAnalyzer {
           reason: null,
         };
     }
+  }
+
+  /**
+   * Check a SEP pull request against the inactivity rule: one warning after
+   * inactivityWarningDays without progress, then close once inactivityCloseDays
+   * are reached and the warning has been up for the days in between.
+   */
+  async analyzeInactivity(item: SEPItem): Promise<InactivityAnalysis> {
+    const now = Date.now();
+    const { inactivityWarningDays: warnDays, inactivityCloseDays: closeDays } = this.config;
+    const timeline = await this.github.getTimeline(item.number);
+
+    // A commit date comes from its author's clock, so ignore dates in the future
+    let lastProgress = item.createdAt.getTime();
+    for (const entry of timeline) {
+      const time = progressTime(entry);
+      if (time > lastProgress && time <= now) {
+        lastProgress = time;
+      }
+    }
+    const daysSinceProgress = daysBetween(new Date(lastProgress), new Date(now));
+
+    // Only a warning posted since the last progress counts
+    const warnedAt = timeline
+      .filter(e => e.event === 'commented' && e.body?.includes(INACTIVITY_WARNING_MARKER))
+      .map(e => Date.parse(e.created_at ?? ''))
+      .find(time => time > lastProgress);
+
+    if (warnedAt === undefined) {
+      return { daysSinceProgress, action: daysSinceProgress >= warnDays ? 'warn' : null };
+    }
+    const daysSinceWarning = daysBetween(new Date(warnedAt), new Date(now));
+    const close = daysSinceProgress >= closeDays && daysSinceWarning >= closeDays - warnDays;
+    return { daysSinceProgress, action: close ? 'close' : null };
   }
 
   private analyzeDraft(item: SEPItem, daysSinceActivity: number): StaleAnalysis {
@@ -158,7 +229,7 @@ export class SEPAnalyzer {
    * Determine who the responsible person is for staleness tracking.
    *
    * For accepted SEPs, this is always the author (awaiting reference implementation).
-   * For all other states, this is the first assignee (typically the sponsor),
+   * For all other states, this is the first assignee,
    * falling back to the author if there are no assignees.
    */
   private getResponsibleUsername(item: SEPItem): string {

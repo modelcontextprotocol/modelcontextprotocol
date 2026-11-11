@@ -2,8 +2,10 @@
  * Comment templates for bot actions
  */
 
-import { BOT_COMMENT_MARKER } from '../types.js';
+import { BOT_COMMENT_MARKER, INACTIVITY_WARNING_MARKER } from '../types.js';
 import type { SEPItem, SEPStateOrNone } from '../types.js';
+
+const SEP_GUIDELINES_URL = 'https://modelcontextprotocol.io/community/sep-guidelines';
 
 export function createTransitionComment(
   item: SEPItem,
@@ -64,7 +66,7 @@ Please provide an update on:
 - Any blockers or concerns
 - Expected timeline for next steps
 
-If you're no longer able to sponsor this SEP, please let us know so we can find another maintainer.
+If you're no longer able to follow this SEP, please let us know so it can be reassigned.
 
 ---
 *This is an automated message from the SEP lifecycle bot.*`;
@@ -82,6 +84,38 @@ This SEP is being closed, but it can be reopened if work resumes. To reactivate:
 2. A maintainer can remove the \`dormant\` label and reopen
 
 Thank you for your contribution!
+
+---
+*This is an automated message from the SEP lifecycle bot.*`;
+}
+
+/** One-time notice, posted `noticeDays` before an inactive SEP pull request is closed. */
+export function createInactivityWarningComment(
+  daysSinceProgress: number,
+  closeDays: number,
+  noticeDays: number
+): string {
+  return `${BOT_COMMENT_MARKER}
+${INACTIVITY_WARNING_MARKER}
+
+## Inactivity Notice
+
+This SEP pull request has had no progress for **${daysSinceProgress} days**. SEP pull requests are closed after about ${closeDays} days without progress, and this one will be closed in about ${noticeDays} days unless there is progress.
+
+A new commit, review or comment counts as progress.
+
+---
+*This is an automated message from the SEP lifecycle bot.*`;
+}
+
+export function createInactivityCloseComment(daysSinceProgress: number, closeDays: number): string {
+  return `${BOT_COMMENT_MARKER}
+
+## Closed for Inactivity
+
+This SEP pull request is being closed because it has had no progress for about ${closeDays} days. The last commit, review or comment was **${daysSinceProgress} days** ago.
+
+See the [SEP guidelines](${SEP_GUIDELINES_URL}) for the SEP process.
 
 ---
 *This is an automated message from the SEP lifecycle bot.*`;

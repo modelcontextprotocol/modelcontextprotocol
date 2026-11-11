@@ -30,7 +30,8 @@ export interface SummaryData {
     targetUser: string;
     daysSinceActivity: number;
   }>;
-  dormant: Array<{
+  /** SEP pull requests warned or closed by the inactivity rule */
+  inactive: Array<{
     item: SEPItem;
     daysSinceActivity: number;
     wasClosed: boolean;
@@ -64,7 +65,7 @@ export class SEPProcessor {
     const summaryData: SummaryData = {
       transitions: [],
       pings: [],
-      dormant: [],
+      inactive: [],
     };
 
     this.logger.debug(
@@ -75,6 +76,35 @@ export class SEPProcessor {
     // Skip closed SEPs
     if (sep.isClosed) {
       this.logger.debug({ number: sep.number }, "Skipping closed SEP");
+      return { results, summaryData };
+    }
+
+    // Inactivity rule: every open SEP pull request, draft or ready for review
+    if (sep.type === "pr") {
+      const inactivity = await this.analyzer.analyzeInactivity(sep);
+      if (inactivity.action) {
+        const result = await this.pingHandler.handleInactivity(
+          sep,
+          inactivity.action,
+          inactivity.daysSinceProgress,
+          this.config.dryRun,
+        );
+        results.push(result);
+        if (result.success) {
+          summaryData.inactive.push({
+            item: sep,
+            daysSinceActivity: inactivity.daysSinceProgress,
+            wasClosed: inactivity.action === "close",
+          });
+        }
+        // One comment per run: skip the status-based pings below
+        return { results, summaryData };
+      }
+    }
+
+    // A draft pull request has no SEP status yet, whatever its labels say.
+    // Only the inactivity rule applies to it.
+    if (sep.isDraft) {
       return { results, summaryData };
     }
 
@@ -195,7 +225,7 @@ export class SEPProcessor {
 
     switch (result.action.type) {
       case ActionType.MarkDormant:
-        summary.dormant.push({
+        summary.inactive.push({
           item: sep,
           daysSinceActivity: analysis.daysSinceActivity,
           wasClosed: analysis.shouldClose,

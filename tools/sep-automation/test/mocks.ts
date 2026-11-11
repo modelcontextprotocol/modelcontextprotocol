@@ -17,6 +17,7 @@ export interface MockGitHubClient {
   getIssuesWithLabel: Mock;
   getComments: Mock;
   getEvents: Mock;
+  getTimeline: Mock;
   addComment: Mock;
   addLabels: Mock;
   removeLabel: Mock;
@@ -34,6 +35,7 @@ export function createMockGitHubClient(): MockGitHubClient {
     getIssuesWithLabel: vi.fn().mockResolvedValue([]),
     getComments: vi.fn().mockResolvedValue([]),
     getEvents: vi.fn().mockResolvedValue([]),
+    getTimeline: vi.fn().mockResolvedValue([]),
     addComment: vi.fn().mockResolvedValue({ url: 'https://github.com/comment/1' }),
     addLabels: vi.fn().mockResolvedValue(undefined),
     removeLabel: vi.fn().mockResolvedValue(undefined),
@@ -107,6 +109,8 @@ export function createMockConfig(overrides: Partial<Config> = {}): Config {
     acceptedPingDays: 30,
     maintainerInactivityDays: 14,
     pingCooldownDays: 14,
+    inactivityWarningDays: 150,
+    inactivityCloseDays: 180,
     dryRun: false,
     discordWebhookUrl: null,
     ...overrides,
@@ -130,6 +134,7 @@ export function createMockSEPItem(overrides: Partial<SEPItem> = {}): SEPItem {
     updatedAt: new Date('2024-01-01'),
     url: 'https://github.com/test/123',
     isClosed: false,
+    isDraft: false,
     ...overrides,
   };
 }
