@@ -1,0 +1,18 @@
+{{- $images := slice -}}
+{{- $candidates := .Params.images | default slice -}}
+{{- with .Params.cover.image -}}
+  {{- $candidates = slice . -}}
+{{- end -}}
+{{- range $candidates -}}
+  {{- $url := . | absURL -}}
+  {{- with $.Resources.GetMatch . -}}
+    {{- $url = .Permalink -}}
+  {{- end -}}
+  {{- $images = $images | append (dict "Permalink" $url) -}}
+{{- end -}}
+{{- if not $images -}}
+  {{- range site.Params.images -}}
+    {{- $images = $images | append (dict "Permalink" (. | absURL)) -}}
+  {{- end -}}
+{{- end -}}
+{{- return $images -}}

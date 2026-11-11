@@ -3,7 +3,7 @@ title: "Exploring File Uploads and Downloads in MCP"
 date: "2026-11-10T09:00:00+00:00"
 publishDate: "2026-11-10T09:00:00+00:00"
 slug: exploring-file-uploads-and-downloads-in-mcp
-description: "We're working on an extension for moving files between clients and tools in MCP. It's early, and we'd love your help trying it out."
+description: "We're working on an extension for moving files between clients and tools in MCP. We'd love your help testing it out."
 author:
   - Den Delimarsky (Lead Maintainer)
   - Wil St. Charles (Google)
@@ -15,37 +15,43 @@ tags:
 ShowToc: true
 ---
 
-The Model Context Protocol (MCP) started out as a way to connect models to tools, and that's still the heart of it. But the things people build with it keep getting more ambitious, and sooner or later a lot of those projects need to work with files. Saving a PDF out of a conversation. Pulling a CSV into a sandbox. Handing a tool a deck with a pile of assets.
+The Model Context Protocol (MCP) started out as a simple way to connect models to tools, and that's very much still the heart of it. But, as the past two years have shown, the things people build with the protocol keep getting more ambitious - sooner or later a lot of MCP server projects we see need to work with files.
 
-This came up enough that we spun up the [File Uploads Working Group](https://modelcontextprotocol.io/community/working-groups/file-uploads), and we've spent the last month trying out what a solution could look like. We now have a rough extension, and we'd love for you to poke at it as we start prototyping.
+You don't really need to look too far - saving a PDF out of a conversation or pulling a CSV into a sandbox seems to be a very common request that folks want to accomplish with the help of MCP. Today, there is no elegant way to do this without going through existing tool constructs and only working with smaller files.
+
+Because this problem came up enough times in all sorts of customer discussions, we spun up the [File Uploads Working Group](https://modelcontextprotocol.io/community/working-groups/file-uploads). We've spent the last month trying to draw out what a potential solution could look like.
+
+Thanks to the effort of our community and developers, we now have a rough extension definition, and we'd love for you to poke at it as we start prototyping and trying out how it works in the wild.
 
 {{< button text="Read the draft extension" url="https://github.com/modelcontextprotocol/experimental-ext-file-uploads/blob/main/specification/draft/file-uploads.md" target="_blank" >}}
 
-## Where this stands
+## Where the work stands
 
-This is an experimental effort, and we're not sure yet that the shapes we started with are the ones we'll end up with. The best way to find out is contact with reality. So we'd love for you to try it out, and maybe help us prototype it, so we can all see what works and what doesn't.
+The work on the extension is still very much an experimental effort - while we have the shape outlined, we're not sure yet that what we started with is what we'll end up with. The best way to find out is, you guessed it - contact with reality.
 
-It hasn't been approved, it's not part of the MCP specification, and it may change a lot. There's no reference implementation yet, and the working group plans to submit the draft as a Specification Enhancement Proposal (SEP) once there is one. It's an optional extension, so tools that don't adopt it keep working the way they do today. The draft covers tools only, and resources behave as they do in the base protocol.
+You might also notice that there's no reference implementation yet - that's because we expect that a lot of the inner workings will, in fact, be quite different once we start integrating our experiment with third-party file services, such as cloud storage, database import/export, and many others that require file input and output.
 
-## What we had in mind
+As with all other extensions, this one will remain optional - there is no work required on either clients or servers if they don't plan to support it (although we hope they _really_ will, given the broad interest in this work).
 
-We started with a few scenarios:
-
-- You have a large file in a conversation, and you want to save it to cloud storage.
-- You want to pull a big CSV file into a code sandbox, so your agent can analyze the data or build some Python code around it.
-- You want to upload a large presentation, or an HTML deck with all of its assets in a zip file.
-
-The agent needs to know about the file in each of these, but the model doesn't need to read every byte of it. The file should go straight to where it's going, and the model should just hear how it went.
+We expect to finalize the extension and have it become stable before the end of the year.
 
 ## How it works
 
-The extension's identifier is `io.modelcontextprotocol/files`, and it works with protocol revision `2026-07-28` and later. A server advertises it in its `server/discover` response, with `upload` if it accepts files out of band and `maxInlineBytes` if it accepts them inline. A client declares it in the `io.modelcontextprotocol/clientCapabilities` metadata of every request that may need it, including `tools/list`, with `upload` if it can upload out of band and `download` if it accepts download targets.
+When we first jumped into discussions for what the extension may be, we had a few key scenarios that guided us:
 
-Let's walk through one upload. Say a server has a `save_to_folder` tool, and a user wants to save a PDF with it.
+- You have a large file in a conversation, and you want to save it to cloud storage.
+- You want to pull a big CSV file into a code sandbox, so your agent can analyze the data or build some Python code around it.
+- You want to upload a large presentation, or an HTML deck with all of its assets in a ZIP file to a third-party remote server.
+
+In each of these scenarios, the agent needs to know a bunch of things about the file, but the model doesn't need to read every byte or even handle it directly. The file should go directly to its destination. This led to the design you will read about below.
+
+The extension identifies itself as `io.modelcontextprotocol/files`, and it works with protocol revision `2026-07-28` and later. A server can advertise it in its `server/discover` response, with `upload` if it accepts files out of band and `maxInlineBytes` if it accepts them inline. A client declares it in the `io.modelcontextprotocol/clientCapabilities` metadata of every request that may need it, including `tools/list`, with `upload` if it can upload out of band and `download` if it accepts download targets.
+
+Let's walk through one simple upload. Let's say a server has a `save_to_folder` tool, and a user wants to save a PDF with it.
 
 ### Marking a file argument
 
-The server marks the argument with `x-mcp-file` in the tool's input schema. This is the same pattern as [`x-mcp-header`](https://modelcontextprotocol.io/specification/2026-07-28/server/tools#x-mcp-header), and it tells the client that this argument is a file, so the client fills it in and the model doesn't have to:
+The server marks the argument with `x-mcp-file` in the tool's input schema. This is the same pattern as [`x-mcp-header`](https://modelcontextprotocol.io/specification/2026-07-28/server/tools#x-mcp-header), and it tells the client that this argument is a file, so the client fills it in (and, by proxy, the model doesn't have to):
 
 ```json
 {
@@ -69,13 +75,17 @@ The server marks the argument with `x-mcp-file` in the tool's input schema. This
 }
 ```
 
-A small file can go inline as base64 in `data`, as long as the request's inline files total no more than the `maxInlineBytes` the server advertises. For anything bigger, if the server advertises `upload`, the client leaves `data` out and the upload happens in the steps below. `maxSize` limits each file however it travels. The full `FileInput` shape also has an optional SHA-256 `digest`, and a tool that needs one requires it in its schema.
+A small file can go inline as base64 in `data`, as long as the request's inline files total no more than the `maxInlineBytes` the server advertises. For anything bigger, if the server advertises `upload`, the client leaves `data` out and the upload happens in the steps below. `maxSize` limits each file however it travels. The full `FileInput` shape also has an optional SHA-256 `digest`, which a tool can require in its schema.
 
-A client without this extension ignores the `x-mcp-file` keyword and sees an object argument it can't fill in correctly, so for requests that didn't declare the extension, servers should leave the tool out or list a variant that takes the file another way.
+A client that doesn't support the extension ignores `x-mcp-file` and treats the argument as an ordinary object. If the client doesn't declare extension support in its `tools/list` request, the server should omit the tool or offer an alternative. For example, that alternative could accept a URL pointing to an already-uploaded file.
 
 ### Asking before sending
 
-Once the host has approval to send the file, from the user or from operator policy when no user is present, the client calls the tool with the file's metadata and no bytes. We've left `_meta`, where the client's declaration goes, out of these examples:
+Before sending the file, the host gets the user's approval. When no user is present, agent policy determines whether the transfer is allowed. The client then calls the tool with just the **file's metadata**, not its contents.
+
+{{< note >}}
+We've left `_meta` out of the examples to keep them readable. In a real request, that's where the client declares support for the extension.
+{{< /note >}}
 
 ```json
 {
@@ -97,9 +107,9 @@ Once the host has approval to send the file, from the user or from operator poli
 }
 ```
 
-We send metadata first so the server can say no cheaply. It sees the destination folder along with the file, so it can check permissions and quota, and return a normal tool error if something's off. Nobody uploads 40 MB only to find out the folder is read-only.
+Sending metadata first lets the server check permissions and storage quota before the upload starts. If either check fails, the server returns a normal tool error. That way, you don't have to upload 40MB of data only to discover that the destination folder is read-only.
 
-If the server is fine with the file, it responds with an upload target, using a new `upload_required` result type that the extension adds:
+If the checks pass, the server asks the client to upload the file before it runs the tool. It does this through the extension's new `upload_required` result type. The response tells the client where and how to upload the file, and includes a `requestState` value to send back when retrying the tool call afterward:
 
 ```json
 {
@@ -121,13 +131,17 @@ If the server is fine with the file, it responds with an upload target, using a 
 }
 ```
 
-The `requestState` is opaque to the client, and it's how the server avoids keeping protocol session state. The server binds the tool name, the arguments, each file's target, and the authenticated principal, if there is one, into it, so any instance that can reach the storage can handle the next step. A tool that's unsafe to run twice also needs a record that every instance shares, so that each `requestState` is accepted only once.
+In this example, `requestState` represents the unfinished job: saving the PDF into a specific folder. The server packages the details it needs to continue into a value, protects it against tampering, and sends it with the upload instructions. After uploading the file, the client sends that value back unchanged, without needing to understand its contents.
 
-### Moving the bytes and finishing the call
+The next tool call will bring its own context rather than rely on a session with the server. This is intentionally designed with the MCP [stateless core](https://modelcontextprotocol.io/specification/2026-07-28/basic#statelessness) in mind. A different server instance can continue the job too, as long as it can verify the value and access the uploaded file.
 
-The client sends the file to the target with an ordinary HTTPS request, here a `PUT`. Targets can also use `POST`, including a `multipart/form-data` body, because that's what a lot of storage APIs expect. The bytes never touch a JSON-RPC message.
+In a few scenarios, tools need protection against running twice - for example if another run would create an unwanted duplicate file. For those tools, the server marks `requestState` as used before running the job. All server instances share that record, so another attempt with the same value is rejected.
 
-Once it gets a `2xx`, the client retries the tool call with the same arguments and the `requestState` it was given, the same retry pattern as [Multi Round-Trip Requests](https://modelcontextprotocol.io/specification/2026-07-28/basic/patterns/mrtr):
+### Completing the job
+
+The client uploads the PDF to the provided URL using an HTTPS `PUT` request. For storage services that need it, upload targets can instead specify `POST`, including a `multipart/form-data` body. The file's contents will then travel directly to the upload target, outside JSON-RPC.
+
+When the upload succeeds with an HTTP `2xx` response, the client calls our `save_to_folder` tool again. It sends the same arguments and returns `requestState` unchanged, following the newly-shipped [Multi Round-Trip Requests](https://modelcontextprotocol.io/specification/2026-07-28/basic/patterns/mrtr) pattern:
 
 ```json
 {
@@ -150,11 +164,13 @@ Once it gets a `2xx`, the client retries the tool call with the same arguments a
 }
 ```
 
-A retry isn't proof that the bytes arrived, so the server verifies `requestState` and checks that the call matches it, confirms with the storage that the bytes are there, re-checks their size and type, and only then runs the tool and returns an ordinary tool result. If a transfer fails, the client doesn't retry the call, and the tool doesn't run.
+The server still needs to check the upload, though. It will verify `requestState` and confirm that the retry matches the original call. It will then check with the storage service that the file arrived and validate its size and type.
 
-All of this happens inside the client. The model made one tool call and got one result, and neither the bytes nor the upload URL entered its context.
+Only after those checks pass does it run `save_to_folder` and return the result. If the upload fails, the client doesn't send the retry, and the tool doesn't run.
 
-Here's the whole upload:
+All of the above happen exclusively inside the client. The model made the tool call and got the result - neither the bytes nor the upload URL entered its context.
+
+If you are curious about the end-to-end flow, it looks something like this:
 
 ```mermaid
 sequenceDiagram
@@ -180,9 +196,21 @@ sequenceDiagram
     H-->>M: Result, with no target
 ```
 
-### Getting a file back
+### Downloading a file
 
-Downloads are simpler. A tool lists the file in the `_meta` of its result, and the client fetches it with a `GET`:
+To no surprise, we're also exploring the reverse flow: a tool can produce a file, and the client will need to download it. Like uploads, the file contents travel outside JSON-RPC.
+
+The key difference is, however, that the tool can return download details with its completed result, so the client doesn't need to retry the tool call after the transfer.
+
+{{< note title="Why different response formats?" >}}
+An observant reader might notice that upload targets arrive in an `upload_required` result, while download targets appear in `_meta`.
+
+MCP's [`_meta` field](https://modelcontextprotocol.io/specification/2026-07-28/basic#_meta) lets clients and servers attach additional metadata to their interactions, including extension-specific details.
+
+Here, the download instructions accompany the completed tool result rather than going in its normal `content`. Uploads need a different signal: `upload_required` tells the client to upload and retry before the tool can run. The extension keeps both kinds of targets out of model context.
+{{< /note >}}
+
+The draft defines a download response format using the result's `_meta`. In the CSV example below, the tool returns the download URL and file details, and the client can fetch the file with an HTTPS `GET` request:
 
 ```json
 {
@@ -209,9 +237,17 @@ Downloads are simpler. A tool lists the file in the `_meta` of its result, and t
 }
 ```
 
-The working group has discussed downloads but hasn't reviewed this shape yet, and one open question is whether it should use `resource_link` instead of `_meta`. As drafted, a server lists a target only in the result of a call that declared `download`, and it still has to describe the result in `content`. The target stays out of the model's context, the same as an upload target. The client checks `size` and any `digest`, can use HTTP range requests to split or resume the download, and treats the file as untrusted.
+How download details should be represented in tool results is still an [open design question](https://github.com/modelcontextprotocol/experimental-ext-file-uploads/blob/main/specification/draft/file-uploads.md#open-questions). While we currently are eyeing using `_meta`, we'd very much like feedback on how this approach works in practice.
 
-And here's the whole download:
+The client declares `download` support in its tool call to tell the server it knows how to handle download targets. Only then can the server include them in its response. The result's `content` still tells the model what was produced, such as "Exported q3-orders.csv.", while the client handles the download target without exposing it to the model.
+
+After downloading, the client checks the file's byte count against `size`. If the server supplied a `digest`, the client can also calculate the file's hash and compare it with that value. A mismatch means the file must be discarded.
+
+{{< note title="Integrity is not safety" >}}
+It's worth noting that a matching `digest` confirms that the bytes match the supplied hash, not that the file is safe. A server can provide a harmful file and a matching digest - clients must still treat downloaded files as untrusted.
+{{< /note >}}
+
+This is what the proposed file download flow looks like:
 
 ```mermaid
 sequenceDiagram
@@ -230,15 +266,17 @@ sequenceDiagram
     H-->>M: Result, with no target
 ```
 
-## Who gets to see your credentials
+## What about credentials
 
-Every target has a `credentials` field, and it tells the client whether to attach the credential it uses for this MCP server.
+A file transfer may go to a storage service rather than the MCP server itself. This means that the client must not automatically send its MCP credentials to every URL the server provides, because that could expose the token to a completely unrelated service.
 
-We need that field because the server picks the target. If a client attached its token to any URL a server handed it, a server could point it at another host and collect the token. So the client attaches it only when the server asks and the target is under the MCP address or on the server's own origin.
+Every upload and download target therefore includes a `credentials` field. It tells the client whether to attach the credential it uses for the MCP server, with two modes: `omit` and `include`.
 
-The first case is `"credentials": "omit"`, which is what you saw above. The URL carries its own authorization, like a pre-signed URL from an object store. The client sends the file with no token, cookie, or other credential, so a third-party storage host never sees anything that works against your MCP server.
+With `"credentials": "omit"`, used in the examples above, the client doesn't attach its MCP token, cookies, or other credentials from its environment. The target provides its own authorization, such as the signature in a pre-signed URL. That lets the storage service accept the transfer without receiving the client's MCP credential.
 
-The second case is for deployments that don't allow pre-signed URLs, or where a gateway sits between the client and the storage and holds the OAuth credentials. There the server issues a `path` and asks for the credential:
+With `"credentials": "include"`, the client attaches its MCP credential, but **only** to a `path` under its MCP address or a URL on the server's own origin. This is useful when pre-signed URLs aren't an option or file transfers need to pass through a gateway.
+
+In the example below, the server provides a `path` instead of a separate URL when upoading a file:
 
 ```json
 {
@@ -248,16 +286,20 @@ The second case is for deployments that don't allow pre-signed URLs, or where a 
 }
 ```
 
-The client resolves that `path` under the MCP address it already uses, so with `https://gateway.example.com/mcp/abc`, the file goes to `https://gateway.example.com/mcp/abc/uploads`. The bytes take the same route as the client's MCP calls, which also helps a client in a sandbox that can't reach a public storage host at all. The client attaches its MCP credential here because it's going where that credential already goes.
+For a client using `https://gateway.example.com/mcp/abc`, that `path` resolves to `https://gateway.example.com/mcp/abc/uploads`. The upload goes through the same gateway as the MCP calls and uses the same MCP credential. This also helps sandboxed clients that can reach the gateway but not the storage service directly.
 
-The client won't follow redirects, so a target can't bounce the token to another origin. A target also can't set its own `Authorization` header, so the only one on a transfer is the one `credentials` controls.
+The client must also refuse redirects and reject targets that supply an `Authorization` header. This helps prevent scenarios where a target redirects the transfer to another origin or overrides the credential handling defined by `credentials`.
 
-These rules protect the token, not the file. A malicious server can name any public URL as an `omit` target and receive the file there, and host approval can't limit where the file goes, because the host gets that approval before the target is known. The draft recommends that hosts restrict `omit` targets to an allowlist of origins, and whether that allowlist should be mandatory is one of the [open questions](https://github.com/modelcontextprotocol/experimental-ext-file-uploads/blob/main/specification/draft/file-uploads.md#open-questions). The [Security Implications](https://github.com/modelcontextprotocol/experimental-ext-file-uploads/blob/main/specification/draft/file-uploads.md#security-implications) section covers the rest.
+These safeguards control where the client's MCP credential is sent, but they don't by themselves control **where the file goes**. With `omit`, a malicious server could still direct an upload to a public endpoint it controls. The host, in this context, should implement safeguards to allow getting approval before the server returns the target.
+
+To limit the risk, our draft recommends that hosts restrict `omit` targets to an allowlist of permitted origins. Whether to make that restriction mandatory introduced yet another [open question](https://github.com/modelcontextprotocol/experimental-ext-file-uploads/blob/main/specification/draft/file-uploads.md#open-questions) that we'd love your thoughts on.
+
+The draft's [Security Implications](https://github.com/modelcontextprotocol/experimental-ext-file-uploads/blob/main/specification/draft/file-uploads.md#security-implications) section discusses these risks in more detail, along with our thinking on how to mitigate them.
 
 ## We'd love your help
 
-Try this against something real. We don't have anything for you to install yet, so that means reading the draft, prototyping it against the storage or the agent you work with, and telling us what happens.
+We'd love your feedback on the [draft](https://github.com/modelcontextprotocol/experimental-ext-file-uploads/blob/main/specification/draft/file-uploads.md). You can explore the [extension repository](https://github.com/modelcontextprotocol/experimental-ext-file-uploads), [open an issue](https://github.com/modelcontextprotocol/experimental-ext-file-uploads/issues), or come chat with us in the [working group's Discord discussion](https://discord.com/channels/1358869848138059966/1497669234564661438). See our [communications guide](https://modelcontextprotocol.io/community/communication) for details on joining the community.
 
-The draft's [open questions](https://github.com/modelcontextprotocol/experimental-ext-file-uploads/blob/main/specification/draft/file-uploads.md#open-questions) are where we most need input. If your storage needs an explicit commit after the upload, does doing that when the retry arrives work for you? If your gateway exposes a single generic tool, how should file arguments work behind it? Should `digest` be required? Chunked and resumable uploads, multipart `tools/call`, and out-of-band uploads in elicitation forms are on the [future work](https://github.com/modelcontextprotocol/experimental-ext-file-uploads/blob/main/specification/draft/file-uploads.md#future-work) list, so tell us if you need those too.
+## Acknowledgments
 
-You can [open an issue](https://github.com/modelcontextprotocol/experimental-ext-file-uploads/issues) in the extension repository, or come talk to us in the working group's thread on the [MCP Discord](https://modelcontextprotocol.io/community/communication#discord).
+Thanks to Ethan Heimlich, Gaurav Soni, [Jay Zuccarelli](https://github.com/jayzuccarelli), [Kevin Lam](https://github.com/kevklam), [Kryspin Ziemski](https://github.com/kziemski), [Kurtis Van Gent](https://github.com/kurtisvg), Madhavi Pasumarthi, Mike Coopersmith, [Mike Eastes](https://github.com/meastes), [Patrick Rodgers](https://github.com/patrick-rodgers), Prem Ramanathan, [Thomas Sarlandie](https://github.com/tsarlandie-oai), and everyone who has brought use cases, questions, and feedback to the [working group's discussions](https://github.com/modelcontextprotocol/modelcontextprotocol/discussions?discussions_q=Files+Working+Group+Meeting+in%3Atitle).
