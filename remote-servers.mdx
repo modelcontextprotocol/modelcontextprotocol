@@ -38,7 +38,9 @@ When you publish, the Registry verifies that you control the namespace in the se
 
 If your remote URL is on a domain you control, consider using DNS or HTTP authentication so the server name reflects that domain. This lets users see that the server name and remote URL belong to the same publisher.
 
-Each remote URL can be used by only one server name. Publishing fails if another server already uses the same URL.
+Multiple server names can reference the same remote URL. An existing listing does not reserve that URL or prevent another publisher from listing it under a namespace they control. Sharing a URL does not grant permission to publish, edit, or change the status of another publisher's listing.
+
+Consumers should identify registry records by server name and version, not by remote URL. A URL lookup may match multiple server names, each with its own metadata, headers, and template variables. Do not merge configurations or infer publisher ownership or endorsement from a shared URL.
 
 ## Transport Type
 
