@@ -1,10 +1,9 @@
 baseURL = 'https://blog.modelcontextprotocol.io/'
-languageCode = 'en-us'
+defaultContentLanguage = 'en-us'
 title = 'Model Context Protocol Blog'
 copyright = 'Copyright © Model Context Protocol a Series of LF Projects, LLC.<br>For web site terms of use, trademark policy and other project policies please see [https://lfprojects.org](https://lfprojects.org).'
 enableGitInfo = true
 enableRobotsTXT = true
-theme = 'github.com/adityatelange/hugo-PaperMod'
 # Tag pages are titled with the tag as written ("ruby"), not "Ruby".
 capitalizeListTitles = false
 
@@ -12,29 +11,25 @@ capitalizeListTitles = false
 [taxonomies]
   tag = 'tags'
 
-# JSON output enables PaperMod's Fuse.js client-side search.
+# JSON output supplies the client-side search index.
 [outputs]
   home = ["HTML", "RSS", "JSON"]
 
 [params]
+  mainSections = ["posts"]
   author = "The MCP project"
   description = "Updates from the Model Context Protocol project"
   images = ["og-image.png"]
 
-  # PaperMod specific settings
   # defaultTheme = "dark" # MCP uses a dark theme
   disableThemeToggle = false
-  ShowShareButtons = false
   ShowReadingTime = true
   ShowPostNavLinks = false
   ShowBreadCrumbs = true
   ShowCodeCopyButtons = true
   ShowWordCount = false
   ShowRssButtonInSectionTermList = true
-  UseHugoToc = false
-  disableSpecial1stPost = true
   disableScrollToTop = false
-  comments = false
   hidemeta = false
   hideSummary = false
   ShowFullTextinRSS = true
@@ -59,11 +54,18 @@ capitalizeListTitles = false
 
   [[params.socialIcons]]
     name = "github"
+    title = "GitHub"
     url = "https://github.com/modelcontextprotocol"
 
   [[params.socialIcons]]
     name = "linkedin"
+    title = "LinkedIn"
     url = "https://linkedin.com/company/modelcontextprotocol"
+
+  [[params.socialIcons]]
+    name = "discord"
+    title = "Discord"
+    url = "https://discord.gg/6CSzBmMkjX"
 
 # Menu configuration
 [[menu.main]]
@@ -71,12 +73,6 @@ capitalizeListTitles = false
   name = "Documentation"
   url = "https://modelcontextprotocol.io/docs"
   weight = 10
-
-[[menu.main]]
-  identifier = "tags"
-  name = "Tags"
-  url = "/tags/"
-  weight = 20
 
 [[menu.main]]
   identifier = "search"
@@ -97,7 +93,3 @@ capitalizeListTitles = false
 # dateModified reflects actual edits, not just frontmatter.
 [frontmatter]
   lastmod = [':git', 'lastmod', 'date', 'publishDate']
-
-[module]
-  [[module.imports]]
-    path = 'github.com/adityatelange/hugo-PaperMod'
