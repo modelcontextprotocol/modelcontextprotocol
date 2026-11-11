@@ -1,11 +1,11 @@
-# SEP-{NUMBER}: Remove the Dormant Status
+# SEP-3546: Remove the Dormant Status
 
 - **Status**: Draft
 - **Type**: Process
 - **Created**: 2026-11-11
 - **Author(s)**: David Soria Parra (@dsp-ant)
 - **Sponsor**: David Soria Parra (@dsp-ant), on behalf of the Core Maintainers
-- **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/{NUMBER}
+- **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/3546
 
 ## Abstract
 

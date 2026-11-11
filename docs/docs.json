@@ -870,6 +870,12 @@
             "pages": [
               "seps/3398-release-cycle-updates"
             ]
+          },
+          {
+            "group": "Draft",
+            "pages": [
+              "seps/3546-remove-dormant-status"
+            ]
           }
         ]
       },
@@ -1467,6 +1473,10 @@
     {
       "source": "/seps/3398",
       "destination": "/seps/3398-release-cycle-updates"
+    },
+    {
+      "source": "/seps/3546",
+      "destination": "/seps/3546-remove-dormant-status"
     }
   ],
   "contextual": {
