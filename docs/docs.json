@@ -902,6 +902,7 @@
                 "pages": [
                   "community/working-groups/overview",
                   "community/working-groups/apps",
+                  "community/working-groups/core-primitives",
                   "community/working-groups/file-uploads",
                   "community/working-groups/filesystems",
                   "community/working-groups/governance",

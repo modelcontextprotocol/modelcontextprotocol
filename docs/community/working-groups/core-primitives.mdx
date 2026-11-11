@@ -1,0 +1,87 @@
+---
+title: Core Primitives Charter
+description: Charter for the MCP Core Primitives Working Group.
+---
+
+## Group Type
+
+**Working Group**
+
+## Mission Statement
+
+The Core Primitives Working Group coordinates proposals that improve MCP's core primitives. The [roadmap](/development/roadmap#4-improved-primitives) names the group under its Improved Primitives priority area and assigns it three items for the current roadmap period: tool result shape, progressive discovery, and primitive annotations.
+
+## Scope
+
+### In Scope
+
+The roadmap assigns the group these items:
+
+- **Tool result shape**: Redesigning the `tools/call` interface to resolve fidelity disparities among return types and streamline the handling of structured and unstructured output.
+- **Progressive discovery**: Clients learn a server's tools and resources as they need them instead of ingesting the full catalog up front.
+- **Primitive annotations**: Deciding whether [content annotations](/specification/2026-07-28/server/resources#annotations) apply to tool results and resources, or are deprecated if they are not useful.
+
+The roadmap leaves the rest of the priority area open for the group to define.
+
+### Out of Scope
+
+To be defined by the leads.
+
+### Related Groups
+
+- **[File Uploads WG](/community/working-groups/file-uploads)**: The roadmap places its work on scoped file operations and filesystem-like resource semantics in the same priority area.
+- **[Transports WG](/community/working-groups/transports)**: The roadmap assigns caching to the Transports WG under [HTTP-Native Transport Unification and Hardening](/development/roadmap#2-http-native-transport-unification-and-hardening) and calls for a defined interaction between progressive discovery and that caching work.
+
+## Leadership
+
+| Role | Name              | Organization | GitHub                                   | Term            |
+| ---- | ----------------- | ------------ | ---------------------------------------- | --------------- |
+| Lead | Kurtis Van Gent   | Google       | [@kurtisvg](https://github.com/kurtisvg) | To be confirmed |
+| Lead | David Soria Parra | Anthropic    | [@dsp-ant](https://github.com/dsp-ant)   | To be confirmed |
+
+## Authority & Decision Rights
+
+| Decision Type                       | Authority Level                                        |
+| ----------------------------------- | ------------------------------------------------------ |
+| Meeting logistics & scheduling      | WG Leads (autonomous)                                  |
+| Proposal prioritization within WG   | WG Leads (autonomous)                                  |
+| SEP triage & closure (in scope)     | WG Leads (autonomous, with documented rationale)       |
+| Technical design within scope       | WG consensus                                           |
+| Spec changes (additive)             | WG consensus → Core Maintainer approval                |
+| Spec changes (breaking/fundamental) | WG consensus → Core Maintainer approval + wider review |
+| Scope expansion                     | Core Maintainer approval required                      |
+| WG Member approval                  | WG Member sponsors                                     |
+
+## Operations
+
+| Meeting         | Frequency | Duration   | Purpose                               |
+| --------------- | --------- | ---------- | ------------------------------------- |
+| Working Session | Weekly    | 60 minutes | Technical discussion, proposal review |
+
+Meetings are listed on the [community calendar](https://meet.modelcontextprotocol.io/tag/core-primitives-wg).
+
+Repository: [modelcontextprotocol/core-primitives-wg](https://github.com/modelcontextprotocol/core-primitives-wg).
+
+Discord: `#core-primitives-wg`.
+
+## Deliverables & Success Metrics
+
+### Active Work Items
+
+| Item                  | Status          | Target Date     | Champion        |
+| --------------------- | --------------- | --------------- | --------------- |
+| Tool result shape     | To be confirmed | To be confirmed | To be confirmed |
+| Progressive discovery | To be confirmed | To be confirmed | To be confirmed |
+| Primitive annotations | To be confirmed | To be confirmed | To be confirmed |
+
+Proposals are developed in the [core-primitives-wg repository](https://github.com/modelcontextprotocol/core-primitives-wg).
+
+### Success Criteria
+
+To be defined by the leads.
+
+## Changelog
+
+| Date       | Change          |
+| ---------- | --------------- |
+| 2026-11-11 | Initial charter |
