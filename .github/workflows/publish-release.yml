@@ -1,43 +1,45 @@
 name: Publish spec release
 
 # Companion to cut-release.yml. Creates the GA tag + GitHub Release once the
-# `release/<version>` PR has merged to main. Runs only on the merge commit of a
-# release branch so a stray push can't publish.
+# `release/<version>` PR has merged to main, targeting that PR's merge commit.
 
 on:
-  push:
+  pull_request:
     branches: [main]
+    types: [closed]
 
 permissions:
   contents: write
 
 jobs:
   publish:
+    if: >-
+      github.event.pull_request.merged == true &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      startsWith(github.event.pull_request.head.ref, 'release/')
     runs-on: ubuntu-latest
-    # Only fire for the merge of a release/<YYYY-MM-DD> branch.
-    if: |
-      startsWith(github.event.head_commit.message, 'Add ')
-      && contains(github.event.head_commit.message, ' MCP specification')
+    env:
+      TARGET_SHA: ${{ github.event.pull_request.merge_commit_sha }}
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ env.TARGET_SHA }}
+          persist-credentials: false
 
       - name: Derive version from merged release branch
         id: v
         env:
-          # Never interpolate event payloads directly into run: — pass via env.
-          COMMIT_MSG: ${{ github.event.head_commit.message }}
+          RELEASE_BRANCH: ${{ github.event.pull_request.head.ref }}
         run: |
-          # COMMIT_MSG is "Add YYYY-MM-DD MCP specification (#NNN)"
-          V=$(printf '%s' "$COMMIT_MSG" | grep -oE '[0-9]{4}-[0-9]{2}-[0-9]{2}' | head -1)
-          [[ -n "$V" ]] || { echo "::error::could not parse version from commit message"; exit 1; }
-          [[ -d "docs/specification/$V" ]] || { echo "::error::docs/specification/$V missing on main"; exit 1; }
+          V="${RELEASE_BRANCH#release/}"
+          [[ "$V" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]] || { echo "::error::invalid release branch"; exit 1; }
+          [[ -d "docs/specification/$V" ]] || { echo "::error::docs/specification/$V missing"; exit 1; }
           echo "version=$V" >> "$GITHUB_OUTPUT"
 
       - name: Create GA release
         env:
           GH_TOKEN: ${{ github.token }}
           VERSION: ${{ steps.v.outputs.version }}
-          TARGET_SHA: ${{ github.sha }}
         run: |
           # Idempotent — skip if the tag already exists.
           if git ls-remote --exit-code --tags origin "refs/tags/${VERSION}"; then

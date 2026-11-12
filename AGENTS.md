@@ -109,4 +109,20 @@ are redirected out of this repo entirely:
 
 ## Commit Guidelines
 
-- Do not include model names or details (e.g., "Claude", "Opus") in commit messages
+Use Conventional Commit PR titles: `type(scope): description`. The scope is optional.
+
+```text
+sep: propose task cancellation
+sep(SEP-3398): clarify task cancellation
+fix(SEP-3398): correct the cancellation result type
+docs: clarify authorization
+ci: validate PR titles
+```
+
+- Once a new SEP has a PR number, use it as the `SEP-XXXX` scope. Follow-up PRs
+  keep the original SEP number and link to the proposal.
+- This format applies to PR titles; individual branch commits do not need rewriting.
+- Do not include model names or details (e.g., "Claude", "Opus") in commit messages.
+
+See [CONTRIBUTING.md](CONTRIBUTING.md#pull-request-titles) for the full type list
+and less common cases.

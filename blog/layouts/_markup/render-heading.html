@@ -1,0 +1,1 @@
+<h{{ .Level }} id="{{ .Anchor | safeURL }}">{{ .Text | safeHTML }}{{ if not (.Page.Param "disableAnchoredHeadings") }}<a class="anchor" href="#{{ .Anchor | safeURL }}" aria-label="Link to {{ .Text | plainify }}">#</a>{{ end }}</h{{ .Level }}>

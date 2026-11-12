@@ -212,8 +212,6 @@
     color-scheme: light;
 }
 
-/* Dark theme. PaperMod's script puts .dark on <body>. It is limited to
-   screens so that paper always gets the light tokens. */
 @media screen {
     .dark {
         --paper: #09090b;
@@ -234,12 +232,6 @@
     }
 }
 
-/* Without JavaScript nothing adds .dark, so the system setting decides. This
-   is the block above again and the two must stay the same. It is set on
-   <body> because PaperMod handles this case with a <noscript> block that puts
-   its own dark palette on :root after this stylesheet. What is set on <body>
-   wins over that. A browser that does not know this media feature shows the
-   light theme, whole. */
 @media screen and (scripting: none) and (prefers-color-scheme: dark) {
     body {
         --paper: #09090b;
@@ -258,30 +250,12 @@
     }
 }
 
-/* PaperMod's own variables, pointed at the tokens. Any theme rule that is not
-   overridden below still lands on the same palette and spacing. Three
-   selectors: .dark because PaperMod sets its dark values there, body for the
-   no-JavaScript case above, :root for the page scrollbar. */
 :root,
 body,
 .dark {
-    --theme: var(--paper);
-    --entry: var(--surface);
-    --primary: var(--ink);
-    --secondary: var(--muted);
-    --tertiary: var(--line);
-    --content: var(--text);
-    --code-bg: var(--surface);
-    --code-block-bg: var(--code-paper);
-    --border: var(--line);
-    --radius: var(--r-lg);
     --gap: var(--s-6);
-    --content-gap: var(--s-6);
     --header-height: var(--s-16);
-    /* The header is as wide as the text column, so the logo shares the left
-       edge with every title and the theme toggle ends on the right edge.
-       PaperMod's default is 1024px against a 720px column. */
-    --nav-width: var(--main-width);
+        --nav-width: var(--main-width);
 }
 
 /* ─── Base ───────────────────────────────────────────────────────────────── */
@@ -300,8 +274,6 @@ body {
     text-rendering: optimizeLegibility;
 }
 
-/* PaperMod paints list pages grey in the light theme. One paper everywhere,
-   including the scrollbar track. */
 .list,
 .dark.list,
 .list:not(.dark)::-webkit-scrollbar-track {
@@ -356,8 +328,7 @@ samp {
     text-decoration-thickness: var(--hair);
     text-underline-offset: 0.2em;
     text-decoration-color: var(--edge);
-    /* PaperMod fakes underlines with a box-shadow and a border. */
-    border: 0;
+        border: 0;
     box-shadow: none;
 }
 
@@ -385,10 +356,6 @@ samp {
     text-underline-offset: 0.2em;
 }
 
-/* PaperMod removes outlines from the theme toggle, the top link, inputs, the
-   contents toggle and search results, and puts nothing in their place.
-   :focus-visible leaves mouse clicks alone and gives keyboard users the same
-   ring on everything. */
 :focus-visible,
 #theme-toggle:focus-visible,
 .top-link:focus-visible,
@@ -399,7 +366,6 @@ samp {
     border-radius: var(--r-sm);
 }
 
-/* PaperMod shrinks tags and search results while the mouse button is down. */
 .terms-tags a,
 .terms-tags a:active,
 #searchResults li:active,
@@ -426,10 +392,6 @@ samp {
 }
 
 /* ─── Page frame ─────────────────────────────────────────────────────────── */
-/* PaperMod sizes .main with calc(100vh - 60px - 60px), assuming a one-line
-   footer. Ours is taller, so that calc forces a small scroll even when the
-   content fits. A flex column lets the footer sit at the bottom whatever its
-   height. 100dvh avoids the mobile address-bar jump, 100vh is the fallback. */
 body {
     display: flex;
     flex-direction: column;
@@ -449,14 +411,20 @@ body {
 }
 
 /* ─── Header ─────────────────────────────────────────────────────────────── */
-/* See layouts/partials/header.html. No rule under it. The site name is
-   semibold ink, the links are medium and muted, and the page you are on is
-   ink. PaperMod gets the bar's height from a 60px line-height on every link,
-   which makes focus rings 60px tall, and #menu clips them. The height is set
-   on the bar instead. */
+.header {
+    border-bottom: var(--hair) solid var(--line);
+    background: var(--paper);
+}
+
 .nav {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto var(--s-10) var(--s-10);
+    grid-template-areas: "brand links socials search theme";
+    gap: var(--s-4);
     align-items: center;
+    max-width: 86rem;
     min-height: var(--header-height);
+    padding-inline: var(--s-12);
     line-height: var(--lh-2);
 }
 
@@ -466,7 +434,62 @@ body {
 }
 
 #menu {
-    overflow: visible;
+    display: contents;
+}
+
+.nav .logo {
+    grid-area: brand;
+    min-width: 0;
+    margin: 0;
+}
+
+#menu .menu-item {
+    grid-area: links;
+    justify-self: end;
+}
+
+#menu .menu-search {
+    grid-area: search;
+}
+
+#menu .menu-external {
+    display: none;
+}
+
+#menu .menu-item > a {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s-1);
+    min-height: var(--s-10);
+}
+
+.menu-label-short,
+.logo-label-short {
+    display: none;
+}
+
+#menu .menu-search .menu-item-text {
+    display: none;
+}
+
+#menu .menu-search > a {
+    display: flex;
+    justify-content: center;
+    width: var(--s-10);
+    height: var(--s-10);
+    min-height: var(--s-10);
+    border-radius: var(--r-sm);
+}
+
+#menu .menu-search > a:hover {
+    background: var(--surface);
+}
+
+.menu-search-icon,
+.menu-search-icon svg {
+    display: block;
+    width: var(--icon);
+    height: var(--icon);
 }
 
 .logo a {
@@ -478,15 +501,39 @@ body {
     letter-spacing: var(--ls-2);
 }
 
-/* PaperMod nudges the mark up by 10% and adds a margin. The flex row above
-   centers it on the text instead. */
 .logo a .logo-svg {
+    flex: none;
     width: var(--s-6);
     height: var(--s-6);
     /* The drawing starts 2px inside its box. Pulling it back puts the ink,
        not the box, on the column edge. */
     margin: 0 0 0 calc(var(--s-half) * -1);
     transform: none;
+}
+
+.logo a img {
+    width: auto;
+    height: var(--lh-3);
+    object-fit: contain;
+}
+
+.logo .brand-dark,
+.dark .logo .brand-light {
+    display: none;
+}
+
+.dark .logo .brand-dark {
+    display: block;
+}
+
+@media (scripting: none) and (prefers-color-scheme: dark) {
+    .logo .brand-light {
+        display: none;
+    }
+
+    .logo .brand-dark {
+        display: block;
+    }
 }
 
 /* Empty on a single-language site, but it has a margin. */
@@ -512,14 +559,59 @@ body {
     color: inherit;
 }
 
-/* display is set with the id alone, on purpose. PaperMod hides the toggle for
-   readers without JavaScript with "#theme-toggle { display: none }" in a
-   <noscript> block after this stylesheet, and a stronger selector here would
-   bring the dead button back. */
+.header-actions {
+    display: contents;
+    color: var(--muted);
+}
+
+.header-actions .menu-socials {
+    grid-area: socials;
+}
+
+.menu-theme {
+    grid-area: theme;
+}
+
+.menu-socials {
+    display: flex;
+    align-items: center;
+    gap: var(--s-1);
+}
+
+a.menu-social {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--s-8);
+    height: var(--s-8);
+    border-radius: var(--r-sm);
+}
+
+a.menu-social:hover {
+    color: var(--ink);
+    background: var(--surface);
+    text-decoration: none;
+}
+
+.menu-social svg {
+    display: block;
+    width: var(--icon);
+    height: var(--icon);
+    fill: currentColor;
+}
+
 #theme-toggle {
     display: flex;
     align-items: center;
-    height: var(--lh-2);
+    justify-content: center;
+    width: var(--s-10);
+    height: var(--s-10);
+    padding: 0;
+    border-radius: var(--r-sm);
+}
+
+#theme-toggle:hover {
+    background: var(--surface);
 }
 
 button#theme-toggle {
@@ -649,12 +741,6 @@ button#theme-toggle {
     letter-spacing: var(--ls-1);
 }
 
-/* Under a post's title: when on the left, who on the right, the same two
-   columns as a row of the post list. ("Wide screens" moves the first one into
-   the margin.) Each author is a name over a role. Space above and below holds
-   it in place.
-   !important beats PaperMod's inline-flex, see
-   https://github.com/adityatelange/hugo-PaperMod/issues/1789 */
 .post-header .post-meta {
     display: grid !important;
     grid-template-columns: var(--when-col) minmax(0, 1fr);
@@ -992,12 +1078,12 @@ h6:hover .anchor {
     color: var(--code-ink);
     font-size: var(--fs-2);
     line-height: var(--lh-2);
+    /* Not the inline code background, which is light in the light theme. */
+    background: var(--code-paper);
     border-radius: var(--r-lg);
     word-break: normal;
 }
 
-/* PaperMod pulls code blocks inside lists 48px to the left, out of the list
-   and past the column edge on a phone. */
 .post-content ul pre {
     margin-inline-start: 0;
 }
@@ -1040,12 +1126,68 @@ h6:hover .anchor {
     margin-bottom: 0;
 }
 
-/* Tables are the one place where hairlines stay: they separate rows of data.
-   A one-line row is 40px. A table fills the column, so its right edge is the
-   same as that of the text and the code blocks. One that needs more room
-   scrolls inside .table-wrap (layouts/_markup/render-table.html), not the
-   whole page. PaperMod gets the scrolling from display:block on the table,
-   which also stops the table at the width of its content. */
+.post-content .mcp-note {
+    --note-accent: light-dark(#1d4ed8, #93c5fd);
+    --note-background: light-dark(#eff6ff, #101e30);
+    --note-border: light-dark(#bfdbfe, #29476b);
+    --note-header-background: color-mix(in srgb, var(--note-background) 70%, var(--note-border));
+    margin: var(--gap-block) 0;
+    color: var(--text);
+    background: var(--note-background);
+    border: var(--hair) solid var(--note-border);
+    border-radius: var(--r-sm);
+    font-size: var(--fs-2);
+    line-height: var(--lh-2);
+    letter-spacing: var(--ls-2);
+    overflow-wrap: anywhere;
+}
+
+.post-content .mcp-note-header {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--s-2);
+    padding: var(--s-2) var(--s-5);
+    color: var(--note-accent);
+    background: var(--note-header-background);
+    border-bottom: var(--hair) solid var(--note-border);
+    border-radius: calc(var(--r-sm) - var(--hair)) calc(var(--r-sm) - var(--hair)) 0 0;
+}
+
+.post-content .mcp-note-icon {
+    display: block;
+    flex: none;
+    width: var(--icon);
+    height: var(--icon);
+    margin-top: calc((var(--lh-2) - var(--icon)) / 2);
+}
+
+.post-content .mcp-note-title {
+    flex: 1;
+    min-width: 0;
+    margin: 0;
+    color: inherit;
+    font-size: var(--fs-2);
+    line-height: var(--lh-2);
+    font-weight: var(--fw-strong);
+}
+
+.post-content .mcp-note-content {
+    padding: var(--s-4) var(--s-5);
+}
+
+.post-content .mcp-note-content > * {
+    margin-block: 0 var(--s-3);
+}
+
+.post-content .mcp-note-content > :last-child {
+    margin-bottom: 0;
+}
+
+.post-content .mcp-note-content :not(pre) > code {
+    font-size: var(--fs-1);
+    background: var(--paper);
+}
+
 .post-content .table-wrap {
     margin: var(--gap-block) 0;
     overflow-x: auto;
@@ -1109,11 +1251,13 @@ h6:hover .anchor {
     letter-spacing: var(--ls-1);
 }
 
-/* Screens only: paper gets the light theme whatever the reader has chosen. */
-@media screen {
-    .dark .mermaid {
-        filter: invert(0.85) hue-rotate(180deg);
-    }
+/* layouts/_markup/render-codeblock-mermaid.html. Diagrams sit on the page, not on the dark code paper;
+   baseof.html renders them with mermaid's light or dark theme to match the reader's choice. */
+.post-content pre.mermaid {
+    display: flex;
+    justify-content: center;
+    background: transparent;
+    overflow-x: auto;
 }
 
 /* layouts/shortcodes/youtube.html */
@@ -1423,7 +1567,7 @@ a:hover .tag-count {
     box-shadow: inset 0 0 0 var(--hair) var(--ink);
 }
 
-/* Results are a plain list of titles (see assets/js/fastsearch.js), lighter
+/* Results are a plain list of titles (see assets/js/search.js), lighter
    than the titles of the post list because nothing stands between them.
    .focus is the one picked with the arrow keys. */
 #searchResults {
@@ -1459,21 +1603,46 @@ a:hover .tag-count {
 }
 
 /* ─── Footer ─────────────────────────────────────────────────────────────── */
-/* On the same left edge as everything else, without a rule above it. The
-   links repeat the header's look one step smaller, the legal text is faint.
-   width:100% for the same reason as .main above. */
 .footer-wrap {
     margin-top: var(--gap-page);
+    width: 100%;
+    border-top: var(--hair) solid var(--line);
+    background: var(--paper);
 }
 
 .footer {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: start;
+    gap: var(--s-4) var(--s-8);
     width: 100%;
-    padding: 0 var(--gap) var(--s-12);
+    max-width: 86rem;
+    padding: var(--s-8) var(--s-12);
     color: var(--faint);
-    font-size: var(--fs-1);
-    line-height: var(--lh-1);
-    letter-spacing: var(--ls-1);
+    font-size: var(--fs-2);
+    line-height: var(--lh-2);
+    letter-spacing: var(--ls-2);
     text-align: start;
+}
+
+.footer .menu-socials {
+    gap: var(--s-4);
+}
+
+.footer a.menu-social {
+    height: var(--lh-2);
+}
+
+.footer-copyright {
+    min-width: 0;
+    text-align: start;
+    overflow-wrap: anywhere;
+}
+
+.footer-copyright a {
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
 }
 
 .footer-nav {
@@ -1493,9 +1662,6 @@ a:hover .tag-count {
     border-bottom: 0;
 }
 
-/* PaperMod sets white-space:nowrap on .footer span:last-child for its short
-   "Powered by Hugo" line. Our copyright is two sentences, so let it wrap.
-   The selector matches PaperMod's specificity. */
 .footer > span:last-child {
     display: block;
     margin: 0;
@@ -1508,11 +1674,6 @@ a:hover .tag-count {
     color: inherit;
 }
 
-/* Back to top, shown after some scrolling. PaperMod draws a 42px circle with a
-   solid triangle that sits on the text baseline, below the middle. This is the
-   outlined button from a post (.mcp-button) as a square: the same 40px, radius
-   and border, with a line icon like the others on the site, centered by the
-   grid. It floats over text, so it is filled with the page color. */
 .top-link {
     display: grid;
     place-items: center;
@@ -1546,8 +1707,6 @@ a:hover .tag-count {
 }
 
 /* ─── Previous and next post ─────────────────────────────────────────────── */
-/* Off at the moment (ShowPostNavLinks in hugo.toml). Splits PaperMod's one
-   joined box into two. */
 .paginav {
     gap: var(--s-3);
     background: none;
@@ -1567,8 +1726,6 @@ a:hover .tag-count {
     text-overflow: ellipsis;
 }
 
-/* PaperMod uses box-shadow as a fake underline, which runs the full width of
-   our now-block-level span. Swap to text-decoration so it tracks the text. */
 .paginav span:hover:not(.title) {
     box-shadow: none;
     text-decoration: underline;
@@ -1614,8 +1771,6 @@ a:hover .tag-count {
 
 /* ─── Phones ─────────────────────────────────────────────────────────────── */
 @media screen and (max-width: 768px) {
-    /* PaperMod drops --gap, the page gutter, to 14px here. The title moves
-       down one used step of the ramp. */
     :root,
     body,
     .dark {
@@ -1627,28 +1782,91 @@ a:hover .tag-count {
         --title-ls: var(--ls-6);
     }
 
-    /* Two rows: the site name, then the links with the theme toggle at the
-       far right. PaperMod's #menu is a sideways scroller, which hides items. */
+    .footer {
+        padding-inline: var(--s-4);
+    }
+
     .nav {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) var(--s-10) var(--s-10);
+        grid-template-areas: "brand search theme" "links links links";
         gap: var(--s-2) 0;
-        padding: var(--s-4) 0 0;
+        padding: var(--s-3) var(--s-4);
+    }
+
+    .nav .logo {
+        grid-area: brand;
+        margin: 0;
+    }
+
+    .nav .logo a {
+        min-height: var(--s-10);
+        white-space: nowrap;
     }
 
     #menu {
-        flex: 1 0 calc(100% - var(--gap) * 2);
-        flex-wrap: wrap;
-        gap: 0 var(--s-5);
-        white-space: normal;
+        display: contents;
     }
 
-    /* A gap, not a margin: a margin would indent the first link of a second
-       row when the links wrap. */
-    #menu li + li {
-        margin-inline-start: 0;
+    #menu .menu-item {
+        grid-area: links;
+        justify-self: start;
     }
 
-    #menu li.menu-theme {
-        margin-inline-start: auto;
+    #menu .menu-search {
+        grid-area: search;
+        justify-self: end;
+    }
+
+    #menu .menu-search > a {
+        display: flex;
+        justify-content: center;
+        width: var(--s-10);
+        height: var(--s-10);
+        border-radius: var(--r-sm);
+    }
+
+    #menu .menu-search > a:hover {
+        background: var(--surface);
+    }
+
+    .menu-search-icon,
+    .menu-search-icon svg {
+        display: block;
+        width: var(--icon);
+        height: var(--icon);
+    }
+
+    .logo-label,
+    #menu .menu-search .menu-item-text,
+    .menu-item-short .menu-label,
+    #menu .menu-external {
+        display: none;
+    }
+
+    .logo-label-short,
+    .menu-label-short {
+        display: inline;
+    }
+
+    .header-actions {
+        display: contents;
+    }
+
+    .nav .menu-socials {
+        grid-area: links;
+        justify-self: end;
+    }
+
+    .nav .menu-theme {
+        grid-area: theme;
+        justify-self: end;
+    }
+
+    .nav a.menu-social,
+    #theme-toggle {
+        width: var(--s-10);
+        height: var(--s-10);
     }
 
     .home-intro,
@@ -1742,15 +1960,15 @@ a:hover .tag-count {
         right: var(--gap);
         bottom: var(--gap);
     }
-
-    .footer {
-        padding: 0 var(--gap) var(--s-8);
-    }
 }
 
 /* At 22px a standfirst runs to six or seven lines on a phone. The color, and
    the metadata between it and the text, still set it apart. */
 @media screen and (max-width: 600px) {
+    .footer {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
     .post-description {
         font-size: var(--fs-3);
         line-height: var(--lh-3);

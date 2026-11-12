@@ -132,16 +132,21 @@ Then **ask**: open a draft PR now, or stop here so they can edit the file first?
 
 ## Phase 6 — Open PR (only if the user says yes)
 
-SEP-1850 documents an amend-based flow: open the PR with the `0000-` placeholder, then immediately rename and amend so the final history is a single commit with the real number.
+Use `sep: {title}` until the PR is numbered, then `sep(SEP-{N}): {title}`.
+Follow-up PRs keep the original SEP number and link to the proposal.
+See [CONTRIBUTING.md](../../../../CONTRIBUTING.md#pull-request-titles) for the full policy.
+
+Before creating the PR, write its description to `/tmp/sep-pr-body.md` with the
+change, motivation, validation, required prior-discussion link, and AI disclosure.
 
 ```bash
 git fetch {canonical}
 git checkout -b sep/{slug} {canonical}/main
 git add seps/0000-{slug}.md
-git commit -m "SEP: {title}"
+git commit -m "sep: {title}"
 git push -u origin sep/{slug}
 gh pr create --repo modelcontextprotocol/modelcontextprotocol --base main \
-  --title "SEP: {title}" --body "{one-paragraph summary}" --draft --reviewer {sponsor-username}
+  --title "sep: {title}" --body-file /tmp/sep-pr-body.md --draft --reviewer {sponsor-username}
 ```
 
 `{canonical}` is the remote established in the Prerequisite (either `origin` or `upstream`); `origin` is always the push target. If the `sep/{slug}` branch already exists (e.g., re-entering this phase after a checkpoint pause), reuse it instead of creating a new one. Omit `--reviewer` if Q5 answered `None`. If `gh` prompts for a default repository, run `gh repo set-default modelcontextprotocol/modelcontextprotocol` and retry.
@@ -155,10 +160,15 @@ git mv seps/0000-{slug}.md seps/{N}-{slug}.md
 npm run generate:seps
 npm run format:docs
 git add seps/{N}-{slug}.md docs/seps/ docs/docs.json
-git commit --amend --no-edit
-git push --force-with-lease
+git commit -m "sep(SEP-{N}): assign proposal number"
+git push
+gh pr edit {N} --repo modelcontextprotocol/modelcontextprotocol \
+  --title "sep(SEP-{N}): {title}"
 ```
 
-The amend keeps the rename in one commit per SEP-1850. `npm run generate:seps` renders `docs/seps/{N}-{slug}.mdx` and updates `docs/docs.json` (required for the `render-seps.yml` CI check), and `npm run format:docs` keeps the `markdown-format.yml` check green.
+The PR title check is advisory during rollout and does not validate individual
+branch commits. `npm run generate:seps` still renders `docs/seps/{N}-{slug}.mdx`
+and updates `docs/docs.json` for the existing `render-seps.yml` check; commit those
+files. `npm run format:docs` keeps the formatting check green.
 
 **If Q5 answered `None`, the next step after the PR is open is finding a sponsor** — tag 1-2 relevant maintainers from `MAINTAINERS.md` on the PR and share it in the relevant Discord channel. The 6-month clock starts now.

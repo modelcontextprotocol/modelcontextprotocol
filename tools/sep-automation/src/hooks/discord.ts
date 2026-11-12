@@ -72,7 +72,7 @@ export class DiscordHook implements SEPHook {
     const embeds: Array<Record<string, unknown>> = [];
 
     // Main summary embed
-    const hasActivity = event.transitions.length > 0 || event.pings.length > 0 || event.needsSponsor.length > 0 || event.dormant.length > 0;
+    const hasActivity = event.transitions.length > 0 || event.pings.length > 0 || event.dormant.length > 0;
 
     if (!hasActivity) {
       return [];
@@ -113,19 +113,6 @@ export class DiscordHook implements SEPHook {
       });
     }
 
-    // Needs sponsor section - sorted by days inactive (longest first)
-    if (event.needsSponsor.length > 0) {
-      const sortedNeedsSponsor = [...event.needsSponsor].sort((a, b) => b.daysSinceActivity - a.daysSinceActivity);
-      const needsSponsorLines = sortedNeedsSponsor.map(n =>
-        `• [#${n.item.number}](${n.item.url}) \`${n.item.state ?? 'unknown'}\`: needs core maintainer sponsor (**${n.daysSinceActivity}d** inactive)`
-      );
-      embeds.push({
-        title: '🆘 Needs Sponsor',
-        description: needsSponsorLines.join('\n'),
-        color: 0xe74c3c,
-      });
-    }
-
     // Dormant section - sorted by days inactive (longest first)
     if (event.dormant.length > 0) {
       const sortedDormant = [...event.dormant].sort((a, b) => b.daysSinceActivity - a.daysSinceActivity);
@@ -150,9 +137,6 @@ export class DiscordHook implements SEPHook {
     }
     if (event.pings.length > 0) {
       parts.push(`**${event.pings.length}** ping${event.pings.length !== 1 ? 's' : ''}`);
-    }
-    if (event.needsSponsor.length > 0) {
-      parts.push(`**${event.needsSponsor.length}** need${event.needsSponsor.length !== 1 ? '' : 's'} sponsor`);
     }
     if (event.dormant.length > 0) {
       parts.push(`**${event.dormant.length}** marked dormant`);

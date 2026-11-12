@@ -1,0 +1,174 @@
+:root {
+    --main-width: 720px;
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+html {
+    overflow-y: scroll;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+}
+
+body,
+h1, h2, h3, h4, h5, h6,
+p, ul, ol, dl, dd, figure, blockquote, pre {
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background: var(--paper);
+    overflow-wrap: break-word;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+button, input {
+    font: inherit;
+    color: inherit;
+}
+
+button {
+    border: 0;
+    background: none;
+    cursor: pointer;
+}
+
+img, video {
+    display: block;
+    max-width: 100%;
+    height: auto;
+}
+
+.main, .footer {
+    max-width: calc(var(--main-width) + var(--gap) * 2);
+    margin-inline: auto;
+    padding-inline: var(--gap);
+}
+
+.nav {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    max-width: calc(var(--nav-width) + var(--gap) * 2);
+    margin-inline: auto;
+}
+
+.logo, #menu {
+    display: flex;
+    margin-inline: var(--gap);
+}
+
+#menu, #searchResults {
+    list-style: none;
+}
+
+#menu {
+    gap: var(--s-6);
+}
+
+body:not(.dark) #sun,
+body.dark #moon {
+    display: none;
+}
+
+.post-title {
+    display: flex;
+    align-items: center;
+    gap: var(--s-2);
+}
+
+.entry-hint svg {
+    width: var(--s-5);
+    height: var(--s-5);
+}
+
+.post-content ul, .post-content ol {
+    padding-inline-start: var(--s-6);
+}
+
+.post-content pre {
+    position: relative;
+    overflow-x: auto;
+    background: var(--code-paper);
+}
+
+.post-content pre code {
+    display: block;
+    min-width: 100%;
+    width: max-content;
+}
+
+.highlight {
+    position: relative;
+    background: var(--code-paper);
+}
+
+.copy-code {
+    position: absolute;
+    opacity: 0;
+    z-index: 1;
+}
+
+.highlight:hover .copy-code,
+pre:hover .copy-code,
+.copy-code:focus-visible {
+    opacity: 1;
+}
+
+.anchor {
+    visibility: hidden;
+    font-size: var(--fs-2);
+}
+
+:is(h1, h2, h3, h4, h5, h6):hover .anchor,
+.anchor:focus-visible {
+    visibility: visible;
+}
+
+.entry-cover {
+    margin-block: var(--gap-block);
+}
+
+#searchInput {
+    width: 100%;
+}
+
+#searchStatus {
+    color: var(--muted);
+    font-size: var(--fs-2);
+    line-height: var(--lh-2);
+}
+
+.top-link {
+    position: fixed;
+    visibility: hidden;
+    opacity: 0;
+    z-index: 5;
+}
+
+.paginav {
+    display: flex;
+}
+
+.paginav a {
+    flex: 1;
+}
+
+.paginav .next {
+    text-align: end;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    html {
+        scroll-behavior: smooth;
+    }
+}
