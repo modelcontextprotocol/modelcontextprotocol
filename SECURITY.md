@@ -243,8 +243,17 @@ When evaluating whether to report a potential security issue:
 
 If you are a maintainer and you learn of an actively exploited vulnerability or a severe
 incident, such as a compromise of the release process, notify the Linux Foundation CRA steward
-immediately at steward@linuxfoundation.org. Notify the steward while you fix the problem,
-never instead of fixing it. Inform the Core Maintainers and Lead Maintainers at the same time.
+immediately at steward@linuxfoundation.org. The CRA sets short deadlines for the steward's
+reports, starting with an early warning within 24 hours and a fuller notification within 72
+hours. Notify the steward while you fix the problem, never instead of fixing it. Inform the
+Core Maintainers and Lead Maintainers at the same time in `#security-disclosures` on the
+[MCP Contributor Discord](https://discord.gg/6CSzBmMkjX).
+
+A vulnerability with no evidence of exploitation is not a CRA escalation event. Handle it
+through the normal advisory process.
+
+Record when you first learned of the problem and when you notified the steward, in the
+advisory if there is one.
 
 The CRA steward files the regulatory reports that the CRA requires of the steward. This
 address is for maintainers. Reporters must use GitHub Security Advisories.
