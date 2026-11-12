@@ -6,7 +6,7 @@
 - **Type**: Standards Track | Informational | Process | Extensions Track
 - **Created**: YYYY-MM-DD
 - **Author(s)**: Name <email> (@github-username)
-- **Sponsor**: @github-username (or "None" if seeking sponsor)
+- **Sponsor**: Name (@github-username), on behalf of the X Working Group or the Core Maintainers ("None" until one of them agrees to sponsor)
 - **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/{NUMBER}
 
 ## Abstract
