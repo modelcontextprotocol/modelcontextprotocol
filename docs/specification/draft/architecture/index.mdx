@@ -9,8 +9,7 @@ host can run multiple client instances. MCP is a stateless protocol: every reque
 self-contained and carries its own protocol version and capabilities.
 This architecture enables users to integrate AI capabilities across applications while
 maintaining clear security boundaries and isolating concerns. Built on JSON-RPC, MCP
-provides a protocol focused on context exchange and sampling coordination between
-clients and servers.
+provides a protocol focused on context exchange between clients and servers.
 
 ## Core Components
 
@@ -55,7 +54,7 @@ The host process acts as the container and coordinator:
 - Controls client connection permissions and lifecycle
 - Enforces security policies and consent requirements
 - Handles user authorization decisions
-- Coordinates AI/LLM integration and sampling
+- Coordinates AI/LLM integration
 - Manages context aggregation across clients
 
 ### Clients
@@ -77,7 +76,8 @@ Servers provide specialized context and capabilities:
 
 - Expose resources, tools and prompts via MCP primitives
 - Operate independently with focused responsibilities
-- Request client input (sampling, elicitation, roots) via `InputRequiredResult` within a reply
+- Request client input (elicitation) via `InputRequiredResult` within a reply; the
+  sampling and roots input types are [deprecated](/specification/draft/deprecated)
 - Must respect security constraints
 - Can be local processes or remote services
 
@@ -124,7 +124,7 @@ any other request for up-front capability discovery.
 
 - Servers declare capabilities like tool support, resource subscriptions, and prompt
   templates
-- Clients declare capabilities like sampling support and elicitation handling
+- Clients declare capabilities like elicitation handling
 - Both parties must respect declared capabilities throughout the interaction
 - Additional capabilities can be negotiated through extensions to the protocol
 
@@ -143,9 +143,9 @@ sequenceDiagram
         Host->>Client: User- or model-initiated action
         Client->>Server: Request (with _meta: version, clientCapabilities)
         alt Server requires client input
-            Server-->>Client: InputRequiredResult (e.g. sampling/createMessage)
-            Client->>Host: Forward to AI
-            Host-->>Client: AI response
+            Server-->>Client: InputRequiredResult (e.g. elicitation/create)
+            Client->>Host: Ask user for input
+            Host-->>Client: User response
             Client->>Server: Original request (with input)
         end
         Server-->>Client: Response
