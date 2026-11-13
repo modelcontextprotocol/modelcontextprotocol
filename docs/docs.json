@@ -870,6 +870,12 @@
             "pages": [
               "seps/3398-release-cycle-updates"
             ]
+          },
+          {
+            "group": "Draft",
+            "pages": [
+              "seps/2792-i18n-language-negotiation"
+            ]
           }
         ]
       },
@@ -1459,6 +1465,10 @@
     {
       "source": "/seps/2663",
       "destination": "/seps/2663-tasks-extension"
+    },
+    {
+      "source": "/seps/2792",
+      "destination": "/seps/2792-i18n-language-negotiation"
     },
     {
       "source": "/seps/3392",
