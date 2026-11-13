@@ -47,4 +47,4 @@ Research and draft a Specification Enhancement Proposal that conforms to the [SE
 /draft-sep add websocket transport
 ```
 
-**Note:** The skill will ask clarifying questions (SEP type, breaking-change status, prototype, prior discussion, sponsor, security) before writing anything. The SEP guidelines advise discussing an idea in Discord or a Working Group before drafting — the skill will flag if that hasn't happened.
+**Note:** The skill will ask clarifying questions (SEP type, breaking-change status, prototype, prior discussion, sponsor, security) before writing anything. The SEP guidelines require a Working Group to sponsor a SEP, and the skill will flag if that hasn't happened. Without a sponsor, the pull request it opens is a draft pull request for developing the idea in the open.

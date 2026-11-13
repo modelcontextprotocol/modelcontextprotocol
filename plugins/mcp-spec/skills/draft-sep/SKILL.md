@@ -20,7 +20,7 @@ This skill guides an author through producing a SEP that conforms to `docs/commu
 
 Phase 6 references `{canonical}` for the branch start-point and `origin` for the push target; these are the same remote for maintainers and different remotes for fork-based contributors.
 
-**Discuss before drafting.** The SEP guidelines advise raising an idea in Discord or a Working Group or Interest Group meeting before opening a SEP. If the user has not discussed this idea anywhere yet, say so explicitly and ask whether they want to proceed anyway. A cold SEP is valid but more likely to stall — and if no sponsor is found within 6 months, Core Maintainers may close the PR and mark the SEP `dormant`.
+**Discuss before drafting.** The SEP guidelines require a Working Group to sponsor a SEP before formal review. Check whether the idea fits the current focus on the roadmap (`docs/development/roadmap.mdx`), raise it with the relevant Working Group, and reach consensus on a SEP the group wants to sponsor. If the user has not done this yet, say so explicitly and tell them to take the idea to the relevant Working Group. If no Working Group covers the area, send them to the Interest Group that does, which can start a Working Group, or to the process for forming a new Working Group ("Forming a group" in `docs/community/working-interest-groups.mdx`). The skill can still write the SEP file and open a draft pull request so the user can develop the idea in the open. A draft pull request without a sponsor is not yet in the SEP process and has no SEP status. A cold SEP is valid but more likely to stall — and if no sponsor is found within 6 months, Core Maintainers may close the PR and mark the SEP `dormant`. A SEP without a linked prior discussion is not accepted.
 
 The SEP author is responsible for building consensus within the community and documenting dissenting opinions — capture both as you go.
 
@@ -54,8 +54,8 @@ Ask the user these six questions before touching any files. The answers feed dir
    - **If Extensions Track:** also ask which Working Group and Extension Maintainers will be responsible for the extension — SEP-2133 makes this a hard requirement, and an Extensions Track SEP MUST have at least one reference implementation in an official SDK prior to review.
 2. **Is this a breaking change?** Determines how much weight the Backward Compatibility section carries.
 3. **Prototype status?** There are two distinct gates: a working prototype is required before a SEP can be **accepted**, and a complete reference implementation is required before it can reach **Final**. The prototype proves feasibility — it doesn't need to be production-ready, but it must be runnable, not pseudocode. Does one exist, is one in progress, or is it still TBD?
-4. **Where was this discussed?** Discord thread, Working Group or Interest Group meeting, GitHub Discussion — the link becomes the consensus evidence in the Rationale section. If the answer is "nowhere," flag it (see above).
-5. **Author and sponsor?** Capture the author's name, email, and GitHub username for the `Author(s)` preamble field. Then ask about a sponsor: a SEP needs a Core Maintainer or Maintainer sponsor to **enter** `draft` status — the sponsor is what grants it. Until a sponsor signs on, the SEP sits in an "awaiting sponsor" state (Core Maintainers may close it as `dormant` after 6 months). If the user has a sponsor lined up, capture their GitHub username (without the `@` — `gh pr create --reviewer` expects a bare handle). If not, the preamble should read `Sponsor: None` and the finding-a-sponsor guidance from `docs/community/sep-guidelines.mdx` applies: tag 1-2 relevant maintainers from `MAINTAINERS.md` on the PR, share in the relevant Discord channel, and if there's no response in two weeks ask in `#general`.
+4. **Where was this discussed?** A Discord thread or notes from a Working Group or Interest Group meeting. The link becomes the consensus evidence in the Rationale section. If the answer is "nowhere," flag it (see above).
+5. **Author and sponsor?** Capture the author's name, email, and GitHub username for the `Author(s)` preamble field. Then ask which Working Group sponsors the SEP. The `Sponsor` preamble field names the Maintainer or Core Maintainer who acts on the sponsoring group's behalf. That person is responsible for the SEP's status and labels, sets `draft` status and brings the SEP to the Core Maintainers. If a Working Group has agreed to sponsor the SEP, capture that person's name and GitHub username and the group's name. Keep the username without the `@` as well, since `gh pr create --reviewer` expects a bare handle. If not, record that there is no sponsor yet. The draft's preamble reads `Sponsor: None` for now, and any pull request stays a draft pull request until a Working Group agrees to sponsor the SEP, as described in `docs/community/sep-guidelines.mdx`. Until a sponsor signs on, the SEP sits in an "awaiting sponsor" state (Core Maintainers may close it as `dormant` after 6 months).
 6. **Security implications?** Does this proposal touch the attack surface — new transports, auth flows, data exposure, trust boundaries? The Security Implications section is required in `seps/TEMPLATE.md`; even "none identified" needs to be stated explicitly with reasoning.
 
 ## Phase 3 — Research
@@ -116,7 +116,7 @@ Everything above the `---` rule in the template is required — write "none iden
 - `Type:` — from Q1: `Standards Track | Informational | Process | Extensions Track`.
 - `Created:` — today's date in `YYYY-MM-DD` format.
 - `Author(s):` — `Name <email> (@github-username)` from Q5.
-- `Sponsor:` — `@github-username` from Q5, or the literal `None`.
+- `Sponsor:` — from Q5, in the form `Name (@github-username), on behalf of the {group} Working Group` or `Name (@github-username), on behalf of the Core Maintainers`, or the literal `None`.
 - `PR:` — set to `https://github.com/modelcontextprotocol/modelcontextprotocol/pull/{NUMBER}` (the `{NUMBER}` placeholder gets filled in Phase 6).
 
 ## Phase 5 — Checkpoint
@@ -125,6 +125,8 @@ Tell the user:
 
 - The path to the draft file
 - A one-line summary of what went into each section
+
+If Q5 recorded no sponsor, tell the user that a pull request opened now is a draft pull request for developing the idea in the open, and that it is not in the SEP process until a Working Group agrees to sponsor it.
 
 Then **ask**: open a draft PR now, or stop here so they can edit the file first?
 
@@ -171,4 +173,4 @@ branch commits. `npm run generate:seps` still renders `docs/seps/{N}-{slug}.mdx`
 and updates `docs/docs.json` for the existing `render-seps.yml` check; commit those
 files. `npm run format:docs` keeps the formatting check green.
 
-**If Q5 answered `None`, the next step after the PR is open is finding a sponsor** — tag 1-2 relevant maintainers from `MAINTAINERS.md` on the PR and share it in the relevant Discord channel. The 6-month clock starts now.
+Once the PR is open, share it in the relevant Working Group's Discord channel. When a Working Group has agreed to sponsor the SEP, mark the pull request ready for review so the sponsor named in the `Sponsor` field can set `draft` status. Until then it stays a draft pull request. The 6-month clock starts now.
