@@ -92,7 +92,7 @@ async function main(): Promise<void> {
   const summary: SummaryData = {
     transitions: [],
     pings: [],
-    dormant: [],
+    inactive: [],
   };
 
   try {
@@ -126,7 +126,7 @@ async function main(): Promise<void> {
         // Merge summary data
         summary.transitions.push(...result.summaryData.transitions);
         summary.pings.push(...result.summaryData.pings);
-        summary.dormant.push(...result.summaryData.dormant);
+        summary.inactive.push(...result.summaryData.inactive);
       } catch (error) {
         logger.error(
           { item: sep.number, error: getErrorMessage(error) },
@@ -153,7 +153,7 @@ async function main(): Promise<void> {
           dryRun: config.dryRun,
           transitions: summary.transitions,
           pings: summary.pings,
-          dormant: summary.dormant,
+          inactive: summary.inactive,
           totalProcessed: seps.length,
           failed,
         };

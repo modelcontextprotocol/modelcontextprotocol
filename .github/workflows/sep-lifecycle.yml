@@ -55,6 +55,10 @@ jobs:
     needs: check-sep
     if: needs.check-sep.outputs.should_run == 'true'
     runs-on: ubuntu-latest
+    # One run at a time per issue/PR, so two events cannot post the same comment twice
+    concurrency:
+      group: sep-lifecycle-${{ needs.check-sep.outputs.issue_number || 'sweep' }}
+      cancel-in-progress: false
     permissions:
       contents: read
       issues: write

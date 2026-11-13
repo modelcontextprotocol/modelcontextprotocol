@@ -85,6 +85,18 @@ export const STALENESS_RULES: StalenessRule[] = [
 ];
 
 /**
+ * Inactivity rule for every open pull request that carries the `SEP` or
+ * `wg-support-needed` label, draft or ready for review.
+ *
+ * Progress is a new commit, a submitted review or a comment from a non-bot
+ * account. After INACTIVITY_WARNING_DAYS without progress the bot posts one
+ * warning. After INACTIVITY_CLOSE_DAYS without progress it closes the pull
+ * request, once the warning has been up for the days in between.
+ */
+export const INACTIVITY_WARNING_DAYS = 150;
+export const INACTIVITY_CLOSE_DAYS = 180;
+
+/**
  * Maintainer accountability rules.
  *
  * If an assigned maintainer has no activity on a SEP for this many days,

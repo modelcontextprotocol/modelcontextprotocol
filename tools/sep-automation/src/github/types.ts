@@ -14,6 +14,7 @@ export interface GitHubIssue {
   readonly updated_at: string;
   readonly html_url: string;
   readonly pull_request?: { readonly url: string };
+  readonly draft?: boolean; // pull requests only
 }
 
 export interface GitHubComment {
@@ -30,6 +31,16 @@ export interface GitHubEvent {
   readonly actor: { readonly login: string } | null;
   readonly created_at: string;
   readonly assignee?: { readonly login: string };
+}
+
+/** Entry of the issue timeline API. Which fields are set depends on `event`. */
+export interface GitHubTimelineEntry {
+  readonly event?: string;
+  readonly created_at?: string; // most entries, including 'commented'
+  readonly submitted_at?: string; // 'reviewed'
+  readonly committer?: { readonly date?: string }; // 'committed'
+  readonly user?: { readonly login: string; readonly type?: string } | null;
+  readonly body?: string | null;
 }
 
 export interface GitHubTeamMembership {

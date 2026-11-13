@@ -54,7 +54,7 @@ export interface SummaryEvent {
   dryRun: boolean;
   transitions: Array<{ item: SEPItem; fromState: SEPState | null; toState: SEPState; sponsor: string }>;
   pings: Array<{ item: SEPItem; pingTarget: 'author' | 'maintainer'; targetUser: string; daysSinceActivity: number }>;
-  dormant: Array<{ item: SEPItem; daysSinceActivity: number; wasClosed: boolean }>;
+  inactive: Array<{ item: SEPItem; daysSinceActivity: number; wasClosed: boolean }>;
   totalProcessed: number;
   failed: number;
 }

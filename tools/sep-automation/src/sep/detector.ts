@@ -8,7 +8,9 @@ import type { SEPItem, SEPItemType } from '../types.js';
 import { extractState } from './types.js';
 
 /** Constants for SEP detection */
-const SEP_LABEL = 'SEP';
+export const SEP_LABEL = 'SEP';
+/** Label on draft pull requests that are still looking for a sponsoring working group */
+export const WG_SUPPORT_NEEDED_LABEL = 'wg-support-needed';
 const UNKNOWN_AUTHOR = 'unknown';
 
 export class SEPDetector {
@@ -86,6 +88,7 @@ export class SEPDetector {
       updatedAt: new Date(item.updated_at),
       url: item.html_url,
       isClosed: item.state === 'closed',
+      isDraft: item.draft === true,
     };
   }
 

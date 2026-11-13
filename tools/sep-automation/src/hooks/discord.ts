@@ -72,7 +72,7 @@ export class DiscordHook implements SEPHook {
     const embeds: Array<Record<string, unknown>> = [];
 
     // Main summary embed
-    const hasActivity = event.transitions.length > 0 || event.pings.length > 0 || event.dormant.length > 0;
+    const hasActivity = event.transitions.length > 0 || event.pings.length > 0 || event.inactive.length > 0;
 
     if (!hasActivity) {
       return [];
@@ -113,15 +113,15 @@ export class DiscordHook implements SEPHook {
       });
     }
 
-    // Dormant section - sorted by days inactive (longest first)
-    if (event.dormant.length > 0) {
-      const sortedDormant = [...event.dormant].sort((a, b) => b.daysSinceActivity - a.daysSinceActivity);
-      const dormantLines = sortedDormant.map(d =>
-        `• [#${d.item.number}](${d.item.url}) \`${d.item.state ?? 'unknown'}\` → \`dormant\`: after **${d.daysSinceActivity}d**${d.wasClosed ? ' (closed)' : ''}`
+    // Inactivity section - sorted by days without progress (longest first)
+    if (event.inactive.length > 0) {
+      const sortedInactive = [...event.inactive].sort((a, b) => b.daysSinceActivity - a.daysSinceActivity);
+      const inactiveLines = sortedInactive.map(d =>
+        `• [#${d.item.number}](${d.item.url}): ${d.wasClosed ? 'closed' : 'warned'} after **${d.daysSinceActivity}d** without progress`
       );
       embeds.push({
-        title: '💤 Marked Dormant',
-        description: dormantLines.join('\n'),
+        title: '💤 Inactive Pull Requests',
+        description: inactiveLines.join('\n'),
         color: 0x95a5a6,
       });
     }
@@ -138,8 +138,8 @@ export class DiscordHook implements SEPHook {
     if (event.pings.length > 0) {
       parts.push(`**${event.pings.length}** ping${event.pings.length !== 1 ? 's' : ''}`);
     }
-    if (event.dormant.length > 0) {
-      parts.push(`**${event.dormant.length}** marked dormant`);
+    if (event.inactive.length > 0) {
+      parts.push(`**${event.inactive.length}** inactive`);
     }
     if (event.failed > 0) {
       parts.push(`**${event.failed}** failed`);
