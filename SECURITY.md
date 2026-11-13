@@ -15,24 +15,9 @@ will coordinate with our CRA steward. For actively exploited vulnerabilities and
 incidents that may require CRA escalation, please use the project's emergency security
 reporting mechanisms as appropriate.
 
-The CRA does not treat an open-source software steward, such as the Linux Foundation CRA
-steward, as a manufacturer, but
-[Article 24](https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=OJ:L_202402847#art_24)
-of the CRA gives stewards obligations of their own. The project helps the steward meet them,
-and this document is the project's written cybersecurity policy for that purpose. Companies
-that build the project's software into their own products might be manufacturers under the
-CRA, with obligations that this policy does not cover.
-
-| Steward obligation                                             | Article | Where this policy covers it                                       |
-| -------------------------------------------------------------- | ------- | ----------------------------------------------------------------- |
-| Publish and follow a written cybersecurity policy              | 24(1)   | This document                                                     |
-| Report actively exploited vulnerabilities and severe incidents | 24(3)   | [CRA Escalation for Maintainers](#cra-escalation-for-maintainers) |
-| Inform affected users of those vulnerabilities and incidents   | 24(3)   | [CRA Escalation for Maintainers](#cra-escalation-for-maintainers) |
-| Cooperate with EU market surveillance authorities on request   | 24(2)   | [Requests from EU Authorities](#requests-from-eu-authorities)     |
-
-The Linux Foundation's
-[CRA guidance for open source projects](https://bestpractices.linuxfoundation.org/regulatory/cra/)
-explains these obligations in more detail.
+See the Linux Foundation's
+[CRA guidance for open source projects](https://bestpractices.linuxfoundation.org/regulatory/cra/index.html)
+for more on what the CRA asks of projects like this one.
 
 ## Reporting Security Issues
 
@@ -278,23 +263,4 @@ through the normal advisory process.
 Record in the advisory, if there is one, when the project first learned of the problem and
 when the steward was notified.
 
-The CRA also requires affected users to be informed. The project informs them by publishing
-the advisory, or through another public notice when there is no advisory. The Core Maintainer
-or Lead Maintainer working with the steward agrees the timing with the steward. For an
-actively exploited vulnerability, the advisory might be published before a fix is ready.
-The advisory or notice describes the problem and any steps users can take to reduce the risk.
-
 Reporters must use GitHub Security Advisories, not the steward address.
-
-## Requests from EU Authorities
-
-Under [Article 24(2)](https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=OJ:L_202402847#art_24)
-of the CRA, the project cooperates with EU market surveillance authorities when they ask for
-help reducing a cybersecurity risk. Market surveillance authorities are the regulators that
-each EU member state appoints to oversee products on its market.
-
-Market surveillance authorities should send requests to the Linux Foundation CRA steward at
-steward@linuxfoundation.org. The steward brings in the Lead Maintainers and Core Maintainers,
-who answer for the project, so that no single person handles a request alone. A maintainer
-who receives such a request directly forwards it to a Core Maintainer or Lead Maintainer and
-does not answer it.
