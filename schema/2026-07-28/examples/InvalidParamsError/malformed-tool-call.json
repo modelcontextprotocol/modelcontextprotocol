@@ -1,0 +1,4 @@
+{
+  "code": -32602,
+  "message": "Invalid params for tools/call: 'arguments' must be an object"
+}

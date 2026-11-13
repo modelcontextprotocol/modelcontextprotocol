@@ -9,17 +9,11 @@ Understanding the distinction is important: the _host_ is the application users 
 
 ## Core Client Features
 
-In addition to making use of context provided by servers, clients may provide several features to servers. These client features allow server authors to build richer interactions.
-
-| Feature         | Explanation                                                                                                                                                                                                                                                   | Example                                                                                                                                |
-| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| **Elicitation** | Elicitation enables servers to request specific information from users during interactions, providing a structured way for servers to gather information on demand.                                                                                           | A server booking travel may ask for the user's preferences on airplane seats, room type or their contact number to finalize a booking. |
-| **Roots**       | Roots allow clients to specify which directories servers should focus on, communicating intended scope through a coordination mechanism. Roots are [deprecated](/specification/draft/deprecated) as of protocol version `2026-07-28`.                         | A server for booking travel may be given access to a specific directory, from which it can read a user's calendar.                     |
-| **Sampling**    | Sampling allows servers to request LLM completions through the client, enabling an agentic workflow. This approach puts the client in complete control of user permissions and security measures. Sampling is deprecated as of protocol version `2026-07-28`. | A server for booking travel may send a list of flights to an LLM and request that the LLM pick the best flight for the user.           |
+In addition to making use of context provided by servers, clients can provide features to servers, such as [elicitation](/specification/draft/client/elicitation). These allow server authors to build richer interactions.
 
 ### Elicitation
 
-Elicitation enables servers to request specific information from users during interactions, creating more dynamic and responsive workflows.
+Elicitation enables servers to request specific information from users during interactions, creating more dynamic and responsive workflows. For example, a server booking travel may ask for the user's preferences on airplane seats, room type or their contact number to finalize a booking.
 
 #### Overview
 
@@ -31,6 +25,8 @@ Elicitation supports two modes:
 - **URL mode**: The server provides a URL for the user to open. The interaction happens out of band and its data never passes through the client, which makes this mode suitable for sensitive flows such as credential entry or third-party OAuth authorization.
 
 Elicitation follows the [Multi Round-Trip Requests](/specification/draft/basic/patterns/mrtr) (MRTR) pattern. When a server needs user input while processing a request such as `tools/call`, it responds with an `InputRequiredResult` whose `inputRequests` field carries one or more `elicitation/create` requests. The client gathers the input and retries the original request, attaching the collected `inputResponses` and echoing back any `requestState` the server included.
+
+Clients declare the modes they support in the `elicitation` capability of each request, and servers must not use any other mode. An empty object (`{}`) declares form mode only, while `{ "form": {}, "url": {} }` declares both.
 
 **Elicitation flow:**
 
@@ -57,38 +53,148 @@ sequenceDiagram
 
 The flow enables dynamic information gathering. Servers can request specific data when needed, users provide information through appropriate UI, and servers complete the retried request with the newly acquired context.
 
-**Elicitation request example (delivered inside `InputRequiredResult.inputRequests`):**
+**Elicitation example:**
 
-```typescript
+The following messages continue building on the [travel planning scenario](/docs/draft/learn/server-concepts#the-complete-flow). The client calls the `bookVacation` tool:
+
+```json
 {
-  method: "elicitation/create",
-  params: {
-    mode: "form",
-    message: "Please confirm your Barcelona vacation booking details:",
-    requestedSchema: {
-      type: "object",
-      properties: {
-        confirmBooking: {
-          type: "boolean",
-          description: "Confirm the booking (Flights + Hotel = $3,000)"
-        },
-        seatPreference: {
-          type: "string",
-          enum: ["window", "aisle", "no preference"],
-          description: "Preferred seat type for flights"
-        },
-        roomType: {
-          type: "string",
-          enum: ["sea view", "city view", "garden view"],
-          description: "Preferred room type at hotel"
-        },
-        travelInsurance: {
-          type: "boolean",
-          default: false,
-          description: "Add travel insurance ($150)"
-        }
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "tools/call",
+  "params": {
+    "name": "bookVacation",
+    "arguments": {
+      "outboundFlight": "EX101",
+      "returnFlight": "EX102",
+      "hotelId": "beachfront-hotel"
+    },
+    "_meta": {
+      "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+      "io.modelcontextprotocol/clientInfo": {
+        "name": "example-client",
+        "version": "1.0.0"
       },
-      required: ["confirmBooking"]
+      "io.modelcontextprotocol/clientCapabilities": {
+        "elicitation": {}
+      }
+    }
+  }
+}
+```
+
+The server needs the user to confirm the booking, so it responds with an `InputRequiredResult`. Its `resultType` of `"input_required"` indicates that the client must provide additional input before the server can complete the request:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    "resultType": "input_required",
+    "inputRequests": {
+      "bookingConfirmation": {
+        "method": "elicitation/create",
+        "params": {
+          "mode": "form",
+          "message": "Please confirm your Barcelona vacation booking: flights June 15-22, beachfront hotel, total $3,000.",
+          "requestedSchema": {
+            "type": "object",
+            "properties": {
+              "confirmBooking": {
+                "type": "boolean",
+                "description": "Confirm the booking (Flights + Hotel = $3,000)"
+              },
+              "seatPreference": {
+                "type": "string",
+                "enum": ["window", "aisle", "no preference"],
+                "description": "Preferred seat type for flights"
+              },
+              "roomType": {
+                "type": "string",
+                "enum": ["sea view", "city view", "garden view"],
+                "description": "Preferred room type at hotel"
+              },
+              "travelInsurance": {
+                "type": "boolean",
+                "default": false,
+                "description": "Add travel insurance ($150)"
+              }
+            },
+            "required": ["confirmBooking"]
+          }
+        }
+      }
+    },
+    "requestState": "opaque-string-from-the-server",
+    "_meta": {
+      "io.modelcontextprotocol/serverInfo": {
+        "name": "travel-server",
+        "version": "1.0.0"
+      }
+    }
+  }
+}
+```
+
+After the user fills in the form, the client retries the call with a new `id`. The retry carries the user's answers in `inputResponses`, under the same `bookingConfirmation` key as the server's request, and the exact `requestState` value from the result:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 2,
+  "method": "tools/call",
+  "params": {
+    "name": "bookVacation",
+    "arguments": {
+      "outboundFlight": "EX101",
+      "returnFlight": "EX102",
+      "hotelId": "beachfront-hotel"
+    },
+    "inputResponses": {
+      "bookingConfirmation": {
+        "action": "accept",
+        "content": {
+          "confirmBooking": true,
+          "seatPreference": "window",
+          "roomType": "sea view",
+          "travelInsurance": false
+        }
+      }
+    },
+    "requestState": "opaque-string-from-the-server",
+    "_meta": {
+      "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+      "io.modelcontextprotocol/clientInfo": {
+        "name": "example-client",
+        "version": "1.0.0"
+      },
+      "io.modelcontextprotocol/clientCapabilities": {
+        "elicitation": {}
+      }
+    }
+  }
+}
+```
+
+The server completes the booking and returns a `CallToolResult`. Its `resultType` of `"complete"` indicates that the request completed successfully:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 2,
+  "result": {
+    "resultType": "complete",
+    "content": [
+      {
+        "type": "text",
+        "text": "Booked flights EX101 and EX102 and a sea view room at the beachfront hotel."
+      }
+    ],
+    "_meta": {
+      "io.modelcontextprotocol/serverInfo": {
+        "name": "travel-server",
+        "version": "1.0.0"
+      }
     }
   }
 }
@@ -108,162 +214,19 @@ Elicitation interactions are designed to be clear, contextual, and respectful of
 
 **Request presentation**: Clients display elicitation requests with clear context about which server is asking, why the information is needed, and how it will be used. The request message explains the purpose while the schema provides structure and validation.
 
-**Response options**: Users can provide the requested information through appropriate UI controls (text fields, dropdowns, checkboxes), decline to provide information with optional explanation, or cancel the entire operation. Clients validate responses against the provided schema before returning them to servers.
+**Response options**: Users can provide the requested information through appropriate UI controls (text fields, dropdowns, checkboxes), explicitly decline to provide it, or dismiss the request without making a choice. These map to the `accept`, `decline`, and `cancel` actions. Clients validate responses against the provided schema before returning them to servers.
 
 **URL handling**: For URL mode, clients show the full URL and gather explicit consent before opening it, and never fetch the URL automatically. The client only learns whether the user consented. The interaction itself stays between the user and the target site.
 
 **Privacy considerations**: Servers must not use form mode to request sensitive information such as passwords, API keys, access tokens, or payment credentials. Those interactions belong in URL mode, which keeps the data out of band so it never passes through the client or the LLM context. Clients warn about suspicious requests and let users review form data before sending.
 
-### Roots
+## Deprecated Features
 
 <Warning>
-  Roots are [deprecated](/specification/draft/deprecated) as of protocol version
-  `2026-07-28` and scheduled for removal. New implementations should pass
-  directories or files via tool parameters, resource URIs, or server
-  configuration instead.
+
+Roots and sampling are [deprecated](/specification/draft/deprecated) as of protocol version `2026-07-28` and scheduled for removal. New implementations should use the following alternatives:
+
+- **Roots**: Pass directories or files through tool parameters, resource URIs, or server configuration.
+- **Sampling**: Integrate directly with LLM provider APIs. The protocol does not define a replacement for requesting completions through the client.
+
 </Warning>
-
-Roots define filesystem boundaries for server operations, allowing clients to specify which directories servers should focus on.
-
-#### Overview
-
-Roots are a mechanism for clients to communicate filesystem access boundaries to servers. They consist of file URIs that indicate directories where servers can operate, helping servers understand the scope of available files and folders. While roots communicate intended boundaries, they do not enforce security restrictions. Actual security must be enforced at the operating system level, via file permissions and/or sandboxing.
-
-**Root structure:**
-
-```json
-{
-  "uri": "file:///Users/agent/travel-planning",
-  "name": "Travel Planning Workspace"
-}
-```
-
-Roots are exclusively filesystem paths and always use the `file://` URI scheme. They help servers understand project boundaries, workspace organization, and accessible directories. The roots list can change as users work with different projects or folders. Servers pick up the updated boundaries the next time they request the roots list.
-
-#### Example: Travel Planning Workspace
-
-A travel agent working with multiple client trips benefits from roots to organize filesystem access. Consider a workspace with different directories for various aspects of travel planning.
-
-The client provides filesystem roots to the travel planning server:
-
-- `file:///Users/agent/travel-planning` - Main workspace containing all travel files
-- `file:///Users/agent/travel-templates` - Reusable itinerary templates and resources
-- `file:///Users/agent/client-documents` - Client passports and travel documents
-
-When the agent creates a Barcelona itinerary, well-behaved servers respect these boundaries—accessing templates, saving the new itinerary, and referencing client documents within the specified roots. Servers typically access files within roots by using relative paths from the root directories or by utilizing file search tools that respect the root boundaries.
-
-If the agent opens an archive folder like `file:///Users/agent/archive/2023-trips`, the client adds it to the roots list, and the server sees the new boundary on its next `roots/list` request.
-
-For a complete implementation of a server that respects roots, see the [filesystem server](https://github.com/modelcontextprotocol/servers/tree/main/src/filesystem) in the official servers repository.
-
-#### Design Philosophy
-
-Roots serve as a coordination mechanism between clients and servers, not a security boundary. The specification requires that servers "SHOULD respect root boundaries," and not that they "MUST enforce" them, because servers run code the client cannot control.
-
-Roots work best when servers are trusted or vetted, users understand their advisory nature, and the goal is preventing accidents rather than stopping malicious behavior. They excel at context scoping (telling servers where to focus), accident prevention (helping well-behaved servers stay in bounds), and workflow organization (such as managing project boundaries automatically).
-
-#### User Interaction Model
-
-Roots are typically managed automatically by host applications based on user actions, though some applications may expose manual root management:
-
-**Automatic root detection**: When users open folders, clients automatically expose them as roots. Opening a travel workspace allows the client to expose that directory as a root, helping servers understand which itineraries and documents are in scope for the current work.
-
-**Manual root configuration**: Advanced users can specify roots through configuration. For example, adding `/travel-templates` for reusable resources while excluding directories with financial records.
-
-### Sampling
-
-<Warning>
-  Sampling is [deprecated](/specification/draft/deprecated) as of protocol
-  version `2026-07-28` and scheduled for removal. New implementations should
-  integrate directly with LLM provider APIs instead.
-</Warning>
-
-Sampling allows servers to request language model completions through the client, enabling agentic behaviors while maintaining security and user control.
-
-#### Overview
-
-Sampling enables servers to perform AI-dependent tasks without directly integrating with or paying for AI models. Instead, servers can request that the client—which already has AI model access—handle these tasks on their behalf. This approach puts the client in complete control of user permissions and security measures. Because sampling requests occur within the context of other operations—like a tool analyzing data—and are processed as separate model calls, they maintain clear boundaries between different contexts, allowing for more efficient use of the context window.
-
-Sampling follows the same [Multi Round-Trip Requests](/specification/draft/basic/patterns/mrtr) flow described under [elicitation](#elicitation), with the `InputRequiredResult` carrying a `sampling/createMessage` request.
-
-Servers can also request tool use during sampling by including a `tools` array and an optional `toolChoice` field in the request. The tool definitions are scoped to that sampling request and do not need to correspond to tools the server exposes. Clients declare support through the `sampling.tools` capability, and servers must not send tool-enabled sampling requests to clients that have not declared it. See [sampling](/specification/draft/client/sampling#tools-in-sampling) in the specification for details.
-
-**Sampling flow:**
-
-```mermaid
-sequenceDiagram
-    participant LLM
-    participant User
-    participant Client
-    participant Server
-
-    Client->>Server: tools/call (id: 1)
-    Note over Server: Server needs an LLM completion
-    Server-->>Client: InputRequiredResult with sampling/createMessage request
-
-    Note over Client,User: Human-in-the-loop review
-    Client->>User: Present request for approval
-    User-->>Client: Review and approve/modify
-
-    Note over Client,LLM: Model interaction
-    Client->>LLM: Forward approved request
-    LLM-->>Client: Return generation
-
-    Note over Client,User: Response review
-    Client->>User: Present response for approval
-    User-->>Client: Review and approve/modify
-
-    Note over Client,Server: Retry request with approved response
-    Client->>Server: tools/call (id: 2, inputResponses)
-    Server-->>Client: Final result
-```
-
-The flow ensures security through multiple human-in-the-loop checkpoints. Users review and can modify both the initial request and the generated response before the client retries the original request with it.
-
-**Request parameters example:**
-
-```typescript
-{
-  messages: [
-    {
-      role: "user",
-      content: {
-        type: "text",
-        text: "Analyze these flight options and recommend the best choice:\n" +
-              "[47 flights with prices, times, airlines, and layovers]\n" +
-              "User preferences: morning departure, max 1 layover"
-      }
-    }
-  ],
-  modelPreferences: {
-    hints: [{
-      name: "claude-sonnet" // Prefer Sonnet-class models
-    }],
-    costPriority: 0.3,      // Less concerned about API cost
-    speedPriority: 0.2,     // Can wait for thorough analysis
-    intelligencePriority: 0.9  // Need complex trade-off evaluation
-  },
-  systemPrompt: "You are a travel expert helping users find the best flights based on their preferences",
-  maxTokens: 1500
-}
-```
-
-#### Example: Flight Analysis Tool
-
-Consider a travel booking server with a tool called `findBestFlight` that uses sampling to analyze available flights and recommend the optimal choice. When a user asks "Book me the best flight to Barcelona next month," the tool needs AI assistance to evaluate complex trade-offs.
-
-The tool queries airline APIs and gathers 47 flight options. It then requests AI assistance to analyze these options: "Analyze these flight options and recommend the best choice: [47 flights with prices, times, airlines, and layovers] User preferences: morning departure, max 1 layover."
-
-The client initiates the sampling request, allowing the AI to evaluate trade-offs—like cheaper red-eye flights versus convenient morning departures. The tool uses this analysis to present the top three recommendations.
-
-#### User Interaction Model
-
-While not a requirement, sampling is designed to allow human-in-the-loop control. Users can maintain oversight through several mechanisms:
-
-**Approval controls**: Sampling requests may require explicit user consent. Clients can show what the server wants to analyze and why. Users can approve, deny, or modify requests.
-
-**Transparency features**: Clients can display the exact prompt, model selection, and token limits, allowing users to review AI responses before they return to the server.
-
-**Configuration options**: Users can set model preferences, configure auto-approval for trusted operations, or require approval for everything. Clients may provide options to redact sensitive information.
-
-**Security considerations**: Both clients and servers must handle sensitive data appropriately during sampling. Clients should implement rate limiting and validate all message content. The human-in-the-loop design ensures that server-requested AI interactions cannot compromise security or access sensitive data without explicit user consent.
