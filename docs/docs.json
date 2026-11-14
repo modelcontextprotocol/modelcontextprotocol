@@ -887,7 +887,8 @@
           {
             "group": "Roadmap",
             "pages": [
-              "development/roadmap"
+              "development/roadmap",
+              "community/release-cycle"
             ]
           },
           {
