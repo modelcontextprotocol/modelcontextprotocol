@@ -7,46 +7,60 @@ This page describes the MCP specification release cycle: when releases are publi
 
 ## Schedule
 
-Specification releases are published every six months, generally on the last Tuesday of March and September. Each release is versioned by its publication date, so the release planned for March 30, 2027 is `2027-03-30`.
+Specification releases are published every six months, generally on the last Tuesday of March and September. Each release is versioned by its publication date, in `YYYY-MM-DD` format.
 
-Each release has an eight-month cycle, so planning for the next release starts two months before the current one is published. At the start of planning, the release managers publish the cycle's calendar with exact dates and UTC deadlines. The month offsets on this page are targets, and the calendar governs.
+Each release has an eight-month cycle, so planning for the next release starts two months before the current release is published.
 
-The example below shows two cycles. The `2027-03-30` release is a transition cycle that reuses planning completed in August 2026. The September 2027 release follows the regular cycle.
-
-<Frame caption="Month positions are approximate. The published calendar sets exact deadlines.">
+<Frame caption="Example timeline">
   <img
     src="/images/release-cycle-timeline.png"
-    alt="Timeline for specification targets 2027-03-30 and 2027-09-28, showing the two-month overlap between March stabilization and September planning, Tier 1 SDK betas, soft and hard freezes, and the six-month release cadence."
+    alt="Example timeline of two overlapping release cycles, showing planning, Core Maintainer review, soft and hard freezes, Tier 1 SDK betas, the two-month overlap, and the six-month cadence."
   />
 </Frame>
 
 ## Milestones
 
-| Milestone                    | Before release | What happens                                                                                                                  |
-| ---------------------------- | -------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| Planning                     | 8 months       | Core Maintainers propose a roadmap and gather feedback from maintainers and working groups.                                   |
-| Core Maintainer review opens | 6 months       | Priorities are published and scheduled SEP reviews begin.                                                                     |
-| Soft freeze                  | 2.5 months     | Review closes. SEPs in the release must be Final and merged. After this, only fixes, polish, and clarifications within scope. |
-| Next-cycle planning          | 2 months       | Planning for the following release begins.                                                                                    |
-| SDK beta                     | 1.5 months     | Tier 1 SDKs publish betas that support the frozen specification.                                                              |
-| Hard freeze                  | 1 month        | Only critical security fixes and release-blocking defects, each approved by a full Core Maintainer vote.                      |
-| Release                      | 0 months       | The specification, release notes, and implementation guidance are published.                                                  |
+| Milestone                    | Timing                               | What happens                                                                                                                  |
+| ---------------------------- | ------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------- |
+| Planning                     | Eight months before release          | Core Maintainers propose a roadmap and gather feedback from maintainers and working groups.                                   |
+| Core Maintainer review opens | Six months before release            | Priorities are published and scheduled SEP reviews begin.                                                                     |
+| Soft freeze                  | Two and a half months before release | Review closes. SEPs in the release must be Final and merged. After this, only fixes, polish, and clarifications within scope. |
+| Next-cycle planning          | Two months before release            | Planning for the following release begins.                                                                                    |
+| SDK beta                     | A month and a half before release    | Tier 1 SDKs publish betas that support the frozen specification.                                                              |
+| Hard freeze                  | One month before release             | Only critical security fixes and release-blocking defects, each approved by a full Core Maintainer vote.                      |
+| Release                      | Release day                          | The specification, release notes, and implementation guidance are published.                                                  |
 
-The release date does not move for unfinished work. A SEP that misses soft freeze moves to a later release, and an accepted SEP stays accepted.
+<Note>
+  The release date does not move for unfinished work. A SEP that misses soft freeze moves to a later release. An accepted SEP stays accepted.
+</Note>
 
 ## Getting a SEP into a release
 
-1. Open the SEP pull request and get a working group or the Core Maintainers to sponsor it. See [Workflow](/community/sep-guidelines#workflow) and [Sponsors](/community/sep-guidelines#sponsors).
-2. The WG Lead or designated Core Maintainer submits the SEP to the [SEP review queue](https://voting.modelcontextprotocol.io/p/seps). The queue is open year-round. Roadmap-aligned SEPs are scheduled first, and a place in the queue does not guarantee review time.
-3. Core Maintainers review queued SEPs at their meetings, from 6 months before release until soft freeze. The agenda is published two weeks before each meeting. Acceptance requires a recorded seven-day vote in which more than half of all eligible Core Maintainers vote in favor.
-4. Reach Final and merge before soft freeze. Final means the specification text, schema changes, changelog entry, reference implementation, and any required [conformance tests](/community/sep-guidelines#conformance-test-requirement) are merged. Acceptance alone does not meet the cutoff.
+1. Bring the idea to the working group that covers the area and get the working group's approval to sponsor it. See [Before you write](/community/sep-guidelines#before-you-write) and [Sponsors](/community/sep-guidelines#sponsors).
+2. Open the SEP pull request. If the author cannot open pull requests on this repository, a WG Lead or the sponsor opens it. See [Workflow](/community/sep-guidelines#workflow).
+3. A WG Lead submits the SEP to the [SEP review queue](https://voting.modelcontextprotocol.io/p/seps). The queue is open year-round. Roadmap-aligned SEPs are scheduled first, and a place in the queue does not guarantee review time.
+4. Core Maintainers review queued SEPs at their meetings, from six months before release until soft freeze. The agenda is published two weeks before each meeting. Acceptance requires a recorded seven-day vote in which more than half of all eligible Core Maintainers vote in favor.
+5. Reach Final and merge before soft freeze. Final means the specification text, schema changes, changelog entry, reference implementation, and any required [conformance tests](/community/sep-guidelines#conformance-test-requirement) are merged. Acceptance alone does not meet the cutoff.
 
 Every SEP type is reviewed in the window. Process and Informational SEPs take effect once accepted and implemented, without waiting for a release. Extensions keep their own publication lifecycle.
 
 ## SDKs
 
-SDK maintainers should start implementing a SEP once it is accepted and report ambiguities to the author and sponsor while the SEP can still change. [Tier 1](/community/sdk-tiers) SDKs publish a beta 1.5 months before release and stable support before the release. The release managers track SDK versions, conformance results, and gaps in a public readiness summary. A late SDK does not delay the specification or change its tier on its own.
+- SDK maintainers should start implementing a SEP once it is accepted and report ambiguities to the SEP author and sponsor while the SEP can still change.
+- [Tier 1](/community/sdk-tiers) SDKs publish a beta a month and a half before release, and stable support before the release.
+- Release managers track SDK versions, conformance results, and gaps in a public readiness summary.
+- A late SDK does not delay the specification release or, on its own, change the SDK's tier.
 
 ## Release managers
 
-Each release has a primary and a secondary release manager, selected by Core Maintainer vote. The secondary becomes primary for the following release. Release managers run the calendar, the review queue, freeze coordination, SDK readiness, and publication. Core Maintainers decide which SEPs are accepted.
+Each specification release has a primary and a secondary release manager. Release managers are Maintainers who nominate themselves, and Core Maintainers select them by vote before planning for that specification release begins. The secondary release manager becomes the primary release manager for the following specification release.
+
+Release managers help run:
+
+- The release calendar
+- The SEP review queue
+- Freeze coordination
+- SDK readiness tracking
+- Publication
+
+Core Maintainers decide which SEPs are accepted.
