@@ -13,7 +13,7 @@ on:
         default: true
 
 env:
-  NODE_VERSION: '20'
+  NODE_VERSION: '24'
 
 jobs:
   run-automation:
@@ -47,15 +47,20 @@ jobs:
         id: automation
         working-directory: tools/sep-automation
         run: |
-          if [[ "${{ github.event.inputs.dry_run }}" == "true" ]]; then
+          if [[ "$DRY_RUN" == "true" ]]; then
             echo "::notice::Running in DRY RUN mode - no changes will be made"
           else
             echo "::warning::Running in PRODUCTION mode - changes will be applied!"
           fi
 
-          if [[ -n "${{ github.event.inputs.issue_number }}" ]]; then
-            echo "Processing single issue #${{ github.event.inputs.issue_number }}"
-            npm start -- --issue ${{ github.event.inputs.issue_number }} 2>&1 | tee automation.log
+          if [[ -n "$ISSUE_NUMBER" ]]; then
+            if ! [[ "$ISSUE_NUMBER" =~ ^[1-9][0-9]*$ ]]; then
+              echo "::error::Issue/PR number must be a positive integer"
+              exit 1
+            fi
+
+            echo "Processing single issue #$ISSUE_NUMBER"
+            npm start -- --issue "$ISSUE_NUMBER" 2>&1 | tee automation.log
           else
             echo "Running full sweep"
             npm start 2>&1 | tee automation.log
@@ -68,6 +73,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           MAINTAINERS_TEAM: core-maintainers
           DRY_RUN: ${{ github.event.inputs.dry_run }}
+          ISSUE_NUMBER: ${{ github.event.inputs.issue_number }}
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
           LOG_LEVEL: info
 

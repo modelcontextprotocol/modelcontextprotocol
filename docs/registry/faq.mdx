@@ -18,7 +18,21 @@ sidebarTitle: FAQ
 
 ### Can I delete/unpublish my server?
 
-Currently, no. At the time of writing, there is [open discussion](https://github.com/modelcontextprotocol/registry/issues/104).
+Yes, you can change your server's status to `deleted` using the `mcp-publisher status` command:
+
+```bash
+# Delete a specific version
+mcp-publisher status --status deleted --message "No longer maintained" \
+  io.github.my-username/my-server 1.0.0
+
+# Delete all versions
+mcp-publisher status --status deleted --all-versions --message "Project archived" \
+  io.github.my-username/my-server
+```
+
+Deleted servers are hidden from default API listings but can still be retrieved with `include_deleted=true`. You can restore a deleted server by setting its status back to `active`.
+
+**Note**: Server metadata is never permanently removed from the registry. The `deleted` status hides the server from discovery but preserves the historical record.
 
 ### How do I update my server metadata?
 

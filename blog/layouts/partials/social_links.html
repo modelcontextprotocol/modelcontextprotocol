@@ -1,0 +1,7 @@
+<div class="menu-socials">
+  {{- range site.Params.socialIcons }}
+  <a class="menu-social" href="{{ .url | safeURL }}" target="_blank" rel="noopener noreferrer" title="{{ .title }}" aria-label="{{ .title }}">
+    <span aria-hidden="true">{{ (resources.Get (printf "icons/%s.svg" .name)).Content | safeHTML }}</span>
+  </a>
+  {{- end }}
+</div>

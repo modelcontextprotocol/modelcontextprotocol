@@ -3,12 +3,12 @@ title: '{{ replace .File.ContentBaseName "-" " " | title }}'
 date: "{{ .Date }}"
 draft: true
 
-# One-sentence SEO summary. PaperMod emits this as BlogPosting.description
+# One-sentence SEO summary. The blog emits this as BlogPosting.description
 # and <meta name="description">. Without it, both fall back to the first ~70
 # words of the post body.
 description: ""
 
-# PaperMod emits each entry as a schema.org Person in BlogPosting.author.
+# The blog emits each entry as a schema.org Person in BlogPosting.author.
 author:
   - ""
 

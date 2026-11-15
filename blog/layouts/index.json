@@ -1,0 +1,7 @@
+{{- $entries := slice -}}
+{{- range where site.RegularPages "Type" "in" site.Params.mainSections -}}
+  {{- if not .Params.searchHidden -}}
+    {{- $entries = $entries | append (dict "title" .Title "permalink" .RelPermalink "summary" (.Summary | plainify) "content" .Plain) -}}
+  {{- end -}}
+{{- end -}}
+{{- $entries | jsonify -}}

@@ -1965,8 +1965,14 @@ export interface ToolAnnotations {
  * @example With no parameters
  * {@includeCode ./examples/Tool/with-no-parameters.json}
  *
+ * @example With a composition input schema
+ * {@includeCode ./examples/Tool/tool-with-composition-input-schema.json}
+ *
  * @example With output schema for structured content
  * {@includeCode ./examples/Tool/with-output-schema-for-structured-content.json}
+ *
+ * @example With an array output schema
+ * {@includeCode ./examples/Tool/tool-with-array-output-schema.json}
  *
  * @category `tools/list`
  */
@@ -1986,6 +1992,11 @@ export interface Tool extends BaseMetadata, Icons {
    * composition keywords (`oneOf`, `anyOf`, `allOf`, `not`), conditional keywords
    * (`if`/`then`/`else`), reference keywords (`$ref`, `$defs`, `$anchor`), and any other
    * standard validation or annotation keywords.
+   *
+   * When using composition keywords, declare `properties` at the schema root and keep the
+   * branches to presence assertions such as `required`. A subschema that fails on a type
+   * error is indistinguishable from one that does not apply, so type constraints placed
+   * inside `oneOf` branches are not enforced for whichever branch does not match.
    *
    * Property schemas may carry an `x-mcp-header` annotation to mirror the
    * argument value into an HTTP header on the Streamable HTTP transport. See
@@ -2149,6 +2160,8 @@ export interface CreateMessageRequestParams {
    * Default is `{ mode: "auto" }`.
    */
   toolChoice?: ToolChoice;
+
+  _meta?: MetaObject;
 }
 
 /**
@@ -2741,6 +2754,8 @@ export interface ListRootsRequest {
  */
 export interface ListRootsResult {
   roots: Root[];
+
+  _meta?: MetaObject;
 }
 
 /**
@@ -2808,6 +2823,8 @@ export interface ElicitRequestFormParams {
     };
     required?: string[];
   };
+
+  _meta?: MetaObject;
 }
 
 /**
@@ -2835,6 +2852,8 @@ export interface ElicitRequestURLParams {
    * @format uri
    */
   url: string;
+
+  _meta?: MetaObject;
 }
 
 /**
@@ -3146,6 +3165,8 @@ export interface ElicitResult {
    * Omitted for out-of-band mode responses.
    */
   content?: { [key: string]: string | number | boolean | string[] };
+
+  _meta?: MetaObject;
 }
 
 /* Client messages */

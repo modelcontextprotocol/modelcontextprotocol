@@ -9,10 +9,10 @@ Also see the [overall MCP communication guidelines in our docs](https://modelcon
 
 The following software is required to work on the spec:
 
-- Node.js 24 or above
+- Node.js at the version pinned in `.nvmrc`
 - TypeScript
 - TypeScript JSON Schema (for generating JSON schema)
-- [Mintlify](https://mintlify.com/) (optional, for docs)
+- [Mintlify](https://mintlify.com/) (installed with the npm dependencies)
 - nvm (optional, for managing Node versions)
 
 ### Getting Started
@@ -30,7 +30,7 @@ The following software is required to work on the spec:
 
    ```bash
    nvm install  # install correct Node version
-   npm install  # install dependencies
+   npm ci       # install locked dependencies
    ```
 
 4. Create a new branch:
@@ -52,6 +52,10 @@ npm run check:schema:ts
 ```bash
 npm run generate:schema
 ```
+
+### Schema examples
+
+JSON examples live in `schema/draft/examples/<TypeName>/<example-name>.json`. Each file is validated against the schema type named by its directory, and is pulled into the schema reference through an `@includeCode` tag in `schema.ts`. Adding an example for a type that has none is a useful small contribution; run `npm run check:schema` to validate it.
 
 ### Resolving merge conflicts in generated files
 
@@ -116,19 +120,64 @@ When contributing to the documentation:
 ## Specification Proposal Guidelines
 
 Specification changes follow the [SEP process](https://modelcontextprotocol.io/community/sep-guidelines).
+Proposals must be submitted to and discussed in the relevant
+[working group](https://modelcontextprotocol.io/community/working-interest-groups).
+A SEP pull request may only be marked ready for review once that working group has agreed to
+[sponsor](https://modelcontextprotocol.io/community/sep-guidelines#sponsors) it. Before that,
+work in progress lives in a draft pull request. The pull request description must link that
+discussion, as required by the
+[SEP guidelines](https://modelcontextprotocol.io/community/sep-guidelines#workflow).
 Before drafting a proposal, review the [MCP design principles](https://modelcontextprotocol.io/community/design-principles)
 — proposals that align with these principles move faster through review.
 
-The shortest summary: explore the problem space and validate that others share the problem,
-build a prototype that demonstrates a solution, then write the SEP based on what the
-prototype taught you.
+## Reporting Issues
+
+If you are not a member of the `modelcontextprotocol` GitHub organization, contribute by
+opening an issue or by joining a working group. Blank issues are disabled, so use one of the
+[issue templates](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/new/choose).
+SDK bugs belong in the respective SDK repository.
 
 ## Submitting Changes
 
-1. Push your changes to your fork
-2. Submit a pull request to the main repository
-3. Follow the pull request template
-4. Wait for review
+Only members of the `modelcontextprotocol` GitHub organization may open pull requests.
+Membership comes from being active on issues or in working groups and interest groups. If you
+are not a member yet, see
+[Change the specification or docs](https://modelcontextprotocol.io/community/contributing#change-the-specification-or-docs)
+for how to get a fix picked up or a pull request opened from your branch.
+
+1. Discuss your change with the relevant
+   [working group](https://modelcontextprotocol.io/community/working-interest-groups) and get its approval
+2. Check that you are a member of the `modelcontextprotocol` organization, as defined by the
+   [Member](https://modelcontextprotocol.io/community/contributor-ladder#member) role on the contributor ladder
+3. Push your changes to your fork
+4. Open a pull request against the main repository and follow the pull request template
+5. For SEPs, schedule a review with the Core Maintainers via [voting.modelcontextprotocol.io](https://voting.modelcontextprotocol.io)
+
+### Pull request titles
+
+Use a Conventional Commit title: `type(scope): description`. The scope is optional.
+Allowed types are `sep`, `feat`, `fix`, `docs`, `ci`, `build`, `chore`,
+`refactor`, `test`, `perf`, `style`, and `revert`.
+
+| Change                    | Example title                                         |
+| ------------------------- | ----------------------------------------------------- |
+| New SEP, before numbering | `sep: propose task cancellation`                      |
+| Numbered SEP              | `sep(SEP-3398): clarify task cancellation`            |
+| Fix related to a SEP      | `fix(SEP-3398): correct the cancellation result type` |
+| Documentation             | `docs: clarify authorization`                         |
+| CI                        | `ci: validate PR titles`                              |
+
+Once a new SEP has a PR number, use `sep(SEP-XXXX): description`, replacing
+`XXXX` with that number. Keep the original SEP number for follow-ups and link to
+the proposal in the PR description. SEP scopes use positive numbers without leading
+zeros. Other changes can use an area scope such as `schema` or omit it.
+
+Mark breaking changes with `!`, for example `feat(spec)!: remove the legacy transport`,
+and explain them in a `BREAKING CHANGE:` paragraph in the PR description.
+
+The `PR title` check reruns on title edits and is advisory during rollout.
+Individual branch commits do not need this format or rewriting. When squash merging,
+use the checked title and preserve disclosures and co-author trailers in the body.
 
 ## AI Contributions
 

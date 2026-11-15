@@ -42,8 +42,8 @@ describe('loadConfig', () => {
     expect(config.targetOwner).toBe('modelcontextprotocol');
     expect(config.targetRepo).toBe('modelcontextprotocol');
     expect(config.maintainersTeam).toBe('core-maintainers');
-    expect(config.proposalPingDays).toBe(90);
-    expect(config.proposalDormantDays).toBe(180);
+    expect(config.draftPingDays).toBe(90);
+    expect(config.acceptedPingDays).toBe(30);
     expect(config.pingCooldownDays).toBe(14);
     expect(config.dryRun).toBe(false);
     expect(config.discordWebhookUrl).toBeNull();
@@ -53,7 +53,7 @@ describe('loadConfig', () => {
     process.env['GITHUB_TOKEN'] = 'test-token';
     process.env['TARGET_OWNER'] = 'custom-owner';
     process.env['TARGET_REPO'] = 'custom-repo';
-    process.env['PROPOSAL_PING_DAYS'] = '60';
+    process.env['DRAFT_PING_DAYS'] = '60';
     process.env['DRY_RUN'] = 'true';
     process.env['DISCORD_WEBHOOK_URL'] = 'https://discord.com/webhook';
 
@@ -61,14 +61,14 @@ describe('loadConfig', () => {
 
     expect(config.targetOwner).toBe('custom-owner');
     expect(config.targetRepo).toBe('custom-repo');
-    expect(config.proposalPingDays).toBe(60);
+    expect(config.draftPingDays).toBe(60);
     expect(config.dryRun).toBe(true);
     expect(config.discordWebhookUrl).toBe('https://discord.com/webhook');
   });
 
   it('should throw if numeric env var is not a number', () => {
     process.env['GITHUB_TOKEN'] = 'test-token';
-    process.env['PROPOSAL_PING_DAYS'] = 'not-a-number';
+    process.env['DRAFT_PING_DAYS'] = 'not-a-number';
 
     expect(() => loadConfig()).toThrow('must be a number');
   });

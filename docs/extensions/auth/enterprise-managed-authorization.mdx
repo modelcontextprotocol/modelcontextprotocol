@@ -8,7 +8,7 @@ The Enterprise-Managed Authorization extension (`io.modelcontextprotocol/enterpr
 <Card
   title="Specification"
   icon="file-lines"
-  href="https://github.com/modelcontextprotocol/ext-auth/blob/main/specification/stable/enterprise-managed-authorization.mdx"
+  href="https://github.com/modelcontextprotocol/ext-auth/blob/main/specification/stable/enterprise-managed-authorization/2026-07-28/enterprise-managed-authorization.mdx"
 >
   Full technical specification for the Enterprise-Managed Authorization
   extension.
@@ -25,7 +25,7 @@ In enterprise environments, this model creates friction and security gaps:
 - Onboarding new employees requires them to manually authorize dozens of services
 - Offboarding requires revoking access across every service individually
 
-Enterprise-Managed Authorization solves this by introducing the organization's IdP as the authoritative decision-maker. The IdP (such as Okta, Azure AD, or a corporate SSO system) controls which MCP servers employees can access, and under what conditions. Employees authenticate with their corporate identity — the same credentials they use for email, Slack, and other work tools — and the IdP grants or denies MCP server access based on organizational policy.
+Enterprise-Managed Authorization solves this by introducing the organization's IdP as the authoritative decision-maker. The IdP controls which MCP servers employees can access, and under what conditions. Employees authenticate with their corporate identity — the same credentials they use for email, Slack, and other work tools — and the IdP grants or denies MCP server access based on organizational policy.
 
 ## When to use it
 
@@ -144,6 +144,49 @@ Support for this extension varies by client. Extensions are opt-in and never act
 
 Check the [client matrix](/extensions/client-matrix) for current implementation status across MCP clients. Enterprise-Managed Authorization typically requires client-level support from the organization's IT team in addition to the MCP client application.
 
+## Implementation support
+
+<Note>
+
+This list is not comprehensive. It records documented support only, so a missing product or an empty cell does not mean that a role is unsupported.
+
+</Note>
+
+Two products take part in the flow besides the MCP client: the enterprise IdP that issues the
+ID-JAG, and the MCP server's authorization server that accepts it and returns an access token. One
+product can fill both roles. The table lists products with public documentation for at least one
+role and uses the vendor's own release label: **Available** (in a production release with no
+pre-release label), **Early access** (gated by plan, environment, or request), and **Experimental**
+(the vendor's pre-release label).
+
+The IETF OAuth working group defines ID-JAG in
+[draft-ietf-oauth-identity-assertion-authz-grant](https://datatracker.ietf.org/doc/draft-ietf-oauth-identity-assertion-authz-grant/).
+Implementations track different draft revisions, so check each vendor's documentation for the
+revision it targets.
+
+| Product                                                                                                                                                    | Issues ID-JAGs | Accepts ID-JAGs | Notes                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| ---------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------- | --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [Athenz](https://github.com/AthenZ/athenz/blob/master/docs/zts_token_exchange_requirements.md)                                                             | Available      | Available       | Open source. ZTS issues ID-JAGs through token exchange and accepts them through the JWT bearer grant.                                                                                                                                                                                                                                                                                                                                                     |
+| [Auth0](https://auth0.com/docs/ai-agents-mcp/cross-app-access)                                                                                             |                | Early access    | Cross App Access for Resource Apps, early access on Enterprise, B2B Pro, and B2B Essential plans. Auth0 validates ID-JAGs from an external OIDC or SAML enterprise connection.                                                                                                                                                                                                                                                                            |
+| [AuthPlane](https://github.com/authplane/authserver/blob/main/docs/guides/federation/enterprise-managed-auth-xaa.md)                                       |                | Available       | Self-hosted authorization server for MCP. Accepts ID-JAGs through the JWT bearer grant, enabled by default since v0.2.0.                                                                                                                                                                                                                                                                                                                                  |
+| [Descope](https://docs.descope.com/agentic-identity-hub/enterprise-managed-authorization/validate-id-jags)                                                 | Available      | Available       | Agentic Identity Hub [issues ID-JAGs](https://docs.descope.com/agentic-identity-hub/enterprise-managed-authorization/issue-id-jags) for agents through token exchange. As the MCP server's authorization server, Descope validates ID-JAGs against per-tenant trusted issuers and returns Descope access tokens.                                                                                                                                          |
+| [Janssen Project](https://docs.jans.io/stable/janssen-server/auth-server/endpoints/identity-assertion-authz-grant/)                                        | Available      | Available       | Since 2.2.0, off by default behind the `identity_assertion_authz_grant` feature flag, targeting draft revision 04.                                                                                                                                                                                                                                                                                                                                        |
+| [Keycloak](https://www.keycloak.org/securing-apps/identity-assertion-jwt-authorization-grant)                                                              |                | Experimental    | Accepting role since 26.7.0 behind the `identity-assertion-jwt` feature flag. The guide targets draft revision 01.                                                                                                                                                                                                                                                                                                                                        |
+| [Okta](https://developer.okta.com/docs/concepts/xaa/)                                                                                                      | Available      | Available       | Cross App Access (XAA). [Issuing](https://developer.okta.com/docs/guides/xaa-agent-to-app/main/) is included in Okta SSO for Identity Engine orgs, capped at 250 ID-JAGs per user per resource app per month. Higher volume requires Okta for AI Agents. [Custom authorization servers](https://developer.okta.com/docs/guides/ai-agent-token-exchange/authserver/main/) accept Okta-issued ID-JAGs through the JWT bearer grant with Okta for AI Agents. |
+| [Ping Identity](https://docs.pingidentity.com/pingfederate/13.1/release_notes/pf_release_notes_131.html#identity-assertion-jwt-authorization-grant-id-jag) | Available      | Available       | PingFederate 13.1 and later. Issues ID-JAGs through token exchange on an SP connection and [accepts them](https://docs.pingidentity.com/pingfederate/13.1/administrators_reference_guide/pf_configuring_oauth_assertion_grant_idp_connection.html) on an OAuth assertion grant IdP connection.                                                                                                                                                            |
+| [Scalekit](https://docs.scalekit.com/mcp/auth-methods/xaa/)                                                                                                |                | Early access    | Enterprise plan. Scalekit enables XAA per workspace on request.                                                                                                                                                                                                                                                                                                                                                                                           |
+| [Stytch](https://stytch.com/docs/connected-apps/guides/cross-app-access)                                                                                   |                | Available       | Connected Apps in B2B projects exchange an ID-JAG from an external workforce IdP for a Stytch access token through the JWT bearer grant.                                                                                                                                                                                                                                                                                                                  |
+| [ThunderID](https://thunderid.dev/docs/use-cases/ai-agents/mcp-authorization/enterprise-managed-authorization/)                                            | Available      | Available       | Open-source IAM project of LF Decentralized Trust, 1.0 and later. Ships a dedicated Enterprise-Managed Authorization guide covering both roles.                                                                                                                                                                                                                                                                                                           |
+| [WorkOS AuthKit](https://workos.com/docs/authkit/mcp#cross-app-access)                                                                                     |                | Early access    | WorkOS enables Cross App Access per environment on request, with no server code changes needed after that. Not supported with Standalone MCP Auth.                                                                                                                                                                                                                                                                                                        |
+
+Server frameworks that accept ID-JAGs include Cloudflare's
+[`workers-oauth-provider`](https://github.com/cloudflare/workers-oauth-provider) (experimental
+`enterpriseManagedAuthorization` option since 0.7.0) and
+[FastMCP](https://gofastmcp.com/servers/auth/oauth-proxy#identity-assertion-sep-990) 4.0 and later
+(beta). The [Cross-App Access directory on oauth.net](https://oauth.net/cross-app-access/)
+is a community list that also covers requesting applications. For MCP client support, see the
+[client matrix](/extensions/client-matrix).
+
 ## Related resources
 
 <CardGroup cols={2}>
@@ -157,7 +200,7 @@ Check the [client matrix](/extensions/client-matrix) for current implementation 
   <Card
     title="Full specification"
     icon="file-lines"
-    href="https://github.com/modelcontextprotocol/ext-auth/blob/main/specification/stable/enterprise-managed-authorization.mdx"
+    href="https://github.com/modelcontextprotocol/ext-auth/blob/main/specification/stable/enterprise-managed-authorization/2026-07-28/enterprise-managed-authorization.mdx"
   >
     Technical specification with normative requirements
   </Card>

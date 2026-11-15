@@ -1,0 +1,16 @@
+{{- /*
+  Takes plain text and returns it as escaped HTML in which two kinds of name
+  cannot be split across lines:
+
+  - a spec version such as 2026-07-28, which a browser may otherwise break
+    after either hyphen (.nowrap in custom.css);
+  - a word and the short number after it, as in "Tier 1", "July 28" or
+    "version 1.0", which are joined with a non-breaking space.
+
+  Used wherever a title or a description is set: post_list.html and
+  _default/single.html.
+*/ -}}
+{{- $text := . | htmlEscape }}
+{{- $text = replaceRE ` (\d{1,2}(?:\.\d+)?)([\s.,;:)]|$)` "\u00a0$1$2" $text }}
+{{- $text = replaceRE `(\d{4}-\d{2}-\d{2})` `<span class="nowrap">$1</span>` $text }}
+{{- return ($text | safeHTML) }}

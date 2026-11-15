@@ -1,0 +1,113 @@
+---
+title: Tasks and Events Charter
+description: Charter for the MCP Tasks and Events Working Group.
+---
+
+## Group Type
+
+**Working Group**
+
+## Mission Statement
+
+The Tasks and Events Working Group exists to continue the development of Tasks, MCP's existing foundation for durable asynchronous execution, and to define how servers proactively notify clients of state changes. Today, clients learn about server-side updates by polling or holding an SSE connection open. This WG will specify a standardized callback mechanism—webhooks or similar—that lets servers push notifications when new data is available, with defined ordering guarantees that hold across all transports.
+
+## Scope
+
+### In Scope
+
+- **Tasks**: Stabilization of the
+  [`io.modelcontextprotocol/tasks`](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2663)
+  extension and its promotion into the core MCP protocol, including collecting
+  implementation feedback, resolving ambiguities, and evaluating proposed changes
+  to its lifecycle.
+- **Specification Work**: SEPs defining the trigger/callback mechanism, subscription lifecycle, delivery semantics, and event ordering guarantees.
+- **Reference Implementations**: SDK components demonstrating server-initiated notifications and client-side callback handling.
+- **Cross-Cutting Concerns**: Coordination with the Transports WG on transport-specific delivery behavior, and with the Agents IG on agent-backed use cases that depend on Tasks or event triggers.
+- **Documentation**: The Tasks specification, and specification sections covering event-driven patterns and migration guidance from polling-based approaches.
+
+### Out of Scope
+
+- Changes to the transport wire format or session model (owned by the Transports WG).
+- General-purpose pub/sub infrastructure beyond what the MCP protocol requires.
+- Modifications to existing notification primitives (`notifications/resources/updated`, `notifications/tools/list_changed`, etc.) that do not relate to proactive server-initiated delivery.
+- Evaluation of agent-backed MCP use cases and of a possible Agents Extension, which belongs to the Agents IG.
+
+### Related Groups
+
+- **[Transports WG](/community/working-groups/transports)** — delivery and ordering guarantees depend on transport capabilities; callback semantics must be coherent across stdio, Streamable HTTP, and future transports.
+- **[Agents IG](/community/interest-groups/agents)** — agent-as-tool, remote-agent, and supervisor/sub-agent patterns depend on Tasks and on task completion notifications. The IG provides use cases and requirements, and this WG owns the protocol surface.
+
+## Leadership
+
+| Role | Name             | Organization        | GitHub                                             | Term    |
+| ---- | ---------------- | ------------------- | -------------------------------------------------- | ------- |
+| Lead | Clare Liguori    | Amazon Web Services | [@clareliguori](https://github.com/clareliguori)   | Initial |
+| Lead | Peter Alexander  | -                   | [@poita](https://github.com/poita)                 | Initial |
+| Lead | Luca Chang       | Amazon Web Services | [@LucaButBoring](https://github.com/LucaButBoring) | Initial |
+| Lead | Caitie McCaffrey | Microsoft           | [@CaitieM20](https://github.com/CaitieM20)         | Initial |
+
+## Authority & Decision Rights
+
+| Decision Type                       | Authority Level                                        |
+| ----------------------------------- | ------------------------------------------------------ |
+| Meeting logistics & scheduling      | WG Leads (autonomous)                                  |
+| Proposal prioritization within WG   | WG Leads (autonomous)                                  |
+| SEP triage & closure (in scope)     | WG Leads (autonomous, with documented rationale)       |
+| Technical design within scope       | WG consensus                                           |
+| Spec changes (additive)             | WG consensus → Core Maintainer approval                |
+| Spec changes (breaking/fundamental) | WG consensus → Core Maintainer approval + wider review |
+| Scope expansion                     | Core Maintainer approval required                      |
+| WG Member approval                  | WG Member sponsors                                     |
+
+## Membership
+
+| Name             | Organization        | GitHub                                             | Discord | Level |
+| ---------------- | ------------------- | -------------------------------------------------- | ------- | ----- |
+| Clare Liguori    | Amazon Web Services | [@clareliguori](https://github.com/clareliguori)   |         | Lead  |
+| Peter Alexander  | -                   | [@poita](https://github.com/poita)                 |         | Lead  |
+| Luca Chang       | Amazon Web Services | [@LucaButBoring](https://github.com/LucaButBoring) |         | Lead  |
+| Caitie McCaffrey | Microsoft           | [@CaitieM20](https://github.com/CaitieM20)         |         | Lead  |
+
+## Operations
+
+| Meeting         | Frequency | Duration | Purpose                               |
+| --------------- | --------- | -------- | ------------------------------------- |
+| Working Session | Weekly    | 30 min   | Technical discussion, proposal review |
+
+Meetings are published at
+[meet.modelcontextprotocol.io](https://meet.modelcontextprotocol.io).
+
+## Resources
+
+- Incubation repository: [modelcontextprotocol/experimental-ext-triggers-events](https://github.com/modelcontextprotocol/experimental-ext-triggers-events)
+- Tasks extension repository:
+  [modelcontextprotocol/ext-tasks](https://github.com/modelcontextprotocol/ext-tasks)
+- Tasks specification:
+  [SEP-2663: Tasks Extension](/seps/2663-tasks-extension)
+
+## Deliverables & Success Metrics
+
+### Active Work Items
+
+| Item                                            | Status      | Target Date | Champion                                           |
+| ----------------------------------------------- | ----------- | ----------- | -------------------------------------------------- |
+| Tasks stabilization and core protocol promotion | In Progress |             | [@LucaButBoring](https://github.com/LucaButBoring) |
+| SEP: Events in MCP v1 RFC                       | Ideating    | End April   | TBD                                                |
+| Reference implementation in Tier-1 SDKs         | —           | End April   | TBD                                                |
+
+### Success Criteria
+
+- Tasks is fully stabilized based on implementation feedback and promoted from an
+  extension into the core MCP protocol.
+- Lifecycle ambiguities and conformance gaps that block Tasks stabilization are
+  resolved or explicitly dispositioned.
+- An accepted SEP defining the trigger/callback mechanism and its subscription lifecycle.
+- Reference implementations in at least two Tier-1 SDKs.
+- Conformance test coverage for the new primitives.
+
+## Changelog
+
+| Date       | Change                                                                                   |
+| ---------- | ---------------------------------------------------------------------------------------- |
+| 2026-03-24 | Initial charter (as the Triggers and Events WG)                                          |
+| 2026-10-16 | Renamed to Tasks and Events WG. Tasks scope and its leads moved here from the Agents WG. |
