@@ -76,10 +76,11 @@ Servers provide specialized context and capabilities:
 
 - Expose resources, tools and prompts via MCP primitives
 - Operate independently with focused responsibilities
-- Request client input (elicitation) via `InputRequiredResult` within a reply; the
-  sampling and roots input types are [deprecated](/specification/draft/deprecated)
+- Request client input (e.g. elicitation[^deprecated-input]) via `InputRequiredResult` within a reply
 - Must respect security constraints
 - Can be local processes or remote services
+
+[^deprecated-input]: Sampling and roots requests are also delivered via `InputRequiredResult`, but both are deprecated as of protocol version `2026-07-28` and should not be used in new implementations. See [Deprecated Features](/specification/draft/deprecated).
 
 ## Design Principles
 
