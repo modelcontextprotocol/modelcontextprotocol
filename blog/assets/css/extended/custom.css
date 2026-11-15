@@ -75,9 +75,11 @@
        title stands well clear of everything else. They are written in rem, so
        a reader who sets a larger font size in the browser gets one. The pixel
        values below are at the usual 16px.
-         1  13/20  back link, tags, list authors, byline roles, footer
-         2  15/24  navigation, list summaries, byline names, code, tables
-         3  18/28  h3, homepage lead, search results (18/30 for body text)
+         1  13/20  back link, tags, list authors, byline roles, footer, search
+                   excerpts
+         2  15/24  navigation, list summaries, byline names, code, tables,
+                   search results
+         3  18/28  h3, homepage lead, search field (18/30 for body text)
          4  22/28  list titles, dates and years (22/32 for the standfirst)
          5  26/32  h2
          6  31/36  page titles on a phone
