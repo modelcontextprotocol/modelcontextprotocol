@@ -1649,8 +1649,8 @@ html:has(.search-dialog[open]) {
    two of the post under it. So the dates make one column and the titles one
    edge, and the eye runs down either. The date shares the title's line, so it
    shares its size. What tells the parts apart is weight and color: the title
-   is ink and medium, the date is the faintest grey, the text under the title
-   is grey and a size down. Rows keep apart by space alone.
+   is ink and medium, the date is grey as dates are everywhere, the text under
+   the title is the same grey and a size down. Rows keep apart by space alone.
 
    The row that Enter will open is filled, like any control under the pointer,
    and the pointer moves the same fill. */
@@ -1692,7 +1692,7 @@ html:has(.search-dialog[open]) {
 }
 
 .search-result-date {
-    color: var(--faint);
+    color: var(--muted);
     white-space: nowrap;
 }
 
