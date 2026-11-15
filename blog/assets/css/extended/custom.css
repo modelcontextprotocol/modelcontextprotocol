@@ -182,6 +182,10 @@
     --author-cols: 3;
     --author-gap: var(--s-10);
 
+    /* The date column of a search result: "Oct 30, 2026" at step 2 is about
+       90px. */
+    --search-when-col: 5.75rem;
+
     /* Icons that sit beside 15px text. */
     --icon: 18px;
 
@@ -1510,7 +1514,7 @@ a:hover .tag-count {
    all start on one edge, 20px in. The dialog's top edge stays where it is
    while results come and go, and a long list scrolls inside it. */
 .search-dialog {
-    width: min(44rem, 100% - var(--gap) * 2);
+    width: min(40rem, 100% - var(--gap) * 2);
     max-width: none;
     max-height: min(42rem, 100dvh - 24vh);
     margin: 12vh auto auto;
@@ -1634,12 +1638,17 @@ html:has(.search-dialog[open]) {
     letter-spacing: var(--ls-1);
 }
 
-/* The results are the post list in small. A result is a row of two columns:
-   the date, then the title with a line or two of the post under it. So the
-   dates make one column and the titles one edge, and the eye runs down either.
-   The date shares the title's line, so it shares its size. What tells the
-   parts apart is weight and color: the title is ink and semibold, the date
-   and the text under it are grey and regular. Rows keep apart by space alone.
+/* The results are the post list in small, and quiet: they point to a post,
+   they are not the post. So they are set in the two small sizes, the ones the
+   navigation and the list's summaries use, and only what was typed in the
+   field is larger.
+
+   A result is a row of two columns: the date, then the title with a line or
+   two of the post under it. So the dates make one column and the titles one
+   edge, and the eye runs down either. The date shares the title's line, so it
+   shares its size. What tells the parts apart is weight and color: the title
+   is ink and medium, the date is the faintest grey, the text under the title
+   is grey and a size down. Rows keep apart by space alone.
 
    The row that Enter will open is filled, like any control under the pointer,
    and the pointer moves the same fill. */
@@ -1663,9 +1672,9 @@ html:has(.search-dialog[open]) {
 
 .search-result a {
     display: grid;
-    grid-template-columns: var(--when-col) minmax(0, 1fr);
+    grid-template-columns: var(--search-when-col) minmax(0, 1fr);
     column-gap: var(--s-4);
-    padding: var(--s-3);
+    padding: var(--s-2) var(--s-3);
     border-radius: var(--r-sm);
 }
 
@@ -1675,13 +1684,13 @@ html:has(.search-dialog[open]) {
 
 .search-result-date,
 .search-result-title {
-    font-size: var(--fs-3);
-    line-height: var(--lh-3);
-    letter-spacing: var(--ls-3);
+    font-size: var(--fs-2);
+    line-height: var(--lh-2);
+    letter-spacing: var(--ls-2);
 }
 
 .search-result-date {
-    color: var(--muted);
+    color: var(--faint);
     white-space: nowrap;
 }
 
@@ -1693,18 +1702,18 @@ html:has(.search-dialog[open]) {
 .search-result-title {
     display: block;
     color: var(--ink);
-    font-weight: var(--fw-strong);
+    font-weight: var(--fw-medium);
     text-wrap: balance;
 }
 
 .search-result-text {
     display: -webkit-box;
-    margin-top: var(--s-1);
+    margin-top: var(--s-half);
     overflow: hidden;
     color: var(--muted);
-    font-size: var(--fs-2);
-    line-height: var(--lh-2);
-    letter-spacing: var(--ls-2);
+    font-size: var(--fs-1);
+    line-height: var(--lh-1);
+    letter-spacing: var(--ls-1);
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;
     line-clamp: 2;
@@ -2126,7 +2135,7 @@ html:has(.search-dialog[open]) {
 
     .search-result-date {
         display: block;
-        margin-bottom: var(--s-1);
+        margin-bottom: var(--s-half);
         font-size: var(--fs-1);
         line-height: var(--lh-1);
         letter-spacing: var(--ls-1);
