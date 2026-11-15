@@ -26,7 +26,7 @@ This SEP is fully backward compatible. A client that does not recognize the `_me
 
 3. **Support for structured remediation data at denial**: In some cases, the server can safely share data with the client that helps with remediation. For example, OAuth 2.0 defines Rich Authorization Requests (RFC 9396) for conveying structured authorization requirements, but only as part of the authorization request flow. An IETF OAuth Working Group draft, [`draft-ietf-oauth-rar-metadata-remediation`](https://datatracker.ietf.org/doc/draft-ietf-oauth-rar-metadata-remediation/), proposes a mechanism for HTTP by defining a new `WWW-Authenticate` error code, `insufficient_authorization`, with the structured data placed in the `authorization_remediation` header error parameter, which contains a base64url-encoded JSON object. The draft is HTTP-specific, and this SEP proposes to adopt the same error-remediation pattern at the JSON-RPC layer so it applies across MCP transports.
 
-4. **A denial does not indicate whether it can be remediated**: A client that receives an authorization denial cannot determine whether remediation is possible. It therefore either reattempts authorization for a denial that no credential or approval can satisfy, or treats a remediable denial as final. A remediation may also exist that the server cannot safely disclose or express. OAuth authorization challenges cannot resolve this, because every error value they define names something the client is expected to obtain, and none of them indicates that nothing can be obtained.
+4. **A denial does not indicate whether it can be remediated**: Today, clients are left to guess at what to do when a tool call or resource request is denied, because there is no programmatic way to determine whether remediation is possible. Clients then reattempt in vain for a denial that no credential or approval can satisfy, or treat a remediable denial as final and do not retry. A remediation path may also exist that the server cannot safely disclose or express, which cannot be expressed by an OAuth authorization challenge.
 
 ## Specification
 
@@ -427,7 +427,7 @@ The client constructs an OAuth authorization request from the `authorization_det
 
 ### Denials with no remediation to describe
 
-A denial that carries no hints is the shape `remediation` exists to disambiguate, because nothing else in the result distinguishes a final denial from one whose remedy the server will not describe:
+A terminal denial carries no hints and sets `remediation: "unavailable"`:
 
 ```json
 {
