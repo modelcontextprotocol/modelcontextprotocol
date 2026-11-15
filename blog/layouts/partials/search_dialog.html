@@ -38,6 +38,7 @@
         const opener = document.getElementById("search-open");
         if (!opener || !dialog.showModal) return;
         const input = document.getElementById("searchInput");
+        const status = document.getElementById("searchStatus");
         const mac = /Mac|iPhone|iPad/.test(navigator.platform);
         opener.title = `Search (${mac ? "⌘K" : "Ctrl K"})`;
 
@@ -49,6 +50,13 @@
             script.src = dialog.dataset.script;
             script.integrity = dialog.dataset.integrity;
             script.crossOrigin = "anonymous";
+            // If the bundle does not arrive, say so, and let the next reach for search try again.
+            script.onerror = () => {
+                requested = false;
+                script.remove();
+                status.textContent = "Search is unavailable. Please try again later.";
+            };
+            status.textContent = "";
             document.head.appendChild(script);
         }
 
@@ -63,8 +71,9 @@
         opener.addEventListener("click", open);
 
         document.addEventListener("keydown", (event) => {
-            const palette = event.key.toLowerCase() === "k" && (mac ? event.metaKey : event.ctrlKey) && !event.altKey && !event.shiftKey;
-            const typing = event.target.closest("input, textarea, select, [contenteditable]");
+            // Some keydown events carry no key: the browser filling in a field, for one.
+            const palette = event.key?.toLowerCase() === "k" && (mac ? event.metaKey : event.ctrlKey) && !event.altKey && !event.shiftKey;
+            const typing = event.target.closest?.("input, textarea, select, [contenteditable]");
             const slash = event.key === "/" && !typing && !event.metaKey && !event.ctrlKey && !event.altKey;
             if (!palette && !slash) return;
             event.preventDefault();
