@@ -80,19 +80,14 @@
             {{- range site.Menus.main }}
             {{- $menu_item_url := (cond (strings.HasSuffix .URL "/") .URL (printf "%s/" .URL) ) | absLangURL }}
             {{- $page_url:= $currentPage.Permalink | absLangURL }}
-            {{- $is_search := eq (site.GetPage .KeyName).Layout `search` }}
-            <li class="menu-item{{ if .Params.shortname }} menu-item-short{{ end }}{{ if $is_search }} menu-search{{ end }}">
-                <a href="{{ .URL | absLangURL }}" aria-label="{{ if .Params.shortname }}{{ .Params.shortname }} ({{ .Name }}){{ else }}{{ .Name }}{{ end }}" title="{{ .Title | default .Name }} {{- cond $is_search (" (Alt + /)" | safeHTMLAttr) ("" | safeHTMLAttr ) }}"
-                {{- cond $is_search (" accesskey=/" | safeHTMLAttr) ("" | safeHTMLAttr ) }}>
+            <li class="menu-item{{ if .Params.shortname }} menu-item-short{{ end }}">
+                <a href="{{ .URL | absLangURL }}" aria-label="{{ if .Params.shortname }}{{ .Params.shortname }} ({{ .Name }}){{ else }}{{ .Name }}{{ end }}" title="{{ .Title | default .Name }}">
                     <span class="menu-item-text{{ if eq $menu_item_url $page_url }} active{{ end }}">
                         {{- .Pre }}
                         <span class="menu-label">{{ .Name }}</span>
                         {{- with .Params.shortname }}<span class="menu-label-short" aria-hidden="true">{{ . }}</span>{{ end -}}
                         {{ .Post -}}
                     </span>
-                    {{- if $is_search }}
-                    <span class="menu-search-icon" aria-hidden="true">{{ (resources.Get "icons/search.svg").Content | safeHTML }}</span>
-                    {{- end }}
                     {{- if (findRE "://" .URL) }}
                     <svg class="menu-external" fill="none" shape-rendering="geometricPrecision" stroke="currentColor" stroke-linecap="round"
                         stroke-linejoin="round" stroke-width="2.5" viewBox="0 0 24 24" height="12" width="12">
@@ -107,6 +102,10 @@
         </ul>
         <div class="header-actions">
             {{- partial "social_links.html" . }}
+            {{- /* Opens the dialog in search_dialog.html, on the page the reader is on. */}}
+            <button class="header-search" id="search-open" type="button" accesskey="/" title="Search" aria-label="Search" aria-haspopup="dialog">
+                {{ (resources.Get "icons/search.svg").Content | safeHTML }}
+            </button>
             {{- if (not site.Params.disableThemeToggle) }}
             <div class="menu-theme">
                 <button id="theme-toggle" accesskey="t" title="Toggle theme (Alt + T)" aria-label="Toggle theme">

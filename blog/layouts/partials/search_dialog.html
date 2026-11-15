@@ -1,0 +1,85 @@
+{{- /*
+  Search, on the page the reader is on. The header's search button opens this dialog, and so do "/" and
+  Ctrl+K (Cmd+K on a Mac). It is a native modal <dialog>, so the browser keeps the focus inside it, closes it
+  on Esc and returns the focus to the button. There is no search page.
+
+  Nothing of search is loaded until the reader reaches for it: the script below fetches the bundle (Fuse and
+  assets/js/search.js) when the pointer or the focus reaches the button, or when the dialog opens, and the
+  bundle fetches the index (layouts/index.json).
+
+  The input keeps the focus the whole time. The arrow keys move a highlight through the results, which is why
+  the input is a combobox and the list a listbox. How it all looks is under "Search" in custom.css.
+*/ -}}
+{{- $search := resources.Get "js/search.js" | minify -}}
+{{- $bundle := slice (resources.Get "js/vendor/fuse.basic.min.js") $search | resources.Concat "assets/js/search.js" | fingerprint }}
+<dialog class="search-dialog" id="search-dialog" aria-label="Search posts" data-script="{{ $bundle.RelPermalink }}"
+    data-integrity="{{ $bundle.Data.Integrity }}">
+    <div class="search-field">
+        <span class="search-field-icon" aria-hidden="true">{{ (resources.Get "icons/search.svg").Content | safeHTML }}</span>
+        <input id="searchInput" type="text" inputmode="search" enterkeyhint="go" role="combobox" aria-label="Search posts"
+            aria-controls="searchResults" aria-expanded="false" aria-autocomplete="list" placeholder="Search posts"
+            autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" maxlength="64"
+            data-index="{{ "index.json" | relURL }}">
+        <form method="dialog">
+            <button class="search-close" aria-label="Close search"><kbd>Esc</kbd><span>Close</span></button>
+        </form>
+    </div>
+    <p class="search-heading" id="searchHeading" hidden>Recent posts</p>
+    <ul class="search-results" id="searchResults" role="listbox" aria-label="Search results"></ul>
+    <p class="search-status" id="searchStatus" role="status" aria-live="polite"></p>
+    <p class="search-keys" aria-hidden="true">
+        <span><kbd>↑</kbd><kbd>↓</kbd>Move</span>
+        <span><kbd>Enter</kbd>Open</span>
+    </p>
+</dialog>
+<script>
+    (() => {
+        const dialog = document.getElementById("search-dialog");
+        const opener = document.getElementById("search-open");
+        if (!opener || !dialog.showModal) return;
+        const input = document.getElementById("searchInput");
+        const mac = /Mac|iPhone|iPad/.test(navigator.platform);
+        opener.title = `Search (${mac ? "⌘K" : "Ctrl K"})`;
+
+        let requested = false;
+        function load() {
+            if (requested) return;
+            requested = true;
+            const script = document.createElement("script");
+            script.src = dialog.dataset.script;
+            script.integrity = dialog.dataset.integrity;
+            script.crossOrigin = "anonymous";
+            document.head.appendChild(script);
+        }
+
+        function open() {
+            load();
+            if (!dialog.open) dialog.showModal();
+            input.select();
+        }
+
+        opener.addEventListener("pointerenter", load);
+        opener.addEventListener("focus", load);
+        opener.addEventListener("click", open);
+
+        document.addEventListener("keydown", (event) => {
+            const palette = event.key.toLowerCase() === "k" && (mac ? event.metaKey : event.ctrlKey) && !event.altKey && !event.shiftKey;
+            const typing = event.target.closest("input, textarea, select, [contenteditable]");
+            const slash = event.key === "/" && !typing && !event.metaKey && !event.ctrlKey && !event.altKey;
+            if (!palette && !slash) return;
+            event.preventDefault();
+            if (dialog.open) dialog.close();
+            else open();
+        });
+
+        // A click on the dimmed page lands on the dialog element itself, outside its content.
+        dialog.addEventListener("click", (event) => {
+            if (event.target === dialog) dialog.close();
+        });
+
+        // Coming back with the browser's back button, the page is as the reader left it: closed.
+        window.addEventListener("pageshow", (event) => {
+            if (event.persisted && dialog.open) dialog.close();
+        });
+    })();
+</script>
