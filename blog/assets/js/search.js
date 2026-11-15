@@ -67,18 +67,20 @@
         const link = document.createElement("a");
         link.href = entry.permalink;
         link.tabIndex = -1;
+        // The date stands in a column of its own, as in the post list, so the titles share one edge.
+        const date = document.createElement("time");
+        date.className = "search-result-date";
+        date.textContent = entry.date;
+        const body = document.createElement("span");
+        body.className = "search-result-body";
         const title = document.createElement("span");
         title.className = "search-result-title";
-        title.append(marked(entry.title, words));
+        title.textContent = entry.title;
         const text = document.createElement("span");
         text.className = "search-result-text";
-        if (entry.date) {
-            const date = document.createElement("time");
-            date.textContent = entry.date;
-            text.append(date);
-        }
         text.append(marked(excerptOf(entry, words), words));
-        link.append(title, text);
+        body.append(title, text);
+        link.append(date, body);
         row.append(link);
         return row;
     }
