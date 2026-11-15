@@ -3,7 +3,9 @@ title: SEP Guidelines
 description: When a Specification Enhancement Proposal is required and the procedure a proposal follows from pull request to Final.
 ---
 
-This page describes when a Specification Enhancement Proposal (SEP) is required and the procedure from pull request to Final. A SEP is a design document that gives a concise technical specification of a feature or process and its rationale. Its author is responsible for building consensus and recording dissenting opinions. [SEP-1850](/seps/1850) adopted the process and [SEP-2484](/seps/2484) the conformance gate. Changing either requires a Process SEP. The sponsorship and review rules on this page follow [SEP-3398](/seps/3398), and the [Release Cycle](/community/release-cycle) sets when reviews happen.
+A Specification Enhancement Proposal (SEP) is a design document that specifies a feature or process and explains its rationale. Its author is responsible for building consensus and recording dissenting opinions.
+
+[SEP-1850](/seps/1850) defines the workflow, [SEP-3398](/seps/3398) defines sponsorship and scheduled review, and [SEP-2484](/seps/2484) adds the conformance requirement. Changes to this process require a Process SEP.
 
 ## When you need a SEP
 
@@ -27,7 +29,7 @@ Bug fixes, clarifications, editorial changes, new examples for existing features
 
 ## Before you write
 
-A SEP needs a working group to sponsor it before formal review (see [Sponsors](#sponsors)).
+A SEP needs sponsorship from a working group or the Core Maintainer group before formal review (see [Sponsors](#sponsors)). Most proposals start with a working group.
 
 To get a working group's sponsorship:
 
@@ -55,8 +57,8 @@ flowchart TD
     Superseded["superseded"]
 
     Idea -->|"Developed in the open,<br/>no sponsor yet"| DraftPR
-    Idea -->|"Working group<br/>agrees to sponsor"| Draft
-    DraftPR -->|"Working group<br/>agrees to sponsor"| Draft
+    Idea -->|"Working group or Core Maintainers<br/>agree to sponsor"| Draft
+    DraftPR -->|"Working group or Core Maintainers<br/>agree to sponsor"| Draft
     DraftPR -->|"180 days without a sponsor"| Dormant
     Dormant -->|"Sponsor found, PR reopened"| Draft
     Draft --> Withdrawn
@@ -72,9 +74,9 @@ flowchart TD
 1. Copy [`seps/TEMPLATE.md`](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/seps/TEMPLATE.md) to `seps/0000-<slug>.md` and fill it in.
 2. Open a pull request against the [specification repository](https://github.com/modelcontextprotocol/modelcontextprotocol), titled `sep: <description>` as in `sep: propose task cancellation`, following the [pull request title guidelines](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/CONTRIBUTING.md#pull-request-titles). Authors who are not members of the `modelcontextprotocol` GitHub organization ask the working group's leads or the [sponsor](#sponsors) to open the pull request and name them as the author.
 3. The SEP number is the PR number. Rename the file (PR #1850 becomes `seps/1850-<slug>.md`), update the header, and run `npm run generate:seps`, or the `check:seps` CI job fails. Rename the pull request to `sep(SEP-1850): <description>`; a follow-up commit is enough, with no amend or force-push. Later pull requests about this SEP keep `SEP-1850` as their scope and link to it in the description.
-4. Until a working group has agreed to sponsor the SEP, it stays a draft pull request. A draft pull request is for developing a proposal in the open. It is not yet in the SEP process, the `Status` header in the SEP stays unset, and the `wg-support-needed` label marks it.
-5. Once a working group has agreed to [sponsor](#sponsors) the SEP, the pull request is marked ready for review. The `Sponsor` header names the person who acts on the sponsoring group's behalf, and that person sets `draft`. Review takes place in PR comments.
-6. When the SEP is ready, the sponsor confirms that the prior discussion happened and is linked in the pull request description and sets `in-review`. A WG Lead, or the designated Core Maintainer for a Core Maintainer-sponsored SEP, submits it to the [SEP review queue](https://voting.modelcontextprotocol.io/p/seps), and release managers schedule it for a Core Maintainer meeting. The author and sponsor may present it.
+4. Until a working group or the Core Maintainers agree to sponsor the SEP, it stays a draft pull request. A draft pull request is for developing a proposal in the open. It is not yet in the SEP process, the `Status` header in the SEP stays unset, and the `wg-support-needed` label marks it.
+5. Once a group has agreed to [sponsor](#sponsors) the SEP, the pull request is marked ready for review. The `Sponsor` header names the person who acts on the sponsoring group's behalf, and that person sets `draft`. Review takes place in PR comments.
+6. When the SEP is ready, the sponsor verifies that the sponsorship decision and prior discussion are linked in the pull request description, then sets `in-review`. The WG Lead or designated Core Maintainer submits it to the [SEP review queue](https://voting.modelcontextprotocol.io/p/seps). Release managers schedule reviews during the [release cycle's review window](/community/release-cycle#milestones). The author and sponsor may present the proposal.
 7. Core Maintainers decide under [Review and acceptance](#review-and-acceptance). The sponsor records the outcome, `accepted` or `rejected`, on the PR and in the SEP header.
 8. For an accepted SEP, the author adds to the same PR: the specification prose, the `schema.ts` changes with regenerated output (see [CONTRIBUTING.md](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/CONTRIBUTING.md#schema-changes)), a changelog entry, and any required documentation edits (for a deprecation, the four edits under [Deprecating a Feature](/community/feature-lifecycle#deprecating-a-feature)). The reference implementation is completed where it lives: an SDK branch, a fork or a standalone repository (see [Prototype Requirements](#prototype-requirements)). For a Standards Track SEP with observable protocol behavior, the conformance scenario and `sep-NNNN.yaml` are merged (see [Conformance Test Requirement](#conformance-test-requirement)). SDK implementations are not required for Final.
 9. The sponsor verifies these artifacts and sets `final`. The PR is then merged.
@@ -115,7 +117,11 @@ A SEP needs a working prototype before it can be accepted: an implementation in 
 
 ## Review and acceptance
 
-Core Maintainers review `in-review` SEPs at their meetings during the Core Maintainer review window of each [release cycle](/community/release-cycle). Release managers publish the agenda two weeks before each meeting. After the presentation, the sponsor opens a recorded seven-day vote, and acceptance requires more than half of all eligible Core Maintainers to vote in favor. The criteria are a working prototype, clear benefit to the MCP ecosystem, community support and consensus, and fit with the roadmap and the design principles. The outcome is `accepted`, `rejected`, or a return to `draft` with specific feedback recorded on the PR.
+Core Maintainers review `in-review` SEPs during the [release cycle's review window](/community/release-cycle#milestones), from six months before release until soft freeze. Release managers publish the agenda and proposal links two weeks before each meeting. Review considers the working prototype, benefit to the MCP ecosystem, community support and consensus, and fit with the roadmap and design principles.
+
+After the presentation, the sponsor opens a recorded seven-calendar-day vote and links the record from the SEP PR. Acceptance requires affirmative votes from more than half of all eligible Core Maintainers, not just those attending the meeting. The vote stays open for all seven days and must conclude before soft freeze.
+
+The sponsor records the tally, decision, rationale, and follow-up on the PR and in the queue. A majority voting to reject produces `rejected`; a proposal that reaches neither threshold returns to `draft` for revision or later review. [Voting and recorded outcomes](/seps/3398#voting-and-recorded-outcomes) defines voter eligibility and the handling of revisions during a vote.
 
 ## Conformance Test Requirement
 
