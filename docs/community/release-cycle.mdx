@@ -13,35 +13,18 @@ Specification versions use the release date in [`YYYY-MM-DD` format](/docs/learn
 
 In this example, September planning overlaps March stabilization from late January to late March. The diagram illustrates the recurring cadence, not confirmed release dates.
 
-```mermaid
----
-config:
-  gantt:
-    displayMode: compact
-    leftPadding: 140
----
-gantt
-    accTitle: Two overlapping MCP release cycles
-    accDescr: Each cycle lasts eight months. Planning for September overlaps stabilization of the March release by two months. Releases are six months apart.
-    dateFormat YYYY-MM-DD
-    axisFormat %b
-    tickInterval 1month
-    todayMarker off
-
-    section March release
-    Planning      :march_plan, 2027-07-28, 2027-09-28
-    Review        :march_review, 2027-09-28, 2028-01-13
-    Stabilization :march_stabilize, 2028-01-13, 2028-03-28
-
-    section September release
-    Planning      :september_plan, 2028-01-28, 2028-03-28
-    Review        :september_review, 2028-03-28, 2028-07-12
-    Stabilization :september_stabilize, 2028-07-12, 2028-09-26
-
-    section Publication
-    March     :milestone, march_release, 2028-03-28, 0d
-    September :milestone, september_release, 2028-09-26, 0d
-```
+<Frame caption="Example timeline">
+  <img
+    className="block dark:hidden"
+    src="/images/release-cycle-timeline-light.svg"
+    alt="Example timeline of a March and a September release cycle, showing planning, Core Maintainer review, soft and hard freezes, Tier 1 SDK betas, the two-month overlap, and the six months between releases."
+  />
+  <img
+    className="hidden dark:block"
+    src="/images/release-cycle-timeline-dark.svg"
+    alt="Example timeline of a March and a September release cycle, showing planning, Core Maintainer review, soft and hard freezes, Tier 1 SDK betas, the two-month overlap, and the six months between releases."
+  />
+</Frame>
 
 ## Milestones
 
