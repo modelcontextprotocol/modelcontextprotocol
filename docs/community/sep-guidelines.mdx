@@ -3,7 +3,7 @@ title: SEP Guidelines
 description: When a Specification Enhancement Proposal is required and the procedure a proposal follows from pull request to Final.
 ---
 
-This page describes when a Specification Enhancement Proposal (SEP) is required and the procedure from pull request to Final. A SEP is a design document that gives a concise technical specification of a feature or process and its rationale. Its author is responsible for building consensus and recording dissenting opinions. [SEP-1850](/seps/1850) adopted the process and [SEP-2484](/seps/2484) the conformance gate. Changing either requires a Process SEP. The sponsorship rules on this page follow [SEP-3398](/seps/3398).
+This page describes when a Specification Enhancement Proposal (SEP) is required and the procedure from pull request to Final. A SEP is a design document that gives a concise technical specification of a feature or process and its rationale. Its author is responsible for building consensus and recording dissenting opinions. [SEP-1850](/seps/1850) adopted the process and [SEP-2484](/seps/2484) the conformance gate. Changing either requires a Process SEP. The sponsorship and review rules on this page follow [SEP-3398](/seps/3398), and the [Release Cycle](/community/release-cycle) sets when reviews happen.
 
 ## When you need a SEP
 
@@ -74,7 +74,7 @@ flowchart TD
 3. The SEP number is the PR number. Rename the file (PR #1850 becomes `seps/1850-<slug>.md`), update the header, and run `npm run generate:seps`, or the `check:seps` CI job fails. Rename the pull request to `sep(SEP-1850): <description>`; a follow-up commit is enough, with no amend or force-push. Later pull requests about this SEP keep `SEP-1850` as their scope and link to it in the description.
 4. Until a working group has agreed to sponsor the SEP, it stays a draft pull request. A draft pull request is for developing a proposal in the open. It is not yet in the SEP process, the `Status` header in the SEP stays unset, and the `wg-support-needed` label marks it.
 5. Once a working group has agreed to [sponsor](#sponsors) the SEP, the pull request is marked ready for review. The `Sponsor` header names the person who acts on the sponsoring group's behalf, and that person sets `draft`. Review takes place in PR comments.
-6. When the SEP is ready, the sponsor confirms that the prior discussion happened and is linked in the pull request description, sets `in-review`, and puts it on the Core Maintainer meeting agenda. The author and sponsor may present it.
+6. When the SEP is ready, the sponsor confirms that the prior discussion happened and is linked in the pull request description and sets `in-review`. A WG Lead, or the designated Core Maintainer for a Core Maintainer-sponsored SEP, submits it to the [SEP review queue](https://voting.modelcontextprotocol.io/p/seps), and release managers schedule it for a Core Maintainer meeting. The author and sponsor may present it.
 7. Core Maintainers decide under [Review and acceptance](#review-and-acceptance). The sponsor records the outcome, `accepted` or `rejected`, on the PR and in the SEP header.
 8. For an accepted SEP, the author adds to the same PR: the specification prose, the `schema.ts` changes with regenerated output (see [CONTRIBUTING.md](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/CONTRIBUTING.md#schema-changes)), a changelog entry, and any required documentation edits (for a deprecation, the four edits under [Deprecating a Feature](/community/feature-lifecycle#deprecating-a-feature)). The reference implementation is completed where it lives: an SDK branch, a fork or a standalone repository (see [Prototype Requirements](#prototype-requirements)). For a Standards Track SEP with observable protocol behavior, the conformance scenario and `sep-NNNN.yaml` are merged (see [Conformance Test Requirement](#conformance-test-requirement)). SDK implementations are not required for Final.
 9. The sponsor verifies these artifacts and sets `final`. The PR is then merged.
@@ -84,7 +84,7 @@ The eight `Status` values, also defined on the [SEP index](/seps):
 | Status       | Meaning                                                                            | Set by                                      |
 | ------------ | ---------------------------------------------------------------------------------- | ------------------------------------------- |
 | `draft`      | Has a sponsor, pull request ready for review, under informal review in PR comments | Sponsor                                     |
-| `in-review`  | On the Core Maintainer agenda for formal review                                    | Sponsor                                     |
+| `in-review`  | In the review queue or on the Core Maintainer agenda for formal review             | Sponsor                                     |
 | `accepted`   | Approved, awaiting specification text, reference implementation and conformance    | Sponsor, after the Core Maintainer decision |
 | `rejected`   | Declined by Core Maintainers                                                       | Sponsor, after the Core Maintainer decision |
 | `withdrawn`  | Withdrawn by the author                                                            | Author or sponsor                           |
@@ -115,7 +115,7 @@ A SEP needs a working prototype before it can be accepted: an implementation in 
 
 ## Review and acceptance
 
-Core Maintainers review `in-review` SEPs at their meeting every two weeks under the [decision process](/community/governance#decision-process). The criteria are a working prototype, clear benefit to the MCP ecosystem, community support and consensus, and fit with the roadmap and the design principles. The outcome is `accepted`, `rejected`, or a return to `draft` with specific feedback recorded on the PR.
+Core Maintainers review `in-review` SEPs at their meetings during the Core Maintainer review window of each [release cycle](/community/release-cycle). Release managers publish the agenda two weeks before each meeting. After the presentation, the sponsor opens a recorded seven-day vote, and acceptance requires more than half of all eligible Core Maintainers to vote in favor. The criteria are a working prototype, clear benefit to the MCP ecosystem, community support and consensus, and fit with the roadmap and the design principles. The outcome is `accepted`, `rejected`, or a return to `draft` with specific feedback recorded on the PR.
 
 ## Conformance Test Requirement
 
