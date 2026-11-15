@@ -74,12 +74,6 @@ capitalizeListTitles = false
   url = "https://modelcontextprotocol.io/docs"
   weight = 10
 
-[[menu.main]]
-  identifier = "search"
-  name = "Search"
-  url = "/search/"
-  weight = 30
-
 # Markup configuration for syntax highlighting
 [markup]
   [markup.highlight]
