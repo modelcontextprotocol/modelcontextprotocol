@@ -19,7 +19,6 @@ capitalizeListTitles = false
   mainSections = ["posts"]
   author = "The MCP project"
   description = "Updates from the Model Context Protocol project"
-  images = ["og-image.png"]
 
   # defaultTheme = "dark" # MCP uses a dark theme
   disableThemeToggle = false
