@@ -42,13 +42,13 @@ After hard freeze, only critical security vulnerabilities or release-blocking co
 
 ## SEP review and inclusion
 
-Sponsorship, submission, and finalization follow the [SEP workflow](/community/sep-guidelines#workflow). A working group lead or designated Core Maintainer submits proposals to the [SEP review queue](https://voting.modelcontextprotocol.io/p/seps). The queue accepts submissions year-round. Roadmap-aligned proposals receive priority. Queue placement does not guarantee review time.
+Sponsorship, submission, and finalization follow the [SEP workflow](/community/sep-guidelines#workflow). A working group lead or designated Core Maintainer submits proposals to the [SEP review queue](https://voting.modelcontextprotocol.io/p/seps). The queue accepts submissions year-round, but roadmap-aligned proposals receive priority. Submitting a proposal does not guarantee review time.
 
 Release managers publish meeting agendas two weeks before each meeting. The [acceptance vote](/community/sep-guidelines#review-and-acceptance) remains open for seven calendar days.
 
 A SEP reaches [Final status](/community/sep-guidelines#workflow) when its sponsor has verified all required artifacts, including the specification changes, reference implementation, and any required conformance tests. Release-bound SEPs must reach this status and have their pull requests merged by the soft freeze date.
 
-SEPs that miss the soft freeze date are considered for a later release. The release date remains unchanged. Accepted SEPs retain their status unless a substantial redesign requires renewed review. Changes for later releases remain in proposal branches or pull requests until the current release is published.
+The release date is fixed and does not move for unfinished proposals. SEPs that miss the soft freeze date are considered for future releases, and accepted SEPs retain their status unless a substantial redesign requires another review. Changes for future releases remain in proposal branches or pull requests until the current release is published.
 
 The review window applies to all SEP types. Process and Informational SEPs take effect after acceptance and implementation, independently of specification publication. Extensions follow their [publication lifecycle](/extensions/overview#extension-lifecycle).
 
@@ -56,12 +56,19 @@ The review window applies to all SEP types. Process and Informational SEPs take 
 
 SDK maintainers should begin implementation upon SEP acceptance and report specification ambiguities to the author and sponsor while corrections can still be merged. SDK implementations are not required for a SEP to reach Final status.
 
-[Tier 1 SDKs](/community/sdk-tiers) publish betas 1.5 months before release and stable support before specification publication. These deadlines cover the features required by the tiering policy, not experimental features or extensions.
+[Tier 1 SDKs](/community/sdk-tiers) publish beta versions a month and a half before the release and stable versions before the specification is published. These deadlines cover the features required by the tiering policy, not experimental features or extensions.
 
-SDK maintainers provide versions, conformance results, and outstanding blockers to release managers for the public readiness summary. SDK delays are disclosed in release guidance. They do not postpone specification publication or automatically change tier assignments.
+SDK maintainers work with release managers to keep the public readiness summary up to date with SDK versions, conformance results, and outstanding blockers. SDK delays are reported in the release guidance, but they do not postpone the specification release or automatically change an SDK's tier.
 
 ## Release managers
 
-Each release has a primary and a secondary release manager, selected from self-nominated Maintainers by a majority of all eligible Core Maintainers. The secondary becomes primary for the following release, and Core Maintainers select an incoming secondary before that cycle's planning begins.
+Each release has a primary and a secondary [release manager](/community/contributor-ladder#release-managers). The secondary becomes primary for the following release, and Core Maintainers select an incoming secondary before planning for that release begins.
 
-The primary is accountable for the calendar, review scheduling, freezes, SDK readiness, and publication. The secondary supports the primary and prepares to lead the following cycle. Core Maintainers retain authority over SEP acceptance and hard-freeze exceptions.
+The primary coordinates the release calendar, review scheduling, freezes, SDK readiness, and publication. The secondary works with the primary on the review queue and handoff notes while preparing to lead the next cycle.
+
+The [maintainer roster](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/MAINTAINERS.md#release-managers) lists the current release managers.
+
+<Note>
+  Core Maintainers decide whether to accept SEPs and whether to approve exceptions
+  after the hard freeze date.
+</Note>
