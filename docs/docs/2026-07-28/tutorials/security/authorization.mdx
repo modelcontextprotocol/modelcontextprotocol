@@ -210,7 +210,7 @@ A client that supports both should try them in that order. If neither is availab
 
 Dynamic Client Registration (DCR) is [deprecated](/specification/2026-07-28/deprecated) as of protocol version `2026-07-28`. New implementations should use [Client ID Metadata Documents](#client-id-metadata-documents) (CIMD) instead.
 
-Existing clients can fall back to DCR before asking the user for a client ID and secret. This is applicable if the authorization server doesn't support CIMD and allows clients to register at runtime through its `registration_endpoint`.
+Existing clients can [fall back to DCR](/specification/2026-07-28/basic/authorization/client-registration#dynamic-client-registration) before asking the user for a client ID and secret. This is applicable if the authorization server doesn't support CIMD and allows clients to register at runtime through its `registration_endpoint`.
 
 </Warning>
 
