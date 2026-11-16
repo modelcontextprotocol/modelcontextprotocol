@@ -195,6 +195,8 @@ The decision is reached outside the request and can outlive the response. A serv
     "resultType": "task",
     "taskId": "task_3f91b2",
     "status": "working",
+    "createdAt": "2026-04-20T10:30:00Z",
+    "lastUpdatedAt": "2026-04-20T10:30:00Z",
     "ttlMs": 604800000,
     "pollIntervalMs": 5000,
     "_meta": {
@@ -216,8 +218,12 @@ While the task is not in a terminal state, the server MUST repeat the envelope o
   "jsonrpc": "2.0",
   "id": 61,
   "result": {
+    "resultType": "complete",
     "taskId": "task_3f91b2",
     "status": "working",
+    "createdAt": "2026-04-20T10:30:00Z",
+    "lastUpdatedAt": "2026-04-20T10:30:00Z",
+    "ttlMs": 604800000,
     "_meta": {
       "io.modelcontextprotocol/authorization": {
         "reason": "insufficient_authorization",
@@ -237,8 +243,12 @@ The task holds the original request, so the client does not retry it and there i
   "jsonrpc": "2.0",
   "id": 74,
   "result": {
+    "resultType": "complete",
     "taskId": "task_3f91b2",
     "status": "completed",
+    "createdAt": "2026-04-20T10:30:00Z",
+    "lastUpdatedAt": "2026-04-20T14:05:00Z",
+    "ttlMs": 604800000,
     "result": {
       "resultType": "complete",
       "isError": true,
@@ -259,7 +269,7 @@ The task holds the original request, so the client does not retry it and there i
 
 This SEP defines how an authorization denial is expressed while a decision is pending and once it has been made. How the server manages the pending decision, including how it records what was requested and how it guarantees the request runs no more than once, is outside its scope.
 
-A server knows which interactions are open to it, because a request carries the client's capabilities. On `tools/call`, the server has no interaction to offer when the denied request declared neither `elicitation.url` nor `io.modelcontextprotocol/tasks`. On `resources/read` and `prompts/get`, which do not support tasks, the server has no interaction to offer when the denied request did not declare `elicitation.url`. In both cases, the server sets `remediation` to `undisclosed` and describes the remedy in the result's `content` or the error's `message`. The server MUST NOT use `unavailable` in either case, because the remedy exists.
+A server knows which interactions are open to it, because a request carries the client's capabilities. On `tools/call`, the server has no interaction to offer when the denied request did not declare the capability that the remedy needs. A remedy completed by the user at a URL needs `elicitation.url`, and a remedy decided out of band needs `io.modelcontextprotocol/tasks`. On `resources/read` and `prompts/get`, which do not support tasks, the server has no interaction to offer when the denied request did not declare `elicitation.url`. In both cases, the server sets `remediation` to `undisclosed` and describes the remedy in the result's `content` or the error's `message`. The server MUST NOT use `unavailable` in either case, because the remedy exists.
 
 ### Use Case 2 — New credential issuance with broader authorization
 
