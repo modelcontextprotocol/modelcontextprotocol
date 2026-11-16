@@ -11,8 +11,6 @@ Each release has an eight-month cycle. Planning for the next release starts two 
 
 Specification versions use the release date in [`YYYY-MM-DD` format](/docs/learn/versioning).
 
-September release planning overlaps March release stabilization from late January to late March. The timeline illustrates the recurring cadence; the published release calendar defines exact dates.
-
 <Frame caption="Example timeline">
   <img
     className="block dark:hidden"
@@ -32,27 +30,31 @@ September release planning overlaps March release stabilization from late Januar
 | ---------------------------- | -------------- | ----------------------------------------------------------------------------------------------------------------- |
 | Planning begins              | 8 months       | Core Maintainers propose a roadmap and gather feedback from maintainers and working groups.                       |
 | Core Maintainer review opens | 6 months       | Priorities are published and scheduled SEP reviews begin.                                                         |
-| Soft freeze                  | 2.5 months     | Review closes. Every SEP included in the release must be Final and merged.                                        |
+| Soft freeze                  | 2.5 months     | Review closes. Included SEPs must be [Final](/community/sep-guidelines#workflow) and merged.                      |
 | Next-cycle planning begins   | 2 months       | Planning for the following release starts.                                                                        |
 | SDK beta                     | 1.5 months     | Tier 1 SDKs publish betas supporting the frozen specification.                                                    |
 | Hard freeze                  | 1 month        | Specification changes are restricted to emergency corrections.                                                    |
 | Release                      | 0 months       | The specification, release notes, implementation and migration guidance, and SDK readiness summary are published. |
 
-Between soft and hard freeze, changes are limited to bug fixes, polish, and clarifications within the frozen scope. After hard freeze, only critical security vulnerabilities or release-blocking correctness or interoperability defects may be corrected. Each such change requires approval through a full Core Maintainer vote.
+Between soft and hard freeze, changes are limited to bug fixes, polish, and clarifications within the frozen scope.
+
+After hard freeze, only critical security vulnerabilities or release-blocking correctness or interoperability defects will be corrected. More than half of all eligible Core Maintainers must approve each correction in a recorded vote.
 
 ## SEP review and inclusion
 
-Sponsorship, submission, and finalization follow the [SEP workflow](/community/sep-guidelines#workflow). A working group lead or designated Core Maintainer submits proposals to the [SEP review queue](https://voting.modelcontextprotocol.io/p/seps). The queue accepts submissions year-round. Roadmap-aligned proposals receive priority; queue placement does not guarantee review time.
+Sponsorship, submission, and finalization follow the [SEP workflow](/community/sep-guidelines#workflow). A working group lead or designated Core Maintainer submits proposals to the [SEP review queue](https://voting.modelcontextprotocol.io/p/seps). The queue accepts submissions year-round. Roadmap-aligned proposals receive priority. Queue placement does not guarantee review time.
 
-Release managers publish meeting agendas two weeks before each meeting. The [acceptance vote](/community/sep-guidelines#review-and-acceptance) remains open for seven calendar days. Release-bound SEPs must be Final and merged by soft freeze, with all required artifacts complete.
+Release managers publish meeting agendas two weeks before each meeting. The [acceptance vote](/community/sep-guidelines#review-and-acceptance) remains open for seven calendar days.
 
-SEPs that miss soft freeze are considered for a later release. The release date remains unchanged. Accepted SEPs retain their status unless a substantial redesign requires renewed review. Changes for later releases remain in proposal branches or pull requests until the current release is published.
+A SEP reaches [Final status](/community/sep-guidelines#workflow) when its sponsor has verified all required artifacts, including the specification changes, reference implementation, and any required conformance tests. Release-bound SEPs must reach this status and have their pull requests merged by the soft freeze date.
+
+SEPs that miss the soft freeze date are considered for a later release. The release date remains unchanged. Accepted SEPs retain their status unless a substantial redesign requires renewed review. Changes for later releases remain in proposal branches or pull requests until the current release is published.
 
 The review window applies to all SEP types. Process and Informational SEPs take effect after acceptance and implementation, independently of specification publication. Extensions follow their [publication lifecycle](/extensions/overview#extension-lifecycle).
 
 ## SDK deadlines
 
-SDK maintainers should begin implementation upon SEP acceptance and report specification ambiguities to the author and sponsor while corrections can still be merged. SDK implementations are not required for a SEP to reach Final.
+SDK maintainers should begin implementation upon SEP acceptance and report specification ambiguities to the author and sponsor while corrections can still be merged. SDK implementations are not required for a SEP to reach Final status.
 
 [Tier 1 SDKs](/community/sdk-tiers) publish betas 1.5 months before release and stable support before specification publication. These deadlines cover the features required by the tiering policy, not experimental features or extensions.
 
