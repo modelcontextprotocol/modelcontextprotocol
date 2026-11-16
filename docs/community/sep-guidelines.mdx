@@ -5,7 +5,7 @@ description: When a Specification Enhancement Proposal is required and the proce
 
 A Specification Enhancement Proposal (SEP) is a design document that specifies a feature or process and explains its rationale. Its author is responsible for building consensus and recording dissenting opinions.
 
-[SEP-1850](/seps/1850) defines the workflow, [SEP-3398](/seps/3398) defines sponsorship and scheduled review, and [SEP-2484](/seps/2484) adds the conformance requirement. Changes to this process require a Process SEP.
+Changes to the SEP process require a Process SEP.
 
 ## When you need a SEP
 
@@ -119,9 +119,9 @@ A SEP needs a working prototype before it can be accepted: an implementation in 
 
 Core Maintainers review `in-review` SEPs during the [release cycle's review window](/community/release-cycle#milestones), from six months before release until the soft freeze date. Release managers publish the agenda and proposal links two weeks before each meeting. Review considers the working prototype, benefit to the MCP ecosystem, community support and consensus, and fit with the roadmap and design principles.
 
-After the presentation, the sponsor opens a recorded seven-calendar-day vote and links the record from the SEP PR. Acceptance requires affirmative votes from more than half of all eligible Core Maintainers, not just those attending the meeting. The vote stays open for all seven days and must conclude before the soft freeze date.
+After the presentation, the sponsor opens a recorded seven-calendar-day vote and links the record from the SEP PR. Acceptance requires more than half of the Core Maintainers to vote in favor. The vote stays open for all seven days and must conclude before the soft freeze date.
 
-The sponsor records the tally, decision, rationale, and follow-up on the PR and in the queue. A majority voting to reject produces `rejected`. A proposal that reaches neither threshold returns to `draft` for revision or later review. [Voting and recorded outcomes](/seps/3398#voting-and-recorded-outcomes) defines voter eligibility and the handling of revisions during a vote.
+The sponsor records the tally, decision, rationale, and follow-up on the PR and in the queue. If more than half of the Core Maintainers vote against a SEP, it is marked `rejected` and does not move forward in its current form. The author can revise the proposal based on the feedback and resubmit it for review. A proposal that reaches neither threshold returns to `draft` for revision or later review. [Voting and recorded outcomes](/seps/3398#voting-and-recorded-outcomes) defines voter eligibility and the handling of revisions during a vote.
 
 ## Conformance Test Requirement
 
