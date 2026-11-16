@@ -780,7 +780,7 @@ The list below covers other common mistakes in a protected server and its author
 - **Return `5xx` during an outage**. If your server can't reach the JWKS or introspection endpoint, return a `5xx` status, as the TypeScript and Python examples do. The C# example does this only until it has downloaded the keys once. A `401` makes users log in again, and that doesn't fix the problem.
 - **Separate client and server credentials**. Don't use your MCP server's introspection credentials in end-user flows.
 - **Don't log credentials**. Remove `Authorization` headers, tokens, authorization codes, and secrets from your logs. Return generic errors to clients and keep the details in your own logs.
-- **Restrict Dynamic Client Registration**. If your authorization server supports DCR with an open `registration_endpoint`, anyone can register a client. Disable DCR if your clients don't depend on it. Otherwise, restrict registration with controls such as trusted hosts and rate limits.
+- **Restrict Dynamic Client Registration**. If your authorization server supports [DCR](#client-registration-approaches) with an open `registration_endpoint`, anyone can register a client. Disable DCR if your clients don't depend on it. Otherwise, restrict registration with controls such as trusted hosts and rate limits.
 
 ## Related Standards and Documentation
 
