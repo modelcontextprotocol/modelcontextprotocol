@@ -40,17 +40,53 @@ Between soft and hard freeze, changes are limited to bug fixes, polish, and clar
 
 After hard freeze, only critical security vulnerabilities or release-blocking correctness or interoperability defects will be corrected. More than half of all eligible Core Maintainers must approve each correction in a recorded vote.
 
+### Emergency corrections
+
+The primary release manager coordinates each correction after hard freeze through a regular pull request. A correction does not need a separate SEP, a sponsor, or a meeting presentation.
+
+1. The primary release manager confirms that the change meets the criteria above. The pull request documents the defect, why the correction cannot wait for the next release, the smallest change that corrects the defect, and the effect on SDKs and release artifacts.
+2. The primary release manager opens a recorded vote of all eligible Core Maintainers. The vote can take place outside the review window. The primary release manager can shorten the seven-day voting period, and in that case notifies all eligible Core Maintainers of the deadline and the reason.
+3. Maintainers of the affected implementations review the change, and the relevant regression and conformance checks are run. If the change alters observable protocol behavior, the conformance tests are updated.
+4. After approval and validation, the pull request is merged. The primary release manager records the vote, decision, and validation results, notifies the affected SDK maintainers, and updates the readiness summary and release notes.
+
+If a defect cannot be corrected safely before the release, the affected feature and the changes that depend on it can be removed from the release. Removal follows the same procedure and vote. The rest of the specification is released on schedule.
+
+Security-sensitive details follow the [security disclosure process](/community/policies#reporting-a-vulnerability). The decision and validation record stays in a restricted channel during an embargo and is published when disclosure permits.
+
 ## SEP review and inclusion
 
-Sponsorship, submission, and finalization follow the [SEP workflow](/community/sep-guidelines#workflow). A working group lead or designated Core Maintainer submits proposals to the [SEP review queue](https://voting.modelcontextprotocol.io/p/seps). The queue accepts submissions year-round, but roadmap-aligned proposals receive priority. Submitting a proposal does not guarantee review time.
+Sponsorship, submission, and finalization follow the [SEP workflow](/community/sep-guidelines#workflow). A working group lead or designated Core Maintainer submits proposals to the [SEP review queue](https://voting.modelcontextprotocol.io/p/seps). The queue accepts submissions year-round. Submitting a proposal does not guarantee review time or inclusion in a release.
 
-Release managers publish meeting agendas two weeks before each meeting. The [acceptance vote](/community/sep-guidelines#review-and-acceptance) remains open for seven calendar days.
+### Review scheduling
+
+Formal reviews take place at regular Core Maintainer meetings during the review window. Release managers build each meeting agenda from the queue in this order:
+
+1. Proposals that are ready for formal review come before pre-reviews.
+2. Within each of those two groups, roadmap-aligned proposals come first.
+3. Among proposals with the same roadmap alignment, the proposal with the oldest readiness date comes first.
+
+Release managers record the reason for any exception to this order in the queue. A proposal that is deferred only because the agenda was full keeps its readiness date. A proposal that was returned for substantive revision receives a new readiness date when it is resubmitted.
+
+A working group lead or designated Core Maintainer can request a pre-review to discuss a proposal's direction, dependencies, and major concerns before the proposal is complete. A pre-review provides guidance. It does not accept the proposal or reserve a place in a release.
+
+Each formal review follows the same steps:
+
+1. Two weeks before the meeting, release managers publish the agenda and proposal links.
+2. During the week before the meeting, reviewers leave comments on the pull request. Authors and sponsors respond and identify the questions that need discussion.
+3. At the meeting, the author, working group lead, or designated Core Maintainer presents the proposal, the remaining questions, and any implementation feedback.
+4. After the presentation, the sponsor opens the [acceptance vote](/community/sep-guidelines#review-and-acceptance), which remains open for seven calendar days.
+
+### Inclusion in a release
 
 A SEP reaches [Final status](/community/sep-guidelines#workflow) when its sponsor has verified all required artifacts, including the specification changes, reference implementation, and any required conformance tests. Release-bound SEPs must reach this status and have their pull requests merged by the soft freeze date.
 
 The release date is fixed and does not move for unfinished proposals. SEPs that miss the soft freeze date are considered for future releases, and accepted SEPs retain their status unless a substantial redesign requires another review. Changes for future releases remain in proposal branches or pull requests until the current release is published.
 
 The review window applies to all SEP types. Process and Informational SEPs take effect after acceptance and implementation, independently of specification publication. Extensions follow their [publication lifecycle](/extensions/overview#extension-lifecycle).
+
+### Proposals opened before this release cycle
+
+SEP pull requests that were opened before the release cycle took effect remain valid. They keep their numbers, discussions, and completed decisions, and authors do not need to close and recreate them. Before its next formal review, each of these proposals needs [sponsorship](/community/sep-guidelines#sponsors) from a working group or the Core Maintainer group and an entry in the review queue. Proposals that were already accepted remain accepted and must be Final and merged by the soft freeze date to be included in a release.
 
 ## SDK deadlines
 
