@@ -31,6 +31,8 @@ Release managers are appointed for each specification release, with a primary an
 
 ### 2027-03-30 Release
 
+For this first release, two maintainers share the primary role.
+
 - [David Soria Parra](https://github.com/dsp-ant) (Primary)
 - [Den Delimarsky](https://github.com/localden) (Primary)
 - [Luca Chang](https://github.com/LucaButBoring) (Secondary)

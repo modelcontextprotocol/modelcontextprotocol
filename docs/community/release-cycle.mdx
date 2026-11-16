@@ -11,17 +11,26 @@ Each release has an eight-month cycle. Planning for the next release starts two 
 
 Specification versions use the release date in [`YYYY-MM-DD` format](/docs/learn/versioning).
 
-<Frame caption="Example timeline">
-  <img
-    className="block dark:hidden"
-    src="/images/release-cycle-timeline-light.svg"
-    alt="Example timeline of a March and a September release cycle, showing planning, Core Maintainer review, soft and hard freezes, Tier 1 SDK betas, the two-month overlap, and the six months between releases."
-  />
-  <img
-    className="hidden dark:block"
-    src="/images/release-cycle-timeline-dark.svg"
-    alt="Example timeline of a March and a September release cycle, showing planning, Core Maintainer review, soft and hard freezes, Tier 1 SDK betas, the two-month overlap, and the six months between releases."
-  />
+<Frame caption="Eight-month cycles overlap by two months. Releases are six months apart.">
+  <div
+    style={{ width: "100%", overflowX: "auto" }}
+    role="region"
+    aria-label="Release cycle timeline"
+    tabIndex={0}
+  >
+    <img
+      className="block dark:hidden"
+      style={{ width: "100%", minWidth: "720px" }}
+      src="/images/release-cycle-timeline-light.svg"
+      alt="March and September release cycles, each with planning, Core Maintainer review, and stabilization. The cycles overlap by two months, and releases are six months apart."
+    />
+    <img
+      className="hidden dark:block"
+      style={{ width: "100%", minWidth: "720px" }}
+      src="/images/release-cycle-timeline-dark.svg"
+      alt="March and September release cycles, each with planning, Core Maintainer review, and stabilization. The cycles overlap by two months, and releases are six months apart."
+    />
+  </div>
 </Frame>
 
 ## Milestones
@@ -40,28 +49,27 @@ During planning, Core Maintainers publish priorities that cover the next six to 
 
 At soft freeze, release managers publish the frozen scope and the list of deferred proposals. Between soft and hard freeze, changes are limited to bug fixes, polish, and clarifications within the frozen scope. New features and substantial redesigns move to a later cycle.
 
-After hard freeze, only critical security vulnerabilities or release-blocking correctness or interoperability defects will be corrected. More than half of all eligible Core Maintainers must approve each correction in a recorded vote.
-
-### Emergency corrections
-
-The primary release manager coordinates each correction after hard freeze through a regular pull request. A correction does not need a separate SEP, a sponsor, or a meeting presentation.
-
-1. The primary release manager confirms that the change meets the criteria above. The pull request documents the defect, why the correction cannot wait for the next release, the smallest change that corrects the defect, and the effect on SDKs and release artifacts.
-2. The primary release manager opens a recorded vote of all eligible Core Maintainers. The vote can take place outside the review window. The primary release manager can shorten the seven-day voting period, and in that case notifies all eligible Core Maintainers of the deadline and the reason.
-3. Maintainers of the affected implementations review the change, and the relevant regression and conformance checks are run. If the change alters observable protocol behavior, the conformance tests are updated.
-4. After approval and validation, the pull request is merged. The primary release manager records the vote, decision, and validation results, notifies the affected SDK maintainers, and updates the readiness summary and release notes.
-
-If a defect cannot be corrected safely before the release, the affected feature and the changes that depend on it can be removed from the release. Removal follows the same procedure and vote. The rest of the specification is released on schedule.
-
-Security-sensitive details follow the [security disclosure process](/community/policies#reporting-a-vulnerability). The decision and validation record stays in a restricted channel during an embargo and is published when disclosure permits.
+After hard freeze, only critical security vulnerabilities or release-blocking correctness or interoperability defects will be corrected. Corrections follow the [emergency procedure](#emergency-corrections) and require approval from more than half of all eligible Core Maintainers in a recorded vote.
 
 ## SEP review and inclusion
 
 Sponsorship, submission, and finalization follow the [SEP workflow](/community/sep-guidelines#workflow). A working group lead or designated Core Maintainer submits proposals to the [SEP review queue](https://voting.modelcontextprotocol.io/p/seps). The queue accepts submissions year-round. Submitting a proposal does not guarantee review time or inclusion in a release.
 
-### Review scheduling
+### Review queue
 
-Release managers maintain the review queue. Each entry records a link to the proposal, the sponsoring group and its representative, the sponsor when one is assigned, the requested review type, the readiness date, roadmap alignment, and the target review cycle. An entry for formal review links to the SEP pull request in the specification repository. An entry for pre-review can link to an early proposal that does not yet have a SEP number or the sponsoring group's approval.
+Release managers maintain the review queue. Each entry records:
+
+- A link to the proposal
+- The sponsoring group and its representative
+- The sponsor, if one is assigned
+- Whether the request is for formal review or pre-review
+- The readiness date, roadmap alignment, and target review cycle
+
+An entry for formal review links to the SEP pull request in the specification repository. An entry for pre-review can link to an early proposal that does not yet have a SEP number or the sponsoring group's approval.
+
+A working group lead or designated Core Maintainer can request a pre-review to discuss a proposal's direction, dependencies, and major concerns before the proposal is complete. A pre-review gives authors feedback but does not approve the proposal or reserve a place in a release.
+
+### Review scheduling
 
 Formal reviews take place at regular Core Maintainer meetings during the review window. Release managers build each meeting agenda from the queue in this order:
 
@@ -70,8 +78,6 @@ Formal reviews take place at regular Core Maintainer meetings during the review 
 3. Among proposals with the same roadmap alignment, the proposal with the oldest readiness date comes first.
 
 Release managers record the reason for any exception to this order in the queue. A proposal that is deferred only because the agenda was full keeps its readiness date. A proposal that was returned for substantive revision receives a new readiness date when it is resubmitted.
-
-A working group lead or designated Core Maintainer can request a pre-review to discuss a proposal's direction, dependencies, and major concerns before the proposal is complete. A pre-review provides guidance. It does not accept the proposal or reserve a place in a release.
 
 Each formal review follows the same steps:
 
@@ -82,27 +88,30 @@ Each formal review follows the same steps:
 
 ### Inclusion in a release
 
-A SEP reaches [Final status](/community/sep-guidelines#workflow) when its sponsor has verified all required artifacts, including the specification changes, reference implementation, and any required conformance tests. Release-bound SEPs must reach this status and have their pull requests merged by the soft freeze date.
+A SEP reaches [Final status](/community/sep-guidelines#workflow) when its sponsor has verified all required artifacts, including the specification changes, reference implementation, and any required conformance tests. To be included in a release, a SEP must reach Final and have its pull request merged by the soft freeze date.
 
-The release date is fixed and does not move for unfinished proposals. SEPs that miss the soft freeze date are considered for future releases, and accepted SEPs retain their status unless a substantial redesign requires another review. A proposal that is still awaiting a decision at soft freeze keeps its status and returns to the queue. Inclusion in a later release depends on the proposal's readiness and that cycle's scope. Changes for future releases remain in proposal branches or pull requests until the current release is published.
+The release date does not move for unfinished proposals. SEPs that miss soft freeze are considered for later releases:
+
+- Accepted SEPs keep their status unless a substantial redesign requires another review.
+- Proposals awaiting a decision keep their status and return to the queue.
+
+Inclusion in a later release depends on the proposal's readiness and that cycle's scope. Changes for future releases remain in proposal branches or pull requests until the current release is published.
 
 The freeze rules in effect when a vote concludes apply to the change, even if the vote opened before the freeze. Approval does not exempt a change from the freeze rules in effect when it is merged.
 
 The review window applies to all SEP types. Process and Informational SEPs take effect after acceptance and implementation, independently of specification publication. Extensions follow their [publication lifecycle](/extensions/overview#extension-lifecycle).
 
-### Transition to this release cycle
-
-The first release under this cycle is targeted for March 30, 2027, which replaces the earlier December 2026 target. It uses the planning completed in August 2026, and its review window closes at the soft freeze date calculated from the March release date. Planning for the September 2027 release begins in late January 2027, and planning for the March 2028 release begins in late July 2027.
-
-SEP pull requests that were opened before the release cycle took effect remain valid. They keep their numbers, discussions, and completed decisions, and authors do not need to close and recreate them. Before its next formal review, each of these proposals needs [sponsorship](/community/sep-guidelines#sponsors) from a working group or the Core Maintainer group and an entry in the review queue. Proposals that were already accepted remain accepted and must be Final and merged by the soft freeze date to be included in a release.
-
 ## SDK deadlines
 
-SDK maintainers should begin implementation upon SEP acceptance and report specification ambiguities to the author and sponsor while corrections can still be merged. SDK implementations are not required for a SEP to reach Final status.
+SDK maintainers should begin implementation as soon as a SEP is accepted. They should report specification ambiguities to the author and sponsor while corrections can still be merged. SDK implementations are not required for a SEP to reach Final status.
 
-[Tier 1 SDKs](/community/sdk-tiers) publish beta versions a month and a half before the release and stable versions before the specification is published. The beta gives client and server developers half a month to report issues before hard freeze. Beta release notes identify the target specification release, the available functionality, known gaps, and where to report feedback. These deadlines cover the features required by the tiering policy, not experimental features or extensions. SDKs in other tiers are encouraged to publish betas on the same schedule.
+[Tier 1 SDKs](/community/sdk-tiers) publish beta versions 1.5 months before the release and stable versions before the specification is published. The beta gives client and server developers half a month to report issues before hard freeze.
 
-SDK maintainers work with release managers to keep the public readiness summary up to date with SDK versions, conformance results, gaps, owners, and expected resolution dates. Release managers escalate a missed beta or stable milestone to the Core Maintainers and the [SDK Working Group](/community/working-groups/sdk) and report it in the release guidance. SDK delays do not postpone the specification release or automatically change an SDK's tier.
+These deadlines cover the features required by the tiering policy, not experimental features or extensions. SDKs in other tiers are encouraged to publish betas on the same schedule.
+
+Beta release notes identify the target specification release, the available functionality, known gaps, and where to report feedback. SDK maintainers work with release managers to keep the public readiness summary up to date with SDK versions, conformance results, gaps, owners, and expected resolution dates.
+
+Release managers escalate a missed beta or stable milestone to the Core Maintainers and the [SDK Working Group](/community/working-groups/sdk) and report it in the release guidance. SDK delays do not postpone the specification release or automatically change an SDK's tier.
 
 ## Release managers
 
@@ -112,11 +121,34 @@ The primary coordinates the release calendar, review scheduling, freezes, SDK re
 
 During the two months when cycles overlap, the secondary also serves as primary for the following cycle and leads its planning with the incoming secondary. The outgoing primary remains accountable for the current release until it is published. On release day, the release managers complete the handoff notes with outstanding issues and their owners.
 
-After the first release under this cycle, release managers publish a retrospective that covers queue wait times, readiness at soft freeze, SDK beta availability, emergency corrections, and release manager workload during the overlap.
+After the first release following this schedule, release managers publish a retrospective that covers queue wait times, readiness at soft freeze, SDK beta availability, emergency corrections, and release manager workload during the overlap.
 
-The [maintainer roster](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/MAINTAINERS.md#release-managers) lists the current release managers.
+The [maintainer roster](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/MAINTAINERS.md#release-managers) lists the current release managers. For the first release, two maintainers share the primary role.
 
 <Note>
   Core Maintainers decide whether to accept SEPs and whether to approve
   exceptions after the hard freeze date.
 </Note>
+
+## Emergency corrections
+
+The primary release manager coordinates each correction after hard freeze through a regular pull request. A correction does not need a separate SEP, a sponsor, or a meeting presentation.
+
+1. The primary confirms that the change meets the [hard-freeze criteria](#milestones). The pull request documents the defect, why the correction cannot wait for the next release, the smallest change that corrects the defect, and the effect on SDKs and release artifacts.
+2. The primary opens a recorded vote of all eligible Core Maintainers. The vote can take place outside the review window. The primary can shorten the seven-day voting period, but must notify all eligible Core Maintainers of the deadline and the reason.
+3. Maintainers of the affected implementations review the change, and the relevant regression and conformance checks are run. If the change alters observable protocol behavior, the conformance tests are updated.
+4. After approval and validation, the pull request is merged. The primary records the vote, decision, and validation results, notifies the affected SDK maintainers, and updates the readiness summary and release notes.
+
+If a defect cannot be corrected safely before the release, the affected feature and the changes that depend on it can be removed from the release. Removal follows the same procedure and vote. The rest of the specification is released on schedule.
+
+Security-sensitive details follow the [security disclosure process](/community/policies#reporting-a-vulnerability). The decision and validation record stays in a restricted channel during an embargo and is published when disclosure permits.
+
+## Transition to the new schedule
+
+The first release following this schedule is targeted for March 30, 2027, which replaces the earlier December 2026 target. It uses the planning completed in August 2026, and its review window closes at the soft freeze date calculated from the March release date.
+
+Planning for the September 2027 release begins in late January 2027, and planning for the March 2028 release begins in late July 2027.
+
+SEP pull requests that were opened before the release cycle took effect remain valid. They keep their numbers, discussions, and completed decisions, and authors do not need to close and recreate them.
+
+Before its next formal review, each of these proposals needs [sponsorship](/community/sep-guidelines#sponsors) from a working group or the Core Maintainer group and an entry in the review queue. Proposals that were already accepted remain accepted and must be Final and merged by the soft freeze date to be included in a release.
