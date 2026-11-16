@@ -301,7 +301,7 @@ You can find the complete `client.py` file [here](https://github.com/modelcontex
 
 ### 3. Query Processing
 
-- Maintains conversation context
+- Starts a new conversation for each query
 - Handles Claude's responses and tool calls
 - Runs every tool call of a turn, then answers them all in one message
 - Keeps looping while Claude asks for tools, up to `MAX_TOOL_TURNS`
@@ -509,7 +509,7 @@ Update your `package.json` to set `type: "module"` and a build script:
 {
   "type": "module",
   "scripts": {
-    "build": "tsc && chmod 755 build/index.js"
+    "build": "tsc && node -e \"require('fs').chmodSync('build/index.js', '755')\""
   }
 }
 ```
@@ -804,7 +804,7 @@ Finally, we'll add the main execution logic:
 ```typescript
 async function main() {
   if (process.argv.length < 3) {
-    console.log("Usage: node index.ts <path_to_server_script>");
+    console.log("Usage: node build/index.js <path_to_server_script>");
     return;
   }
   const mcpClient = new MCPClient();
@@ -953,13 +953,7 @@ Before starting, ensure your system meets these requirements:
 
 ## Setting Up Your Environment
 
-1. Install npx (Node Package eXecute):
-   First, make sure to install [npm](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm)
-   and then run:
-
-   ```bash
-   npm install -g npx
-   ```
+1. Install [npm](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm), which includes `npx`.
 
 2. Clone the repository:
 
@@ -1631,7 +1625,7 @@ cd QuickstartClient
 Then, add the required dependencies to your project:
 
 ```bash
-dotnet add package ModelContextProtocol --prerelease
+dotnet add package ModelContextProtocol
 dotnet add package Anthropic.SDK
 dotnet add package Microsoft.Extensions.Hosting
 dotnet add package Microsoft.Extensions.AI
@@ -1772,9 +1766,9 @@ static void PromptForInput()
 
 - Leverages [Microsoft.Extensions.AI](https://learn.microsoft.com/dotnet/ai/ai-extensions) for the chat client.
 - Configures the `IChatClient` to use automatic tool (function) invocation.
-- The client reads user input and sends it to the server.
-- The server processes the query and returns a response.
-- The response is displayed to the user.
+- The client reads user input and sends it to Claude.
+- When Claude asks for a tool, the client calls it on the server and sends the result back to Claude.
+- The client displays Claude's response to the user.
 
 ## Running the Client
 
