@@ -22,7 +22,7 @@
   },
   "scripts": {
     "generate": "npm run generate:schema && npm run generate:seps",
-    "generate:schema": "npm run generate:schema:json & npm run generate:schema:md & wait",
+    "generate:schema": "npm run generate:schema:json && npm run generate:schema:md",
     "generate:schema:json": "tsx scripts/generate-schemas.ts",
     "generate:schema:md": "find schema/*/schema.mdx -print0 | xargs -0 -P 0 -I {} sh -c 'f=\"{}\"; typedoc --entryPoints \"${f%.mdx}.ts\" --schemaPageTemplate \"$f\" > docs/specification/$(basename -- $(dirname -- \"$f\"))/schema.mdx'",
     "generate:seps": "tsx scripts/render-seps.ts",

@@ -14,9 +14,9 @@ author:
 
 tags: []
 
-# Optional per-post image for JSON-LD and OpenGraph (falls back to site
-# og-image.png). Place under static/posts/<slug>/ and reference relative to
-# static/.
+# Optional picture for JSON-LD and OpenGraph. Without one the post gets a card
+# drawn from its title, date and authors (layouts/partials/og/image.html).
+# Place under static/posts/<slug>/ and reference relative to static/.
 # cover:
 #   image: posts/{{ .File.ContentBaseName }}/cover.png
 ---

@@ -11,10 +11,25 @@
 <meta property="og:locale" content="{{ replace .Language.Lang "-" "_" }}">
 {{- range $images }}
 <meta property="og:image" content="{{ .Permalink }}">
+{{- with .Type }}
+<meta property="og:image:type" content="{{ . }}">
+{{- end }}
+{{- with .Width }}
+<meta property="og:image:width" content="{{ . }}">
+{{- end }}
+{{- with .Height }}
+<meta property="og:image:height" content="{{ . }}">
+{{- end }}
+{{- with .Alt }}
+<meta property="og:image:alt" content="{{ . }}">
+{{- end }}
 {{- end }}
 {{- if and .IsPage (eq .Type "posts") }}
 <meta property="article:published_time" content="{{ .PublishDate.Format "2006-01-02T15:04:05Z07:00" }}">
 <meta property="article:modified_time" content="{{ .Lastmod.Format "2006-01-02T15:04:05Z07:00" }}">
+{{- range partial "authors.html" . }}
+<meta property="article:author" content="{{ .name }}">
+{{- end }}
 {{- range .Params.tags }}
 <meta property="article:tag" content="{{ . }}">
 {{- end }}
@@ -24,4 +39,7 @@
 <meta name="twitter:description" content="{{ $description }}">
 {{- with index $images 0 }}
 <meta name="twitter:image" content="{{ .Permalink }}">
+{{- with .Alt }}
+<meta name="twitter:image:alt" content="{{ . }}">
+{{- end }}
 {{- end }}

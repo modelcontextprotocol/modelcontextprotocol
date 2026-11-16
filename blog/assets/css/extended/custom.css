@@ -75,9 +75,11 @@
        title stands well clear of everything else. They are written in rem, so
        a reader who sets a larger font size in the browser gets one. The pixel
        values below are at the usual 16px.
-         1  13/20  back link, tags, list authors, byline roles, footer
-         2  15/24  navigation, list summaries, byline names, code, tables
-         3  18/28  h3, homepage lead, search results (18/30 for body text)
+         1  13/20  back link, tags, list authors, byline roles, footer, search
+                   excerpts
+         2  15/24  navigation, list summaries, byline names, code, tables,
+                   search results
+         3  18/28  h3, homepage lead, search field (18/30 for body text)
          4  22/28  list titles, dates and years (22/32 for the standfirst)
          5  26/32  h2
          6  31/36  page titles on a phone
@@ -181,6 +183,10 @@
     /* The byline: how many authors stand side by side, and how far apart. */
     --author-cols: 3;
     --author-gap: var(--s-10);
+
+    /* The date column of a search result: "Oct 30, 2026" at step 2 is about
+       90px. */
+    --search-when-col: 5.75rem;
 
     /* Icons that sit beside 15px text. */
     --icon: 18px;
@@ -318,8 +324,9 @@ samp {
    stronger. Nothing moves, grows or fades.
      in running text      ink, with a grey underline. The underline turns ink.
      quiet links          (navigation, contents, footer) grey. They turn ink.
-     titles, already ink  (post list, search results) gain an underline.
-     controls             (tags, buttons, arrows) a stronger fill or outline. */
+     titles, already ink  (post list) gain an underline.
+     controls             (tags, buttons, arrows, search results) a stronger
+                          fill or outline. */
 .post-content a,
 .post-description a,
 .footer span a {
@@ -341,6 +348,7 @@ samp {
 }
 
 #menu a:hover,
+.header-search:hover,
 #theme-toggle:hover,
 .breadcrumbs a:hover,
 .toc a:hover,
@@ -349,27 +357,17 @@ samp {
     color: var(--ink);
 }
 
-#searchResults a:hover,
-#searchResults .focus a {
-    text-decoration: underline;
-    text-decoration-thickness: var(--hair);
-    text-underline-offset: 0.2em;
-}
-
 :focus-visible,
 #theme-toggle:focus-visible,
 .top-link:focus-visible,
-.toc summary:focus-visible,
-#searchResults a:focus-visible {
+.toc summary:focus-visible {
     outline: var(--stroke) solid var(--ink);
     outline-offset: var(--s-half);
     border-radius: var(--r-sm);
 }
 
 .terms-tags a,
-.terms-tags a:active,
-#searchResults li:active,
-#searchResults .focus {
+.terms-tags a:active {
     transform: none;
     transition: none;
 }
@@ -400,8 +398,7 @@ body {
 }
 
 /* .main has margin:auto and max-width. As a flex item that would shrink to
-   fit its content. width:100% restores "fill up to max-width, then center",
-   so /search/ does not grow as results appear. */
+   fit its content. width:100% restores "fill up to max-width, then center". */
 .main {
     flex: 1;
     width: 100%;
@@ -416,10 +413,13 @@ body {
     background: var(--paper);
 }
 
+/* Three parts: the logo, the links, and the icon buttons. The buttons (the
+   social links, search, the theme switch) are one row of equal boxes with
+   equal gaps, so their drawings stand the same distance apart. */
 .nav {
     display: grid;
-    grid-template-columns: auto minmax(0, 1fr) auto var(--s-10) var(--s-10);
-    grid-template-areas: "brand links socials search theme";
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-areas: "brand links actions";
     gap: var(--s-4);
     align-items: center;
     max-width: 86rem;
@@ -448,10 +448,6 @@ body {
     justify-self: end;
 }
 
-#menu .menu-search {
-    grid-area: search;
-}
-
 #menu .menu-external {
     display: none;
 }
@@ -466,30 +462,6 @@ body {
 .menu-label-short,
 .logo-label-short {
     display: none;
-}
-
-#menu .menu-search .menu-item-text {
-    display: none;
-}
-
-#menu .menu-search > a {
-    display: flex;
-    justify-content: center;
-    width: var(--s-10);
-    height: var(--s-10);
-    min-height: var(--s-10);
-    border-radius: var(--r-sm);
-}
-
-#menu .menu-search > a:hover {
-    background: var(--surface);
-}
-
-.menu-search-icon,
-.menu-search-icon svg {
-    display: block;
-    width: var(--icon);
-    height: var(--icon);
 }
 
 .logo a {
@@ -559,17 +531,16 @@ body {
     color: inherit;
 }
 
+/* A drawing is 18px in a 32px box. Pulling the row out by the difference puts
+   the last drawing, not its box, on the header's right edge, as the logo's is
+   on the left. */
 .header-actions {
-    display: contents;
+    grid-area: actions;
+    display: flex;
+    align-items: center;
+    gap: var(--s-1);
+    margin-inline-end: calc((var(--s-8) - var(--icon)) / -2);
     color: var(--muted);
-}
-
-.header-actions .menu-socials {
-    grid-area: socials;
-}
-
-.menu-theme {
-    grid-area: theme;
 }
 
 .menu-socials {
@@ -578,19 +549,30 @@ body {
     gap: var(--s-1);
 }
 
-a.menu-social {
+a.menu-social,
+.header-search,
+#theme-toggle {
     display: flex;
     align-items: center;
     justify-content: center;
     width: var(--s-8);
     height: var(--s-8);
+    padding: 0;
     border-radius: var(--r-sm);
 }
 
-a.menu-social:hover {
+a.menu-social:hover,
+.header-search:hover,
+#theme-toggle:hover {
     color: var(--ink);
     background: var(--surface);
     text-decoration: none;
+}
+
+.header-search svg {
+    display: block;
+    width: var(--icon);
+    height: var(--icon);
 }
 
 .menu-social svg {
@@ -600,34 +582,20 @@ a.menu-social:hover {
     fill: currentColor;
 }
 
-#theme-toggle {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: var(--s-10);
-    height: var(--s-10);
-    padding: 0;
-    border-radius: var(--r-sm);
-}
-
-#theme-toggle:hover {
-    background: var(--surface);
-}
-
 button#theme-toggle {
     margin: 0;
 }
 
-/* With the button hidden, its list item would still hold the last link 24px
-   off the right edge. */
+/* Neither works without scripts, and a hidden button's box would still hold
+   the last link off the right edge. */
 @media (scripting: none) {
-    .menu-theme {
+    .menu-theme,
+    .header-search {
         display: none;
     }
 }
 
-/* The icon is drawn 18px in a 24px wide box. Cropping the box to the drawing
-   puts it exactly on the column's right edge. */
+/* The icon is drawn 18px in a 24px wide box. */
 #theme-toggle svg {
     width: var(--icon);
     height: var(--icon);
@@ -1539,67 +1507,278 @@ a:hover .tag-count {
 }
 
 /* ─── Search ─────────────────────────────────────────────────────────────── */
-/* The box is filled like a tag and outlined, because an input has to be
-   recognisable as one (3:1 against the page). Focus changes the outline to
-   ink and doubles it inward, so the box does not change size. */
-#searchbox input {
-    height: var(--s-12);
-    padding: 0 var(--s-4);
+/* Search opens over the page the reader is on, as a dialog a little below the
+   header (layouts/partials/search_dialog.html). The page behind it is veiled
+   with its own color, not darkened, so both themes stay themselves. Nothing
+   slides or fades in: it is there, and then it is gone.
+
+   The looking glass, "Recent posts", the results' dates and the line of keys
+   all start on one edge, 20px in. The dialog's top edge stays where it is
+   while results come and go, and a long list scrolls inside it. */
+.search-dialog {
+    width: min(40rem, 100% - var(--gap) * 2);
+    max-width: none;
+    max-height: min(42rem, 100dvh - 24vh);
+    margin: 12vh auto auto;
+    padding: 0;
+    overflow: hidden;
+    color: var(--text);
+    background: var(--paper);
+    border: var(--hair) solid var(--edge);
+    border-radius: var(--r-lg);
+    box-shadow: 0 var(--s-6) var(--s-16) calc(var(--s-4) * -1) rgb(0 0 0 / 0.25);
+}
+
+/* Only while open: a closed dialog has to keep the browser's display:none. */
+.search-dialog[open] {
+    display: flex;
+    flex-direction: column;
+}
+
+.search-dialog::backdrop {
+    background: color-mix(in srgb, var(--paper) 75%, transparent);
+    -webkit-backdrop-filter: blur(var(--s-half));
+    backdrop-filter: blur(var(--s-half));
+}
+
+/* The page stays put behind the dialog. The gutter keeps the scrollbar's
+   width, so nothing shifts sideways as it opens. */
+html:has(.search-dialog[open]) {
+    overflow: hidden;
+    scrollbar-gutter: stable;
+}
+
+/* The field has no box of its own: the dialog is the box, and a hairline
+   parts the field from what was found. */
+.search-field {
+    display: flex;
+    flex: none;
+    align-items: center;
+    gap: var(--s-3);
+    padding: var(--s-4) var(--s-5);
+    border-bottom: var(--hair) solid var(--line);
+}
+
+.search-field-icon,
+.search-field-icon svg {
+    display: block;
+    flex: none;
+    width: var(--icon);
+    height: var(--icon);
+    color: var(--faint);
+}
+
+.search-field input {
+    flex: 1;
+    min-width: 0;
+    padding: 0;
     color: var(--ink);
     font-size: var(--fs-3);
     font-weight: var(--fw-regular);
+    line-height: var(--lh-3);
     letter-spacing: var(--ls-3);
-    background: var(--surface);
-    border: var(--hair) solid var(--edge);
-    border-radius: var(--r-lg);
+    background: none;
+    border: 0;
 }
 
-#searchbox input::placeholder {
+/* The caret shows where the focus is, and the field is the only thing in the
+   dialog that takes it. */
+.search-field input:focus,
+.search-field input:focus-visible {
+    outline: none;
+}
+
+.search-field input::placeholder {
     color: var(--faint);
     opacity: 1;
 }
 
-#searchbox input:focus,
-#searchbox input:focus-visible {
-    outline: none;
-    border-color: var(--ink);
-    border-radius: var(--r-lg);
-    box-shadow: inset 0 0 0 var(--hair) var(--ink);
+.search-field form {
+    display: flex;
+    flex: none;
 }
 
-/* Results are a plain list of titles (see assets/js/search.js), lighter
-   than the titles of the post list because nothing stands between them.
-   .focus is the one picked with the arrow keys. */
-#searchResults {
-    margin: var(--s-6) 0 0;
+/* Keys are set as small tags. The one in the field is also the button that
+   closes the dialog, and where there is no keyboard it says so in a word. */
+.search-dialog kbd {
+    display: inline-block;
+    min-width: var(--s-5);
+    padding: 0 var(--s-1);
+    color: var(--muted);
+    font-size: var(--fs-1);
+    line-height: var(--lh-1);
+    text-align: center;
+    background: var(--surface);
+    border-radius: var(--r-sm);
 }
 
-#searchResults li,
-#searchResults .focus {
-    margin: var(--s-2) 0 0;
-    padding: 0;
-    border: 0;
-    border-radius: 0;
-}
-
-/* The negative margin keeps the text on the column edge. With the ring drawn
-   2px inside the box, that leaves 6px between it and the text. */
-#searchResults a {
-    position: static;
-    display: block;
-    width: auto;
-    height: auto;
-    margin: 0 calc(var(--s-2) * -1);
-    padding: var(--s-1) var(--s-2);
-    color: var(--ink);
-    font-size: var(--fs-3);
+.search-close {
+    padding: var(--s-1) 0;
+    color: var(--muted);
+    font-size: var(--fs-2);
     font-weight: var(--fw-medium);
-    line-height: var(--lh-3);
-    letter-spacing: var(--ls-3);
+    line-height: var(--lh-2);
+    letter-spacing: var(--ls-2);
 }
 
-#searchResults a:focus-visible {
-    outline-offset: calc(var(--stroke) * -1);
+.search-close span {
+    display: none;
+}
+
+.search-close:hover kbd {
+    color: var(--ink);
+    background: var(--surface-2);
+}
+
+/* "Recent posts", above the newest few while nothing has been typed. */
+.search-heading {
+    flex: none;
+    padding: var(--s-4) var(--s-5) 0;
+    color: var(--faint);
+    font-size: var(--fs-1);
+    line-height: var(--lh-1);
+    letter-spacing: var(--ls-1);
+}
+
+/* The results are the post list in small, and quiet: they point to a post,
+   they are not the post. So they are set in the two small sizes, the ones the
+   navigation and the list's summaries use, and only what was typed in the
+   field is larger.
+
+   A result is a row of two columns: the date, then the title with a line or
+   two of the post under it. So the dates make one column and the titles one
+   edge, and the eye runs down either. The date shares the title's line, so it
+   shares its size. What tells the parts apart is weight and color: the title
+   is ink and medium, the date is grey as dates are everywhere, the text under
+   the title is the same grey and a size down. Rows keep apart by space alone.
+
+   The row that Enter will open is filled, like any control under the pointer,
+   and the pointer moves the same fill. */
+.search-results {
+    flex: 1 1 auto;
+    min-height: 0;
+    margin: 0;
+    padding: var(--s-2);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    list-style: none;
+}
+
+.search-results:empty {
+    display: none;
+}
+
+.search-result + .search-result {
+    margin-top: var(--s-1);
+}
+
+.search-result a {
+    display: grid;
+    grid-template-columns: var(--search-when-col) minmax(0, 1fr);
+    column-gap: var(--s-4);
+    padding: var(--s-2) var(--s-3);
+    border-radius: var(--r-sm);
+}
+
+.search-result.active a {
+    background: var(--surface);
+}
+
+.search-result-date,
+.search-result-title {
+    font-size: var(--fs-2);
+    line-height: var(--lh-2);
+    letter-spacing: var(--ls-2);
+}
+
+.search-result-date {
+    color: var(--muted);
+    white-space: nowrap;
+}
+
+.search-result-body {
+    display: block;
+    min-width: 0;
+}
+
+.search-result-title {
+    display: block;
+    color: var(--ink);
+    font-weight: var(--fw-medium);
+    text-wrap: balance;
+}
+
+.search-result-text {
+    display: -webkit-box;
+    margin-top: var(--s-half);
+    overflow: hidden;
+    color: var(--muted);
+    font-size: var(--fs-1);
+    line-height: var(--lh-1);
+    letter-spacing: var(--ls-1);
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+}
+
+/* The words that were typed, where the text has them: ink among the grey, and
+   a step heavier. No fill, which in a list this dense would be confetti. */
+.search-result mark {
+    color: var(--ink);
+    font-weight: var(--fw-medium);
+    background: none;
+}
+
+.search-status {
+    flex: none;
+    padding: var(--s-5);
+    color: var(--muted);
+    font-size: var(--fs-2);
+    line-height: var(--lh-2);
+    letter-spacing: var(--ls-2);
+}
+
+.search-status:empty {
+    display: none;
+}
+
+.search-keys {
+    display: flex;
+    flex: none;
+    gap: var(--s-5);
+    padding: var(--s-3) var(--s-5);
+    color: var(--faint);
+    font-size: var(--fs-1);
+    line-height: var(--lh-1);
+    letter-spacing: var(--ls-1);
+    border-top: var(--hair) solid var(--line);
+}
+
+.search-keys span {
+    display: flex;
+    align-items: center;
+    gap: var(--s-1);
+}
+
+.search-keys kbd:last-of-type {
+    margin-inline-end: var(--s-1);
+}
+
+/* With nothing in the list there is nothing to move through. */
+.search-results:empty ~ .search-keys {
+    display: none;
+}
+
+/* Where there is no keyboard, the keys go and the button says what it does. */
+@media (hover: none) {
+    .search-close kbd,
+    .search-keys {
+        display: none;
+    }
+
+    .search-close span {
+        display: inline;
+    }
 }
 
 /* ─── Footer ─────────────────────────────────────────────────────────────── */
@@ -1813,32 +1992,7 @@ a:hover .tag-count {
         justify-self: start;
     }
 
-    #menu .menu-search {
-        grid-area: search;
-        justify-self: end;
-    }
-
-    #menu .menu-search > a {
-        display: flex;
-        justify-content: center;
-        width: var(--s-10);
-        height: var(--s-10);
-        border-radius: var(--r-sm);
-    }
-
-    #menu .menu-search > a:hover {
-        background: var(--surface);
-    }
-
-    .menu-search-icon,
-    .menu-search-icon svg {
-        display: block;
-        width: var(--icon);
-        height: var(--icon);
-    }
-
     .logo-label,
-    #menu .menu-search .menu-item-text,
     .menu-item-short .menu-label,
     #menu .menu-external {
         display: none;
@@ -1849,6 +2003,10 @@ a:hover .tag-count {
         display: inline;
     }
 
+    /* The buttons split over the two rows: search and the theme switch beside
+       the logo, the social links beside the navigation. They are 40px here,
+       for a finger, and touch, so both rows have the same step. The last
+       drawing of each row is again pulled out to the edge. */
     .header-actions {
         display: contents;
     }
@@ -1856,14 +2014,24 @@ a:hover .tag-count {
     .nav .menu-socials {
         grid-area: links;
         justify-self: end;
+        gap: 0;
+    }
+
+    .nav .header-search {
+        grid-area: search;
     }
 
     .nav .menu-theme {
         grid-area: theme;
-        justify-self: end;
+    }
+
+    .nav .menu-socials,
+    .nav .menu-theme {
+        margin-inline-end: calc((var(--s-10) - var(--icon)) / -2);
     }
 
     .nav a.menu-social,
+    .header-search,
     #theme-toggle {
         width: var(--s-10);
         height: var(--s-10);
@@ -1953,6 +2121,26 @@ a:hover .tag-count {
     .toc,
     .dark .toc {
         margin-top: 0;
+    }
+
+    /* Search takes the screen, all but a margin, from the top. As in the post
+       list, the date moves above the title and drops to the small size. */
+    .search-dialog {
+        width: calc(100% - var(--s-8));
+        max-height: calc(100dvh - var(--s-8));
+        margin-top: var(--s-4);
+    }
+
+    .search-result a {
+        display: block;
+    }
+
+    .search-result-date {
+        display: block;
+        margin-bottom: var(--s-half);
+        font-size: var(--fs-1);
+        line-height: var(--lh-1);
+        letter-spacing: var(--ls-1);
     }
 
     /* Its right edge on the right edge of the text. */

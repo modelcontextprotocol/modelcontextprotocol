@@ -363,20 +363,20 @@ export interface MethodNotFoundError extends Error {
  *
  * In MCP, this error is returned in various contexts when request parameters fail validation:
  *
- * - **Tools**: Unknown tool name or invalid tool arguments
+ * - **Tools**: Unknown tool name, or a request that does not satisfy the `CallToolRequest` schema. Invalid tool arguments are instead reported as tool execution errors, with `isError` set to true
  * - **Prompts**: Unknown prompt name or missing required arguments
  * - **Pagination**: Invalid or expired cursor values
- * - **Logging**: Invalid log level
+ * - **Logging** (deprecated): Invalid log level
  * - **Elicitation**: Server requests an elicitation mode not declared in client capabilities
- * - **Sampling**: Missing tool result or tool results mixed with other content
+ * - **Sampling** (deprecated): Missing tool result or tool results mixed with other content
  *
  * @see {@link https://www.jsonrpc.org/specification#error_object | JSON-RPC 2.0 Error Object}
  *
  * @example Unknown tool
  * {@includeCode ./examples/InvalidParamsError/unknown-tool.json}
  *
- * @example Invalid tool arguments
- * {@includeCode ./examples/InvalidParamsError/invalid-tool-arguments.json}
+ * @example Malformed tool call
+ * {@includeCode ./examples/InvalidParamsError/malformed-tool-call.json}
  *
  * @example Unknown prompt
  * {@includeCode ./examples/InvalidParamsError/unknown-prompt.json}
@@ -1803,6 +1803,9 @@ export interface ListToolsResultResponse extends JSONRPCResultResponse {
  *
  * @example Invalid tool input error
  * {@includeCode ./examples/CallToolResult/invalid-tool-input-error.json}
+ *
+ * @example Missing required tool argument
+ * {@includeCode ./examples/CallToolResult/missing-required-argument-error.json}
  *
  * @category `tools/call`
  */
