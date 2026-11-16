@@ -164,7 +164,7 @@ Next, let's add our helper functions for querying and formatting the data from t
 async def make_nws_request(url: str) -> dict[str, Any] | None:
     """Make a request to the NWS API with proper error handling."""
     headers = {"User-Agent": USER_AGENT, "Accept": "application/geo+json"}
-    async with httpx2.AsyncClient() as client:
+    async with httpx2.AsyncClient(follow_redirects=True) as client:
         try:
             response = await client.get(url, headers=headers, timeout=30.0)
             response.raise_for_status()
@@ -219,7 +219,7 @@ async def get_forecast(latitude: float, longitude: float) -> str:
         longitude: Longitude of the location
     """
     # First get the forecast grid endpoint
-    points_url = f"{NWS_API_BASE}/points/{latitude:.4f},{longitude:.4f}"
+    points_url = f"{NWS_API_BASE}/points/{latitude},{longitude}"
     points_data = await make_nws_request(points_url)
 
     if not points_data:
@@ -1055,7 +1055,7 @@ In this case, we'll add our single weather server like so:
       "args": [
         "-Dspring.ai.mcp.server.stdio=true",
         "-jar",
-        "C:\\ABSOLUTE\\PATH\\TO\\PARENT\\FOLDER\\weather\\mcp-weather-stdio-server-0.0.1-SNAPSHOT.jar"
+        "C:\\ABSOLUTE\\PATH\\TO\\PARENT\\FOLDER\\mcp-weather-stdio-server-0.0.1-SNAPSHOT.jar"
       ]
     }
   }
@@ -1098,7 +1098,7 @@ ListToolsResult toolsList = mcpClient.listTools();
 
 CallToolResult weather = mcpClient.callTool(
   new CallToolRequest("getWeatherForecastByLocation",
-      Map.of("latitude", "47.6062", "longitude", "-122.3321")));
+      Map.of("latitude", 47.6062, "longitude", -122.3321)));
 
 CallToolResult alert = mcpClient.callTool(
   new CallToolRequest("getAlerts", Map.of("state", "NY")));
@@ -1304,7 +1304,7 @@ val httpClient = HttpClient(CIO) {
 
 // Extension function to fetch weather alerts for a given state
 suspend fun HttpClient.getAlerts(state: String): List<String> {
-    val alerts = this.get("/alerts/active/area/$state").body<AlertsResponse>()
+    val alerts = this.get("/alerts/active/area/${state.uppercase()}").body<AlertsResponse>()
     return alerts.features.map { feature ->
         """
             Event: ${feature.properties.event}
@@ -1669,7 +1669,7 @@ public static class WeatherTools
         HttpClient client,
         [Description("The US state code to get alerts for.")] string state)
     {
-        using var jsonDocument = await client.ReadJsonDocumentAsync($"/alerts/active/area/{state}");
+        using var jsonDocument = await client.ReadJsonDocumentAsync($"/alerts/active/area/{state.ToUpperInvariant()}");
         var jsonElement = jsonDocument.RootElement;
         var alerts = jsonElement.GetProperty("features").EnumerateArray();
 

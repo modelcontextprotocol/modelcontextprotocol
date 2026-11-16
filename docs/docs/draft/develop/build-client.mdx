@@ -947,7 +947,7 @@ Before starting, ensure your system meets these requirements:
 
 - Java 17 or higher
 - Maven 3.6+
-- npx package manager
+- npm
 - Anthropic API key (Claude)
 - Brave Search API key
 
@@ -1626,7 +1626,7 @@ Then, add the required dependencies to your project:
 
 ```bash
 dotnet add package ModelContextProtocol
-dotnet add package Anthropic.SDK
+dotnet add package Anthropic
 dotnet add package Microsoft.Extensions.Hosting
 dotnet add package Microsoft.Extensions.AI
 ```
@@ -1647,7 +1647,7 @@ dotnet user-secrets set "ANTHROPIC_API_KEY" "<your key here>"
 First, let's setup the basic client class in the file `Program.cs`:
 
 ```csharp
-using Anthropic.SDK;
+using Anthropic;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
@@ -1705,8 +1705,8 @@ This creates an MCP client that will connect to a server that is provided as a c
 Now let's add the core functionality for processing queries and handling tool calls:
 
 ```csharp
-using var anthropicClient = new AnthropicClient(new APIAuthentication(builder.Configuration["ANTHROPIC_API_KEY"]))
-    .Messages
+using var anthropicClient = new AnthropicClient(new() { ApiKey = builder.Configuration["ANTHROPIC_API_KEY"] })
+    .AsIChatClient("claude-opus-5")
     .AsBuilder()
     .UseFunctionInvocation()
     .Build();

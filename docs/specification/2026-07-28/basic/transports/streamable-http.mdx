@@ -300,6 +300,7 @@ described in [Value Encoding](#value-encoding).
 
 ```http
 POST /mcp HTTP/1.1
+Host: example.com
 Content-Type: application/json
 Accept: application/json, text/event-stream
 MCP-Protocol-Version: 2026-07-28
@@ -331,6 +332,7 @@ Mcp-Name: get_weather
 
 ```http
 POST /mcp HTTP/1.1
+Host: example.com
 Content-Type: application/json
 Accept: application/json, text/event-stream
 MCP-Protocol-Version: 2026-07-28
@@ -438,6 +440,7 @@ annotations entirely.
 
 ```http
 POST /mcp HTTP/1.1
+Host: example.com
 Content-Type: application/json
 Accept: application/json, text/event-stream
 MCP-Protocol-Version: 2026-07-28
