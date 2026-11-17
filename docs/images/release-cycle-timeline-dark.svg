@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="880" height="432" viewBox="0 0 880 432" role="img" aria-labelledby="title description">
   <title id="title">Example MCP release cycle timeline</title>
-  <desc id="description">The March cycle runs from July to March, and the September cycle runs from January to September. Each includes two months of planning, Core Maintainer review until soft freeze two and a half months before release, and stabilization until release. Planning for September overlaps the last two months of the March cycle. Releases are six months apart.</desc>
+  <desc id="description">The March cycle runs from July to March, and the September cycle runs from January to September. Each includes two months of planning, Core Maintainer review until soft freeze 2.5 months before release, and stabilization until release. Planning for September overlaps the last two months of the March cycle. Releases are six months apart.</desc>
   <defs>
     <style>
       text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; fill: #e6ecef; }

@@ -1,62 +1,41 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="400" height="552" viewBox="0 0 400 552" role="img" aria-labelledby="title description">
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="264" viewBox="0 0 880 264" role="img" aria-labelledby="title description">
   <title id="title">Formal SEP review timeline</title>
-  <desc id="description">Two weeks before the meeting, release managers publish the agenda and proposal links and invite authors and group representatives. During the preceding week, reviewers comment on the pull request and authors and sponsors respond. At the meeting, presenters discuss the proposal, open questions, and implementation feedback. After the presentation, the sponsor opens a vote that lasts seven calendar days.</desc>
+  <desc id="description">Release managers publish the agenda 2 weeks before the Core Maintainer meeting. Reviewers comment on the pull request during the week before the meeting. The proposal is presented at the meeting, and the acceptance vote then stays open for 7 calendar days.</desc>
   <defs>
     <style>
-      text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 18px; fill: #e6ecef; }
-      .time { font-weight: 600; dominant-baseline: central; }
-      .number { font-size: 16px; font-weight: 600; text-anchor: middle; dominant-baseline: central; }
-      .card { fill: #202a31; stroke: #728c9a; }
-      .vote { fill: #282b28; stroke: #b6a879; }
-      .badge { fill: #203038; stroke: #809eaa; }
-      .connector { fill: none; stroke: #8aa8b8; stroke-width: 1.5; }
+      text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; fill: #e6ecef; }
+      .tick { font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size: 16px; fill: #a0afb7; text-anchor: middle; }
+      .phase { font-size: 18px; text-anchor: middle; dominant-baseline: central; }
+      .event { font-size: 16px; text-anchor: middle; }
+      .dimension { font-size: 16px; fill: #b8cbd5; text-anchor: middle; }
     </style>
-    <marker id="arrow" markerWidth="8" markerHeight="8" refX="8" refY="4" orient="auto" markerUnits="userSpaceOnUse">
-      <path class="connector" d="M0 0L8 4L0 8"/>
+    <marker id="dimension-arrow" markerWidth="8" markerHeight="8" refX="8" refY="4" orient="auto-start-reverse" markerUnits="userSpaceOnUse">
+      <path d="M0 0L8 4L0 8" fill="none" stroke="#8aa8b8"/>
     </marker>
   </defs>
 
-  <rect width="400" height="552" fill="#141c22"/>
+  <rect width="880" height="264" fill="#141c22"/>
 
-  <g>
-    <rect class="card" x="16" y="20" width="368" height="110" rx="8"/>
-    <circle class="badge" cx="40" cy="50" r="14"/>
-    <text class="number" x="40" y="50">1</text>
-    <text class="time" x="64" y="50">2 weeks before the meeting</text>
-    <text x="40" y="84">Publish agenda and proposal links.</text>
-    <text x="40" y="108">Invite authors and representatives.</text>
+  <g class="tick">
+    <text x="80" y="40">2 weeks before</text>
+    <text x="320" y="40">1 week before</text>
+    <text x="560" y="40">Meeting</text>
+    <text x="800" y="40">7 days after</text>
   </g>
+  <path d="M80 60H800M80 60V68M320 60V68M560 60V68M800 60V68" fill="none" stroke="#526a78"/>
 
-  <path class="connector" d="M200 130V150" marker-end="url(#arrow)"/>
+  <rect x="80" y="110" width="240" height="60" fill="#203038" stroke="#809eaa"/>
+  <text class="phase" x="200" y="140">Agenda published</text>
+  <rect x="320" y="110" width="240" height="60" fill="#202a31" stroke="#728c9a"/>
+  <text class="phase" x="440" y="140">Pull request comments</text>
+  <rect x="560" y="110" width="240" height="60" fill="#282b28" stroke="#b6a879"/>
+  <text class="phase" x="680" y="140">Acceptance vote</text>
+  <circle cx="560" cy="140" r="5" fill="#141c22" stroke="#e6ecef" stroke-width="2"/>
+  <text class="event" x="560" y="96">Presentation</text>
 
-  <g transform="translate(0 134)">
-    <rect class="card" x="16" y="20" width="368" height="110" rx="8"/>
-    <circle class="badge" cx="40" cy="50" r="14"/>
-    <text class="number" x="40" y="50">2</text>
-    <text class="time" x="64" y="50">Week before the meeting</text>
-    <text x="40" y="84">Reviewers comment on the PR.</text>
-    <text x="40" y="108">Authors and sponsors respond.</text>
-  </g>
-
-  <path class="connector" d="M200 264V284" marker-end="url(#arrow)"/>
-
-  <g transform="translate(0 268)">
-    <rect class="card" x="16" y="20" width="368" height="110" rx="8"/>
-    <circle class="badge" cx="40" cy="50" r="14"/>
-    <text class="number" x="40" y="50">3</text>
-    <text class="time" x="64" y="50">At the meeting</text>
-    <text x="40" y="84">Present the proposal,</text>
-    <text x="40" y="108">open questions, and feedback.</text>
-  </g>
-
-  <path class="connector" d="M200 398V418" marker-end="url(#arrow)"/>
-
-  <g transform="translate(0 402)">
-    <rect class="vote" x="16" y="20" width="368" height="110" rx="8"/>
-    <circle class="badge" cx="40" cy="50" r="14"/>
-    <text class="number" x="40" y="50">4</text>
-    <text class="time" x="64" y="50">After the presentation</text>
-    <text x="40" y="84">The sponsor opens a vote.</text>
-    <text x="40" y="108">Voting lasts 7 calendar days.</text>
-  </g>
+  <path d="M80 170V240M560 170V240M800 170V240" fill="none" stroke="#66818f" stroke-dasharray="3 5"/>
+  <text class="dimension" x="320" y="220">2 weeks of preparation</text>
+  <path d="M80 240H560" stroke="#8aa8b8" marker-start="url(#dimension-arrow)" marker-end="url(#dimension-arrow)"/>
+  <text class="dimension" x="680" y="220">7 calendar days</text>
+  <path d="M560 240H800" stroke="#8aa8b8" marker-start="url(#dimension-arrow)" marker-end="url(#dimension-arrow)"/>
 </svg>

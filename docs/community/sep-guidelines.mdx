@@ -18,7 +18,7 @@ Write a SEP for:
 - A governance or process change
 - Anything controversial or with several plausible designs, such as a change to how authorization works
 
-Bug fixes, clarifications, editorial changes, new examples for existing features, schema fixes that do not change behavior, and tests go in an ordinary pull request. Amendments to the governance document itself follow the procedure in [SEP-2085](/seps/2085), not this process. If unsure, ask in [Discord](/community/communication#discord) first.
+Bug fixes, clarifications, editorial changes, new examples for existing features, schema fixes that do not change behavior, and tests go in an ordinary pull request. Amendments to the governance document itself follow the [amendment procedure](/community/governance#amendments), not this process. If unsure, ask in [Discord](/community/communication#discord) first.
 
 ## SEP types
 
@@ -76,7 +76,7 @@ flowchart TD
 3. The SEP number is the PR number. Rename the file (PR #1850 becomes `seps/1850-<slug>.md`), update the header, and run `npm run generate:seps`, or the `check:seps` CI job fails. Rename the pull request to `sep(SEP-1850): <description>`. A follow-up commit is enough, with no amend or force-push. Later pull requests about this SEP keep `SEP-1850` as their scope and link to it in the description.
 4. Until a working group or the Core Maintainers agree to sponsor the SEP, it stays a draft pull request. A draft pull request is for developing a proposal in the open. It is not yet in the SEP process, the `Status` header in the SEP stays unset, and the `wg-support-needed` label marks it.
 5. Once a group has agreed to [sponsor](#sponsors) the SEP, the pull request is marked ready for review. The `Sponsor` header names the person who acts on the sponsoring group's behalf, and that person sets `draft`. Review takes place in PR comments.
-6. When the SEP is ready, the sponsor verifies that the sponsorship decision and prior discussion are linked in the pull request description, then sets `in-review`. The WG Lead or designated Core Maintainer submits it to the [SEP review queue](https://voting.modelcontextprotocol.io/p/seps). Release managers schedule reviews during the [release cycle's review window](/community/release-cycle#milestones). The author and sponsor may present the proposal.
+6. When the SEP is ready, the sponsor verifies that the sponsorship decision and prior discussion are linked in the pull request description, then sets `in-review`. The WG Lead or sponsoring Core Maintainer submits it to the [SEP review queue](https://voting.modelcontextprotocol.io/p/seps). Release managers schedule reviews during the [release cycle's review window](/community/release-cycle#milestones). The author and sponsor may present the proposal.
 7. Core Maintainers decide under [Review and acceptance](#review-and-acceptance). The sponsor records the outcome, `accepted` or `rejected`, on the PR and in the SEP header.
 8. For an accepted SEP, the author adds to the same PR: the specification prose, the `schema.ts` changes with regenerated output (see [CONTRIBUTING.md](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/CONTRIBUTING.md#schema-changes)), a changelog entry, and any required documentation edits (for a deprecation, the four edits under [Deprecating a Feature](/community/feature-lifecycle#deprecating-a-feature)). The reference implementation is completed where it lives: an SDK branch, a fork or a standalone repository (see [Prototype Requirements](#prototype-requirements)). For a Standards Track SEP with observable protocol behavior, the conformance scenario and `sep-NNNN.yaml` are merged (see [Conformance Test Requirement](#conformance-test-requirement)). SDK implementations are not required for Final.
 9. The sponsor verifies these artifacts and sets `final`. The PR is then merged.
@@ -86,7 +86,7 @@ The eight `Status` values, also defined on the [SEP index](/seps):
 | Status       | Meaning                                                                            | Set by                                      |
 | ------------ | ---------------------------------------------------------------------------------- | ------------------------------------------- |
 | `draft`      | Has a sponsor, pull request ready for review, under informal review in PR comments | Sponsor                                     |
-| `in-review`  | In the review queue or on the Core Maintainer agenda for formal review             | Sponsor                                     |
+| `in-review`  | In the SEP review queue or on the Core Maintainer agenda for formal review         | Sponsor                                     |
 | `accepted`   | Approved, awaiting specification text, reference implementation and conformance    | Sponsor, after the Core Maintainer decision |
 | `rejected`   | Declined by Core Maintainers                                                       | Sponsor, after the Core Maintainer decision |
 | `withdrawn`  | Withdrawn by the author                                                            | Author or sponsor                           |
@@ -117,19 +117,19 @@ A SEP needs a working prototype before it can be accepted: an implementation in 
 
 ## Review and acceptance
 
-Core Maintainers review `in-review` SEPs during the [release cycle's review window](/community/release-cycle#milestones), from six months before release until the soft freeze date. Release managers publish the agenda and proposal links two weeks before each meeting. Review considers the working prototype, benefit to the MCP ecosystem, community support and consensus, and fit with the roadmap and design principles.
+Core Maintainers review `in-review` SEPs during the [release cycle's review window](/community/release-cycle#milestones), from **6 months** before release until the soft freeze date. Release managers publish the agenda and proposal links **2 weeks** before each meeting. Review considers the working prototype, benefit to the MCP ecosystem, community support and consensus, and fit with the [roadmap](/development/roadmap) and [design principles](/community/design-principles).
 
-Release managers [order the review queue](/community/release-cycle#review-scheduling) by roadmap alignment and then by the date each proposal became ready for review.
+Release managers [order the SEP review queue](/community/release-cycle#review-scheduling) by roadmap alignment and then by the date each proposal became ready for review.
 
 After the presentation, the sponsor opens a recorded seven-calendar-day vote and links the record from the SEP PR. Acceptance requires more than half of the Core Maintainers to vote in favor. The vote stays open for all seven days and must conclude before the soft freeze date.
 
-The sponsor records the tally, decision, rationale, and follow-up on the PR and in the queue. If more than half of the Core Maintainers vote against a SEP, it is marked `rejected` and does not move forward in its current form. The author can revise the proposal based on the feedback and resubmit it for review. A proposal that reaches neither threshold returns to `draft` for revision or later review.
+The sponsor records the tally, decision, rationale, and follow-up on the PR and in the SEP review queue. If more than half of the Core Maintainers vote against a SEP, it is marked `rejected` and does not move forward in its current form. The author can revise the proposal based on the feedback and resubmit it for review. A proposal that reaches neither threshold returns to `draft` for revision or later review.
 
 All current Core Maintainers, including Lead Maintainers, are eligible to vote. Emeritus members are not. The voting record lists the eligible voters and the revision being voted on. Abstentions and absences do not count as votes in favor, and a majority of the maintainers attending a meeting is not sufficient on its own.
 
 If the proposal changes materially during the vote, it returns to review, and votes cast for the earlier revision do not carry over. A vote that cannot conclude before the review window closes is deferred to the next window.
 
-Lead Maintainers keep their [existing authority](/community/governance#roles). A proposal that amends governance also follows the stricter proposal, comment-period, and approval requirements in [SEP-2085](/seps/2085).
+Lead Maintainers keep their [existing authority](/community/governance#roles). A proposal that amends governance also has to meet the stricter requirements of the [governance amendment procedure](/community/governance#amendments).
 
 ## Conformance Test Requirement
 
