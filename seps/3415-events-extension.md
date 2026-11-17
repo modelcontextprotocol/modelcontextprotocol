@@ -177,7 +177,7 @@ The client SDK chooses the mode and runs the loop. The model sees only the event
 ```
 
 - `delivery` lists the delivery modes the event type supports. It is any non-empty subset of `"poll"`, `"push"` and `"webhook"`. No mode is mandatory. A client that cannot use any of the listed modes cannot subscribe to the event type.
-- `inputSchema` is a JSON Schema for valid subscription arguments. Arguments may be filters (which narrow the event stream), transforms (which modify payloads) or other server-defined configuration. This mirrors the `inputSchema`/`arguments` pairing on tools.
+- `inputSchema` is a JSON Schema for valid subscription arguments. Arguments may be filters (which narrow the event stream), transforms (which modify payloads) or other server-defined configuration. This mirrors the `inputSchema`/`arguments` pairing on tools. As on tools, a property MAY carry an `x-mcp-header` annotation, which mirrors that argument into an HTTP header (see [Custom headers from subscription arguments](#custom-headers-from-subscription-arguments)).
 - `payloadSchema` is a JSON Schema for `data` in delivered events.
 
 **Schema evolution.** A subscription can outlive the `events/list` response it was created from. Servers SHOULD therefore evolve an event type's `inputSchema` and `payloadSchema` additively for the lifetime of its `name`:
@@ -759,6 +759,37 @@ The encoding and validation rules of the Streamable HTTP transport apply unchang
 - Servers validate the header as the transport's server validation rules describe. A request whose `Mcp-Name` header is missing, or does not match `params.name`, is rejected with HTTP status `400 Bad Request` and `HeaderMismatch` (`-32020`).
 
 `events/list` has no `params.name` and carries no `Mcp-Name` header. The `Mcp-Method` header is set to the JSON-RPC method name, as for every request.
+
+#### Custom headers from subscription arguments
+
+A server MAY mark properties in an event type's `inputSchema` with the `x-mcp-header` annotation that the Streamable HTTP transport defines for tool parameters ([Custom Headers from Tool Parameters](https://modelcontextprotocol.io/specification/2026-07-28/basic/transports/streamable-http#custom-headers-from-tool-parameters)). It lets intermediaries route and apply policy on subscription arguments, such as a region or a tenant, without parsing the request body.
+
+```jsonc
+// In the event type's descriptor
+"inputSchema": {
+  "type": "object",
+  "properties": {
+    "region": { "type": "string", "x-mcp-header": "Region" },
+    "severity": { "type": "string" }
+  }
+}
+```
+
+```http
+POST /mcp HTTP/1.1
+Mcp-Method: events/poll
+Mcp-Name: incident.created
+Mcp-Param-Region: us-west1
+```
+
+The transport's rules for tools apply unchanged, with the event type in place of the tool definition, `events/list` in place of `tools/list`, and the requests below in place of `tools/call`:
+
+- Clients that use the Streamable HTTP transport MUST support the annotation. When `events/poll`, `events/stream`, `events/subscribe` (including each refresh) or `events/unsubscribe` is sent over that transport, the client MUST set an `Mcp-Param-{Name}` header for each annotated property that has a value in `params.arguments`, encoded as the transport describes.
+- The constraints on `x-mcp-header` values are those of the transport. A client MUST exclude an event type whose annotations violate them from the result of `events/list`, and SHOULD log a warning.
+- Servers validate the headers against the request body as the transport's server validation rules describe, and reject a mismatch with HTTP status `400 Bad Request` and `HeaderMismatch` (`-32020`). A client that receives this error SHOULD call `events/list` again and retry with the headers the current `inputSchema` calls for.
+- Clients on other transports MAY ignore the annotation.
+
+Webhook deliveries are not MCP requests and carry no `Mcp-Param-*` headers. Header values are visible to network intermediaries, so servers SHOULD NOT annotate arguments that may hold sensitive data, such as a filter on a sender address.
 
 ### Error Handling
 
