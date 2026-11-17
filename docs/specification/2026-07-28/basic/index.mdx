@@ -11,8 +11,8 @@ The Model Context Protocol consists of several key components that work together
 - **Message Patterns**: Messaging patterns supported by the core protocol including request and response, multi round-trip requests (MRTR), and subscribe and notify
 - **Authorization**: Authentication and authorization framework for HTTP-based transports
 - **Server Features**: Resources, prompts, and tools exposed by servers
-- **Client Features**: Elicitation, sampling and root directory lists provided by clients
-- **Utilities**: Cross-cutting concerns like logging and argument completion
+- **Client Features**: Elicitation provided by clients; sampling and root directory lists are [deprecated](/specification/2026-07-28/deprecated)
+- **Utilities**: Cross-cutting concerns like argument completion and pagination; logging is [deprecated](/specification/2026-07-28/deprecated)
 
 All implementations **MUST** support the base protocol, versioning,
 and the message patterns. Other components **MAY** be implemented based on the specific needs of the
@@ -176,7 +176,7 @@ The receiver **MUST NOT** send a response.
 The Model Context Protocol (MCP) supports several [Message Patterns](/specification/2026-07-28/basic/patterns) that define how clients and servers interact:
 
 1. **[Request and Response](/specification/2026-07-28/basic/patterns#request-and-response)**: A client sends a request to the server, and the server responds with a result or error.
-2. **[Multi Round-Trip Requests (MRTR)](/specification/2026-07-28/basic/patterns#multi-round-trip-requests)**: A server requires additional client input (sampling, elicitation, or roots) to complete a request.
+2. **[Multi Round-Trip Requests (MRTR)](/specification/2026-07-28/basic/patterns#multi-round-trip-requests)**: A server requires additional client input (e.g. elicitation) to complete a request.
 3. **[Subscribe and Notify](/specification/2026-07-28/basic/patterns#subscribe-and-notify)**: A client subscribes to a stream of notifications from the server, which are sent as they occur.
 
 ## Statelessness
