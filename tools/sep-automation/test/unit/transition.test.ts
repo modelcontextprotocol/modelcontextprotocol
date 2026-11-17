@@ -32,7 +32,7 @@ describe('TransitionHandler', () => {
 
   describe('validateTransition', () => {
     it('should allow valid transitions', () => {
-      expect(handler.validateTransition('proposal', 'draft')).toEqual({
+      expect(handler.validateTransition('dormant', 'draft')).toEqual({
         valid: true,
         reason: 'Valid transition',
       });
@@ -43,13 +43,13 @@ describe('TransitionHandler', () => {
     });
 
     it('should reject invalid transitions', () => {
-      const result = handler.validateTransition('proposal', 'final');
+      const result = handler.validateTransition('draft', 'final');
       expect(result.valid).toBe(false);
       expect(result.reason).toContain('Invalid transition');
     });
 
     it('should allow initial state assignment', () => {
-      expect(handler.validateTransition(null, 'proposal')).toEqual({
+      expect(handler.validateTransition(null, 'draft')).toEqual({
         valid: true,
         reason: 'Initial state assignment',
       });
@@ -61,7 +61,7 @@ describe('TransitionHandler', () => {
       const mockSEPItem = createMockSEPItem();
       const result = await handler.executeTransition(
         mockSEPItem,
-        'draft',
+        'in-review',
         'sponsor1',
         true // dry run
       );
@@ -76,14 +76,14 @@ describe('TransitionHandler', () => {
       const mockSEPItem = createMockSEPItem();
       const result = await handler.executeTransition(
         mockSEPItem,
-        'draft',
+        'in-review',
         'sponsor1',
         false
       );
 
       expect(result.success).toBe(true);
-      expect(mockGitHubClient.removeLabel).toHaveBeenCalledWith(123, 'proposal');
-      expect(mockGitHubClient.addLabels).toHaveBeenCalledWith(123, ['draft']);
+      expect(mockGitHubClient.removeLabel).toHaveBeenCalledWith(123, 'draft');
+      expect(mockGitHubClient.addLabels).toHaveBeenCalledWith(123, ['in-review']);
       expect(mockGitHubClient.addComment).toHaveBeenCalled();
     });
 

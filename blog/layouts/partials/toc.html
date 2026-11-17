@@ -1,0 +1,8 @@
+{{- with .TableOfContents }}
+<div class="toc">
+  <details{{ if $.Param "TocOpen" }} open{{ end }}>
+    <summary><span class="details">{{ i18n "toc" | default "On this page" }}</span></summary>
+    <div class="inner">{{ . }}</div>
+  </details>
+</div>
+{{- end }}

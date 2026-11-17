@@ -4,6 +4,7 @@ import type { TransitionHandler } from "../../src/actions/transition.js";
 import type { GitHubComment } from "../../src/github/types.js";
 import { SEPProcessor } from "../../src/processor.js";
 import { SEPAnalyzer } from "../../src/sep/analyzer.js";
+import { extractState } from "../../src/sep/types.js";
 import { ActionType, BOT_COMMENT_MARKER } from "../../src/types.js";
 import {
   asGitHubClient,
@@ -87,26 +88,21 @@ describe("SEPProcessor", () => {
     expect(github.getComments).toHaveBeenCalledTimes(1);
   });
 
-  it("preserves the original close decision in the dormant summary", async () => {
-    const comments: GitHubComment[] = [];
-    const processor = createProcessor(comments);
+  it("ignores a SEP that still carries the retired proposal label", async () => {
+    const processor = createProcessor([]);
+    const labels = ["SEP", "proposal"];
     const sep = createMockSEPItem({
-      assignees: [],
+      labels,
+      state: extractState(labels),
       createdAt: new Date(Date.now() - 185 * MS_PER_DAY),
     });
 
     const result = await processor.process(sep);
 
-    expect(result.results).toHaveLength(1);
-    expect(result.results[0]?.action.type).toBe(ActionType.MarkDormant);
-    expect(result.summaryData.dormant).toEqual([
-      {
-        item: sep,
-        daysSinceActivity: 185,
-        wasClosed: true,
-      },
-    ]);
-    expect(github.closeIssue).toHaveBeenCalledWith(sep.number);
-    expect(github.getComments).toHaveBeenCalledTimes(1);
+    expect(result.results).toEqual([]);
+    expect(github.addComment).not.toHaveBeenCalled();
+    expect(github.addLabels).not.toHaveBeenCalled();
+    expect(github.removeLabel).not.toHaveBeenCalled();
+    expect(github.closeIssue).not.toHaveBeenCalled();
   });
 });

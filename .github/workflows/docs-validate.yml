@@ -1,0 +1,29 @@
+name: Docs validate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Docs validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Validate source before generation
+        run: |
+          npm run check:schema:json
+          npm run check:docs:format
+      - run: npx --no-install tsx --test scripts/check-mdx-comments.test.ts
+      - run: npm run generate
+      - run: npm run check

@@ -1,0 +1,109 @@
+---
+title: Agents Charter
+description: Charter for the MCP Agents Interest Group.
+---
+
+## Group Type
+
+**Interest Group**
+
+## Mission Statement
+
+The Agents Interest Group exists to make interactions with agent-backed systems
+interoperable over MCP. Today, these systems are typically exposed as ordinary
+tools or through framework-specific integrations, leaving durable execution,
+capability discovery, delegation, and multi-turn interaction to ad hoc conventions.
+The IG evaluates which remaining gaps require protocol support. Based on production
+use cases and prototypes, the group will recommend how to evolve the protocol, create
+additional extensions or document how existing MCP primitives should be used consistently.
+
+## Scope
+
+### In Scope
+
+- **Agents Extension Evaluation**: Evaluate agent-backed MCP use cases, including
+  agent-as-tool, remote-agent, and supervisor/sub-agent patterns, to determine
+  whether an Agents Extension is needed to complement Tasks.
+- **Prototypes and Proposals**: Develop narrowly scoped proofs of concept where they
+  help determine whether to introduce an Agents Extension, evolve Tasks, or rely on
+  existing MCP primitives.
+- **Cross-Cutting Concerns**: Coordinate with relevant groups when evaluated agent
+  use cases raise tasks, transport, events, skills, authorization, metadata, or
+  external-interoperability questions.
+- **Documentation**: Document agent-backed MCP use cases, findings, and any
+  recommendations produced by the group.
+
+### Out of Scope
+
+- Building or standardizing general-purpose agent frameworks and runtimes, including
+  internal choices about planning, memory, model selection, and orchestration. The
+  group focuses on behavior at MCP interoperability boundaries rather than host or
+  server implementation internals.
+- Transport wire formats and session mechanics, which are owned by the Transports WG.
+- Tasks, general event delivery, and callback mechanisms, which are owned by the
+  Tasks and Events WG.
+
+The charter does not predetermine where inference or agent loops run, or whether a
+particular capability belongs in Tasks, an Agents Extension, or existing MCP
+primitives. The IG evaluates those questions through its discussions.
+
+### Related Groups
+
+- **[Transports WG](/community/working-groups/transports)** -
+  Task polling, multi-round-trip requests, stateless operation, and request
+  association depend on transport and message-flow semantics.
+- **[Tasks and Events WG](/community/working-groups/tasks-events)** -
+  Tasks and proactive task-status and completion notifications are owned by that
+  group. The IG provides use cases and requirements as input.
+
+## Leadership
+
+| Role        | Name       | Organization        | GitHub                                             | Term    |
+| ----------- | ---------- | ------------------- | -------------------------------------------------- | ------- |
+| Facilitator | Luca Chang | Amazon Web Services | [@LucaButBoring](https://github.com/LucaButBoring) | Initial |
+
+## Membership
+
+| Name       | Organization        | GitHub                                             | Discord | Level       |
+| ---------- | ------------------- | -------------------------------------------------- | ------- | ----------- |
+| Luca Chang | Amazon Web Services | [@LucaButBoring](https://github.com/LucaButBoring) |         | Facilitator |
+
+## Operations
+
+| Meeting         | Frequency | Duration   | Purpose                                             |
+| --------------- | --------- | ---------- | --------------------------------------------------- |
+| Working Session | Weekly    | 30 minutes | Technical discussion, research, and proposal review |
+
+Meetings are published at
+[meet.modelcontextprotocol.io](https://meet.modelcontextprotocol.io).
+
+Discord: `#agents-wg`
+
+## Resources
+
+- Group repository:
+  [modelcontextprotocol/agents-wg](https://github.com/modelcontextprotocol/agents-wg)
+
+## Discussion Topics
+
+| Item                                           | Status      | Target Date | Champion                                                                                       |
+| ---------------------------------------------- | ----------- | ----------- | ---------------------------------------------------------------------------------------------- |
+| Agents Extension evaluation and recommendation | In Progress |             | TBD                                                                                            |
+| Two-level agent definition proof of concept    | In Progress |             | [@LucaButBoring](https://github.com/LucaButBoring), [@madhaviai](https://github.com/madhaviai) |
+
+### Planned Outputs
+
+- The group publishes an evaluation of whether an Agents Extension is needed to
+  complement Tasks, supported by documented use cases and relevant prototype
+  evidence.
+- Based on that evaluation, the group recommends evolving Tasks, recommends an
+  Agents Extension, or documents how existing MCP primitives are sufficient.
+- Proposed agent protocol surface is evaluated through prototypes and
+  implementation feedback before being advanced.
+
+## Changelog
+
+| Date       | Change                                                                        |
+| ---------- | ----------------------------------------------------------------------------- |
+| 2026-08-04 | Initial charter (as the Agents WG)                                            |
+| 2026-10-16 | Converted to an Interest Group. Tasks scope moved to the Tasks and Events WG. |

@@ -1,0 +1,16 @@
+{{- /*
+  The search index: one entry per post, newest first. assets/js/search.js fetches it the first time the reader
+  opens search. "summary" is the line the post list shows, and "date" is written the way a post's header
+  writes it. Hugo's plain text still has HTML entities in it (&rsquo;), and the script sets these strings as
+  text, so they are decoded here.
+*/ -}}
+{{- $entries := slice -}}
+{{- range where site.RegularPages "Type" "in" site.Params.mainSections -}}
+  {{- if not .Params.searchHidden -}}
+    {{- $summary := .Description | default (.Summary | plainify | htmlUnescape | htmlUnescape) -}}
+    {{- $date := "" -}}
+    {{- if not .Date.IsZero }}{{ $date = .Date | time.Format "Jan 2, 2006" }}{{ end -}}
+    {{- $entries = $entries | append (dict "title" .Title "permalink" .RelPermalink "date" $date "tags" (.Params.tags | default slice) "summary" $summary "content" (.Plain | htmlUnescape)) -}}
+  {{- end -}}
+{{- end -}}
+{{- $entries | jsonify -}}
