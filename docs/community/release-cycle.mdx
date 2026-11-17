@@ -115,15 +115,26 @@ Release managers escalate a missed beta or stable milestone to the Core Maintain
 
 ## Release managers
 
-Each release has a primary and a secondary [release manager](/community/contributor-ladder#release-managers). The secondary becomes primary for the following release, and Core Maintainers select an incoming secondary before planning for that release begins.
+Each release has a [primary release manager and a secondary release manager](/community/contributor-ladder#release-managers). The secondary release manager becomes the primary release manager for the following release. Core Maintainers select a new secondary release manager before planning for that release begins.
 
-The primary coordinates the release calendar, review scheduling, freezes, SDK readiness, and publication. The secondary works with the primary on the review queue and handoff notes while preparing to lead the next cycle.
+The primary release manager coordinates:
 
-During the two months when cycles overlap, the secondary also serves as primary for the following cycle and leads its planning with the incoming secondary. The outgoing primary remains accountable for the current release until it is published. On release day, the release managers complete the handoff notes with outstanding issues and their owners.
+- The release calendar
+- SEP review scheduling
+- Soft and hard freezes
+- SDK readiness
+- Release publication
+- Release communications
+
+The secondary release manager helps maintain the review queue and handoff notes while preparing to lead the next release cycle.
+
+During the two months when cycles overlap, the secondary release manager also serves as the primary release manager for the following cycle. They lead planning for that cycle with the new secondary release manager.
+
+The outgoing primary release manager remains accountable for the current release until it is published. On release day, the release managers complete the handoff notes with outstanding issues and their owners.
 
 After the first release following this schedule, release managers publish a retrospective that covers queue wait times, readiness at soft freeze, SDK beta availability, emergency corrections, and release manager workload during the overlap.
 
-The [maintainer roster](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/MAINTAINERS.md#release-managers) lists the current release managers. For the first release, two maintainers share the primary role.
+The [maintainer roster](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/MAINTAINERS.md#release-managers) lists the current release managers. For the first release, two of the [Lead Maintainers](/community/contributor-ladder#lead-maintainer) share the primary release manager role.
 
 <Note>
   Core Maintainers decide whether to accept SEPs and whether to approve
@@ -134,10 +145,10 @@ The [maintainer roster](https://github.com/modelcontextprotocol/modelcontextprot
 
 The primary release manager coordinates each correction after hard freeze through a regular pull request. A correction does not need a separate SEP, a sponsor, or a meeting presentation.
 
-1. The primary confirms that the change meets the [hard-freeze criteria](#milestones). The pull request documents the defect, why the correction cannot wait for the next release, the smallest change that corrects the defect, and the effect on SDKs and release artifacts.
-2. The primary opens a recorded vote of all eligible Core Maintainers. The vote can take place outside the review window. The primary can shorten the seven-day voting period, but must notify all eligible Core Maintainers of the deadline and the reason.
+1. The primary release manager confirms that the change meets the [hard-freeze criteria](#milestones). The pull request documents the defect, why the correction cannot wait for the next release, the smallest change that corrects the defect, and the effect on SDKs and release artifacts.
+2. The primary release manager opens a recorded vote of all eligible Core Maintainers. The vote can take place outside the review window. The primary release manager can shorten the seven-day voting period, but must notify all eligible Core Maintainers of the deadline and the reason.
 3. Maintainers of the affected implementations review the change, and the relevant regression and conformance checks are run. If the change alters observable protocol behavior, the conformance tests are updated.
-4. After approval and validation, the pull request is merged. The primary records the vote, decision, and validation results, notifies the affected SDK maintainers, and updates the readiness summary and release notes.
+4. After approval and validation, the pull request is merged. The primary release manager records the vote, decision, and validation results, notifies the affected SDK maintainers, and updates the readiness summary and release notes.
 
 If a defect cannot be corrected safely before the release, the affected feature and the changes that depend on it can be removed from the release. Removal follows the same procedure and vote. The rest of the specification is released on schedule.
 

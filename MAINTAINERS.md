@@ -27,11 +27,11 @@ This document lists current maintainers in the Model Context Protocol project.
 
 ## Release Managers
 
-Release managers are appointed for each specification release, with a primary and a secondary role. The secondary becomes primary for the following release. See the [release cycle](https://modelcontextprotocol.io/community/release-cycle#release-managers) for details.
+Release managers are appointed for each specification release, with a primary and a secondary role. The secondary release manager becomes the primary release manager for the following release. See the [release cycle](https://modelcontextprotocol.io/community/release-cycle#release-managers) for details.
 
 ### 2027-03-30 Release
 
-For this first release, two maintainers share the primary role.
+For this first release, two of the [Lead Maintainers](https://modelcontextprotocol.io/community/contributor-ladder#lead-maintainer) share the primary release manager role.
 
 - [David Soria Parra](https://github.com/dsp-ant) (Primary)
 - [Den Delimarsky](https://github.com/localden) (Primary)
