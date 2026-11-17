@@ -45,11 +45,23 @@ Specification versions use the release date in [`YYYY-MM-DD` format](/docs/learn
 | Hard freeze                  | 1 month        | Specification changes are restricted to emergency corrections.                                                    |
 | Release                      | 0 months       | The specification, release notes, implementation and migration guidance, and SDK readiness summary are published. |
 
-During planning, Core Maintainers publish priorities that cover the next six to twelve months and identify dependencies across working groups and SDKs. Proposals that align with the roadmap receive review priority, but a place on the roadmap does not guarantee acceptance or inclusion in a particular release.
+During planning, Core Maintainers publish priorities for the next six to twelve months in the [roadmap](/development/roadmap), along with dependencies across working groups and SDKs. Proposals that align with the roadmap receive review priority, but a place on the roadmap does not guarantee acceptance or inclusion in a particular release.
 
-At soft freeze, release managers publish the frozen scope and the list of deferred proposals. Between soft and hard freeze, changes are limited to bug fixes, polish, and clarifications within the frozen scope. New features and substantial redesigns move to a later cycle.
+### Soft freeze
 
-After hard freeze, only critical security vulnerabilities or release-blocking correctness or interoperability defects will be corrected. Corrections follow the [emergency procedure](#emergency-corrections) and require approval from more than half of all eligible Core Maintainers in a recorded vote.
+At soft freeze, 2.5 months before release, the release scope is fixed:
+
+- Release managers publish the frozen scope and the list of deferred proposals.
+- Until hard freeze, only bug fixes, polish, and clarifications within that scope can be merged.
+- New features and substantial redesigns move to a later cycle.
+
+### Hard freeze
+
+At hard freeze, one month before release, changes are limited to emergency corrections:
+
+- Only critical security vulnerabilities or release-blocking correctness or interoperability defects can be corrected.
+- Each correction follows the [emergency procedure](#emergency-corrections).
+- More than half of the [Core Maintainers](/community/sep-guidelines#review-and-acceptance) must approve each correction in a recorded vote.
 
 ## SEP review and inclusion
 
@@ -79,12 +91,29 @@ Formal reviews take place at regular Core Maintainer meetings during the review 
 
 Release managers record the reason for any exception to this order in the queue. A proposal that is deferred only because the agenda was full keeps its readiness date. A proposal that was returned for substantive revision receives a new readiness date when it is resubmitted.
 
-Each formal review follows the same steps:
+### Formal review
 
-1. Two weeks before the meeting, release managers select ready proposals with the Core Maintainers and publish the agenda and proposal links. They invite each proposal's authors and its working group lead or designated Core Maintainer to the meeting.
-2. During the week before the meeting, reviewers leave comments on the pull request. Authors and sponsors respond and identify the questions that need discussion.
-3. At the meeting, the author, working group lead, or designated Core Maintainer presents the proposal, the remaining questions, and any implementation feedback.
-4. After the presentation, the sponsor opens the [acceptance vote](/community/sep-guidelines#review-and-acceptance), which remains open for seven calendar days.
+<Frame caption="Formal SEP review schedule">
+  <div style={{ width: "100%", maxWidth: "400px", margin: "0 auto" }}>
+    <img
+      className="block dark:hidden"
+      style={{ width: "100%", height: "auto" }}
+      src="/images/sep-review-timeline-light.svg"
+      alt="Formal SEP review: publish the agenda two weeks before the meeting, comment during the preceding week, present at the meeting, then hold a seven-calendar-day vote."
+    />
+    <img
+      className="hidden dark:block"
+      style={{ width: "100%", height: "auto" }}
+      src="/images/sep-review-timeline-dark.svg"
+      alt="Formal SEP review: publish the agenda two weeks before the meeting, comment during the preceding week, present at the meeting, then hold a seven-calendar-day vote."
+    />
+  </div>
+</Frame>
+
+1. **Two weeks before the meeting:** Release managers select ready proposals with the Core Maintainers and publish the agenda and proposal links. They invite each proposal's authors and its working group lead or designated Core Maintainer to the meeting.
+2. **During the week before the meeting:** Reviewers leave comments on the pull request. Authors and sponsors respond and identify the questions that need discussion.
+3. **At the meeting:** The author, working group lead, or designated Core Maintainer presents the proposal, the remaining questions, and any implementation feedback.
+4. **After the presentation:** The sponsor opens the [acceptance vote](/community/sep-guidelines#review-and-acceptance), which remains open for seven calendar days.
 
 ### Inclusion in a release
 
@@ -145,7 +174,7 @@ The [maintainer roster](https://github.com/modelcontextprotocol/modelcontextprot
 
 The primary release manager coordinates each correction after hard freeze through a regular pull request. A correction does not need a separate SEP, a sponsor, or a meeting presentation.
 
-1. The primary release manager confirms that the change meets the [hard-freeze criteria](#milestones). The pull request documents the defect, why the correction cannot wait for the next release, the smallest change that corrects the defect, and the effect on SDKs and release artifacts.
+1. The primary release manager confirms that the change meets the [hard-freeze criteria](#hard-freeze). The pull request documents the defect, why the correction cannot wait for the next release, the smallest change that corrects the defect, and the effect on SDKs and release artifacts.
 2. The primary release manager opens a recorded vote of all eligible Core Maintainers. The vote can take place outside the review window. The primary release manager can shorten the seven-day voting period, but must notify all eligible Core Maintainers of the deadline and the reason.
 3. Maintainers of the affected implementations review the change, and the relevant regression and conformance checks are run. If the change alters observable protocol behavior, the conformance tests are updated.
 4. After approval and validation, the pull request is merged. The primary release manager records the vote, decision, and validation results, notifies the affected SDK maintainers, and updates the readiness summary and release notes.
