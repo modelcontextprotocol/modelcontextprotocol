@@ -112,7 +112,7 @@ from dotenv import load_dotenv
 
 load_dotenv()  # load environment variables from .env
 
-MODEL = "claude-opus-5"
+MODEL = "claude-haiku-5-5"
 # The model thinks adaptively unless told otherwise, and max_tokens caps thinking
 # plus the reply, so leave room for both.
 MAX_TOKENS = 10000
@@ -584,7 +584,7 @@ if (!ANTHROPIC_API_KEY) {
   throw new Error("ANTHROPIC_API_KEY is not set");
 }
 
-const MODEL = "claude-opus-5";
+const MODEL = "claude-haiku-5-5";
 // The model thinks adaptively unless told otherwise, and max_tokens caps
 // thinking plus the reply, so leave room for both.
 const MAX_TOKENS = 10000;
@@ -1228,7 +1228,7 @@ Make sure you keep your `ANTHROPIC_API_KEY` secure!
 First, let's create the basic client class:
 
 ```kotlin
-private const val MODEL = "claude-opus-5"
+private const val MODEL = "claude-haiku-5-5"
 // The model thinks adaptively unless told otherwise, and max_tokens caps thinking
 // plus the reply, so leave room for both.
 private const val MAX_TOKENS = 10_000L
@@ -1706,7 +1706,7 @@ Now let's add the core functionality for processing queries and handling tool ca
 
 ```csharp
 using var anthropicClient = new AnthropicClient(new() { ApiKey = builder.Configuration["ANTHROPIC_API_KEY"] })
-    .AsIChatClient("claude-opus-5")
+    .AsIChatClient("claude-haiku-5-5")
     .AsBuilder()
     .UseFunctionInvocation()
     .Build();
@@ -1714,7 +1714,6 @@ using var anthropicClient = new AnthropicClient(new() { ApiKey = builder.Configu
 var options = new ChatOptions
 {
     MaxOutputTokens = 10000,
-    ModelId = "claude-opus-5",
     Tools = [.. tools]
 };
 
@@ -1888,7 +1887,7 @@ require "json"
 require "mcp"
 
 class MCPClient
-  ANTHROPIC_MODEL = "claude-opus-5"
+  ANTHROPIC_MODEL = "claude-haiku-5-5"
   # The model thinks adaptively unless told otherwise, and max_tokens caps thinking
   # plus the reply, so leave room for both.
   MAX_TOKENS = 10000
@@ -2344,7 +2343,7 @@ use std::time::Duration;
 use tokio::io::{self, AsyncBufReadExt, BufReader};
 use tokio::process::Command;
 
-const MODEL_ANTHROPIC: &str = "claude-opus-5";
+const MODEL_ANTHROPIC: &str = "claude-haiku-5-5";
 /// The model may think before answering, and max_tokens caps thinking
 /// plus the reply, so leave room for both.
 const MAX_TOKENS: u32 = 10000;
