@@ -870,6 +870,12 @@
             "pages": [
               "seps/3398-release-cycle-updates"
             ]
+          },
+          {
+            "group": "Draft",
+            "pages": [
+              "seps/3498-separating-data-model-from-transport-representation"
+            ]
           }
         ]
       },
@@ -1467,6 +1473,10 @@
     {
       "source": "/seps/3398",
       "destination": "/seps/3398-release-cycle-updates"
+    },
+    {
+      "source": "/seps/3498",
+      "destination": "/seps/3498-separating-data-model-from-transport-representation"
     }
   ],
   "contextual": {
