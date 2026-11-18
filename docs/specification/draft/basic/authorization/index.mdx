@@ -306,7 +306,7 @@ MCP servers **MUST** validate that access tokens were issued specifically for th
 according to [RFC 8707 Section 2](https://www.rfc-editor.org/rfc/rfc8707.html#section-2).
 If validation fails, servers **MUST** respond according to
 [OAuth 2.1 Section 5.3](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-v2-1-13#section-5.3)
-error handling requirements. Invalid or expired tokens **MUST** receive a HTTP 401
+error handling requirements. Invalid or expired tokens **MUST** receive an HTTP 401
 response.
 
 MCP clients **MUST NOT** send tokens to the MCP server other than ones issued by the MCP server's authorization server.
@@ -416,7 +416,7 @@ The flow is as follows:
    [Scope Selection Strategy](#scope-selection-strategy) for
    initial scope selection guidance.
 3. **Initiate (re-)authorization** with the determined scope set
-4. **Retry the original request** with the new authorization no more than a few times and treat this as a permanent authorization failure
+4. **Retry the original request** with the new authorization no more than a few times. If it still fails, treat this as a permanent authorization failure
 
 Clients **SHOULD** implement retry limits and **SHOULD** track scope upgrade attempts to avoid
 repeated failures for the same resource and operation combination.

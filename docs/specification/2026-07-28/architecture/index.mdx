@@ -117,7 +117,7 @@ implementation:
 ## Capability Negotiation
 
 The Model Context Protocol uses a capability-based negotiation system where clients and
-servers declare their supported features on each request. Clients include their
+servers declare their supported features. Clients include their
 capabilities in `_meta.io.modelcontextprotocol/clientCapabilities` on every request.
 Servers advertise their capabilities in response to
 [`server/discover`](/specification/2026-07-28/server/discover), which clients may call before
