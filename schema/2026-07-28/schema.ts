@@ -48,7 +48,7 @@ export const JSONRPC_VERSION = "2.0";
  * - Unless empty, MUST start and end with an alphanumeric character (`[a-z0-9A-Z]`).
  * - Interior characters may be alphanumeric, hyphens (`-`), underscores (`_`), or dots (`.`).
  *
- * @see [General fields: `_meta`](/specification/2026-07-28/basic/index#meta) for more details.
+ * @see [General fields: `_meta`](/specification/2026-07-28/basic/index#_meta) for more details.
  * @category Common Types
  */
 export type MetaObject = Record<string, unknown>;
@@ -57,7 +57,7 @@ export type MetaObject = Record<string, unknown>;
  * Extends {@link MetaObject} with additional request-specific fields. All key naming rules from `MetaObject` apply.
  *
  * @see {@link MetaObject} for key naming rules and reserved prefixes.
- * @see [General fields: `_meta`](/specification/2026-07-28/basic/index#meta) for more details.
+ * @see [General fields: `_meta`](/specification/2026-07-28/basic/index#_meta) for more details.
  * @category Common Types
  */
 export interface RequestMetaObject extends MetaObject {
@@ -114,7 +114,7 @@ export interface RequestMetaObject extends MetaObject {
  * Extends {@link MetaObject} with additional notification-specific fields. All key naming rules from `MetaObject` apply.
  *
  * @see {@link MetaObject} for key naming rules and reserved prefixes.
- * @see [General fields: `_meta`](/specification/2026-07-28/basic/index#meta) for more details.
+ * @see [General fields: `_meta`](/specification/2026-07-28/basic/index#_meta) for more details.
  * @category Common Types
  */
 export interface NotificationMetaObject extends MetaObject {
@@ -137,7 +137,7 @@ export interface NotificationMetaObject extends MetaObject {
  * Extends {@link MetaObject} with additional result-specific fields. All key naming rules from `MetaObject` apply.
  *
  * @see {@link MetaObject} for key naming rules and reserved prefixes.
- * @see [General fields: `_meta`](/specification/2026-07-28/basic/index#meta) for more details.
+ * @see [General fields: `_meta`](/specification/2026-07-28/basic/index#_meta) for more details.
  * @category Common Types
  */
 export interface ResultMetaObject extends MetaObject {
@@ -595,7 +595,8 @@ export interface InputRequiredResult extends Result {
 }
 
 /* Request parameter type that includes input responses and request state.
- * These parameters may be included in any client-initiated request.
+ * These parameters may be included in `prompts/get`, `resources/read`, and
+ * `tools/call` requests.
  */
 export interface InputResponseRequestParams extends RequestParams {
   /* New field to carry the responses for the server's requests from the

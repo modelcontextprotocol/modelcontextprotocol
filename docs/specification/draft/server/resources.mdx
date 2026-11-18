@@ -16,7 +16,7 @@ Each resource is uniquely identified by a
   `io.modelcontextprotocol/clientInfo`, and
   `io.modelcontextprotocol/clientCapabilities`). Every request **MUST** include
   the required `_meta` fields; see
-  [`_meta`](/specification/draft/basic/index#meta).
+  [`_meta`](/specification/draft/basic/index#_meta).
 </Note>
 
 ## User Interaction Model
@@ -55,9 +55,9 @@ The capability supports two optional features:
 
 - `listChanged`: whether the server will emit notifications when the list of available
   resources changes.
-- `subscribe` : whether the server supports resource-specific update notifications
-  for resources requested through subscriptions/listen using the resourceSubscriptions
-  filter.
+- `subscribe`: whether the server supports resource-specific update notifications
+  for resources requested through `subscriptions/listen` using the
+  `resourceSubscriptions` filter.
 
 Servers may advertise either feature independently, together or neither.
 
@@ -176,7 +176,7 @@ several files when a directory resource is read.
 
 Servers **MAY** also respond to `resources/read` with an [`InputRequiredResult`](/specification/draft/basic/patterns/mrtr#inputrequiredresult) to indicate that additional input is needed before the resource can be read. This follows the [multi round-trip requests](/specification/draft/basic/patterns/mrtr#multi-round-trip-requests) mechanism. When retrying the request, clients include `inputResponses` and, if provided by the server, `requestState` in the request parameters.
 
-Alternatively, if the scheme of `uri` is `https://`, clients may fetch the resource directly from the web. See the [Common URI Schemes section](#https%3A%2F%2F) for more information.
+Alternatively, if the scheme of `uri` is `https://`, clients may fetch the resource directly from the web. See the [Common URI Schemes section](#https//) for more information.
 
 ### Resource Templates
 
@@ -397,7 +397,7 @@ Git version control integration.
 ### Custom URI Schemes
 
 Custom URI schemes **MUST** be in accordance with [RFC3986](https://datatracker.ietf.org/doc/html/rfc3986),
-taking the above guidance in to account.
+taking the above guidance into account.
 
 ## Error Handling
 

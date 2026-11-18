@@ -193,7 +193,7 @@ When servers fail to connect:
    `UnsupportedProtocolVersionError` (`-32022`) lists the server's supported
    versions in its `data` field
 5. Check the
-   [per-request `_meta` fields](/specification/2026-07-28/basic/index#meta):
+   [per-request `_meta` fields](/specification/2026-07-28/basic/index#_meta):
    every request must carry `io.modelcontextprotocol/protocolVersion` and
    `io.modelcontextprotocol/clientCapabilities`, and clients should also
    include `io.modelcontextprotocol/clientInfo`. A request missing either
