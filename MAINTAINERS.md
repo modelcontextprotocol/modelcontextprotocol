@@ -27,7 +27,7 @@ This document lists current maintainers in the Model Context Protocol project.
 
 ## Release Managers
 
-Release managers are appointed for each specification release, with a primary and a secondary role. The secondary release manager becomes the primary release manager for the following release. See the [release cycle](https://modelcontextprotocol.io/community/release-cycle#release-managers) for details.
+Release managers are appointed for each specification release, with a primary and a secondary role. The secondary release manager becomes the primary release manager for the following release. See the [contributor ladder](https://modelcontextprotocol.io/community/contributor-ladder#release-managers) for details.
 
 ### 2027-03-30 Release
 
