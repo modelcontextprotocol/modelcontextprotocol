@@ -122,8 +122,10 @@ When contributing to the documentation:
 Specification changes follow the [SEP process](https://modelcontextprotocol.io/community/sep-guidelines).
 Proposals must be submitted to and discussed in the relevant
 [working group](https://modelcontextprotocol.io/community/working-interest-groups).
-A SEP pull request may only be opened once that working group has explicitly approved it, and the
-pull request description must link that discussion, as required by the
+A SEP pull request may only be marked ready for review once that working group has agreed to
+[sponsor](https://modelcontextprotocol.io/community/sep-guidelines#sponsors) it. Before that,
+work in progress lives in a draft pull request. The pull request description must link that
+discussion, as required by the
 [SEP guidelines](https://modelcontextprotocol.io/community/sep-guidelines#workflow).
 Before drafting a proposal, review the [MCP design principles](https://modelcontextprotocol.io/community/design-principles)
 — proposals that align with these principles move faster through review.

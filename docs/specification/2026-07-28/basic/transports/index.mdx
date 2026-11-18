@@ -39,7 +39,7 @@ initiate JSON-RPC requests and clients do not send JSON-RPC responses.
 
 All protocol metadata travels in the message body: every request carries its
 protocol version and client capabilities in
-[`_meta.io.modelcontextprotocol/*`](/specification/2026-07-28/basic/index#meta)
+[`_meta.io.modelcontextprotocol/*`](/specification/2026-07-28/basic/index#_meta)
 fields.
 
 A binding **MAY** additionally mirror selected body fields into envelope

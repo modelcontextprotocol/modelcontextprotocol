@@ -9,7 +9,7 @@ You'll find the specification, these docs and Specification Enhancement Proposal
 
 To build with MCP, start with the [server](/docs/develop/build-server) and [client](/docs/develop/build-client) guides, the [SDK list](/docs/sdk) or the [MCP Registry](/registry/about).
 
-If you want to invest some time in our discussions, the protocol work is organized in [working groups and interest groups](/community/working-interest-groups). Their meetings are open to anyone and are listed on [meet.modelcontextprotocol.io](https://meet.modelcontextprotocol.io/). [Meetings and channels](/community/working-interest-groups#meetings-and-channels) sets out how a meeting is announced and minuted. No invitation or role is needed to attend or speak at a meeting, to comment on a pull request, or to open an issue or a discussion.
+If you want to invest some time in our discussions, the protocol work is organized in [working groups and interest groups](/community/working-interest-groups). Their meetings are open to anyone and are listed on [meet.modelcontextprotocol.io](https://meet.modelcontextprotocol.io/). [Meetings and channels](/community/working-interest-groups#meetings-and-channels) sets out how a meeting is announced and minuted. No invitation or role is needed to attend or speak at a meeting, to comment on a pull request, or to open an issue.
 
 These same working groups and interest groups are represented in the Discord space.
 
@@ -101,25 +101,27 @@ The [SDK list](/docs/sdk) shows each SDK's [tier](/community/sdk-tiers), which s
 
 Protocol changes go through a [SEP](/community/sep-guidelines). Bug fixes and clarifications [do not need one](/community/sep-guidelines#when-you-need-a-sep).
 
+A SEP needs a [sponsor](/community/sep-guidelines#sponsors): a working group or the Core Maintainers.
+
 <Steps>
-<Step title="Discuss the idea">
+<Step title="Check the roadmap">
 
-Raise it in your group's channel. The SEP pull request [must link to that discussion](/community/sep-guidelines#before-you-write).
-
-</Step>
-<Step title="Build a prototype">
-
-See [Prototype Requirements](/community/sep-guidelines#prototype-requirements). Consider shipping the idea as an [extension](/extensions/overview) where its shape allows.
+See whether the idea fits the current focus on the [roadmap](/development/roadmap). SEPs within its priority areas get [expedited review](/development/roadmap#sep-prioritization).
 
 </Step>
-<Step title="Find a sponsor">
+<Step title="Bring it to a working group">
 
-See [Sponsors](/community/sep-guidelines#sponsors).
+Raise the idea with the [working group](/community/working-interest-groups#current-groups) that covers the area, in its channel or at a meeting. If the area belongs to an interest group, that interest group can start a working group through the [forming a group](/community/working-interest-groups#forming-a-group) process, and that working group sponsors the SEP. The SEP pull request [must link to that discussion](/community/sep-guidelines#workflow).
 
 </Step>
-<Step title="Write the SEP">
+<Step title="Draft a SEP the group sponsors">
 
-Follow the [workflow](/community/sep-guidelines#workflow). Without write access, ask your sponsor to open the pull request.
+Once the group reaches consensus, write a SEP that it wants to [sponsor](/community/sep-guidelines#sponsors). Until a group agrees to sponsor it, work in progress lives in a draft pull request. Include a prototype that meets the [Prototype Requirements](/community/sep-guidelines#prototype-requirements), and consider shipping the idea as an [extension](/extensions/overview) where its shape allows.
+
+</Step>
+<Step title="Bring it to the Core Maintainers">
+
+Follow the [workflow](/community/sep-guidelines#workflow). By this point you should be a member of the working group and have access to open pull requests on the specification repository (see [Member](/community/contributor-ladder#member)). If you do not have that access yet, the working group's leads open the pull request. The SEP's sponsor brings it to the Core Maintainers for review.
 
 </Step>
 </Steps>
