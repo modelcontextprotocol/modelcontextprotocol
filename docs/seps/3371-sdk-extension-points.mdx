@@ -36,7 +36,7 @@ This SEP requires Tier 1 Model Context Protocol (MCP) SDKs to provide three exte
 
 SDKs also document which extension point SEPs they implement, by SEP number. SDKs should document how to package extensions as a unit, so extension authors can publish independent packages that applications enable when they configure a client or server. This SEP adds no wire fields or methods.
 
-Middleware for the transport layer, such as HTTP requests and responses, is needed for authorization extensions and Server Card. It is specified in a separate follow-up SEP, together with HTTP routes and stdio launch configuration.
+Middleware for the transport layer, such as HTTP requests and responses, is needed for authorization extensions and Server Card. It is left to a follow-up SEP, together with HTTP routes and stdio launch configuration.
 
 ## Terminology
 
@@ -132,7 +132,7 @@ Extensions declare support in the `ClientCapabilities.extensions` and `ServerCap
 
 An extension can depend on local configuration, such as a core capability or another extension. How a dependency is expressed and when it is checked is the SDK's choice; existing mechanisms such as dependency injection or options validation qualify. Dependencies are local: they add no wire fields and do not advertise support to peers.
 
-- A dependency **MUST NOT** be considered unmet only because it was registered after the extension that requires it.
+- A dependency **MUST NOT** be considered unmet only because it was registered or enabled after the extension that requires it.
 - If a dependency is unmet, the SDK **MUST** report an error that names the extension and the requirement, and **MUST NOT** run the extension.
 
 ### 2. Custom methods
@@ -179,7 +179,7 @@ Changing what a method does, through middleware or an SDK's existing handler-rep
 
 ### 3. Middleware
 
-This SEP covers middleware for JSON-RPC messages, which works the same way over every transport. Middleware for the transport layer runs outside it, for behaviour that depends on HTTP status codes or headers, or that must run before a message is parsed, such as rejecting an unauthenticated request. That layer is specified in a separate follow-up SEP.
+This SEP covers middleware for JSON-RPC messages, which works the same way over every transport. Middleware for the transport layer runs outside it, for behaviour that depends on HTTP status codes or headers, or that must run before a message is parsed, such as rejecting an unauthenticated request. That layer is left to a follow-up SEP.
 
 #### Requirements
 
@@ -251,7 +251,7 @@ Inspecting the order at runtime is **OPTIONAL**. Sending and receiving **MAY** u
 
 ##### Typed middleware
 
-The requirements above apply to a layer that sees every message as JSON-RPC, which suits cross-cutting concerns but is awkward for code that targets one method. SDKs **MAY** also provide middleware scoped to individual core and custom methods, with typed or validated parameters and results in the form appropriate to the language. Method-specific middleware exposes the method's parameters and results; general JSON-RPC middleware supports cross-cutting behaviour such as metadata mutation. Both forms compose on the same chain, using the SDK's language-native APIs. Where an SDK offers it, typed middleware **MUST** meet the requirements of this section and **MUST** run in a documented position relative to untyped JSON-RPC middleware. For example, the C# SDK pairs message filters for all JSON-RPC messages with request filters such as `AddCallToolFilter`.
+SDKs **MAY** also offer typed middleware for individual methods, with the method's parameter and result types. Its design is the SDK's choice.
 
 ### Versioning
 
@@ -284,7 +284,6 @@ Working group discussions and the survey in [Appendix B](#appendix-b-extension-r
 - **Types are fixed at registration; behaviour composes.** If a later registration could redefine a method, its types would depend on registration order. Fixing types while letting behaviour be wrapped or replaced lets independent packages combine safely and keeps existing replacement APIs working.
 - **Dependencies are independent of registration order.** Applications often enable a capability after registering the extension that needs it, for example by adding the first resource. Leaving the form and the timing of the check to the SDK lets each SDK use the mechanisms of its language.
 - **The transport layer is a separate SEP.** HTTP authorization runs before a message is accepted and can answer with HTTP status codes that JSON-RPC cannot express, so it needs its own layer. That layer raises separate questions, such as how far SDKs rely on host frameworks, and it benefits from concrete authorization extensions as examples. Splitting it out lets the three extension points here proceed on their own.
-- **Typed middleware is layered on JSON-RPC middleware.** One JSON-RPC chain gives a single place to define order, cancellation, and streaming. Method-specific middleware is optional and provides convenient, scoped access to typed or validated parameters and results; general JSON-RPC middleware supports concerns such as metadata mutation across methods. SDKs choose how to express both in their language.
 - **The SEP number is the version.** A SEP number is fixed before any SDK implements it, leads directly to the normative text, and does not depend on the protocol version or its release date. Ordering is not needed, because an SDK lists every number that it meets. Extension packages still declare compatible SDK package versions through normal package mechanisms.
 - **Ordering is required; the mechanism is not.** Applications need to interleave middleware across extensions, but SDKs already express order in different ways ([Appendix A](#appendix-a-prior-art-and-sdk-support)).
 
@@ -300,11 +299,11 @@ As with other SEPs, the Tier 1 requirement and its conformance scenarios take ef
 
 Extensions and middleware run as trusted application code with access to protocol data. Applications should enable only code they trust; registration checks and explicit ordering do not sandbox it.
 
-Middleware does not bypass the SDK's protocol validation or authorization checks. Extensions should not place credentials in `_meta`.
+Middleware does not bypass the SDK's protocol validation or authorization checks, and does not replace transport authentication. Extensions should not place credentials in `_meta`.
 
 ## Reference Implementation and Conformance
 
-A complete reference implementation is still needed; the APIs in [Appendix A](#appendix-a-prior-art-and-sdk-support) implement parts of this proposal. Conformance follows [SEP-2484](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/seps/2484-conformance-tests-required-for-final-seps.md). How each SDK tests its implementation is up to the SDK.
+[typescript-sdk#2820](https://github.com/modelcontextprotocol/typescript-sdk/pull/2820) is a prototype, with the Skills and Tasks extensions built on it. A complete reference implementation is still needed; the APIs in [Appendix A](#appendix-a-prior-art-and-sdk-support) implement parts of this proposal. Conformance follows [SEP-2484](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/seps/2484-conformance-tests-required-for-final-seps.md). Its scenarios are small synthetic extensions that use the three extension points; requirements that a peer cannot observe are listed as exclusions.
 
 ## Appendix A: Prior art and SDK support
 
