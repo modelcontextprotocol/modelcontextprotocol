@@ -26,11 +26,10 @@ export interface SummaryData {
   }>;
   pings: Array<{
     item: SEPItem;
-    pingTarget: "author" | "sponsor" | "maintainer";
+    pingTarget: "author" | "maintainer";
     targetUser: string;
     daysSinceActivity: number;
   }>;
-  needsSponsor: Array<{ item: SEPItem; daysSinceActivity: number }>;
   dormant: Array<{
     item: SEPItem;
     daysSinceActivity: number;
@@ -65,7 +64,6 @@ export class SEPProcessor {
     const summaryData: SummaryData = {
       transitions: [],
       pings: [],
-      needsSponsor: [],
       dormant: [],
     };
 
@@ -78,21 +76,6 @@ export class SEPProcessor {
     if (sep.isClosed) {
       this.logger.debug({ number: sep.number }, "Skipping closed SEP");
       return { results, summaryData };
-    }
-
-    // Check for auto-transition
-    const transitionResult = await this.checkAutoTransition(sep);
-    if (transitionResult) {
-      results.push(transitionResult);
-      if (transitionResult.success && transitionResult.action.toState) {
-        summaryData.transitions.push({
-          item: sep,
-          fromState: sep.state,
-          toState: transitionResult.action.toState,
-          sponsor: transitionResult.action.targetUser ?? "unknown",
-        });
-      }
-      return { results, summaryData }; // Don't check staleness if we just transitioned
     }
 
     // Check staleness
@@ -127,34 +110,6 @@ export class SEPProcessor {
     }
 
     return { results, summaryData };
-  }
-
-  /**
-   * Check if auto-transition should occur (proposal → draft)
-   */
-  private async checkAutoTransition(
-    sep: SEPItem,
-  ): Promise<ActionResult | null> {
-    if (sep.state !== "proposal" || sep.assignees.length === 0) {
-      return null;
-    }
-
-    const sponsor = await this.maintainers.getSponsor([...sep.assignees]);
-    if (!sponsor) {
-      return null;
-    }
-
-    this.logger.info(
-      { number: sep.number, sponsor },
-      "Auto-transitioning proposal to draft",
-    );
-
-    return this.transitionHandler.executeTransition(
-      sep,
-      "draft",
-      sponsor,
-      this.config.dryRun,
-    );
   }
 
   /**
@@ -239,12 +194,6 @@ export class SEPProcessor {
     const { item: sep } = analysis;
 
     switch (result.action.type) {
-      case ActionType.NeedsSponsor:
-        summary.needsSponsor.push({
-          item: sep,
-          daysSinceActivity: analysis.daysSinceActivity,
-        });
-        break;
       case ActionType.MarkDormant:
         summary.dormant.push({
           item: sep,
@@ -253,7 +202,6 @@ export class SEPProcessor {
         });
         break;
       case ActionType.PingAuthor:
-      case ActionType.PingSponsor:
       case ActionType.PingMaintainer:
         if (analysis.pingTarget) {
           const targetUser = await this.getTargetUser(sep, analysis.pingTarget);
@@ -273,12 +221,11 @@ export class SEPProcessor {
    */
   private async getTargetUser(
     sep: SEPItem,
-    pingTarget: "author" | "sponsor" | "maintainer",
+    pingTarget: "author" | "maintainer",
   ): Promise<string | null> {
     switch (pingTarget) {
       case "author":
         return sep.author;
-      case "sponsor":
       case "maintainer":
         return this.maintainers.getSponsor([...sep.assignees]);
       default:

@@ -22,7 +22,7 @@ The MCP Apps Working Group defines, evolves, and maintains the official extensio
 - **Security Model**: The threat model, sandboxing, security policy, permissions, and auditability of UI-initiated actions.
 - **SDKs and Reference Implementations**: The [`@modelcontextprotocol/ext-apps`](https://github.com/modelcontextprotocol/ext-apps) SDK, reference host, example servers, and host integration examples.
 - **Conformance**: Compatibility tests, app validation, and the definition of conformance requirements for apps and hosts.
-- **Cross-Cutting Coordination**: App discovery and metadata (with the Registry WG), UI in agentic flows (with the Agents WG), and per-language SDK support (with the SDK WG).
+- **Cross-Cutting Coordination**: App discovery and metadata (with the Registry WG), UI in agentic flows (with the Agents IG), and per-language SDK support (with the SDK WG).
 - **Documentation**: API references, authoring guidance, host integration guidance, starter resources, and examples.
 
 ### Out of Scope
@@ -30,11 +30,11 @@ The MCP Apps Working Group defines, evolves, and maintains the official extensio
 - **Core protocol ownership**: Changes to base MCP semantics, transports, or lifecycle are proposed through the [SEP process](/community/sep-guidelines) and owned by the relevant group or Core Maintainers.
 - **Host-specific product and design decisions**: Hosts control their user experience and visual design. The WG standardizes the interoperability and security contract.
 - **Individual app implementations**: Apps built on the extension remain the responsibility of their authors.
-- **General agent orchestration**: Agent loops, task management, and sub-agent coordination belong to the Agents WG. This WG covers only the interactive UI surface and its integration points.
+- **General agent orchestration**: Agent loops and sub-agent coordination belong to the Agents IG, and task management belongs to the Tasks and Events WG. This WG covers only the interactive UI surface and its integration points.
 
 ### Related Groups
 
-- **Agents WG**: Interactive UI within agentic flows and task lifecycles.
+- **Agents IG**: Interactive UI within agentic flows and task lifecycles.
 - **[Registry WG](/community/working-groups/registry)**: App discovery, distribution, and metadata.
 - **[Security IG](/community/interest-groups/security)**: Sandboxing, permissions, and review of UI-initiated actions.
 - **[SDK WG](/community/working-groups/sdk)**: SDK consistency and support outside the TypeScript reference implementation.

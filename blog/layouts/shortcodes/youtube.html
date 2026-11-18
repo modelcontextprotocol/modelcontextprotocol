@@ -1,3 +1,7 @@
+{{- /*
+  A 16:9 YouTube embed. Styled by .youtube-container in
+  assets/css/extended/custom.css.
+*/ -}}
 {{- $id := .Get "id" | default (.Get 0) -}}
 {{- $title := .Get "title" | default "YouTube video" -}}
 
@@ -10,21 +14,3 @@
     allowfullscreen>
   </iframe>
 </div>
-
-<style>
-.youtube-container {
-  position: relative;
-  width: 100%;
-  padding-bottom: 56.25%; /* 16:9 aspect ratio */
-  margin: 24px 0;
-}
-
-.youtube-container iframe {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  border-radius: 8px;
-}
-</style>

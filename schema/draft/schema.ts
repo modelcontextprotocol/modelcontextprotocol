@@ -363,20 +363,20 @@ export interface MethodNotFoundError extends Error {
  *
  * In MCP, this error is returned in various contexts when request parameters fail validation:
  *
- * - **Tools**: Unknown tool name or invalid tool arguments
+ * - **Tools**: Unknown tool name, or a request that does not satisfy the `CallToolRequest` schema. Invalid tool arguments are instead reported as tool execution errors, with `isError` set to true
  * - **Prompts**: Unknown prompt name or missing required arguments
  * - **Pagination**: Invalid or expired cursor values
- * - **Logging**: Invalid log level
+ * - **Logging** (deprecated): Invalid log level
  * - **Elicitation**: Server requests an elicitation mode not declared in client capabilities
- * - **Sampling**: Missing tool result or tool results mixed with other content
+ * - **Sampling** (deprecated): Missing tool result or tool results mixed with other content
  *
  * @see {@link https://www.jsonrpc.org/specification#error_object | JSON-RPC 2.0 Error Object}
  *
  * @example Unknown tool
  * {@includeCode ./examples/InvalidParamsError/unknown-tool.json}
  *
- * @example Invalid tool arguments
- * {@includeCode ./examples/InvalidParamsError/invalid-tool-arguments.json}
+ * @example Malformed tool call
+ * {@includeCode ./examples/InvalidParamsError/malformed-tool-call.json}
  *
  * @example Unknown prompt
  * {@includeCode ./examples/InvalidParamsError/unknown-prompt.json}
@@ -1804,6 +1804,9 @@ export interface ListToolsResultResponse extends JSONRPCResultResponse {
  * @example Invalid tool input error
  * {@includeCode ./examples/CallToolResult/invalid-tool-input-error.json}
  *
+ * @example Missing required tool argument
+ * {@includeCode ./examples/CallToolResult/missing-required-argument-error.json}
+ *
  * @category `tools/call`
  */
 export interface CallToolResult extends Result {
@@ -1965,8 +1968,14 @@ export interface ToolAnnotations {
  * @example With no parameters
  * {@includeCode ./examples/Tool/with-no-parameters.json}
  *
+ * @example With a composition input schema
+ * {@includeCode ./examples/Tool/tool-with-composition-input-schema.json}
+ *
  * @example With output schema for structured content
  * {@includeCode ./examples/Tool/with-output-schema-for-structured-content.json}
+ *
+ * @example With an array output schema
+ * {@includeCode ./examples/Tool/tool-with-array-output-schema.json}
  *
  * @category `tools/list`
  */
@@ -1986,6 +1995,11 @@ export interface Tool extends BaseMetadata, Icons {
    * composition keywords (`oneOf`, `anyOf`, `allOf`, `not`), conditional keywords
    * (`if`/`then`/`else`), reference keywords (`$ref`, `$defs`, `$anchor`), and any other
    * standard validation or annotation keywords.
+   *
+   * When using composition keywords, declare `properties` at the schema root and keep the
+   * branches to presence assertions such as `required`. A subschema that fails on a type
+   * error is indistinguishable from one that does not apply, so type constraints placed
+   * inside `oneOf` branches are not enforced for whichever branch does not match.
    *
    * Property schemas may carry an `x-mcp-header` annotation to mirror the
    * argument value into an HTTP header on the Streamable HTTP transport. See
@@ -2149,6 +2163,8 @@ export interface CreateMessageRequestParams {
    * Default is `{ mode: "auto" }`.
    */
   toolChoice?: ToolChoice;
+
+  _meta?: MetaObject;
 }
 
 /**
@@ -2741,6 +2757,8 @@ export interface ListRootsRequest {
  */
 export interface ListRootsResult {
   roots: Root[];
+
+  _meta?: MetaObject;
 }
 
 /**
@@ -2808,6 +2826,8 @@ export interface ElicitRequestFormParams {
     };
     required?: string[];
   };
+
+  _meta?: MetaObject;
 }
 
 /**
@@ -2835,6 +2855,8 @@ export interface ElicitRequestURLParams {
    * @format uri
    */
   url: string;
+
+  _meta?: MetaObject;
 }
 
 /**
@@ -3146,6 +3168,8 @@ export interface ElicitResult {
    * Omitted for out-of-band mode responses.
    */
   content?: { [key: string]: string | number | boolean | string[] };
+
+  _meta?: MetaObject;
 }
 
 /* Client messages */

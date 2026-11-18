@@ -20,12 +20,10 @@ jobs:
     if: |
       github.event_name == 'schedule' ||
       contains(github.event.issue.labels.*.name, 'SEP') ||
-      contains(github.event.issue.labels.*.name, 'proposal') ||
       contains(github.event.issue.labels.*.name, 'draft') ||
       contains(github.event.issue.labels.*.name, 'in-review') ||
       contains(github.event.issue.labels.*.name, 'accepted') ||
       contains(github.event.pull_request.labels.*.name, 'SEP') ||
-      contains(github.event.pull_request.labels.*.name, 'proposal') ||
       contains(github.event.pull_request.labels.*.name, 'draft') ||
       contains(github.event.pull_request.labels.*.name, 'in-review') ||
       contains(github.event.pull_request.labels.*.name, 'accepted') ||
