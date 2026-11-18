@@ -870,6 +870,12 @@
             "pages": [
               "seps/3398-release-cycle-updates"
             ]
+          },
+          {
+            "group": "In-Review",
+            "pages": [
+              "seps/3371-sdk-extension-points"
+            ]
           }
         ]
       },
@@ -1459,6 +1465,10 @@
     {
       "source": "/seps/2663",
       "destination": "/seps/2663-tasks-extension"
+    },
+    {
+      "source": "/seps/3371",
+      "destination": "/seps/3371-sdk-extension-points"
     },
     {
       "source": "/seps/3392",
