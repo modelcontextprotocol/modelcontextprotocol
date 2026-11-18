@@ -872,7 +872,7 @@
             ]
           },
           {
-            "group": "Draft",
+            "group": "In-Review",
             "pages": [
               "seps/3371-sdk-extension-points"
             ]
