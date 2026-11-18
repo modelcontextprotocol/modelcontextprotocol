@@ -870,6 +870,12 @@
             "pages": [
               "seps/3398-release-cycle-updates"
             ]
+          },
+          {
+            "group": "Draft",
+            "pages": [
+              "seps/2643-structured-authorization-denials"
+            ]
           }
         ]
       },
@@ -1455,6 +1461,10 @@
     {
       "source": "/seps/2640",
       "destination": "/seps/2640-skills-extension"
+    },
+    {
+      "source": "/seps/2643",
+      "destination": "/seps/2643-structured-authorization-denials"
     },
     {
       "source": "/seps/2663",
