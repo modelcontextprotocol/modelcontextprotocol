@@ -3,8 +3,8 @@
 - **Status**: Accepted
 - **Type**: Extensions Track
 - **Created**: 2026-10-05
-- **Author(s)**: Peter Alexander (@pja-ant)
-- **Sponsor**: @pja-ant
+- **Author(s)**: Peter Alexander (@poita)
+- **Sponsor**: Peter Alexander (@poita)
 - **Extension Identifier**: `io.modelcontextprotocol/events`
 - **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/3415
 
