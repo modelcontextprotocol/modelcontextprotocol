@@ -34,7 +34,7 @@ the previous revision, [2025-11-25](/specification/2025-11-25).
 3. Servers **SHOULD** return tools from `tools/list` in a deterministic order to enable client-side caching and improve LLM prompt cache hit rates.
 4. Require standard MCP request headers (`Mcp-Method`, `Mcp-Name`) on Streamable HTTP POST requests, and add support for custom headers from tool parameters via `x-mcp-header` ([SEP-2243](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2243)).
 5. Require `ttlMs` and `cacheScope` fields on results returned by `tools/list`, `prompts/list`, `resources/list`, `resources/read`, and `resources/templates/list` via a new `CacheableResult` interface. `ttlMs` is a freshness hint (in milliseconds) allowing clients to cache responses and reduce polling; `cacheScope` (`"public"` or `"private"`) controls whether shared intermediaries may cache the response. Both fields complement existing `listChanged` notifications ([SEP-2549](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2549)).
-6. Change resource not found error code from `-32002` to `-32602` (Invalid Params) to align with JSON-RPC specification.
+6. Change resource not found error code from `-32002` to `-32602` (Invalid Params) to align with JSON-RPC specification ([SEP-2164](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2164)).
 7. Authorization servers **SHOULD** include the `iss` parameter in authorization responses per
    [RFC 9207](https://datatracker.ietf.org/doc/html/rfc9207), and MCP clients **MUST** validate a
    present `iss` against the recorded issuer before redeeming the authorization code
