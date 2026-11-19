@@ -864,7 +864,8 @@
               "seps/2596-spec-feature-lifecycle-and-deprecation",
               "seps/2640-skills-extension",
               "seps/2663-tasks-extension",
-              "seps/3392-extension-lifecycle"
+              "seps/3392-extension-lifecycle",
+              "seps/3415-events-extension"
             ]
           },
           {
@@ -1469,6 +1470,10 @@
     {
       "source": "/seps/3398",
       "destination": "/seps/3398-release-cycle-updates"
+    },
+    {
+      "source": "/seps/3415",
+      "destination": "/seps/3415-events-extension"
     }
   ],
   "contextual": {
