@@ -56,7 +56,7 @@ The notifications MCP already has do not cover this.
 
 The deployments that need events are also disjoint. A stateless or serverless server cannot hold a connection per subscriber. A client behind NAT has no public endpoint to receive a callback. A battery- or cost-sensitive client should not poll. A single delivery mechanism strands at least one of these, which is why this extension defines three (see [Rationale](#rationale)).
 
-[SEP-1686](./1686-tasks.md) listed webhook-style completion notifications as a future consideration for Tasks. The [Triggers & Events Working Group](https://modelcontextprotocol.io/community/triggers-events/charter) was chartered to define that mechanism in general form: how a server tells a client that something happened, with a defined subscription lifecycle, delivery semantics and ordering guarantees that hold across transports. This SEP is that definition.
+[SEP-1686](./1686-tasks.md) listed webhook-style completion notifications as a future consideration for Tasks. The Triggers & Events Working Group, now the [Tasks and Events Working Group](https://modelcontextprotocol.io/community/working-groups/tasks-events), was chartered to define that mechanism in general form: how a server tells a client that something happened, with a defined subscription lifecycle, delivery semantics and ordering guarantees that hold across transports. This SEP is that definition.
 
 ## Specification
 
@@ -73,7 +73,7 @@ This extension is identified as `io.modelcontextprotocol/events`.
 
 ### Working Group and Extension Maintainers
 
-The extension is owned by the [Triggers & Events Working Group](https://modelcontextprotocol.io/community/triggers-events/charter). Its Extension Maintainers are the Working Group leads, currently Clare Liguori (@clareliguori) and Peter Alexander (@poita).
+The extension is owned by the [Tasks and Events Working Group](https://modelcontextprotocol.io/community/working-groups/tasks-events). Its Extension Maintainers are the Working Group leads, currently Clare Liguori (@clareliguori), Peter Alexander (@poita), Luca Chang (@LucaButBoring) and Caitie McCaffrey (@CaitieM20).
 
 The extension is incubated in [`experimental-ext-triggers-events`](https://github.com/modelcontextprotocol/experimental-ext-triggers-events). When this SEP is accepted, the specification is published in an official extension repository as [SEP-2133](./2133-extensions.md) describes.
 
