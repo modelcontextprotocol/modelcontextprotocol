@@ -1,9 +1,10 @@
 # SEP-{NUMBER}: Dormancy for Inactive SEPs
 
+- **Status**: Draft
 - **Type**: Process
 - **Created**: 2026-11-18
 - **Author(s)**: Den Delimarsky (@localden)
-- **Sponsor**: None
+- **Sponsor**: Den Delimarsky (@localden)
 - **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/{NUMBER}
 
 ## Abstract
