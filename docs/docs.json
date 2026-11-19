@@ -864,14 +864,14 @@
               "seps/2596-spec-feature-lifecycle-and-deprecation",
               "seps/2640-skills-extension",
               "seps/2663-tasks-extension",
-              "seps/3392-extension-lifecycle"
+              "seps/3392-extension-lifecycle",
+              "seps/3415-events-extension"
             ]
           },
           {
             "group": "Accepted",
             "pages": [
-              "seps/3398-release-cycle-updates",
-              "seps/3415-events-extension"
+              "seps/3398-release-cycle-updates"
             ]
           }
         ]

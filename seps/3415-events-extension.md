@@ -1,6 +1,6 @@
 # SEP-3415: Events Extension
 
-- **Status**: Accepted
+- **Status**: Final
 - **Type**: Extensions Track
 - **Created**: 2026-10-05
 - **Author(s)**: Peter Alexander (@poita)
