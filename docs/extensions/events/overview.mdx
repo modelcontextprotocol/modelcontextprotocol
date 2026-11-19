@@ -1,0 +1,42 @@
+---
+title: Events
+sidebarTitle: Overview
+description: Subscribe to events in upstream systems and react when they happen
+---
+
+The [ext-events repository](https://github.com/modelcontextprotocol/ext-events)
+contains the published specification for the official Events extension
+(`io.modelcontextprotocol/events`). [SEP-3415](/seps/3415-events-extension) is Final,
+and the extension is in Beta.
+
+The [Tasks and Events Working Group](/community/working-groups/tasks-events)
+maintains the extension.
+
+<Card
+  title="modelcontextprotocol/ext-events"
+  icon="github"
+  href="https://github.com/modelcontextprotocol/ext-events"
+>
+  Specification and documentation for MCP Events.
+</Card>
+
+Events lets an MCP client subscribe to things that happen in an upstream system,
+such as a new message, a push to a repository or a production incident, so that
+an agent can react when they occur without the user being present.
+
+A server lists the event types it offers. Each event type describes the
+arguments a subscription takes, the payload it delivers, and the delivery modes
+it supports:
+
+- **Poll**: the client asks for new events with a request.
+- **Push**: the client holds a long-lived request open and receives events as
+  notifications.
+- **Webhook**: the client registers an `https` callback URL, and the server
+  sends signed events to it.
+
+A cursor lets a client resume after a disconnect, and the client owns the
+canonical list of its subscriptions.
+
+Events requires protocol revision `2026-07-28` or later. See the
+[ext-events repository](https://github.com/modelcontextprotocol/ext-events) for
+the full specification.

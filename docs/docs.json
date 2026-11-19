@@ -785,6 +785,12 @@
             "pages": [
               "extensions/skills/overview"
             ]
+          },
+          {
+            "group": "Events",
+            "pages": [
+              "extensions/events/overview"
+            ]
           }
         ]
       },
