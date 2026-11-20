@@ -28,23 +28,21 @@ description: "Promote Tasks into the Core Protocol"
 
 ## Abstract
 
-This SEP promotes the Tasks extension (`io.modelcontextprotocol/tasks`, [SEP-2663](./2663-tasks-extension.md)) into the core protocol. It follows the promotion rules in [SEP-3392](./3392-extension-lifecycle.md).
+This SEP makes tasks part of the core protocol from revision R onward. With tasks, a server can answer a `tools/call` request with a durable handle instead of a result. The client polls the handle with `tasks/get`. It answers mid-flight input with `tasks/update`, and it stops the work with `tasks/cancel`.
 
-With tasks, a server can answer a request with a durable handle instead of a result. The client polls the handle with `tasks/get`. It answers mid-flight input with `tasks/update`, and it stops the work with `tasks/cancel`.
-
-SEP-2663 moved tasks out of the `2025-11-25` core specification and into an extension. The design could then change with implementation feedback. The extension is now Beta, and its stated destination is Core.
-
-This SEP names the core protocol revision R in which tasks becomes core behavior. It defines every difference between core tasks and the extension's final revision, as SEP-3392 requires. A request that declares a revision earlier than R keeps the extension's behavior.
+Core tasks is the Tasks extension (`io.modelcontextprotocol/tasks`, [SEP-2663](./2663-tasks-extension.md)) at revision `2026-07-28`, with the differences this SEP lists. The main difference is negotiation. A client declares a core `tasks` capability on each request, in place of the extension identifier. A request that declares a revision earlier than R keeps the extension's behavior, as [SEP-3392](./3392-extension-lifecycle.md) requires for a promoted extension.
 
 ## Motivation
 
-SEP-2663 stated the goal: "Once the extension has stabilized and achieved broad adoption, it is intended to be promoted into the core protocol." The Tasks and Events Working Group carries this goal as its work item "Tasks stabilization and core protocol promotion".
+The core protocol has no way to return a handle for work that outlives a request. Tasks fills that gap only as an extension, and three problems follow.
 
-> TODO: adoption evidence. Clients that support tasks (client matrix, PRs #3355 and #3459). SDKs that implement the extension (TypeScript `@modelcontextprotocol/ext-tasks`, mcpkit, others). Conformance results.
+1. **Proposals that build on tasks depend on an extension.** [SEP-2848](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2848) returns a task handle while a tool approval resolves out of band. [SEP-2694](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2694) adds resumable event streams for tasks. [ext-tasks#38](https://github.com/modelcontextprotocol/ext-tasks/pull/38) binds task output to Events ([SEP-3415](./3415-events-extension.md)). A client must negotiate the Tasks extension before it can use any of them. With tasks in core, each of them depends only on core.
+2. **Every SDK carries tasks as a separate package.** > TODO: the packages (TypeScript `@modelcontextprotocol/ext-tasks`, mcpkit `ext/tasks`, others), and what an SDK user wires up today that core removes.
+3. **Implementers cannot treat tasks as settled.** A Beta extension may change without a core protocol revision. A server that depends on long-running tools needs the stability that a core revision gives. > TODO: one concrete example.
 
-> TODO: proposals that build on tasks. SEP-2848 (asynchronous tool approval) and SEP-2694 (resumable task event streams) depend on tasks. ext-tasks PR #38 binds task output to Events (SEP-3415). Today each of them depends on an extension. After promotion they depend on core.
+Tasks is ready for core. SEP-2663 named core as the destination, and the extensions page lists Tasks as "Beta, to Core".
 
-> TODO: SDK cost. SDKs ship tasks as a separate package today. Core tasks removes the per-request extension declaration and the separate package.
+> TODO: adoption evidence. Clients that support tasks (client matrix, PRs #3355 and #3459). SDKs that implement the extension. Conformance results.
 
 ## Specification
 
