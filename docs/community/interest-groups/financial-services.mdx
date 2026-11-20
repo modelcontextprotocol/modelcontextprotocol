@@ -9,12 +9,18 @@ description: Charter for the MCP Financial Services Interest Group.
 
 ## Mission Statement
 
-The Financial Services Interest Group brings together stakeholders from regulated financial
-institutions to identify where MCP needs to adapt for compliance, auditability, and risk-controlled
-deployment. It gathers use cases and requirements from the financial sector, develops and validates
-domain-specific extensions, and scopes problems with broad applicability into [SEPs](/community/sep-guidelines)
-or Working Groups so that innovations proven in regulated environments can benefit the wider MCP
-ecosystem.
+The Financial Services Interest Group (FSIG) brings together participants from regulated
+financial institutions to identify shared MCP adoption and interoperability problems,
+exchange implementation experience, and connect those needs to existing protocol capabilities
+and community work. Its default approach is to first identify how existing MCP primitives
+and publicly shareable industry patterns address a problem, then bring any unresolved protocol
+gap to the appropriate Working Group (WG). Where no WG covers a widely acknowledged problem
+with a clear potential deliverable, FSIG helps gather cross-community interest and contributors
+to propose a WG through [MCP group governance](/community/working-interest-groups#forming-a-group).
+
+FSIG may discuss, prototype, and recommend potential solutions, including exploratory
+finance-specific extensions, but it does not assume responsibility for delivering new
+protocol standards or bypass the WG-led [SEP process](/community/sep-guidelines).
 
 ## Scope
 
@@ -32,17 +38,31 @@ ecosystem.
 - **Policy enforcement**: declarative policies for tool usage and data handling, and the points at
   which they are enforced, so that institutions can encode regulatory and internal-control
   constraints as machine-checkable rules
-- **Finance-specific extensions**: developing, maintaining, and gathering implementation experience
-  on MCP extensions that address the above in the FSIG repository, including reference
-  implementations and conformance testing
-- **Interoperability across institutions**: common patterns and standards that allow regulated
-  institutions to interoperate without each reinventing compliance plumbing
-- **SEP promotion**: identifying extensions with applicability beyond financial services and
-  shepherding them toward the core specification with core-maintainer sponsorship
+- **Problem discovery and shared implementation experience**: collecting cross-institution use
+  cases, documenting common constraints, and sharing public examples of how existing MCP
+  primitives and complementary implementation patterns can be combined within the current spec
+- **Solution exploration**: discussing and, where useful, prototyping possible approaches or
+  experimental extensions to test feasibility and clarify requirements, without treating FSIG
+  as the default owner of standards-track deliverables
+- **Interoperability across institutions**: identifying reusable patterns and gaps while
+  avoiding institution-specific prescriptions or duplicative protocol development
+- **WG collaboration and referrals**: connecting unresolved problems, evidence and interested
+  participants to existing WGs responsible for the relevant technical scope
+- **New WG incubation**: when a broadly relevant gap has no existing WG, gathering cross-IG
+  and wider community interest, potential contributors and a clear problem statement to support
+  a proposed WG under the [group formation rules](/community/working-interest-groups#forming-a-group)
+- **SEP input**: supplying problem statements, use cases, implementation experience and draft
+  proposals to WGs; formal SEP sponsorship comes from a WG or, exceptionally, the Core
+  Maintainers under the [SEP Guidelines](/community/sep-guidelines#sponsors) and
+  [SEP template](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/seps/TEMPLATE.md)
 - **Regulatory liaison**: translating constraints from regulators and industry bodies into concrete
   technical requirements and input for other groups
 
 ### Out of Scope
+
+- **Independent ownership of standards-track protocol changes**: FSIG does not independently
+  sponsor SEPs or substitute for a WG's delegated technical decision-making and delivery role;
+  exploratory solutions and extensions may inform WG work
 
 - **Competitively sensitive or non-public business information**: pricing, costs, margins, customer
   lists, market segmentation, and competitive strategy, per the [MCP Antitrust Policy](/community/antitrust)
@@ -94,7 +114,7 @@ institutions who can bring real-world deployment constraints and help drive prop
 
 | Meeting         | Frequency     | Duration | Purpose                                                   |
 | --------------- | ------------- | -------- | --------------------------------------------------------- |
-| Working Session | Every 2 weeks | 60 min   | Use-case review, extension and proposal work, SEP scoping |
+| Discussion Session | Every 2 weeks | 60 min   | Shared problems, existing MCP patterns, WG referrals and gap assessment |
 
 Meetings are held 16:00–17:00 London (BST/GMT). An agenda is shared in `#financial-services-ig`
 ahead of each call, and notes with decisions and action items are published afterwards.
@@ -117,4 +137,5 @@ group identifies new areas of interest.
 
 | Date       | Change          |
 | ---------- | --------------- |
+| 2026-11-20 | Proposed clarification of problem-first scope, existing-solution discovery and WG-led escalation; subject to Core Maintainer approval |
 | 2026-06-25 | Initial charter |
