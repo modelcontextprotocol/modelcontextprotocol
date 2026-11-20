@@ -1,11 +1,11 @@
-# SEP-0000: Promote Tasks into the Core Protocol
+# SEP-3569: Promote Tasks into the Core Protocol
 
 - **Status**: Draft
 - **Type**: Standards Track
 - **Created**: 2026-11-19
 - **Author(s)**: Sri Panyam (@panyam)
 - **Sponsor**: None
-- **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/{NUMBER}
+- **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/3569
 
 ## Abstract
 
