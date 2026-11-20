@@ -9,15 +9,15 @@
 
 ## Abstract
 
-This SEP makes tasks part of the core protocol from a specific core protocol revision onward. [SEP-3392](./3392-extension-lifecycle.md) calls that revision R, and this SEP does the same. With tasks, a server can answer a `tools/call` request with a durable handle instead of a result. The client polls the handle with `tasks/get`. It answers mid-flight input with `tasks/update`, and it stops the work with `tasks/cancel`.
+This SEP makes tasks part of the core protocol from a specific core protocol revision onward. [SEP-3392](./3392-extension-lifecycle.md) calls that revision R, and this SEP does the same. With tasks, a server can answer a `tools/call` request with a durable handle instead of a result. The client polls the handle with `tasks/get`, answers mid-flight input with `tasks/update`, and stops the work with `tasks/cancel`.
 
-Core tasks is the Tasks extension (`io.modelcontextprotocol/tasks`, [SEP-2663](./2663-tasks-extension.md)) at revision `2026-07-28`, with the differences this SEP lists. The main difference is negotiation. A client declares a core `tasks` capability on each request, in place of the extension identifier. A request that declares a revision earlier than R keeps the extension's behavior, as SEP-3392 requires for a promoted extension.
+Core tasks is the Tasks extension (`io.modelcontextprotocol/tasks`, [SEP-2663](./2663-tasks-extension.md)) at revision `2026-07-28`, with the differences this SEP lists. The main difference is in negotiation, where a client declares a core `tasks` capability on each request in place of the extension identifier. A request that declares a revision earlier than R keeps the extension's behavior, as SEP-3392 requires for a promoted extension.
 
 ## Motivation
 
 The core protocol has no way to return a handle for work that outlives a request. Tasks fills that gap only as an extension, and three problems follow.
 
-1. **Proposals that build on tasks rely on undefined behavior.** [SEP-2133](./2133-extensions.md) does not specify whether or how one extension may depend on another. A proposal that builds on the Tasks extension relies on that gap. With tasks in core, such a proposal builds on core.
+1. **Proposals that build on tasks rely on undefined behavior.** [SEP-2133](./2133-extensions.md) does not specify whether or how one extension may depend on another. A proposal that builds on the Tasks extension relies on that gap, and with tasks in core it builds on core instead.
 2. **Every SDK carries tasks as a separate package.** > TODO: the packages (for example TypeScript `@modelcontextprotocol/ext-tasks`), and what an SDK user wires up today that core removes.
 3. **Implementers cannot treat tasks as settled.** A Beta extension may change without a core protocol revision. A server that depends on long-running tools needs the stability that a core revision gives. > TODO: one concrete example.
 
@@ -48,7 +48,7 @@ Core tasks is the extension's `2026-07-28` revision, with the differences listed
 
 #### D1. Capability negotiation
 
-Under the extension, the client declares `io.modelcontextprotocol/tasks` under `extensions` in each request's `io.modelcontextprotocol/clientCapabilities`. The server lists the same identifier under `extensions` in its `server/discover` result. Under R, tasks becomes a core capability named `tasks`. The client still opts in on each request. The rules are otherwise unchanged.
+Today the client declares `io.modelcontextprotocol/tasks` under `extensions` in each request's `io.modelcontextprotocol/clientCapabilities`. The server lists the same identifier under `extensions` in its `server/discover` result. Under R, tasks becomes a core capability named `tasks`, and the client still opts in on each request. The rules are otherwise unchanged.
 
 **Client.** A client that can handle a `CreateTaskResult` declares `tasks` in `io.modelcontextprotocol/clientCapabilities` on each request where it accepts one:
 
@@ -70,7 +70,7 @@ Under the extension, the client declares `io.modelcontextprotocol/tasks` under `
 }
 ```
 
-**Server.** A server that can return tasks SHOULD advertise `tasks` in its `server/discover` result:
+**Server.** A server that can return tasks **SHOULD** advertise `tasks` in its `server/discover` result:
 
 ```json
 {
@@ -81,7 +81,7 @@ Under the extension, the client declares `io.modelcontextprotocol/tasks` under `
 }
 ```
 
-An empty object means support with no settings. Later revisions MAY define settings.
+An empty object means support with no settings. Later revisions **MAY** define settings.
 
 **Rules.**
 
@@ -122,7 +122,7 @@ sequenceDiagram
 
 The `2025-11-25` revision defined an experimental feature named tasks. That feature advertised `capabilities.tasks` during `initialize`, with sub-keys such as `tasks.requests.tools.call`. It had a `task` request parameter, a blocking `tasks/result` and `tasks/list`. The `2026-07-28` revision removed it from core.
 
-Core tasks under R reuses the name `tasks` for the capability key and the `tasks/` method prefix. It does not reuse the `2025-11-25` semantics. The negotiated protocol version decides which definition applies:
+Core tasks under R reuses the name `tasks` for the capability key and the `tasks/` method prefix, but not the `2025-11-25` semantics. The negotiated protocol version decides which definition applies:
 
 | Request declares | Capability location                                                  | Definition                             |
 | ---------------- | -------------------------------------------------------------------- | -------------------------------------- |
@@ -145,7 +145,7 @@ The extension reserves four names for itself, in its Reservations section. Under
 
 **`ResultType`.** The core union becomes `"complete" | "input_required" | "task" | string`. A server **MUST** set `resultType` to `"task"` on a `CreateTaskResult`. It **MUST NOT** set `"task"` on any other result. `tasks/get`, `tasks/update` and `tasks/cancel` return `resultType: "complete"`, as under the extension.
 
-**`notifications/tasks`.** The extension reserves the prefix `notifications/tasks/`, with a trailing slash. Its one notification is named `notifications/tasks`, with no slash, so the prefix does not literally cover it. Core reserves both.
+**`notifications/tasks`.** The extension reserves the prefix `notifications/tasks/`, with a trailing slash. Its one notification is named `notifications/tasks`, with no slash, so the prefix does not match it. Core reserves both.
 
 **`subscriptions/listen`.** The `taskIds` field of the `notifications` filter becomes a core field, in both the request and the `notifications/subscriptions/acknowledged` notification.
 
@@ -163,7 +163,7 @@ The only change is the `-32021` payload. `data.requiredCapabilities` reads `{ "t
 
 #### D4. Task-augmented requests
 
-Under R, `tools/call` is the only task-augmented request, as under the extension. A server **MUST NOT** return a `CreateTaskResult` for any other request. A client that receives one for another request **MUST** treat it as an invalid response.
+As under the extension, `tools/call` is the only task-augmented request under R. A server **MUST NOT** return a `CreateTaskResult` for any other request. A client that receives one for another request **MUST** treat it as an invalid response.
 
 Three rules carry over from the extension unchanged:
 
@@ -171,11 +171,11 @@ Three rules carry over from the extension unchanged:
 - **No per-tool flag.** The `2025-11-25` `execution.taskSupport` field on `Tool` is not part of core tasks. A client does not need `tools/list` before it calls a tool.
 - **Tasks run on the server.** Server-to-client requests such as `elicitation/create` are never task-augmented. [SEP-2260](./2260-Require-Server-requests-to-be-associated-with-Client-requests.md) requires every server-to-client request to belong to a client request, so a client-hosted task has no valid way to be polled. A task that needs client input uses `inputRequests` (see D5).
 
-A later core revision **MAY** add task-augmented requests. Implementations **SHOULD** be designed to accept more request types in later revisions. A client's obligations follow the revision it declares. A client that declares `tasks` under R handles tasks only for `tools/call`, even after a later revision adds another request.
+A later core revision **MAY** add task-augmented requests. Implementations **SHOULD** be designed to accept more request types in later revisions. A client's obligations follow the revision it declares, so a client that declares `tasks` under R handles tasks only for `tools/call`, even after a later revision adds another request.
 
 #### D5. Input requests
 
-Under R, a task's `inputRequests` and a client's `inputResponses` use the core `InputRequests` and `InputResponses` types of the revision the client declared. These are the same types [Multi Round-Trip Requests](/specification/draft/basic/patterns/mrtr) (MRTR) uses. The extension already points to MRTR for these types. Core tasks makes the link normative, and it adds no list of its own.
+Under R, a task's `inputRequests` and a client's `inputResponses` use the core `InputRequests` and `InputResponses` types of the revision the client declared. [Multi Round-Trip Requests](/specification/draft/basic/patterns/mrtr) (MRTR) uses the same types. The extension already points to MRTR for them, and core tasks makes that link normative without adding a list of its own.
 
 Today the core `InputRequest` union holds `elicitation/create`, `sampling/createMessage` and `roots/list`. SEP-2577 deprecated sampling and roots in `2026-07-28`, and the first revision released on or after 2027-07-28 may remove them. If R removes them from the union, a task under R cannot request them either. If R keeps them, they are still valid in a task, with the same Deprecated status they have in MRTR. Core tasks follows that decision and needs no change of its own.
 
@@ -184,13 +184,13 @@ Two rules apply to each entry in `inputRequests`:
 - **Capability.** A server **MUST NOT** include a request that the client has not declared a capability for, as in MRTR. For example, a server **MUST NOT** include `elicitation/create` unless the client declared `elicitation`. The declarations that count are those on the request that created the task. The extension does not state this rule.
 - **Trust model.** A client **MUST** treat each entry as it would the same request sent on its own. An elicitation inside a task gets the same trust model and user interface as a direct `elicitation/create`. This rule is unchanged from the extension.
 
-The other `inputRequests` rules carry over unchanged. A key is unique over the task's lifetime and is never reused. A client answers with `tasks/update`, and partial answers are allowed. A server ignores answers for keys that are no longer outstanding.
+The other `inputRequests` rules carry over unchanged. A key is unique over the task's lifetime and is never reused, a client answers with `tasks/update` and may answer in parts, and a server ignores answers for keys that are no longer outstanding.
 
 As under the extension, tasks use neither logging nor progress. A server **MUST NOT** send `notifications/message` or `notifications/progress` on a task's subscription stream.
 
 #### D6. Task state after a subscription starts
 
-Under the extension, a client may rely on `notifications/tasks` alone and never poll. A subscription ends when its transport drops, and a server holds no subscription state across reconnections ([Subscriptions](/specification/draft/basic/patterns/subscriptions)). A transition during the gap has no stream to go to. If the task becomes terminal during the gap, it never changes again, so the client never hears about it. The client waits until `ttlMs` expires. If the task moved to `input_required`, the task also stalls, because the client never sees `inputRequests`. [ext-tasks#24](https://github.com/modelcontextprotocol/ext-tasks/issues/24) reports this gap.
+The extension lets a client rely on `notifications/tasks` alone and never poll. A subscription ends when its transport drops, and a server holds no subscription state across reconnections ([Subscriptions](/specification/draft/basic/patterns/subscriptions)). A transition during the gap has no stream to go to. If the task becomes terminal during the gap, it never changes again, so the client never hears about it and waits until `ttlMs` expires. If the task moved to `input_required`, the task also stalls, because the client never sees `inputRequests`. [ext-tasks#24](https://github.com/modelcontextprotocol/ext-tasks/issues/24) reports this gap.
 
 ```mermaid
 sequenceDiagram
@@ -214,13 +214,13 @@ The same rule fits the extension, which is Beta and can still change. If ext-tas
 
 ### Revisions earlier than R
 
-For a request that declares a revision earlier than R, the extension applies as its final revision defines it. A client that still supports earlier revisions SHOULD keep advertising `io.modelcontextprotocol/tasks`. A server that does not yet support R can then fall back to the extension. A peer stops advertising the extension when it no longer supports any revision earlier than R.
+For a request that declares a revision earlier than R, the extension applies as its final revision defines it. A client that still supports earlier revisions **SHOULD** keep advertising `io.modelcontextprotocol/tasks`, so that a server that does not yet support R can fall back to the extension. A peer stops advertising the extension when it no longer supports any revision earlier than R.
 
 ### Specification and schema changes
 
 When this SEP is accepted, the same pull request makes the changes below in the core draft. The extension's own files change later, when R is released.
 
-**Schema (`schema/draft/schema.ts`).** The types come from the extension's `2026-07-28` schema. All of them exist in the extension today. Core tasks adds no new type. It moves the extension's types into core, folds two of them into existing core interfaces, and leaves one behind.
+**Schema (`schema/draft/schema.ts`).** The types come from the extension's `2026-07-28` schema, and all of them exist there today. Core tasks adds no new type. It moves the extension's types into core, folds two of them into existing core interfaces, and leaves one behind.
 
 | Change               | Types                                                                                                                                                                                                                                                                                           |
 | -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -265,8 +265,8 @@ SEP-2663 set the bar for promotion: "Once the extension has stabilized and achie
 
 **The extension has stabilized.**
 
-- ext-tasks locked its `2026-07-28` revision on 2026-08-24. Since then its specification has had one change, which corrected the `resultType` in an example ([ext-tasks#25](https://github.com/modelcontextprotocol/ext-tasks/pull/25)). Its `draft` differs from `2026-07-28` only in two links.
-- SEP-2663 moved tasks out of core to fix four problems. These were a fragile handshake, a blocking `tasks/result`, `tasks/list` scoping that could not be defined, and client-hosted tasks that SEP-2260 made invalid. The `2026-07-28` revision fixes all four. It has needed no breaking change since.
+- ext-tasks locked its `2026-07-28` revision on 2026-08-24. Its specification has changed once since then, to correct the `resultType` in an example ([ext-tasks#25](https://github.com/modelcontextprotocol/ext-tasks/pull/25)). Its `draft` differs from `2026-07-28` only in two links.
+- SEP-2663 moved tasks out of core to fix four problems. These were a fragile handshake, a blocking `tasks/result`, `tasks/list` scoping that could not be defined, and client-hosted tasks that SEP-2260 made invalid. The `2026-07-28` revision fixes all four, and it has needed no breaking change since.
 - The Tasks and Events Working Group charter lists promotion to core as a success criterion. The extensions page lists Tasks as "Beta, to Core".
 
 **Adoption is the weaker half.** The [client matrix](/extensions/client-matrix) lists Tasks support in 4 of 17 clients: Claude (web), Claude Code, MCPJam and Glean.
@@ -277,7 +277,7 @@ SEP-2663 set the bar for promotion: "Once the extension has stabilized and achie
 
 **Why this SEP does not wait.**
 
-- Core tasks differs from the extension only in D1 to D6. An implementer's work on the extension carries over to core.
+- Core tasks differs from the extension only in D1 to D6, so an implementer's work on the extension carries over to core.
 - This SEP reaches Final only with a reference implementation and a conformance scenario (SEP-2484). Under [SEP-3398](./3398-release-cycle-updates.md), it must do so by the soft freeze of R's release. Beta evidence keeps arriving until then.
 - The Working Group should still judge, at soft freeze, whether the adoption evidence is enough. If it is not, this SEP moves to the next release, and R moves with it.
 
@@ -291,7 +291,7 @@ SEP-2663 set the bar for promotion: "Once the extension has stabilized and achie
 
 - SEP-3392 allows promotion from Beta, and the extension's stated destination is Core.
 - Going through Stable means two SEPs and two review cycles to reach the same place. While Stable, the extension could change only with a new core revision, so D1 to D6 would wait for a core revision either way.
-- This SEP meets the Stable evidence bar itself. Before Final, it shows two independent, interoperating implementations, one client-side and one server-side, and a SEP-2484 conformance scenario. So the SEP skips the Stable stage but still meets the Stable evidence bar.
+- This SEP skips the Stable stage but still meets its evidence bar. Before Final, it shows two independent, interoperating implementations, one client-side and one server-side, and a SEP-2484 conformance scenario.
 
 **Can it come back later?** Yes. If the Working Group judges the evidence too thin, the extension can go to Stable first. SEP-3392 also allows promotion from Stable, so this SEP can return from there.
 
@@ -333,7 +333,7 @@ sequenceDiagram
 | Consistency with core     | Matches elicitation and other client features under SEP-2575, which `-32021` already gates. | Tasks would be the only client-side feature without a declaration.      |
 | Partial adoption          | A client can declare tasks on some requests and not others.                                 | Not possible.                                                           |
 
-**Can it come back later?** Yes. A later revision can make tasks mandatory once most clients declare it. Servers lose nothing in that change: they stop checking the declaration. The reverse move would break servers that rely on every client handling tasks. Starting with opt-in leaves both options available.
+**Can it come back later?** Yes. A later revision can make tasks mandatory once most clients declare it. Servers lose nothing in that change, since they only stop checking the declaration. The reverse move would break servers that rely on every client handling tasks. Starting with opt-in leaves both options available.
 
 #### D2: reuse the `tasks` name
 
@@ -364,7 +364,7 @@ sequenceDiagram
 
 **Alternative.** Add requests at promotion time, such as `resources/read` and `prompts/get`.
 
-**The case for it.** A resource that the server generates on demand, such as a rendered report, can take as long as a tool call. Without tasks, a server has two choices for such a read. It can hold the request open, or it can expose the work as a tool instead. A task-augmented `resources/read` would give that read the same durable handle that a tool call gets.
+**The case for it.** A resource that the server generates on demand, such as a rendered report, can take as long as a tool call. Without tasks, a server can either hold such a read open or expose the work as a tool instead. A task-augmented `resources/read` would give that read the same durable handle that a tool call gets.
 
 **Why this SEP does not adopt it.**
 
@@ -389,7 +389,7 @@ sequenceDiagram
 
 **The case for it.** It needs no server change, and it works with every server that implements the extension today.
 
-**Why this SEP does not adopt it.** It protects only clients that follow it. A client that skips the call still waits until `ttlMs` expires. The server rule adds one notification per acknowledged task, and it protects every client. A server-side implementer in ext-tasks#24 also prefers it. With the snapshot, a server needs no replay log and no record of which notifications were delivered. The next subscription repairs any missed transition.
+**Why this SEP does not adopt it.** It protects only clients that follow it, and a client that skips the call still waits until `ttlMs` expires. The server rule adds one notification per acknowledged task, and it protects every client. A server-side implementer in ext-tasks#24 also prefers it. With the snapshot, a server needs no replay log and no record of which notifications were delivered, because the next subscription repairs any missed transition.
 
 **Why MUST and not SHOULD.** ext-tasks#24 proposes SHOULD. With SHOULD, a client cannot rely on the snapshot, so it would still need the client rule. MUST lets a client drop polling safely.
 
@@ -425,7 +425,7 @@ The protocol version is chosen per request, so each request uses one definition.
 | `2026-07-28` only  | R and `2026-07-28` | Requests declare `2026-07-28`. The server applies the extension.                                                         |
 | R only             | `2026-07-28` only  | No common version. This fails like any version mismatch.                                                                 |
 
-A server that supports both R and `2026-07-28` serves both definitions. It reads the declared version, then checks the matching declaration.
+A server that supports both R and `2026-07-28` serves both definitions, so it reads the declared version and then checks the matching declaration.
 
 ### Migration for SDKs
 
@@ -541,7 +541,7 @@ A task can outlive the access token that created it. A client may poll with a re
 
 ### Agents
 
-The Tasks and Events Working Group charter says that agent-as-tool, remote-agent and supervisor patterns depend on tasks. The Agents Interest Group is scoping [intermediary results](https://github.com/modelcontextprotocol/agents-wg/issues/26) and [steering](https://github.com/modelcontextprotocol/agents-wg/issues/27). [ext-tasks#26](https://github.com/modelcontextprotocol/ext-tasks/pull/26) came out of the steering work. These are users of tasks. This SEP does not include them, and Open Question 5 defers ext-tasks#26.
+The Tasks and Events Working Group charter says that agent-as-tool, remote-agent and supervisor patterns depend on tasks. The Agents Interest Group is scoping [intermediary results](https://github.com/modelcontextprotocol/agents-wg/issues/26) and [steering](https://github.com/modelcontextprotocol/agents-wg/issues/27). [ext-tasks#26](https://github.com/modelcontextprotocol/ext-tasks/pull/26) came out of the steering work. They use tasks but are not part of this SEP, and Open Question 5 defers ext-tasks#26.
 
 ### Progressive disclosure
 
