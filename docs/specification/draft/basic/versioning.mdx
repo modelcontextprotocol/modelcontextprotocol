@@ -41,7 +41,7 @@ revisions:
 ## Protocol Version Negotiation
 
 Every request declares the protocol version it is using in its
-[`_meta`](/specification/draft/basic/index#meta) field. On HTTP, this is
+[`_meta`](/specification/draft/basic/index#_meta) field. On HTTP, this is
 also carried in the
 [`MCP-Protocol-Version` header](/specification/draft/basic/transports/streamable-http#protocol-version-header).
 
@@ -83,7 +83,7 @@ Clients and servers can negotiate support for optional
 [extensions](/docs/extensions/overview) beyond the core protocol. Extensions
 are advertised in the `extensions` field of capabilities, which is a map of
 extension identifiers to per-extension settings objects. Extension identifiers
-**MUST** follow the [`_meta` key naming rules](/specification/draft/basic/index#meta),
+**MUST** follow the [`_meta` key naming rules](/specification/draft/basic/index#_meta),
 with a mandatory prefix.
 
 The following is an example of a client that advertises the
@@ -91,18 +91,21 @@ The following is an example of a client that advertises the
 
 ```json
 {
-  "capabilities": {
-    "roots": {},
-    "extensions": {
-      "io.modelcontextprotocol/ui": {
-        "mimeTypes": ["text/html;profile=mcp-app"]
+  "_meta": {
+    "io.modelcontextprotocol/clientCapabilities": {
+      "extensions": {
+        "io.modelcontextprotocol/ui": {
+          "mimeTypes": ["text/html;profile=mcp-app"]
+        }
       }
     }
   }
 }
 ```
 
-An example of [Tasks extension](/extensions/tasks/overview) identified as `io.modelcontextprotocol/tasks`:
+The following is an example of a server that advertises the
+[Tasks extension](/extensions/tasks/overview) identified as `io.modelcontextprotocol/tasks`
+in its `server/discover` result:
 
 ```json
 {

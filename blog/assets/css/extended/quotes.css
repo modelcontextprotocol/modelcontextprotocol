@@ -119,21 +119,12 @@
     max-width: 100%;
 }
 
-/* PaperMod gives .post-content img a 1rem vertical margin and rounded
-   corners, which pushed raster logos 16px below the svg and text logos.
-   Reset both (with the same .post-content specificity bump the other
-   resets use) so every logo kind starts on the same top line. */
 .post-content .mcp-quote-logo svg,
 .post-content .mcp-quote-logo img {
     margin: 0;
     border-radius: 0;
 }
 
-/* Paired logo variants (the quote shortcode's `logo-dark` param): the light
-   file renders in light mode, the dark file in dark mode. Theme switching
-   follows PaperMod's body.dark class toggle. Paper is always light. Without
-   JavaScript nothing sets the class, so the system setting decides, as it does
-   for the colors in custom.css. */
 .mcp-quote-logo-dark {
     display: none;
 }
@@ -166,7 +157,6 @@
     color: var(--ink);
 }
 
-/* Reset PaperMod's blockquote treatment (left bar, italic-ish inset). */
 .post-content .mcp-quote-text {
     margin: 0;
     padding: 0;
@@ -184,10 +174,6 @@
     font-size: inherit;
 }
 
-/* Attribution: a name over a title, set exactly like an author in a post's
-   byline (.author-name and .author-role in custom.css). PaperMod bolds
-   figure > figcaption wholesale, so the figcaption is reset to regular and
-   only the name span is stronger. */
 .post-content .mcp-quote-attrib {
     margin-top: auto;
     padding-top: var(--s-4);
@@ -210,12 +196,6 @@
     display: block;
 }
 
-/* PaperMod's .post-content figure > figcaption (0,2,1) adds margin:8px 0 16px
-   to the attribution. The 16px bottom margin inflated the shared attribution
-   row, so the card dividers hung 16px longer below the content than the 8px
-   they extend above the logos, and the 8px top margin also beat the flex
-   fallback's margin-top:auto bottom-alignment. Re-own both margins at higher
-   specificity; the subgrid block below still wins its margin-top:0 by order. */
 .post-content .mcp-quote .mcp-quote-attrib {
     margin: auto 0 0;
 }
@@ -309,4 +289,136 @@
 
 .mcp-quotes-dot[aria-current="true"] {
     background: var(--ink);
+}
+
+/* ─── Quote blocks (a quote shortcode on its own) ────────────────────────── */
+/* One person's words on a panel in the text column. Two large quotation
+   marks stand behind the words, one step darker than the panel: an opening
+   mark cut by the top edge at the left, and a closing mark cut by the bottom
+   edge at the right. The words carry no quotation marks of their own. The
+   attribution is set like the post byline: the name at step 2, the role at
+   step 1. Several blocks in a row stand closer together than other blocks
+   do, so they read as one set. */
+.post-content .mcp-quote-block {
+    --mcp-quote-pad: var(--s-8);
+    /* Six times the page title, so the marks shrink with it on a phone. */
+    --mcp-quote-mark: calc(var(--title-fs) * 6);
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    margin: var(--gap-block) 0;
+    padding: var(--mcp-quote-pad);
+    background: var(--surface);
+    border-radius: var(--r-lg);
+}
+
+.post-content .mcp-quote-block:has(+ .mcp-quote-block) {
+    margin-bottom: var(--s-4);
+}
+
+.post-content .mcp-quote-block + .mcp-quote-block {
+    margin-top: 0;
+}
+
+/* The marks are Geist's own. The em offsets are the glyph's measurements at
+   weight 600 with a line height of 1: its ink starts 0.044em in from the
+   side of its box, 0.129em below the top, and ends 0.579em above the bottom.
+   They put the ink on the padding edge and let the panel cut a quarter of it
+   off. The second content line gives a mark no spoken name where the browser
+   supports that. */
+.post-content .mcp-quote-block::before,
+.post-content .mcp-quote-block::after {
+    position: absolute;
+    z-index: -1;
+    color: var(--surface-2);
+    font-size: var(--mcp-quote-mark);
+    font-weight: var(--fw-strong);
+    line-height: 1;
+    letter-spacing: 0;
+    pointer-events: none;
+    user-select: none;
+}
+
+.post-content .mcp-quote-block::before {
+    content: "\201C";
+    content: "\201C" / "";
+    inset-block-start: -0.2em;
+    inset-inline-start: calc(var(--mcp-quote-pad) - 0.044em);
+}
+
+.post-content .mcp-quote-block::after {
+    content: "\201D";
+    content: "\201D" / "";
+    inset-block-end: -0.65em;
+    inset-inline-end: calc(var(--mcp-quote-pad) - 0.044em);
+}
+
+.post-content .mcp-quote-block-text {
+    margin: 0;
+    padding: 0;
+    color: var(--text);
+    border: none;
+}
+
+.post-content .mcp-quote-block-text > * {
+    margin-block: 0 var(--s-4);
+}
+
+.post-content .mcp-quote-block-text > :last-child {
+    margin-bottom: 0;
+}
+
+.post-content .mcp-quote-block-attrib {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--s-3);
+    margin: var(--s-6) 0 0;
+    padding: 0;
+    text-align: start;
+}
+
+.mcp-quote-block-person {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.mcp-quote-block-name {
+    color: var(--ink);
+    font-size: var(--fs-2);
+    font-weight: var(--fw-medium);
+    line-height: var(--lh-2);
+    letter-spacing: var(--ls-2);
+}
+
+.mcp-quote-block-role {
+    color: var(--faint);
+    font-size: var(--fs-1);
+    line-height: var(--lh-1);
+    letter-spacing: var(--ls-1);
+}
+
+.post-content .mcp-quote-block-role a {
+    color: var(--muted);
+}
+
+/* A logo closes the attribution, under the role, clear of the closing mark. */
+.mcp-quote-block-logo {
+    flex: none;
+    height: var(--s-4);
+    margin: 0;
+    color: var(--muted);
+}
+
+@media screen and (max-width: 600px) {
+    .post-content .mcp-quote-block {
+        --mcp-quote-pad: var(--s-5);
+    }
+}
+
+@media print {
+    .post-content .mcp-quote-block {
+        break-inside: avoid;
+    }
 }

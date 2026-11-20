@@ -19,7 +19,7 @@ title: Multi Round-Trip Requests
   `io.modelcontextprotocol/clientInfo`, and
   `io.modelcontextprotocol/clientCapabilities`). Every request **MUST** include
   the required `_meta` fields; see
-  [`_meta`](/specification/draft/basic/index#meta).
+  [`_meta`](/specification/draft/basic/index#_meta).
 </Note>
 
 ## Multi Round-Trip Requests
@@ -215,7 +215,7 @@ sequenceDiagram
     note over C: Client retries tool call <br/> with inputResponses and requestState
     C->>S: tools/call (id: 2, ElicitResult, requestState)
     note over S: Server reconstitutes state<br/>Completes execution
-    S-->>C: Result (id: 2, ToolCallResult)
+    S-->>C: Result (id: 2, CallToolResult)
 ```
 
 Note that the requests in each step are completely independent: the server processing the retry does not need any information beyond

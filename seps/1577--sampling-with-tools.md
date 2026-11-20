@@ -49,7 +49,7 @@ Please note some related work:
   - Deprecate `includeContext` (doc explains why its semantics are ambiguous)
   - (goes further to suggest explicit context sharing, which is out of scope from this proposal)
 - [Allow Prompt/Sampling Messages to contain multiple content blocks. #198](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/198)
-  - In this PR we've made `{CreateMessageResult,SamplingMessage}.content` to accept a single content or an array of contents. The `result.content` change is backwards incompatible but is required to support parallel tool calls. The `SamplingMessage.content` change then makes it much more natural to write a tool loop (see example in reference implementation: [toolLoopSampling.ts](https://github.com/modelcontextprotocol/typescript-sdk/blob/ochafik/sep1577/src/examples/server/toolLoopSampling.ts))
+  - In this PR we've made `{CreateMessageResult,SamplingMessage}.content` to accept a single content or an array of contents. The `result.content` change is backwards incompatible but is required to support parallel tool calls. The `SamplingMessage.content` change then makes it much more natural to write a tool loop (see example in reference implementation: [toolLoopSampling.ts](https://github.com/modelcontextprotocol/typescript-sdk/blob/d372eff7a764c72619b15a9f31c2756fa402fa14/src/examples/server/toolLoopSampling.ts))
 
 In the "Possible Follow ups" Section below, we give examples of features that were kept out of scope from this SEP but which we took care to make this SEP reasonably compatible with.
 

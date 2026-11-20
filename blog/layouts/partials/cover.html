@@ -1,0 +1,12 @@
+{{- if not .isHidden -}}
+  {{- with .cxt.Params.cover.image -}}
+    {{- $url := . | absURL -}}
+    {{- with $.cxt.Resources.GetMatch . -}}
+      {{- $url = .RelPermalink -}}
+    {{- end }}
+<figure class="entry-cover">
+  <img src="{{ $url }}" alt="{{ $.cxt.Params.cover.alt | default "" }}">
+  {{- with $.cxt.Params.cover.caption }}<figcaption>{{ . | markdownify }}</figcaption>{{ end }}
+</figure>
+  {{- end -}}
+{{- end -}}

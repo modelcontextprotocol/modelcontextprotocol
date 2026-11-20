@@ -53,6 +53,10 @@ npm run check:schema:ts
 npm run generate:schema
 ```
 
+### Schema examples
+
+JSON examples live in `schema/draft/examples/<TypeName>/<example-name>.json`. Each file is validated against the schema type named by its directory, and is pulled into the schema reference through an `@includeCode` tag in `schema.ts`. Adding an example for a type that has none is a useful small contribution; run `npm run check:schema` to validate it.
+
 ### Resolving merge conflicts in generated files
 
 If your branch conflicts with `main` in generated files (`schema/*/schema.json`, `docs/specification/*/schema.mdx`, `docs/seps/*.mdx`), do not resolve them by hand. Merge `main`, resolve any conflicts in the source files (e.g. `schema/draft/schema.ts`), then regenerate and commit:
@@ -118,7 +122,11 @@ When contributing to the documentation:
 Specification changes follow the [SEP process](https://modelcontextprotocol.io/community/sep-guidelines).
 Proposals must be submitted to and discussed in the relevant
 [working group](https://modelcontextprotocol.io/community/working-interest-groups).
-A SEP pull request may only be opened once that working group has explicitly approved it.
+A SEP pull request may only be marked ready for review once that working group has agreed to
+[sponsor](https://modelcontextprotocol.io/community/sep-guidelines#sponsors) it. Before that,
+work in progress lives in a draft pull request. The pull request description must link that
+discussion, as required by the
+[SEP guidelines](https://modelcontextprotocol.io/community/sep-guidelines#workflow).
 Before drafting a proposal, review the [MCP design principles](https://modelcontextprotocol.io/community/design-principles)
 — proposals that align with these principles move faster through review.
 
@@ -132,11 +140,15 @@ SDK bugs belong in the respective SDK repository.
 ## Submitting Changes
 
 Only members of the `modelcontextprotocol` GitHub organization may open pull requests.
+Membership comes from being active on issues or in working groups and interest groups. If you
+are not a member yet, see
+[Change the specification or docs](https://modelcontextprotocol.io/community/contributing#change-the-specification-or-docs)
+for how to get a fix picked up or a pull request opened from your branch.
 
 1. Discuss your change with the relevant
    [working group](https://modelcontextprotocol.io/community/working-interest-groups) and get its approval
-2. Make sure you are a member of the `modelcontextprotocol` organization; request membership in the
-   [access repository](https://github.com/modelcontextprotocol/access)
+2. Check that you are a member of the `modelcontextprotocol` organization, as defined by the
+   [Member](https://modelcontextprotocol.io/community/contributor-ladder#member) role on the contributor ladder
 3. Push your changes to your fork
 4. Open a pull request against the main repository and follow the pull request template
 5. For SEPs, schedule a review with the Core Maintainers via [voting.modelcontextprotocol.io](https://voting.modelcontextprotocol.io)

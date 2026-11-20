@@ -3,7 +3,6 @@ import { isStateLabel, extractState, VALID_TRANSITIONS } from '../../src/sep/typ
 
 describe('isStateLabel', () => {
   it('should return true for valid state labels', () => {
-    expect(isStateLabel('proposal')).toBe(true);
     expect(isStateLabel('draft')).toBe(true);
     expect(isStateLabel('in-review')).toBe(true);
     expect(isStateLabel('accepted')).toBe(true);
@@ -15,13 +14,14 @@ describe('isStateLabel', () => {
     expect(isStateLabel('bug')).toBe(false);
     expect(isStateLabel('enhancement')).toBe(false);
     expect(isStateLabel('SEP')).toBe(false);
+    expect(isStateLabel('proposal')).toBe(false);
     expect(isStateLabel('')).toBe(false);
   });
 });
 
 describe('extractState', () => {
   it('should extract state from labels', () => {
-    expect(extractState(['SEP', 'proposal'])).toBe('proposal');
+    expect(extractState(['SEP', 'in-review'])).toBe('in-review');
     expect(extractState(['bug', 'draft', 'urgent'])).toBe('draft');
     expect(extractState(['accepted'])).toBe('accepted');
   });
@@ -31,17 +31,17 @@ describe('extractState', () => {
     expect(extractState([])).toBeNull();
   });
 
+  it('should ignore the retired proposal label', () => {
+    expect(extractState(['SEP', 'proposal'])).toBeNull();
+    expect(extractState(['proposal', 'draft'])).toBe('draft');
+  });
+
   it('should return first state label if multiple present', () => {
-    expect(extractState(['proposal', 'draft'])).toBe('proposal');
+    expect(extractState(['draft', 'in-review'])).toBe('draft');
   });
 });
 
 describe('VALID_TRANSITIONS', () => {
-  it('should have proposal transitioning to draft or dormant', () => {
-    expect(VALID_TRANSITIONS.proposal).toContain('draft');
-    expect(VALID_TRANSITIONS.proposal).toContain('dormant');
-  });
-
   it('should have draft transitioning to in-review or dormant', () => {
     expect(VALID_TRANSITIONS.draft).toContain('in-review');
     expect(VALID_TRANSITIONS.draft).toContain('dormant');
@@ -52,7 +52,6 @@ describe('VALID_TRANSITIONS', () => {
   });
 
   it('should allow dormant to be reactivated', () => {
-    expect(VALID_TRANSITIONS.dormant).toContain('proposal');
-    expect(VALID_TRANSITIONS.dormant).toContain('draft');
+    expect(VALID_TRANSITIONS.dormant).toEqual(['draft']);
   });
 });

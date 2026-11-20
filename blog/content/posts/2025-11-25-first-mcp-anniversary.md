@@ -70,67 +70,67 @@ Even though this is a significant improvement, we know that we're not done. Ther
 
 As we called out above, the success of MCP _would not be possible_ without the broader community of adopters. We're delighted that the protocol enabled so many scenarios across the industry. Here are some thoughts from a few of our key partners and supporters.
 
-> "_In just one year, MCP has evolved from an experiment to a widely adopted industry standard, highlighting the impact of open collaboration—something we deeply believe in at GitHub. Developers across our community, customers and own teams are using our GitHub MCP Server, Registry, and enterprise controls like the MCP allowlist to unlock real benefits of agentic development in production workflows. We’re excited to keep building with the broader community to push this standard forward._"
->
-> ✦ **Mario Rodriguez**, CPO, [GitHub](https://github.com/)
+{{< quote name="Mario Rodriguez" title="CPO" company="GitHub" url="https://github.com/" >}}
+In just one year, MCP has evolved from an experiment to a widely adopted industry standard, highlighting the impact of open collaboration—something we deeply believe in at GitHub. Developers across our community, customers and own teams are using our GitHub MCP Server, Registry, and enterprise controls like the MCP allowlist to unlock real benefits of agentic development in production workflows. We’re excited to keep building with the broader community to push this standard forward.
+{{< /quote >}}
 
-> "_We believe open standards are an important part of an agentic web—helping models work with tools and platforms more seamlessly. OpenAI has been contributing to the MCP ecosystem since early on, and it’s now a key part of how we build at OpenAI, integrated across ChatGPT and our developer platform. We’re excited to keep working with the community to strengthen the protocol as it evolves._"
->
-> ✦ **Srinivas Narayanan**, CTO of B2B Applications, [OpenAI](https://openai.com/)
+{{< quote name="Srinivas Narayanan" title="CTO of B2B Applications" company="OpenAI" url="https://openai.com/" >}}
+We believe open standards are an important part of an agentic web—helping models work with tools and platforms more seamlessly. OpenAI has been contributing to the MCP ecosystem since early on, and it’s now a key part of how we build at OpenAI, integrated across ChatGPT and our developer platform. We’re excited to keep working with the community to strengthen the protocol as it evolves.
+{{< /quote >}}
 
-> "_In the year since its launch, MCP has become an incredibly impactful open standard in the industry," said Dhanji R. Prasanna, CTO of Block. "It has quickly moved to unlocking an enormous amount of value from existing systems and made applied AI real like few anticipated. MCP has been key to building AI-powered solutions like Square AI and Moneybot, saving our customers time and delivering powerful insights as well as our internal AI systems. It sits at the heart of open source projects like goose, proving that open standards fuel innovation across the board. We are excited to see the protocol and AI agents evolve to unlock ever more productivity in the enterprise._"
->
-> ✦ **Dhanji Prasanna**, CTO, [Block](https://block.xyz/)
+{{< quote name="Dhanji Prasanna" title="CTO" company="Block" url="https://block.xyz/" >}}
+In the year since its launch, MCP has become an incredibly impactful open standard in the industry. It has quickly moved to unlocking an enormous amount of value from existing systems and made applied AI real like few anticipated. MCP has been key to building AI-powered solutions like Square AI and Moneybot, saving our customers time and delivering powerful insights as well as our internal AI systems. It sits at the heart of open source projects like goose, proving that open standards fuel innovation across the board. We are excited to see the protocol and AI agents evolve to unlock ever more productivity in the enterprise.
+{{< /quote >}}
 
-> "_Having an open source protocol that unlocks real interoperability has made agents truly useful. In one year, Foundry went from a small set of tools to thousands because MCP let tools from GitHub, Azure, and M365 show up wherever agents run. It made write once integrate everywhere real and gives agents the ability to work across any system and any cloud with the full power of Microsoft behind them._"
->
-> ✦ **Asha Sharma**, President, CoreAI, [Microsoft](https://microsoft.com/)
+{{< quote name="Asha Sharma" title="President, CoreAI" company="Microsoft" url="https://microsoft.com/" >}}
+Having an open source protocol that unlocks real interoperability has made agents truly useful. In one year, Foundry went from a small set of tools to thousands because MCP let tools from GitHub, Azure, and M365 show up wherever agents run. It made write once integrate everywhere real and gives agents the ability to work across any system and any cloud with the full power of Microsoft behind them.
+{{< /quote >}}
 
-> "_MCP has become the natural language for AI integration - connecting everything from model discovery to inference APIs to chat applications. The community has created thousands of MCP applications with Gradio and our HF-MCP server. Having an Open Source protocol that unlocks this seamless interoperability has been a game changer in the past year._"
->
-> ✦ **Julien Chaumond**, CTO, [Hugging Face](https://huggingface.co/)
+{{< quote name="Julien Chaumond" title="CTO" company="Hugging Face" url="https://huggingface.co/" >}}
+MCP has become the natural language for AI integration - connecting everything from model discovery to inference APIs to chat applications. The community has created thousands of MCP applications with Gradio and our HF-MCP server. Having an Open Source protocol that unlocks this seamless interoperability has been a game changer in the past year.
+{{< /quote >}}
 
-> "_The enterprise promise of AI is being realized by MCP’s ability to unify data, tools, and workflows across previously siloed systems. As agentic AI is more rapidly adopted, we’re excited to see identity and authorization at the core of a security framework. By formally incorporating Cross App Access as an MCP authorization extension, organizations can have the necessary oversight and access control to build a secure and open AI ecosystem._"
->
-> ✦ **Harish Peri**, SVP & GM, AI Security, [Okta](https://okta.com)
+{{< quote name="Harish Peri" title="SVP & GM, AI Security" company="Okta" url="https://okta.com" >}}
+The enterprise promise of AI is being realized by MCP’s ability to unify data, tools, and workflows across previously siloed systems. As agentic AI is more rapidly adopted, we’re excited to see identity and authorization at the core of a security framework. By formally incorporating Cross App Access as an MCP authorization extension, organizations can have the necessary oversight and access control to build a secure and open AI ecosystem.
+{{< /quote >}}
 
-> "_We're hearing great things from customers who have embraced MCP as their standard for connecting generative AI agents with external systems. Open source is incredibly important to our mission at AWS, which is why we started and continue contributing to MCP— building improvements on authorization, human in the loop interactions, and asynchronous execution. We have also built MCP into offerings like Amazon Bedrock, Kiro, Strands, AgentCore and Amazon Quick Suite. We're excited to continue to collaborate with this community to make agent interoperability seamless for developers._"
->
-> ✦ **Swami Sivasubramanian**, VP, Agentic AI, [AWS](https://aws.amazon.com)
+{{< quote name="Swami Sivasubramanian" title="VP, Agentic AI" company="AWS" url="https://aws.amazon.com" >}}
+We're hearing great things from customers who have embraced MCP as their standard for connecting generative AI agents with external systems. Open source is incredibly important to our mission at AWS, which is why we started and continue contributing to MCP— building improvements on authorization, human in the loop interactions, and asynchronous execution. We have also built MCP into offerings like Amazon Bedrock, Kiro, Strands, AgentCore and Amazon Quick Suite. We're excited to continue to collaborate with this community to make agent interoperability seamless for developers.
+{{< /quote >}}
 
-> "_In just one year, the Model Context Protocol has proven to be a critical standard that connects models to data and applications, solving the fragmentation that held agents back. We’re proud to support MCP across Gemini, from our models to our agentic software development tools like Gemini CLI, as well as provide open source MCP servers such as for Google Maps and Google Cloud databases. These are the very tools our own teams use, and we’re thrilled to celebrate MCP’s first birthday by continuing to build this foundation together."_
->
-> ✦ **Anna Berenberg**, Engineering Fellow, [Google Cloud](https://cloud.google.com/)
+{{< quote name="Anna Berenberg" title="Engineering Fellow" company="Google Cloud" url="https://cloud.google.com/" >}}
+In just one year, the Model Context Protocol has proven to be a critical standard that connects models to data and applications, solving the fragmentation that held agents back. We’re proud to support MCP across Gemini, from our models to our agentic software development tools like Gemini CLI, as well as provide open source MCP servers such as for Google Maps and Google Cloud databases. These are the very tools our own teams use, and we’re thrilled to celebrate MCP’s first birthday by continuing to build this foundation together.
+{{< /quote >}}
 
-> "_MCP has changed everything for us at Obot AI. A standard, open protocol for connecting AI with apps, data, and systems is the biggest shift since LLMs. We’re all-in on secure MCP management because we believe it’s going to be foundational infrastructure for every organization_"
->
-> ✦ **Shannon Williams**, President and Co-Founder, [Obot AI](https://obot.ai/); Organizer, [MCP Dev Summit](https://mcpdevsummit.ai/)
+{{< quote name="Shannon Williams" title="President and Co-Founder, [Obot AI](https://obot.ai/); Organizer, [MCP Dev Summit](https://mcpdevsummit.ai/)" >}}
+MCP has changed everything for us at Obot AI. A standard, open protocol for connecting AI with apps, data, and systems is the biggest shift since LLMs. We’re all-in on secure MCP management because we believe it’s going to be foundational infrastructure for every organization.
+{{< /quote >}}
 
 Of course, we would be remiss not to mention the _massive_ effort it takes to coordinate the MCP community engagement. We asked some of our most prolific community managers about what MCP meant to them. Here are their stories.
 
-> "_As a community moderator and maintainer, I keep coming back to something [Donella Meadows](https://donellameadows.org/archives/dancing-with-systems/) wrote: "Systems can't be controlled, but they can be designed and redesigned... We can listen to what the system tells us, and discover how its properties and our values can work together to bring forth something much better than could ever be produced by our will alone."_
->
-> _What made this year's growth possible was embracing messiness as a feature, and doing our best to solve real problems emerging from that messiness while leaving room for systems and models to advance and adapt. The looseness created velocity, which I watched unfold in a flood of discussions, PRs, and issues._
->
-> _As someone who's merged hundreds of pull requests across MCP repos, I still feel like I'm barely keeping up with this velocity. I mean that in the most positive way. Better patterns and practices are emerging from the sheer volume of contributions and breadth of experience and expertise represented in the contributor community. As a random person from the Internet, I appreciate that pretty much anyone can bring something to the table. This includes standout maintainers like [Cliff Hall](https://github.com/cliffhall), who raises the bar for reviewing, testing, and giving feedback, and [Jonathan Hefner](https://github.com/jonathanhefner), who's done the same for documentation._
->
-> _As Darren Shepard [recently put it](https://x.com/ibuildthecloud/status/1988695148843389151):_
->
-> _'People think the value of MCP is the protocol. The value is getting people to agree and do something.'_
->
-> _MCP gives people a reason to coordinate and talk about the same thing. Helping to enable that coordination and discussion has been a lot of fun, and it keeps me coming back._"
->
-> ✦ **Ola Hungerford**, Principal Engineer, [Nordstrom](https://www.nordstrom.com/); MCP Maintainer and Community Lead
+{{< quote name="Ola Hungerford" title="Principal Engineer, [Nordstrom](https://www.nordstrom.com/); MCP Maintainer and Community Lead" >}}
+As a community moderator and maintainer, I keep coming back to something [Donella Meadows](https://donellameadows.org/archives/dancing-with-systems/) wrote: "Systems can't be controlled, but they can be designed and redesigned... We can listen to what the system tells us, and discover how its properties and our values can work together to bring forth something much better than could ever be produced by our will alone."
 
-> "_Watching the MCP community start small and grow up across the past year has been a joy to watch. No matter whether someone has been an independent contributor, member of a small startup, or a leader at a big enterprise: everyone has had and continues to have a voice and a role to play._
->
-> _I think this is largely due to how pragmatic and use-case oriented the MCP community has been from the get-go. There is a focus on not overcomplicating the specification, and not designing ahead of need. When that's the ethos driving decision-making, everyone's voice matters. The hobbyist that has something working in production might have a practical opinion to contribute, that the big tech engineer can pick up and confidently deploy to a large userbase. And vice-versa: big tech can foresee problems around critical issues like security and governance that the hobbyist might have missed designing for._
->
-> _That ethos has translated to community governance, too. There's no layers of bureaucracy: just a lightweight and still-distributed structure for making decisions that keep us all marching to the beat of the same drum. We are now **58 maintainers** supporting the **9 core/lead maintainers** in the MCP steering group, with **2,900+ contributors** in the MCP contributor community on Discord, and **100+ new contributors** joining every week. We're successfully maintaining long-running projects like the Registry, the Inspector, and a host of SDKs with that distributed group of leaders and contributors - and managed to collaborate through 17 (!) SEPs in about a quarter's worth of time._
->
-> _That doesn't even begin to touch on the thousands of MCP implementors or millions of MCP end-users. It's inspiring to see the often-competitive AI community rally around a foundational piece of infrastructure; I'm thankful for that willingness to collaborate and look forward to seeing where our second year takes us."_
->
-> ✦ **Tadas Antanavicius**, Co-Creator, [PulseMCP](https://www.pulsemcp.com/); MCP Maintainer and Community Lead
+What made this year's growth possible was embracing messiness as a feature, and doing our best to solve real problems emerging from that messiness while leaving room for systems and models to advance and adapt. The looseness created velocity, which I watched unfold in a flood of discussions, PRs, and issues.
+
+As someone who's merged hundreds of pull requests across MCP repos, I still feel like I'm barely keeping up with this velocity. I mean that in the most positive way. Better patterns and practices are emerging from the sheer volume of contributions and breadth of experience and expertise represented in the contributor community. As a random person from the Internet, I appreciate that pretty much anyone can bring something to the table. This includes standout maintainers like [Cliff Hall](https://github.com/cliffhall), who raises the bar for reviewing, testing, and giving feedback, and [Jonathan Hefner](https://github.com/jonathanhefner), who's done the same for documentation.
+
+As Darren Shepard [recently put it](https://x.com/ibuildthecloud/status/1988695148843389151):
+
+'People think the value of MCP is the protocol. The value is getting people to agree and do something.'
+
+MCP gives people a reason to coordinate and talk about the same thing. Helping to enable that coordination and discussion has been a lot of fun, and it keeps me coming back.
+{{< /quote >}}
+
+{{< quote name="Tadas Antanavicius" title="Co-Creator, [PulseMCP](https://www.pulsemcp.com/); MCP Maintainer and Community Lead" >}}
+Watching the MCP community start small and grow up across the past year has been a joy to watch. No matter whether someone has been an independent contributor, member of a small startup, or a leader at a big enterprise: everyone has had and continues to have a voice and a role to play.
+
+I think this is largely due to how pragmatic and use-case oriented the MCP community has been from the get-go. There is a focus on not overcomplicating the specification, and not designing ahead of need. When that's the ethos driving decision-making, everyone's voice matters. The hobbyist that has something working in production might have a practical opinion to contribute, that the big tech engineer can pick up and confidently deploy to a large userbase. And vice-versa: big tech can foresee problems around critical issues like security and governance that the hobbyist might have missed designing for.
+
+That ethos has translated to community governance, too. There's no layers of bureaucracy: just a lightweight and still-distributed structure for making decisions that keep us all marching to the beat of the same drum. We are now **58 maintainers** supporting the **9 core/lead maintainers** in the MCP steering group, with **2,900+ contributors** in the MCP contributor community on Discord, and **100+ new contributors** joining every week. We're successfully maintaining long-running projects like the Registry, the Inspector, and a host of SDKs with that distributed group of leaders and contributors - and managed to collaborate through 17 (!) SEPs in about a quarter's worth of time.
+
+That doesn't even begin to touch on the thousands of MCP implementors or millions of MCP end-users. It's inspiring to see the often-competitive AI community rally around a foundational piece of infrastructure; I'm thankful for that willingness to collaborate and look forward to seeing where our second year takes us.
+{{< /quote >}}
 
 We are immensely grateful for our partners and community for helping us bring the protocol to where it is today. Let's now jump into the latest big release - the `2025-11-25` version of the MCP specification.
 

@@ -59,8 +59,8 @@ describe('PingHandler', () => {
       expect(mockGitHubClient.removeLabel).not.toHaveBeenCalled();
     });
 
-    it('should allow dormant transition from proposal state', async () => {
-      const item = createMockSEPItem({ state: 'proposal' });
+    it('should allow dormant transition from in-review state', async () => {
+      const item = createMockSEPItem({ state: 'in-review' });
       const analysis: StaleAnalysis = {
         item,
         daysSinceActivity: 200,
@@ -74,7 +74,7 @@ describe('PingHandler', () => {
       const result = await handler.executePing(analysis, false);
 
       expect(result.success).toBe(true);
-      expect(mockGitHubClient.removeLabel).toHaveBeenCalledWith(123, 'proposal');
+      expect(mockGitHubClient.removeLabel).toHaveBeenCalledWith(123, 'in-review');
       expect(mockGitHubClient.addLabels).toHaveBeenCalledWith(123, ['dormant']);
       expect(mockGitHubClient.closeIssue).toHaveBeenCalledWith(123);
     });
@@ -100,7 +100,7 @@ describe('PingHandler', () => {
     });
 
     it('should remove old label before adding dormant (correct order)', async () => {
-      const item = createMockSEPItem({ state: 'proposal' });
+      const item = createMockSEPItem({ state: 'draft' });
       const analysis: StaleAnalysis = {
         item,
         daysSinceActivity: 200,
@@ -127,7 +127,7 @@ describe('PingHandler', () => {
     });
 
     it('should skip validation in dry-run but still log correctly', async () => {
-      const item = createMockSEPItem({ state: 'proposal' });
+      const item = createMockSEPItem({ state: 'draft' });
       const analysis: StaleAnalysis = {
         item,
         daysSinceActivity: 200,
@@ -151,8 +151,8 @@ describe('PingHandler', () => {
   });
 
   describe('ping actions', () => {
-    it('should ping author for stale proposal', async () => {
-      const item = createMockSEPItem({ state: 'proposal' });
+    it('should check in with the author and assignees for a stale draft', async () => {
+      const item = createMockSEPItem({ state: 'draft' });
       const analysis: StaleAnalysis = {
         item,
         daysSinceActivity: 95,
@@ -168,10 +168,11 @@ describe('PingHandler', () => {
       expect(result.success).toBe(true);
       expect(mockGitHubClient.addComment).toHaveBeenCalled();
       const commentBody = mockGitHubClient.addComment.mock.calls[0]?.[1];
-      expect(commentBody).toContain('@test-author');
+      expect(commentBody).toContain('Hi @test-author, @maintainer1!');
     });
 
-    it('should ping sponsor for stale draft', async () => {
+    it('should not ask for a sponsor when no assignee is a core maintainer', async () => {
+      mockMaintainerResolver.getSponsor.mockResolvedValue(null);
       const item = createMockSEPItem({ state: 'draft' });
       const analysis: StaleAnalysis = {
         item,
@@ -179,16 +180,17 @@ describe('PingHandler', () => {
         shouldPing: true,
         shouldMarkDormant: false,
         shouldClose: false,
-        pingTarget: 'sponsor',
+        pingTarget: 'author',
         reason: 'Test',
       };
 
       const result = await handler.executePing(analysis, false);
 
       expect(result.success).toBe(true);
-      expect(mockGitHubClient.addComment).toHaveBeenCalled();
+      expect(mockGitHubClient.addComment).toHaveBeenCalledTimes(1);
       const commentBody = mockGitHubClient.addComment.mock.calls[0]?.[1];
-      expect(commentBody).toContain('@sponsor1');
+      expect(commentBody).toContain('Draft Check-in');
+      expect(commentBody).not.toContain('Sponsor Needed');
     });
   });
 
