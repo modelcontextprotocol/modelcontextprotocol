@@ -1,11 +1,30 @@
-# SEP-0000: Promote Tasks into the Core Protocol
+---
+title: "SEP-3570: Promote Tasks into the Core Protocol"
+sidebarTitle: "SEP-3570: Promote Tasks into the Core Protocol"
+description: "Promote Tasks into the Core Protocol"
+---
 
-- **Status**: Draft
-- **Type**: Standards Track
-- **Created**: 2026-11-19
-- **Author(s)**: Sri Panyam (@panyam)
-- **Sponsor**: None
-- **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/{NUMBER}
+<div className="flex items-center gap-2 mb-4">
+  <Badge color="gray" shape="pill">
+    Draft
+  </Badge>
+  <Badge color="gray" shape="pill">
+    Standards Track
+  </Badge>
+</div>
+
+| Field         | Value                                                                           |
+| ------------- | ------------------------------------------------------------------------------- |
+| **SEP**       | 3570                                                                            |
+| **Title**     | Promote Tasks into the Core Protocol                                            |
+| **Status**    | Draft                                                                           |
+| **Type**      | Standards Track                                                                 |
+| **Created**   | 2026-11-19                                                                      |
+| **Author(s)** | Sri Panyam ([@panyam](https://github.com/panyam))                               |
+| **Sponsor**   | None                                                                            |
+| **PR**        | [#3570](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/3570) |
+
+---
 
 ## Abstract
 
@@ -466,7 +485,7 @@ D1 to D4 move names and keys, and they do not change the security model.
 This SEP changes observable protocol behavior, so [SEP-2484](./2484-conformance-tests-required-for-final-seps.md) applies. Before Final, the [conformance repository](https://github.com/modelcontextprotocol/conformance) needs three things:
 
 1. A scenario tagged with this SEP's number, targeting the draft spec version for R.
-2. A traceability file, `sep-NNNN.yaml`, with a row for every **MUST**, **MUST NOT**, **SHOULD** and **SHOULD NOT** in this SEP's Specification section.
+2. A traceability file, `sep-3570.yaml`, with a row for every **MUST**, **MUST NOT**, **SHOULD** and **SHOULD NOT** in this SEP's Specification section.
 3. A passing run of the scenario against the reference implementation.
 
 ### Starting point
@@ -475,7 +494,7 @@ The conformance repository already tests the extension. `src/scenarios/server/ta
 
 Core tasks keeps most of those requirements. This plan reuses the existing checks and adds checks only for the differences.
 
-- **Carried-over rules.** The existing scenarios run a second time with requests that declare R and `tasks`. Each carried-over requirement in `sep-NNNN.yaml` points to the same check ID as in `sep-2663.yaml`.
+- **Carried-over rules.** The existing scenarios run a second time with requests that declare R and `tasks`. Each carried-over requirement in `sep-3570.yaml` points to the same check ID as in `sep-2663.yaml`.
 - **Carried-over exclusions.** The 12 exclusions keep their reasons. Examples are task ID entropy, host trust models and client polling cadence, which are not observable on the wire.
 - **Earlier revisions.** The existing scenarios keep running with `2026-07-28` and the extension identifier. A pass shows that requests before R behave as before.
 
