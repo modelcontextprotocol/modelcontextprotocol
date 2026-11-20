@@ -41,11 +41,91 @@ Core tasks is the extension's `2026-07-28` revision, with the differences listed
 
 #### D1. Capability negotiation
 
-> TODO: how a client signals that it can handle `CreateTaskResult` under revision R, and how a server advertises task support. See Open Question 1.
+Under the extension, the client declares `io.modelcontextprotocol/tasks` under `extensions` in each request's `io.modelcontextprotocol/clientCapabilities`. The server lists the same identifier under `extensions` in its `server/discover` result. Under R, tasks becomes a core capability named `tasks`. The client still opts in on each request. The rules are otherwise unchanged.
+
+**Client.** A client that can handle a `CreateTaskResult` declares `tasks` in `io.modelcontextprotocol/clientCapabilities` on each request where it accepts one:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "tools/call",
+  "params": {
+    "name": "build_report",
+    "arguments": { "quarter": "Q3" },
+    "_meta": {
+      "io.modelcontextprotocol/protocolVersion": "R",
+      "io.modelcontextprotocol/clientCapabilities": {
+        "tasks": {}
+      }
+    }
+  }
+}
+```
+
+**Server.** A server that can return tasks SHOULD advertise `tasks` in its `server/discover` result:
+
+```json
+{
+  "capabilities": {
+    "tools": {},
+    "tasks": {}
+  }
+}
+```
+
+An empty object means support with no settings. Later revisions MAY define settings.
+
+**Rules.**
+
+- A server **MUST NOT** return a `CreateTaskResult` for a request that does not declare `tasks`.
+- If the server can serve such a request only by creating a task, it **MUST** return `MissingRequiredClientCapabilityError` (`-32021`) with `data.requiredCapabilities` set to `{ "tasks": {} }`.
+- A client that declares `tasks` **MUST** accept either the ordinary result or a `CreateTaskResult` for any task-augmented request.
+- `tasks/get`, `tasks/update`, `tasks/cancel` and a `subscriptions/listen` request that names `taskIds` **MUST** declare `tasks`. A server returns `-32021` for one that does not.
+
+> TODO: confirm the last rule against the extension text. The extension specifies `-32021` for `subscriptions/listen` without the declaration. Check what it specifies for `tasks/*`.
+
+The two diagrams show a declaring client and a non-declaring client.
+
+```mermaid
+sequenceDiagram
+    participant C as Client (declares tasks)
+    participant S as Server
+    C->>S: tools/call, clientCapabilities: { tasks: {} }
+    S-->>C: CreateTaskResult { resultType: "task", taskId, status: "working" }
+    loop every pollIntervalMs
+        C->>S: tasks/get { taskId }
+        S-->>C: DetailedTask { status: "working" }
+    end
+    C->>S: tasks/get { taskId }
+    S-->>C: DetailedTask { status: "completed", result: CallToolResult }
+```
+
+```mermaid
+sequenceDiagram
+    participant C as Client (no tasks)
+    participant S as Server
+    C->>S: tools/call, clientCapabilities: {}
+    alt server can answer synchronously
+        S-->>C: CallToolResult
+    else server can answer only with a task
+        S-->>C: error -32021, requiredCapabilities: { tasks: {} }
+    end
+```
 
 #### D2. Relationship to the `2025-11-25` tasks feature
 
-> TODO: the `2025-11-25` core specification defined a different feature under the same name. See Open Question 2.
+The `2025-11-25` revision defined an experimental feature named tasks. That feature advertised `capabilities.tasks` during `initialize`, with sub-keys such as `tasks.requests.tools.call`. It had a `task` request parameter, a blocking `tasks/result` and `tasks/list`. The `2026-07-28` revision removed it from core.
+
+Core tasks under R reuses the name `tasks` for the capability key and the `tasks/` method prefix. It does not reuse the `2025-11-25` semantics. The negotiated protocol version decides which definition applies:
+
+| Request declares | Capability location                                                  | Definition                             |
+| ---------------- | -------------------------------------------------------------------- | -------------------------------------- |
+| `2025-11-25`     | `capabilities.tasks` in `initialize`                                 | `2025-11-25` experimental tasks        |
+| `2026-07-28`     | `extensions["io.modelcontextprotocol/tasks"]`                        | Tasks extension, revision `2026-07-28` |
+| R or later       | `tasks` in per-request `clientCapabilities` and in `server/discover` | This SEP                               |
+
+> TODO: SEP-2596 lifecycle wording for the `2025-11-25` feature, and a note in `deprecated.mdx` or the changelog.
 
 #### D3. Reserved names and error codes
 
@@ -69,7 +149,40 @@ For a request that declares a revision earlier than R, the extension applies as 
 
 ## Rationale
 
-> TODO: why promote now; why promote from Beta rather than first go Stable; alternatives considered for D1 and D2.
+> TODO: why promote now; why promote from Beta rather than first go Stable.
+
+### D1: keep the client opt-in
+
+The alternative makes tasks mandatory. Every client that declares R would have to accept a `CreateTaskResult` for any task-augmented request. Clients would not declare tasks, and servers would not need to check.
+
+```mermaid
+sequenceDiagram
+    participant C as Minimal client (one-shot CLI)
+    participant S as Server
+    C->>S: tools/call (declares R, nothing else)
+    S-->>C: CreateTaskResult { taskId, status: "working" }
+    Note over C: The client must now poll tasks/get,<br/>handle input_required and tasks/update,<br/>and honor ttlMs, just to call one tool.
+```
+
+|                           | (a) Opt-in, as a core capability (proposed)                                                 | (b) Mandatory for R clients                                             |
+| ------------------------- | ------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| Minimal clients           | Unchanged. They omit `tasks` and get ordinary results or `-32021`.                          | Every R client must implement polling, `tasks/update` and cancellation. |
+| Server logic              | Checks one declaration per request. The extension already does this.                        | Never checks.                                                           |
+| Change from the extension | Moves the key out of `extensions`. Rules and errors stay the same.                          | Adds a new conformance requirement for every client.                    |
+| Consistency with core     | Matches elicitation and other client features under SEP-2575, which `-32021` already gates. | Tasks would be the only client-side feature without a declaration.      |
+| Partial adoption          | A client can declare tasks on some requests and not others.                                 | Not possible.                                                           |
+
+This SEP proposes (a). With (b), every client pays the cost of tasks. With (a), only clients that want tasks pay it, and the extension's rules carry over unchanged.
+
+### D2: reuse the `tasks` name
+
+The alternative chooses a fresh capability key so the `2025-11-25` key never gets a second meaning. This SEP reuses `tasks` for three reasons:
+
+- No current core revision defines `tasks`. The `2026-07-28` revision removed it.
+- The two keys never share a location. The `2025-11-25` key appears only in `initialize`. The R key appears only in per-request `clientCapabilities` and in `server/discover`. A `2025-11-25` server does not read either R location.
+- SEP-2663 already reused `tasks/get` and `tasks/cancel` with new shapes. The protocol version tells them apart.
+
+A fresh name would leave the core feature's name out of step with its methods, notifications and documentation, which all say "tasks".
 
 ## Backward Compatibility
 
@@ -91,8 +204,8 @@ Requests that declare a revision earlier than R see no change.
 
 ## Open Questions
 
-1. **Capability negotiation.** Under the extension, a client declares support per request in `_meta`. Under R, does a client still opt in, or must every R client handle `CreateTaskResult`? If a core `capabilities.tasks` key exists, its shape differs from the `2025-11-25` key of the same name.
-2. **The `2025-11-25` tasks feature.** That feature used a `task` request parameter, `tasks/result` and `tasks/list`. How does the specification tell the two features apart, in prose and in SEP-2596 lifecycle terms?
+1. **Capability negotiation.** Proposed in D1: the client opts in per request with a core `tasks` capability. Open for WG review.
+2. **The `2025-11-25` tasks feature.** Proposed in D2: reuse the `tasks` name. Still open: the SEP-2596 lifecycle wording for the `2025-11-25` feature.
 3. **Reserved names.** Do all extension reservations move into core unchanged?
 4. **Scope.** Does `tools/call` stay the only task-augmented request?
 5. **Open extension semantics.** Which of these does this SEP settle, and which does it defer? ext-tasks #24 (transitions missed across a `subscriptions/listen` reconnect), ext-tasks #37 (terminal status vs accepted work), and ext-tasks PR #26 (related task IDs in `_meta`).
