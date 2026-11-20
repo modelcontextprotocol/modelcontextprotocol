@@ -9,7 +9,7 @@ title: Sampling
   `2026-07-28`
   ([SEP-2577](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2577)).
   Under the [feature lifecycle policy](/community/feature-lifecycle), it remains
-  in the specification for at least twelve months after this revision's release
+  in the specification for at least twelve months after that revision's release
   before it becomes eligible for removal. New implementations **SHOULD NOT**
   adopt it; existing implementations **SHOULD** migrate to integrating directly
   with LLM provider APIs. See the [deprecated features
@@ -512,7 +512,7 @@ sequenceDiagram
     User-->>Client: Review and approve/modify
 
     Note over Server,Client: Replay Request with approved response
-    Client-->>Server: tools/call(id:3, Return approved response)
+    Client-->>Server: tools/call(id:2, Return approved response)
 ```
 
 ## Data Types
@@ -610,8 +610,8 @@ The client **MAY** modify or ignore this field without communicating this to the
 
 ### Context Inclusion
 
-The `includeContext` parameter specifies what context information the client is expected
-to include in its response:
+The `includeContext` parameter requests that the client attach context information to
+the prompt:
 
 - `"none"`: No additional context.
 - `"thisServer"`: Include context from the requesting server.

@@ -3,7 +3,7 @@ title: Authorization
 description: How the MCP Inspector performs OAuth, re-authorizes mid-session, and shares tokens between its clients
 ---
 
-Remote MCP servers usually require authorization. The Inspector implements the full [authorization](/specification/latest/basic/authorization) flow in all three clients, sharing the resulting tokens on disk so a login done once is usable everywhere.
+Remote MCP servers usually require authorization. The Inspector implements the full [authorization](/specification/draft/basic/authorization) flow in all three clients, sharing the resulting tokens on disk so a login done once is usable everywhere.
 
 ## The flow, end to end
 
@@ -17,16 +17,16 @@ Remote MCP servers usually require authorization. The Inspector implements the f
   <Step title="Discover the authorization server">
     The Inspector fetches the server's [protected-resource and
     authorization-server
-    metadata](/specification/latest/basic/authorization/authorization-server-discovery)
+    metadata](/specification/draft/basic/authorization/authorization-server-discovery)
     to learn the endpoints and the supported grants.
   </Step>
   <Step title="Register or identify the client">
     The Inspector identifies itself to the authorization server through
     whichever mechanism is configured: [dynamic client
-    registration](/specification/latest/basic/authorization/client-registration#dynamic-client-registration),
+    registration](/specification/draft/basic/authorization/client-registration#dynamic-client-registration),
     a pre-registered static client (`--client-id` / `--client-secret`), a
     [Client ID Metadata
-    Document](/specification/latest/basic/authorization/client-registration#client-id-metadata-documents)
+    Document](/specification/draft/basic/authorization/client-registration#client-id-metadata-documents)
     (`--client-metadata-url`), or an [enterprise-managed
     IdP](/extensions/auth/enterprise-managed-authorization).
   </Step>
