@@ -40,7 +40,7 @@ while maintaining simplicity:
   ([RFC8707](https://www.rfc-editor.org/rfc/rfc8707.html))
 - OAuth 2.0 Protected Resource Metadata ([RFC9728](https://datatracker.ietf.org/doc/html/rfc9728))
 - OAuth 2.0 Authorization Server Issuer Identification ([RFC9207](https://datatracker.ietf.org/doc/html/rfc9207))
-- OAuth Client ID Metadata Documents ([draft-ietf-oauth-client-id-metadata-document-00](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-client-id-metadata-document-00))
+- OAuth Client ID Metadata Documents ([draft-ietf-oauth-client-id-metadata-document-03](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-client-id-metadata-document-03))
 - [OpenID Connect Discovery 1.0](https://openid.net/specs/openid-connect-discovery-1_0.html)
 - OpenID Connect Dynamic Client Registration 1.0 ([OpenID Connect Registration](https://openid.net/specs/openid-connect-registration-1_0.html))
 
@@ -63,7 +63,7 @@ specifies how an MCP server indicates the location of its corresponding authoriz
    measures for both confidential and public clients.
 
 2. Authorization servers and MCP clients **SHOULD** support [OAuth Client ID Metadata Documents](/specification/draft/basic/authorization/client-registration#client-id-metadata-documents)
-   ([draft-ietf-oauth-client-id-metadata-document-00](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-client-id-metadata-document-00)).
+   ([draft-ietf-oauth-client-id-metadata-document-03](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-client-id-metadata-document-03)).
 
 3. Authorization servers and MCP clients **MAY** support the OAuth 2.0 Dynamic Client Registration
    Protocol ([RFC7591](https://datatracker.ietf.org/doc/html/rfc7591)). Note that
@@ -273,9 +273,29 @@ Note that authorization **MUST** be included in every HTTP request from client t
 Example request:
 
 ```http
-GET /mcp HTTP/1.1
+POST /mcp HTTP/1.1
 Host: mcp.example.com
 Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
+Content-Type: application/json
+Accept: application/json, text/event-stream
+MCP-Protocol-Version: 2026-07-28
+Mcp-Method: tools/list
+
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "tools/list",
+  "params": {
+    "_meta": {
+      "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+      "io.modelcontextprotocol/clientInfo": {
+        "name": "ExampleClient",
+        "version": "1.0.0"
+      },
+      "io.modelcontextprotocol/clientCapabilities": {}
+    }
+  }
+}
 ```
 
 ### Token Handling
@@ -286,7 +306,7 @@ MCP servers **MUST** validate that access tokens were issued specifically for th
 according to [RFC 8707 Section 2](https://www.rfc-editor.org/rfc/rfc8707.html#section-2).
 If validation fails, servers **MUST** respond according to
 [OAuth 2.1 Section 5.3](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-v2-1-13#section-5.3)
-error handling requirements. Invalid or expired tokens **MUST** receive a HTTP 401
+error handling requirements. Invalid or expired tokens **MUST** receive an HTTP 401
 response.
 
 MCP clients **MUST NOT** send tokens to the MCP server other than ones issued by the MCP server's authorization server.
@@ -396,7 +416,7 @@ The flow is as follows:
    [Scope Selection Strategy](#scope-selection-strategy) for
    initial scope selection guidance.
 3. **Initiate (re-)authorization** with the determined scope set
-4. **Retry the original request** with the new authorization no more than a few times and treat this as a permanent authorization failure
+4. **Retry the original request** with the new authorization no more than a few times. If it still fails, treat this as a permanent authorization failure
 
 Clients **SHOULD** implement retry limits and **SHOULD** track scope upgrade attempts to avoid
 repeated failures for the same resource and operation combination.

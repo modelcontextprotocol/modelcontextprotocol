@@ -1,0 +1,214 @@
+{{- /*
+  Returns the card that stands for a page where a link to it is shared (og:image): a 1200x630 PNG, made here
+  at build time. A post gets its own, with its title, date and authors. Every other page shares one that
+  carries the site's description.
+
+  The card is assets/og/base.png (the ground and the blog's name) with two things drawn on it.
+
+  1. The pattern in the lower right corner. Ten diagonal stripes, evenly spaced, run from the bottom edge up
+     to the right. Four wavy lines cross the field and cut the stripes they meet, and every cut leaves a gap
+     of the same size. A wave does not cut every stripe: it cuts a few neighbours, skips one or two and cuts
+     again, so some pieces run long and some are short. A few pieces are white, the rest are two greys. Where
+     the waves fall, which stripes they skip and which pieces are white all follow from the page's file name
+     (og/rand.html), so every post has a pattern of its own and keeps it from build to build.
+
+  2. The text. Hugo wraps text at the edge of the image it draws on, so the title is drawn on a transparent
+     strip as wide as the title may run and the strip is laid on the card.
+
+  Hugo cannot draw shapes. A piece of stripe is cut from a picture of one long stripe (assets/og/stripe-*.png,
+  one per tone): the left part of the picture gives the piece its lower end, the right part its upper end,
+  and the two are laid side by side. Positions are counted in whole pixels along the stripe, one right and
+  one up at a time, so the two parts meet exactly.
+
+  How the pictures and fonts in assets/og/ were made is in assets/og/README.md.
+*/ -}}
+{{- $page := . -}}
+{{- $isPost := and .IsPage (eq .Type "posts") -}}
+{{- $seed := "site" -}}
+{{- $name := "site" -}}
+{{- $title := site.Params.description -}}
+{{- if $isPost -}}
+  {{- $seed = .File.ContentBaseName -}}
+  {{- $name = .File.ContentBaseName | urlize -}}
+  {{- $title = .Title -}}
+{{- end -}}
+
+{{- /* The stripes: 68px apart along the bottom edge, 26px thick. $span is the reach of the stripe picture. */ -}}
+{{- $lanes := 10 -}}
+{{- $first := 1200 -}}
+{{- $step := 68 -}}
+{{- $span := 704 -}}
+{{- $side := add $span 28 -}}
+{{- /* From the centre of one piece's round end to the centre of the next piece's: a 46px gap. */ -}}
+{{- $gapBefore := 25 -}}
+{{- $gapAfter := 26 -}}
+{{- $shortest := 32 -}}
+
+{{- /* The waves. "a" is how far up the stripes a wave sits, the rest shape it. "on" says, stripe by stripe,
+       whether the wave cuts. */ -}}
+{{- $waves := slice -}}
+{{- range $k := seq 0 3 -}}
+  {{- $key := printf "%s/wave/%d" $seed $k -}}
+  {{- $on := slice -}}
+  {{- $cuts := lt (partial "og/rand.html" (print $key "/starts")) 0.7 -}}
+  {{- range $run := seq 0 9 -}}
+    {{- $r := partial "og/rand.html" (printf "%s/run/%d" $key $run) -}}
+    {{- $length := add 1 (int (mul $r (cond $cuts 4 2))) -}}
+    {{- range seq $length }}{{ $on = $on | append $cuts }}{{ end -}}
+    {{- $cuts = not $cuts -}}
+  {{- end -}}
+  {{- $waves = $waves | append (dict
+    "a" (add 110 (mul (add $k 0.15 (mul 0.7 (partial "og/rand.html" (print $key "/a")))) 195))
+    "amp" (add 40 (mul 70 (partial "og/rand.html" (print $key "/amp"))))
+    "phase" (mul 6.28 (partial "og/rand.html" (print $key "/phase")))
+    "freq" (add 0.4 (mul 0.3 (partial "og/rand.html" (print $key "/freq"))))
+    "on" $on) -}}
+{{- end -}}
+
+{{- /* The pieces. A place on stripe $i is counted in steps of one pixel right and one up from where the
+       stripe's centre line meets the bottom edge, so step $j is the point (x0 + j, 630 - j). The stripe
+       leaves the card at step $edge. */ -}}
+{{- $pieces := slice -}}
+{{- range $i := seq 0 (sub $lanes 1) -}}
+  {{- $x0 := sub (add $first (mul $i $step)) 630 -}}
+  {{- $edge := math.Min 630 (sub 1200 $x0) | int -}}
+  {{- $stops := slice -}}
+  {{- range $waves -}}
+    {{- if index .on $i -}}
+      {{- $s := add .a (mul .amp (math.Sin (add (mul $i .freq) .phase))) -}}
+      {{- $stops = $stops | append (int (math.Round (div $s 1.41421356))) -}}
+    {{- end -}}
+  {{- end -}}
+  {{- $from := -30 -}}
+  {{- $ends := slice -}}
+  {{- range sort $stops -}}
+    {{- $to := sub . $gapBefore -}}
+    {{- if or (lt (sub $to $from) $shortest) (gt (add . $gapAfter) (add $edge 20)) }}{{ continue }}{{ end -}}
+    {{- $ends = $ends | append (dict "from" $from "to" $to) -}}
+    {{- $from = add . $gapAfter -}}
+  {{- end -}}
+  {{- $ends = $ends | append (dict "from" $from "to" (math.Max (add $edge 30) (add $from $shortest) | int)) -}}
+  {{- range $n, $e := $ends -}}
+    {{- $from := $e.from -}}
+    {{- $to := $e.to -}}
+    {{- /* Pieces are ranked by $rank to hand out the tones. One that barely shows goes to the back. */ -}}
+    {{- $shows := sub (math.Min $to $edge) (math.Max $from 0) -}}
+    {{- $rank := partial "og/rand.html" (printf "%s/tone/%d/%d" $seed $i $n) -}}
+    {{- if lt $shows 60 }}{{ $rank = add $rank 1 }}{{ end -}}
+    {{- $pieces = $pieces | append (dict "x" (add $x0 $from) "y" (sub 630 $from) "length" (sub $to $from) "shows" (int $shows) "rank" $rank) -}}
+  {{- end -}}
+{{- end -}}
+
+{{- /* Tones go by rank. The first few pieces are white: at most five, and no more than 420 steps of stripe
+       between them, so that a card with long pieces is not mostly white. A third of the rest are the lighter
+       grey, the others the darker. */ -}}
+{{- $whiteLeft := 5 -}}
+{{- $whiteSteps := 420 -}}
+{{- $mid := div (len $pieces) 3 -}}
+{{- $filters := slice -}}
+{{- range sort $pieces "rank" -}}
+  {{- $tone := "low" -}}
+  {{- if and $whiteLeft (le .shows $whiteSteps) (lt .rank 1) -}}
+    {{- $tone = "ink" -}}
+    {{- $whiteLeft = sub $whiteLeft 1 -}}
+    {{- $whiteSteps = sub $whiteSteps .shows -}}
+  {{- else if $mid -}}
+    {{- $tone = "mid" -}}
+    {{- $mid = sub $mid 1 -}}
+  {{- end -}}
+  {{- $stripe := resources.Get (printf "og/stripe-%s.png" $tone) -}}
+  {{- /* The picture's lower end sits at (14, 14 + $span) in it, its upper end at (14 + $span, 14). */ -}}
+  {{- $width := add .length 28 -}}
+  {{- $left := div $width 2 -}}
+  {{- $right := sub $width $left -}}
+  {{- $x := sub .x 14 -}}
+  {{- $filters = $filters | append (images.Overlay ($stripe.Crop (printf "%dx%d BottomLeft" $left $side)) $x (sub .y 14 $span)) -}}
+  {{- $filters = $filters | append (images.Overlay ($stripe.Crop (printf "%dx%d TopRight" $right $side)) (add $x $left) (sub .y 14 .length)) -}}
+{{- end -}}
+
+{{- /* The title, top left under the blog's name. A long one is set smaller.
+
+       Hugo breaks a line only when it is full, which leaves a long title ending on a word or two. So the
+       lines are broken here instead, as evenly as they will go: the title's width is worked out from the
+       width of each character (assets/og/advances.json), the fewest lines that could hold it are counted, and
+       the line is made just long enough for the title to fit in that many. */ -}}
+{{- $semibold := resources.Get "og/Geist-latin-600-tight.otf" -}}
+{{- $medium := resources.Get "og/Geist-latin-500.otf" -}}
+{{- $regular := resources.Get "og/Geist-latin-400.otf" -}}
+{{- $metrics := resources.Get "og/advances.json" | transform.Unmarshal -}}
+{{- $size := 68 -}}
+{{- $lineHeight := 72 -}}
+{{- if gt (strings.RuneCount $title) 48 }}{{ $size = 50 }}{{ $lineHeight = 54 }}{{ end -}}
+{{- if gt (strings.RuneCount $title) 90 }}{{ $size = 42 }}{{ $lineHeight = 46 }}{{ end -}}
+{{- $measure := 640.0 -}}
+{{- $em := div (float $size) $metrics.unitsPerEm -}}
+{{- $space := mul $em (index $metrics.advances " ") -}}
+{{- $words := slice -}}
+{{- $total := 0.0 -}}
+{{- range split (replaceRE `\s+` " " (trim $title " ")) " " -}}
+  {{- $width := 0.0 -}}
+  {{- range split . "" }}{{ $width = add $width (mul $em (index $metrics.advances . | default 600)) }}{{ end -}}
+  {{- $words = $words | append (dict "text" . "width" $width) -}}
+  {{- $total = add $total $width $space -}}
+{{- end -}}
+{{- $total = sub $total $space -}}
+{{- $fewest := int (math.Ceil (div $total $measure)) -}}
+{{- $lines := slice -}}
+{{- $done := false -}}
+{{- /* Words do not pack perfectly, so the fewest lines may not hold it. Then one more is allowed. */ -}}
+{{- range $count := seq $fewest (add $fewest 3) -}}
+  {{- range $try := seq 0 80 -}}
+    {{- $limit := add (div $total $count) (mul $try 6) -}}
+    {{- if gt $limit $measure }}{{ break }}{{ end -}}
+    {{- $lines = slice -}}
+    {{- $line := "" -}}
+    {{- $width := 0.0 -}}
+    {{- range $words -}}
+      {{- if not $line -}}
+        {{- $line = .text }}{{ $width = .width -}}
+      {{- else if le (add $width $space .width) $limit -}}
+        {{- $line = print $line " " .text }}{{ $width = add $width $space .width -}}
+      {{- else -}}
+        {{- $lines = $lines | append $line -}}
+        {{- $line = .text }}{{ $width = .width -}}
+      {{- end -}}
+    {{- end -}}
+    {{- $lines = $lines | append $line -}}
+    {{- if le (len $lines) $count }}{{ $done = true }}{{ break }}{{ end -}}
+  {{- end -}}
+  {{- if $done }}{{ break }}{{ end -}}
+{{- end -}}
+{{- /* A last line of one word takes the word before it for company, if the line above can spare it. */ -}}
+{{- if ge (len $lines) 2 -}}
+  {{- $last := index $lines (sub (len $lines) 1) -}}
+  {{- $above := split (index $lines (sub (len $lines) 2)) " " -}}
+  {{- if and (not (in $last " ")) (ge (len $above) 3) -}}
+    {{- $lines = first (sub (len $lines) 2) $lines | append (delimit (first (sub (len $above) 1) $above) " ") (print (index (last 1 $above) 0) " " $last) -}}
+  {{- end -}}
+{{- end -}}
+{{- /* Each line is drawn by itself, so the distance between lines is ours and not the font's. */ -}}
+{{- $blank := resources.Get "og/blank.png" -}}
+{{- range $n, $line := $lines -}}
+  {{- $strip := ($blank.Crop (printf "760x%d TopLeft" (add $lineHeight 24))).Filter (images.Text $line (dict
+    "font" $semibold "size" $size "color" "#fafafa" "x" 0 "y" 0)) -}}
+  {{- $filters = $filters | append (images.Overlay $strip 80 (add 138 (mul $n $lineHeight))) -}}
+{{- end -}}
+
+{{- /* Under it, at the bottom: the date, and beside it the authors, one to a line. */ -}}
+{{- if $isPost -}}
+  {{- $names := slice -}}
+  {{- range partial "authors.html" . }}{{ $names = $names | append .name }}{{ end -}}
+  {{- if gt (len $names) 4 -}}
+    {{- $names = first 3 $names | append (printf "and %d more" (sub (len $names) 3)) -}}
+  {{- end -}}
+  {{- $top := sub 558 (mul 40 (math.Max 1 (len $names))) | int -}}
+  {{- $filters = $filters | append (images.Text (.Date.Format "Jan 2, 2006") (dict
+    "font" $regular "size" 30 "color" "#a1a1aa" "x" 80 "y" $top)) -}}
+  {{- range $n, $author := $names -}}
+    {{- $filters = $filters | append (images.Text $author (dict
+      "font" $medium "size" 30 "color" "#d4d4d8" "x" 304 "y" (add $top (mul 40 $n)))) -}}
+  {{- end -}}
+{{- end -}}
+
+{{- $card := (resources.Get "og/base.png").Filter $filters -}}
+{{- return resources.Copy (printf "og/%s.png" $name) $card -}}

@@ -1,17 +1,3 @@
-{{- /*
-  Override of PaperMod's templates/schema_json.html.
-
-  PaperMod's BreadcrumbList builds the trail by string-manipulating
-  permalinks: `replace .Parent.Permalink site.Home.Permalink "" | split "/"`.
-  With --baseURL "/" (CI preview mode) that yields a 1-element list instead
-  of 2, which breaks the comma logic (`ge (len $bc_list) 2`) and the
-  position counter — producing `} {` with no comma and two items both at
-  position 1. Hugo's --minify catches this as a JSON parse error.
-
-  This override uses `.Ancestors.Reverse` (stable regardless of baseURL) and
-  dict+jsonify (escapes correctly, no hand-assembled JSON). The homepage and
-  BlogPosting blocks are carried over unchanged.
-*/ -}}
 
 {{ if .IsHome }}
 <script type="application/ld+json">
@@ -40,8 +26,11 @@
 {{- $crumbs := slice -}}
 {{- $pos := 0 -}}
 {{- range .Ancestors.Reverse -}}
+  {{- /* Skip ancestors that only redirect (the posts section). */ -}}
+  {{- if not .Params.redirectTo -}}
   {{- $pos = add $pos 1 -}}
   {{- $crumbs = $crumbs | append (dict "@type" "ListItem" "position" $pos "name" .Title "item" .Permalink) -}}
+  {{- end -}}
 {{- end -}}
 {{- $pos = add $pos 1 -}}
 {{- $crumbs = $crumbs | append (dict "@type" "ListItem" "position" $pos "name" .Title "item" .Permalink) -}}
@@ -74,29 +63,22 @@
     {{ (path.Join .RelPermalink .Params.cover.image ) | absURL }},
     {{- end}}
   {{- else }}
-    {{- $images := partial "templates/_funcs/get-page-images" . -}}
+    {{- $images := partial "page_images.html" . -}}
     {{- with index $images 0 -}}
   "image": {{ .Permalink }},
     {{- end }}
   {{- end -}}
   "datePublished": {{ .PublishDate }},
   "dateModified": {{ .Lastmod }},
-  {{- with (.Params.author | default site.Params.author) }}
+  {{- with (partial "authors.html" .) }}
   "author":
-    {{- if (or (eq (printf "%T" .) "[]string") (eq (printf "%T" .) "[]interface {}")) -}}
   [{{- range $i, $v := . -}}
   {{- if $i }}, {{end -}}
   {
     "@type": "Person",
-    "name": {{ $v }}
+    "name": {{ $v.name }}
   }
   {{- end }}],
-    {{- else -}}
-  {
-    "@type": "Person",
-    "name": {{ . }}
-  },
-    {{- end -}}
   {{- end }}
   "mainEntityOfPage": {
     "@type": "WebPage",

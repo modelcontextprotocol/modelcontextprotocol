@@ -112,7 +112,13 @@ To support Enterprise-Managed Authorization, your client must:
 
 2. **Support SSO** — users should authenticate to the MCP Client using the enterprise IdP. Save the Identity Assertion (either an OpenID ID Token or SAML assertion) issued during login for later use.
 
-3. **Handle ID-JAGs** — when the server indicates that enterprise-managed auth is required, request an ID-JAG token from the enterprise IdP's authorization endpoint using the previously obtained Identity Assertion. Exchange this ID-JAG for an access token from the MCP Authorization Server. Do not redirect the user to the MCP Authorization Server's authorization endpoint.
+3. **Handle ID-JAGs** — when the server indicates that enterprise-managed auth is required, request an ID-JAG from the enterprise IdP's token endpoint using the previously obtained Identity Assertion. This is a Token Exchange ([RFC 8693](https://datatracker.ietf.org/doc/html/rfc8693)) request with these parameters:
+   - `requested_token_type`: `urn:ietf:params:oauth:token-type:id-jag`
+   - `subject_token` and `subject_token_type`: the Identity Assertion and its type. SAML clients can instead exchange the assertion for a Refresh Token and send that.
+   - `audience`: the issuer identifier of the MCP Authorization Server
+   - `resource`: the resource identifier of the MCP Server. This parameter is optional. If it is included, the access token issued for the ID-JAG is audience-restricted to that MCP Server. If it is omitted, the behavior depends on the authorization server. For example, the authorization server can use a default resource or reject the request with an [`invalid_target`](https://datatracker.ietf.org/doc/html/rfc8707#section-2) error.
+
+   Exchange this ID-JAG for an access token from the MCP Authorization Server's token endpoint, using the `urn:ietf:params:oauth:grant-type:jwt-bearer` grant. Do not redirect the user to the MCP Authorization Server's authorization endpoint.
 
 4. **Support organization configuration** — allow administrators to configure the enterprise IdP's endpoints, typically via organization-level settings rather than per-user settings.
 

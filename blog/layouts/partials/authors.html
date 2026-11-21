@@ -1,0 +1,37 @@
+{{- /*
+  Returns a page's authors as a slice of maps with "name" and "role". It
+  returns data, not markup, because the two callers show it differently: the
+  post list (post_list.html) prints names only, the byline (post_meta.html)
+  sets each role under its name.
+
+  Front matter writes an author as "Koichi Ito (Ruby SDK Maintainer)". The
+  role is optional. Authors come either as a list or as one comma-separated
+  string.
+
+  A list item is one author and is never split, so "Jane Doe, PhD (Acme)" is
+  safe. Only a plain string is split, one "Name (Role)" at a time, so a comma
+  inside the brackets does not start a new author. The role is what the last
+  pair of brackets holds. It may itself contain one level of brackets, as in
+  "Ana Li (Core (Lead) Maintainer)". Empty items are skipped.
+*/ -}}
+{{- $raw := .Params.author | default site.Params.author }}
+{{- $brackets := `\((?:[^()]|\([^()]*\))*\)` }}
+{{- $items := slice }}
+{{- if reflect.IsSlice $raw }}
+  {{- $items = $raw }}
+{{- else if $raw }}
+  {{- $items = findRE (printf `[^,(]+(?:%s)?` $brackets) $raw }}
+{{- end }}
+{{- $authors := slice }}
+{{- range $items }}
+  {{- $item := printf "%v" . }}
+  {{- $name := trim (replaceRE (printf `%s\s*$` $brackets) "" $item) " " }}
+  {{- $role := "" }}
+  {{- with findRE (printf `%s\s*$` $brackets) $item 1 }}
+    {{- $role = trim (replaceRE `^\(|\)\s*$` "" (index . 0)) " " }}
+  {{- end }}
+  {{- if $name }}
+    {{- $authors = $authors | append (dict "name" $name "role" $role) }}
+  {{- end }}
+{{- end }}
+{{- return $authors }}

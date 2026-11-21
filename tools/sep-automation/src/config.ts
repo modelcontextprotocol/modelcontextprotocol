@@ -20,8 +20,6 @@ export interface Config {
   targetRepo: string;
   maintainersTeam: string;
   // Timing thresholds
-  proposalPingDays: number;
-  proposalDormantDays: number;
   draftPingDays: number;
   acceptedPingDays: number;
   maintainerInactivityDays: number;
@@ -60,7 +58,6 @@ function getEnvBoolean(key: string, defaultValue: boolean): boolean {
 }
 
 // Extract defaults from rules
-const proposalRule = STALENESS_RULES.find(r => r.state === 'proposal');
 const draftRule = STALENESS_RULES.find(r => r.state === 'draft');
 const acceptedRule = STALENESS_RULES.find(r => r.state === 'accepted');
 
@@ -83,8 +80,6 @@ export function loadConfig(): Config {
     targetOwner: getEnvOrDefault('TARGET_OWNER', 'modelcontextprotocol'),
     targetRepo: getEnvOrDefault('TARGET_REPO', 'modelcontextprotocol'),
     maintainersTeam: getEnvOrDefault('MAINTAINERS_TEAM', 'core-maintainers'),
-    proposalPingDays: getEnvNumber('PROPOSAL_PING_DAYS', proposalRule?.pingAfterDays ?? 90),
-    proposalDormantDays: getEnvNumber('PROPOSAL_DORMANT_DAYS', proposalRule?.dormantAfterDays ?? 180),
     draftPingDays: getEnvNumber('DRAFT_PING_DAYS', draftRule?.pingAfterDays ?? 90),
     acceptedPingDays: getEnvNumber('ACCEPTED_PING_DAYS', acceptedRule?.pingAfterDays ?? 30),
     maintainerInactivityDays: getEnvNumber('MAINTAINER_INACTIVITY_DAYS', MAINTAINER_INACTIVITY_DAYS),

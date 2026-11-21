@@ -21,7 +21,17 @@ The Model Context Protocol was created by David Soria Parra ([@dsp](https://gith
 
 ## Contributing
 
-See [CONTRIBUTING.md](./CONTRIBUTING.md).
+Contributions are made through [working groups](https://modelcontextprotocol.io/community/working-interest-groups)
+and issues:
+
+- **Changes to the specification** are discussed and approved in the relevant working group
+  before a pull request or [SEP](https://modelcontextprotocol.io/community/sep-guidelines) is opened.
+- **Pull requests** may only be opened by members of the `modelcontextprotocol` GitHub organization.
+- **Everyone else** can report bugs and problems by
+  [opening an issue](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/new/choose)
+  or get involved by joining a working group.
+
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 ## License
 

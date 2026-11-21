@@ -1,0 +1,13 @@
+# Label of the table of contents at the top of a post.
+- id: toc
+  translation: "On this page"
+
+- id: code_copy
+  translation: "copy"
+
+- id: code_copied
+  translation: "copied!"
+
+- id: words
+  one: "{{ .Count }} word"
+  other: "{{ .Count }} words"

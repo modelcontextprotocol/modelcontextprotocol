@@ -83,6 +83,7 @@
                       "docs/2026-07-28/tools/inspector/cli",
                       "docs/2026-07-28/tools/inspector/tui",
                       "docs/2026-07-28/tools/inspector/mcpdo",
+                      "docs/2026-07-28/tools/inspector/load-testing",
                       "docs/2026-07-28/tools/inspector/configuration",
                       "docs/2026-07-28/tools/inspector/authorization",
                       "docs/2026-07-28/tools/inspector/protocol-eras",
@@ -384,6 +385,7 @@
                       "docs/draft/tools/inspector/cli",
                       "docs/draft/tools/inspector/tui",
                       "docs/draft/tools/inspector/mcpdo",
+                      "docs/draft/tools/inspector/load-testing",
                       "docs/draft/tools/inspector/configuration",
                       "docs/draft/tools/inspector/authorization",
                       "docs/draft/tools/inspector/protocol-eras",
@@ -783,6 +785,12 @@
             "pages": [
               "extensions/skills/overview"
             ]
+          },
+          {
+            "group": "Events",
+            "pages": [
+              "extensions/events/overview"
+            ]
           }
         ]
       },
@@ -862,7 +870,8 @@
               "seps/2596-spec-feature-lifecycle-and-deprecation",
               "seps/2640-skills-extension",
               "seps/2663-tasks-extension",
-              "seps/3392-extension-lifecycle"
+              "seps/3392-extension-lifecycle",
+              "seps/3415-events-extension"
             ]
           },
           {
@@ -883,20 +892,17 @@
         "tab": "Community",
         "pages": [
           {
-            "group": "Get Involved",
+            "group": "Contributing",
             "pages": [
               "community/contributing",
-              "community/communication",
-              "community/working-interest-groups",
-              "community/charter-template"
+              "community/sep-guidelines",
+              "community/design-principles"
             ]
           },
           {
-            "group": "Shaping the Protocol",
+            "group": "Roadmap",
             "pages": [
-              "development/roadmap",
-              "community/design-principles",
-              "community/sep-guidelines"
+              "development/roadmap"
             ]
           },
           {
@@ -904,41 +910,50 @@
             "pages": [
               "community/governance",
               "community/contributor-ladder",
+              "community/working-interest-groups",
+              "community/charter-template",
+              {
+                "group": "Working Groups",
+                "pages": [
+                  "community/working-groups/overview",
+                  "community/working-groups/apps",
+                  "community/working-groups/file-uploads",
+                  "community/working-groups/filesystems",
+                  "community/working-groups/governance",
+                  "community/working-groups/infrastructure",
+                  "community/working-groups/inspector-v2",
+                  "community/working-groups/interceptors",
+                  "community/working-groups/progressive-disclosure",
+                  "community/working-groups/registry",
+                  "community/working-groups/sdk",
+                  "community/working-groups/server-card",
+                  "community/working-groups/skills-over-mcp",
+                  "community/working-groups/tasks-events",
+                  "community/working-groups/transports"
+                ]
+              },
+              {
+                "group": "Interest Groups",
+                "pages": [
+                  "community/interest-groups/agents",
+                  "community/interest-groups/auth",
+                  "community/interest-groups/enterprise",
+                  "community/interest-groups/financial-services",
+                  "community/interest-groups/scientific-computing",
+                  "community/interest-groups/security",
+                  "community/interest-groups/tool-annotations"
+                ]
+              }
+            ]
+          },
+          {
+            "group": "Policies",
+            "pages": [
+              "community/policies",
+              "community/communication",
               "community/feature-lifecycle",
               "community/sdk-tiers",
-              "community/security",
               "community/antitrust"
-            ]
-          },
-          {
-            "group": "Working Group Charters",
-            "pages": [
-              "community/working-groups/file-uploads",
-              "community/working-groups/filesystems",
-              "community/working-groups/governance",
-              "community/working-groups/infrastructure",
-              "community/working-groups/inspector-v2",
-              "community/working-groups/interceptors",
-              "community/working-groups/progressive-disclosure",
-              "community/working-groups/registry",
-              "community/working-groups/sdk",
-              "community/working-groups/server-card",
-              "community/working-groups/skills-over-mcp",
-              "community/working-groups/tasks-events",
-              "community/working-groups/transports"
-            ]
-          },
-          {
-            "group": "Interest Group Charters",
-            "pages": [
-              "community/interest-groups/agents",
-              "community/interest-groups/auth",
-              "community/interest-groups/enterprise",
-              "community/interest-groups/enterprise-managed-authorization",
-              "community/interest-groups/financial-services",
-              "community/interest-groups/scientific-computing",
-              "community/interest-groups/security",
-              "community/interest-groups/tool-annotations"
             ]
           }
         ]
@@ -985,6 +1000,10 @@
     {
       "source": "/community/working-groups/agents",
       "destination": "/community/interest-groups/agents"
+    },
+    {
+      "source": "/community/security",
+      "destination": "/community/policies"
     },
     {
       "source": "/community/file-uploads/charter",
@@ -1467,6 +1486,10 @@
     {
       "source": "/seps/3398",
       "destination": "/seps/3398-release-cycle-updates"
+    },
+    {
+      "source": "/seps/3415",
+      "destination": "/seps/3415-events-extension"
     }
   ],
   "contextual": {

@@ -2,6 +2,23 @@
 
 Thank you for helping keep the Model Context Protocol and its ecosystem secure.
 
+## EU Cyber Resilience Act (CRA) Stewardship
+
+The Model Context Protocol project publishes software, including the official SDKs, that is
+ultimately intended for commercial activities.
+
+CRA stewardship: This project is supported under the Linux Foundation CRA stewardship
+framework, as described at https://www.linuxfoundation.org/security.
+
+Security vulnerabilities should be reported through the mechanisms described below, which we
+will coordinate with our CRA steward. For actively exploited vulnerabilities and severe
+incidents that may require CRA escalation, please use the project's emergency security
+reporting mechanisms as appropriate.
+
+See the Linux Foundation's
+[CRA guidance for open source projects](https://bestpractices.linuxfoundation.org/regulatory/cra/index.html)
+for more on what the CRA asks of projects like this one.
+
 ## Reporting Security Issues
 
 If you discover a security vulnerability in this repository, please report it through
@@ -10,6 +27,12 @@ for this repository.
 
 Please **do not** report security vulnerabilities through public GitHub issues, discussions,
 or pull requests.
+
+GitHub Security Advisories are also the project's emergency security reporting mechanism.
+Report actively exploited vulnerabilities and severe incidents through a GitHub Security
+Advisory on the affected repository.
+State at the start of the report that the vulnerability is being actively exploited or that
+an incident is under way.
 
 ## What to Include
 
@@ -219,3 +242,25 @@ When evaluating whether to report a potential security issue:
    trust boundaries.
 4. **Provide context.** If you believe you have found a genuine vulnerability,
    explain how it violates the intended security boundaries.
+
+## CRA Escalation for Maintainers
+
+If you are a maintainer and you learn of an actively exploited vulnerability or a severe
+incident, such as a compromise of the release process, notify a Core Maintainer or Lead
+Maintainer immediately in `#security-disclosures` on the
+[MCP Contributor Discord](https://discord.gg/6CSzBmMkjX). Notify them while you fix the
+problem, never instead of fixing it.
+
+The Core Maintainer or Lead Maintainer you notify contacts the Linux Foundation CRA steward at
+steward@linuxfoundation.org and works with the steward from then on, so the project speaks to
+the steward with one voice. Do not contact the steward yourself. The CRA sets short deadlines
+for the steward's reports, starting with an early warning within 24 hours and a fuller
+notification within 72 hours, so a delay at any step leaves the steward less time.
+
+A vulnerability with no evidence of exploitation is not a CRA escalation event. Handle it
+through the normal advisory process.
+
+Record in the advisory, if there is one, when the project first learned of the problem and
+when the steward was notified.
+
+Reporters must use GitHub Security Advisories, not the steward address.

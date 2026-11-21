@@ -3,7 +3,7 @@
  */
 
 /** SEP states as represented by labels */
-export type SEPState = 'proposal' | 'draft' | 'in-review' | 'accepted' | 'final' | 'dormant';
+export type SEPState = 'draft' | 'in-review' | 'accepted' | 'final' | 'dormant';
 
 /** SEP state including 'none' for items without a state */
 export type SEPStateOrNone = SEPState | 'none';
@@ -34,7 +34,7 @@ export interface StaleAnalysis {
   readonly shouldPing: boolean;
   readonly shouldMarkDormant: boolean;
   readonly shouldClose: boolean;
-  readonly pingTarget: 'author' | 'sponsor' | 'maintainer' | null;
+  readonly pingTarget: 'author' | 'maintainer' | null;
   readonly reason: string | null;
 }
 
@@ -42,9 +42,7 @@ export interface StaleAnalysis {
 export enum ActionType {
   Transition = 'transition',
   PingAuthor = 'ping-author',
-  PingSponsor = 'ping-sponsor',
   PingMaintainer = 'ping-maintainer',
-  NeedsSponsor = 'needs-sponsor',
   MarkDormant = 'mark-dormant',
   Close = 'close',
 }
