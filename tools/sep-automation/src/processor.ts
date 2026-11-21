@@ -5,6 +5,7 @@
 import type { Logger } from "pino";
 import type { Config } from "./config.js";
 import type { SEPAnalyzer } from "./sep/analyzer.js";
+import { SEP_LABEL, WG_SUPPORT_NEEDED_LABEL } from "./sep/detector.js";
 import type { MaintainerResolver } from "./maintainers/resolver.js";
 import type { TransitionHandler } from "./actions/transition.js";
 import type { PingHandler } from "./actions/ping.js";
@@ -15,6 +16,14 @@ import {
   type SEPState,
   type StaleAnalysis,
 } from "./types.js";
+
+/**
+ * Labels that put a pull request under the inactivity rule. A pull request the
+ * detector matched only because its title contains "SEP" is left alone.
+ */
+const INACTIVITY_LABELS = [SEP_LABEL, WG_SUPPORT_NEEDED_LABEL].map((label) =>
+  label.toLowerCase(),
+);
 
 /** Summary data collected during processing */
 export interface SummaryData {
@@ -30,7 +39,8 @@ export interface SummaryData {
     targetUser: string;
     daysSinceActivity: number;
   }>;
-  dormant: Array<{
+  /** SEP pull requests warned or closed by the inactivity rule */
+  inactive: Array<{
     item: SEPItem;
     daysSinceActivity: number;
     wasClosed: boolean;
@@ -64,7 +74,7 @@ export class SEPProcessor {
     const summaryData: SummaryData = {
       transitions: [],
       pings: [],
-      dormant: [],
+      inactive: [],
     };
 
     this.logger.debug(
@@ -75,6 +85,39 @@ export class SEPProcessor {
     // Skip closed SEPs
     if (sep.isClosed) {
       this.logger.debug({ number: sep.number }, "Skipping closed SEP");
+      return { results, summaryData };
+    }
+
+    // Inactivity rule: every open pull request with the SEP or wg-support-needed
+    // label, draft or ready for review
+    if (
+      sep.type === "pr" &&
+      sep.labels.some((label) => INACTIVITY_LABELS.includes(label.toLowerCase()))
+    ) {
+      const inactivity = await this.analyzer.analyzeInactivity(sep);
+      if (inactivity.action) {
+        const result = await this.pingHandler.handleInactivity(
+          sep,
+          inactivity.action,
+          inactivity.daysSinceProgress,
+          this.config.dryRun,
+        );
+        results.push(result);
+        if (result.success) {
+          summaryData.inactive.push({
+            item: sep,
+            daysSinceActivity: inactivity.daysSinceProgress,
+            wasClosed: inactivity.action === "close",
+          });
+        }
+        // One comment per run: skip the status-based pings below
+        return { results, summaryData };
+      }
+    }
+
+    // A draft pull request has no SEP status yet, whatever its labels say.
+    // Only the inactivity rule applies to it.
+    if (sep.isDraft) {
       return { results, summaryData };
     }
 
@@ -195,7 +238,7 @@ export class SEPProcessor {
 
     switch (result.action.type) {
       case ActionType.MarkDormant:
-        summary.dormant.push({
+        summary.inactive.push({
           item: sep,
           daysSinceActivity: analysis.daysSinceActivity,
           wasClosed: analysis.shouldClose,

@@ -8,6 +8,8 @@ import {
   STALENESS_RULES,
   MAINTAINER_INACTIVITY_DAYS,
   PING_COOLDOWN_DAYS,
+  INACTIVITY_WARNING_DAYS,
+  INACTIVITY_CLOSE_DAYS,
 } from './rules.js';
 
 export interface Config {
@@ -24,6 +26,8 @@ export interface Config {
   acceptedPingDays: number;
   maintainerInactivityDays: number;
   pingCooldownDays: number;
+  inactivityWarningDays: number;
+  inactivityCloseDays: number;
   // Behavior
   dryRun: boolean;
   discordWebhookUrl: string | null;
@@ -84,6 +88,8 @@ export function loadConfig(): Config {
     acceptedPingDays: getEnvNumber('ACCEPTED_PING_DAYS', acceptedRule?.pingAfterDays ?? 30),
     maintainerInactivityDays: getEnvNumber('MAINTAINER_INACTIVITY_DAYS', MAINTAINER_INACTIVITY_DAYS),
     pingCooldownDays: getEnvNumber('PING_COOLDOWN_DAYS', PING_COOLDOWN_DAYS),
+    inactivityWarningDays: getEnvNumber('INACTIVITY_WARNING_DAYS', INACTIVITY_WARNING_DAYS),
+    inactivityCloseDays: getEnvNumber('INACTIVITY_CLOSE_DAYS', INACTIVITY_CLOSE_DAYS),
     dryRun: getEnvBoolean('DRY_RUN', false),
     discordWebhookUrl: process.env['DISCORD_WEBHOOK_URL'] ?? null,
   };

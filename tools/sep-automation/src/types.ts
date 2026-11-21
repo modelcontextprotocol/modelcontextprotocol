@@ -25,6 +25,8 @@ export interface SEPItem {
   readonly updatedAt: Date;
   readonly url: string;
   readonly isClosed: boolean;
+  /** GitHub draft pull request. Not the same as the `draft` status label. */
+  readonly isDraft: boolean;
 }
 
 /** Result of analyzing a SEP for staleness */
@@ -44,6 +46,7 @@ export enum ActionType {
   PingAuthor = 'ping-author',
   PingMaintainer = 'ping-maintainer',
   MarkDormant = 'mark-dormant',
+  WarnInactive = 'warn-inactive',
   Close = 'close',
 }
 
@@ -68,3 +71,6 @@ export interface ActionResult {
 
 /** Bot comment marker for duplicate prevention */
 export const BOT_COMMENT_MARKER = '<!-- sep-automation-bot -->';
+
+/** Marks the inactivity warning, so it is posted once per quiet period */
+export const INACTIVITY_WARNING_MARKER = '<!-- sep-automation-inactivity-warning -->';
