@@ -22,14 +22,9 @@ exploratory finance-specific extensions.
 
 ### In Scope
 
-- **Compliance and auditability**: requirements for tamper-evident, portable records of what a tool call did, under what authority, and
-  against which policy, so that MCP interactions can satisfy regulatory audit and incident-review obligations
-- **Data lineage and provenance**: source attribution, citation, and consent metadata for data surfaced through MCP, so that downstream
-  consumers can establish where information came from and on what basis it may be used
-- **Guardrails and attestation**: verification frameworks and cryptographic attestations that let a regulated institution gain assurance
-  about server identity, tool behavior, and the integrity of responses before acting on them
-- **Policy enforcement**: declarative policies for tool usage and data handling, and the points at which they are enforced, so that
-  institutions can encode regulatory and internal-control constraints as machine-checkable rules
+- **Auditability and operational control**. Identify what a financial institution needs to know about an MCP tool call to review an action or investigate an incident.
+- **Data lineage and citation**. Identify how clients can trace financial data returned through MCP to its source and preserve citations when presenting it.
+- **Data handling**. Examine what information a client needs when a tool result contains data subject to usage or redistribution restrictions.
 - **Problem discovery and shared implementation experience**: collecting cross-institution use cases, documenting common constraints, and
   sharing public examples of how existing MCP primitives and complementary implementation patterns can be combined within the current spec
 - **Solution exploration**: discussing and, where useful, prototyping possible approaches or experimental extensions to test feasibility
@@ -61,14 +56,12 @@ exploratory finance-specific extensions.
 
 ### Related Groups
 
-- **[Security IG](/community/interest-groups/security)**: attestation, auditability, and guardrails are shared concerns; the FSIG supplies
-  regulated-deployment requirements and consumes the IG's threat models
+- FSIG shares financial-sector incident review use cases with the [Security IG](/community/interest-groups/security) and draws on its threat models.
 - **[Authorization IG](/community/interest-groups/auth)**: identity and access control for sensitive financial data sit at the boundary
   between the two groups
 - **[Tool Annotations IG](/community/interest-groups/tool-annotations)**: trust and sensitivity annotations are directly relevant to
   financial tool exposure; the FSIG provides requirements as input
-- **[Interceptors WG](/community/working-groups/interceptors)**: interceptors are a primary enforcement point for the policy and guardrail
-  requirements surfaced here
+- FSIG brings use cases involving the observation of tool calls to the [Interceptors WG](/community/working-groups/interceptors).
 - **[Registry WG](/community/working-groups/registry)**: server provenance and publishing metadata intersect with financial supply-chain
   and admission concerns
 
@@ -114,11 +107,11 @@ Discord: [#financial-services-ig](https://discord.gg/6CSzBmMkjX)
 The following are illustrative examples of topics relevant to MCP adoption in financial services, not predefined deliverables. This list is
 not exhaustive and will evolve based on community interest.
 
-| Topic                       | Illustrative examples                                  |
-| --------------------------- | ------------------------------------------------------ |
-| **Data Lineage & Citation** | Provenance, consent metadata, and source attribution   |
-| **Guardrails & Security**   | Verification frameworks and cryptographic attestations |
-| **Policy Enforcement**      | Declarative policies for tool usage and data handling  |
+| Topic                                    | Illustrative discussion question                                                                                             |
+| ---------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| **Auditability and operational control** | If a connection drops after an order is submitted, what can the client establish about the outcome?                          |
+| **Data lineage and citation**            | Can a reader trace a reported figure to the filing and reporting period it came from?                                        |
+| **Data handling**                        | When a result combines licensed market data with a public filing, can the client tell which data the restriction applies to? |
 
 ## Changelog
 
