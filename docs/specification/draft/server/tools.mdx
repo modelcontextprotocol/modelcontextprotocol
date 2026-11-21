@@ -497,7 +497,7 @@ Embedded resources support the same [Resource annotations](/specification/draft/
 
 **Structured** content is returned as a JSON value in the `structuredContent` field of a result. This can be any JSON value (object, array, string, number, boolean, or null) that conforms to the tool's `outputSchema` if one is defined.
 
-For backwards compatibility, a tool that returns structured content SHOULD also return the serialized JSON in a TextContent block.
+For backwards compatibility, a tool that returns structured content SHOULD also return a TextContent block representative of the result data.
 
 <Note>
 
