@@ -1,0 +1,79 @@
+---
+title: Content Provenance and Attribution Charter
+description: Charter for the MCP Content Provenance and Attribution Interest Group.
+---
+
+## Group Type
+
+**Interest Group**
+
+## Mission Statement
+
+The Content Provenance and Attribution Interest Group brings together server authors, client authors, publishers and standards contributors to identify shared problems in tracing content served over MCP to its source, checking that record, and crediting the source when the content reaches a user. Its default approach is to first identify how existing MCP primitives and published external standards address a problem, then bring any unresolved protocol gap to the appropriate Working Group (WG). Where no WG covers a widely acknowledged problem with a clear potential deliverable, the group helps gather interest and contributors to propose one through [MCP group governance](/community/working-interest-groups#forming-a-group).
+
+## Scope
+
+### In Scope
+
+- **Source and citation**. Identify what a client needs to keep a source attached to content from a tool result or resource through to the answer a user sees.
+- **Verifiable provenance**. Identify how a client or intermediary can check who published a piece of content and whether it changed, including credentials defined by external standards.
+- **Usage and attribution terms**. Examine what a client needs to know when content carries conditions on reuse, redistribution or credit.
+- **Skills and other served artifacts**. Collect requirements for the origin and lineage of skills and similar files served over MCP, as input to the groups that own them.
+- **Problem discovery and shared implementation experience**: collecting use cases across sectors and sharing public examples of how existing primitives can be combined within the current spec.
+- **Recommendations and guidance**: documenting conventions that need no specification change, such as `_meta` keys under a publisher's or standards body's own prefix, so that implementers converge on one shape.
+- **WG collaboration and referrals**: connecting unresolved problems, evidence and interested participants to the WG responsible for the relevant technical scope.
+- **External liaison**: keeping a current view of related work in other standards bodies and pointing their contributors to the right MCP group.
+
+### Out of Scope
+
+- **Independent ownership of standards-track protocol changes**: the group does not sponsor SEPs or substitute for a WG's decision-making and delivery role. A proposal that needs a new field, capability, method or reserved `_meta` key goes to a WG.
+- **Caller identity and delegation**: these belong to the [Authorization IG](/community/interest-groups/auth).
+- **Tool-call audit records and attestation**: what a call did and under what authority belongs to the [Security IG](/community/interest-groups/security) and, for regulated deployments, the [Financial Services IG](/community/interest-groups/financial-services).
+- **Server and package provenance**: the integrity of locally executed server packages belongs to the Security IG. Server identity and publishing metadata belong to the [Server Card WG](/community/working-groups/server-card) and the [Registry WG](/community/working-groups/registry).
+- **Execution telemetry and tracing**.
+- **Defining provenance, licensing or preference standards**: credential formats, licence vocabularies and usage-preference signals are maintained by existing bodies. This group discusses how MCP interoperates with them.
+- **Legal advice and commercial terms**: legal interpretation, licensing negotiation and pricing, per the [MCP Antitrust Policy](/community/antitrust).
+
+### Related Groups
+
+- **Core Primitives WG**: tool result shape and audience decide where a citation or credential can live. This group brings citation use cases to it.
+- **[Interceptors WG](/community/working-groups/interceptors)**: an interceptor is one place a credential or citation can be checked. This group brings validator use cases to it.
+- **[Skills Over MCP WG](/community/working-groups/skills-over-mcp)**: the Skills extension carries unsigned file digests and lets intermediaries attach provenance annotations in `_meta` under their own prefix. This group brings signing and lineage requirements to it.
+- **[Financial Services IG](/community/interest-groups/financial-services)** and **[Scientific Computing IG](/community/interest-groups/scientific-computing)**: each covers lineage or provenance for its sector and supplies requirements here.
+- **[Security IG](/community/interest-groups/security)**: first stop for security topics. Proposals about audit records or server identity that arrive here are sent there.
+
+## Leadership
+
+| Role        | Name           | Organization | GitHub                                   | Term    |
+| ----------- | -------------- | ------------ | ---------------------------------------- | ------- |
+| Facilitator | Ola Hungerford | Nordstrom    | [@olaservo](https://github.com/olaservo) | Initial |
+| Facilitator | _TBD_          |              |                                          | Initial |
+
+## Membership
+
+Open to anyone. Join the `#content-provenance-ig` channel on the [MCP Contributors Discord](/community/communication#discord). Calls are open and no approval is required to attend or contribute. The group especially welcomes server authors who publish content with attribution requirements, client authors who render sources, and contributors to related standards.
+
+## Operations
+
+| Meeting    | Frequency                             | Duration     | Purpose                                                       |
+| ---------- | ------------------------------------- | ------------ | ------------------------------------------------------------- |
+| Forum call | Monthly, held when there is an agenda | Up to 45 min | Use cases, existing approaches, routing of open topics to WGs |
+
+Discussion runs asynchronously in `#content-provenance-ig` between calls. Facilitators post a call for agenda in the channel ahead of each call, and anyone can add topics. A call with no agenda items is cancelled. Agendas and notes are posted in the GitHub Discussions Meeting Notes category under [MCP meeting governance](/community/working-interest-groups#meetings-and-channels).
+
+## Discussion Topics
+
+The following are illustrative examples, not predefined deliverables. The list will change with community interest.
+
+| Topic                           | Illustrative discussion question                                                                                                 |
+| ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| **Source and citation**         | When an answer quotes a figure from a tool result, can the reader open the dataset or passage it came from?                      |
+| **Verifiable provenance**       | If a server attaches a signed credential to a result, can a gateway check it before the content reaches the model?               |
+| **Usage and attribution terms** | When a result contains openly licensed content that requires credit, can the client tell, and can the server learn it was shown? |
+| **Skills**                      | Can a client tell an original skill from a modified copy served by another server?                                               |
+
+## Changelog
+
+| Date       | Change          |
+| ---------- | --------------- |
+| 2026-11-21 | Initial charter |

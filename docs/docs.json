@@ -931,6 +931,7 @@
                 "pages": [
                   "community/interest-groups/agents",
                   "community/interest-groups/auth",
+                  "community/interest-groups/content-provenance",
                   "community/interest-groups/enterprise",
                   "community/interest-groups/financial-services",
                   "community/interest-groups/scientific-computing",
