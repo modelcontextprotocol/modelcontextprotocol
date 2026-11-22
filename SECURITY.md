@@ -248,7 +248,7 @@ When evaluating whether to report a potential security issue:
 If you are a maintainer and you learn of an actively exploited vulnerability or a severe
 incident, such as a compromise of the release process, notify a Core Maintainer or Lead
 Maintainer immediately in `#security-disclosures` on the
-[MCP Contributor Discord](https://discord.gg/6CSzBmMkjX). Notify them while you fix the
+[MCP Contributor Discord](https://discord.gg/modelcontextprotocol). Notify them while you fix the
 problem, never instead of fixing it.
 
 The Core Maintainer or Lead Maintainer you notify contacts the Linux Foundation CRA steward at
