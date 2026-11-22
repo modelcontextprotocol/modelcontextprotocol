@@ -9,66 +9,61 @@ description: Charter for the MCP Financial Services Interest Group.
 
 ## Mission Statement
 
-The Financial Services Interest Group brings together stakeholders from regulated financial
-institutions to identify where MCP needs to adapt for compliance, auditability, and risk-controlled
-deployment. It gathers use cases and requirements from the financial sector, develops and validates
-domain-specific extensions, and scopes problems with broad applicability into [SEPs](/community/sep-guidelines)
-or Working Groups so that innovations proven in regulated environments can benefit the wider MCP
-ecosystem.
+The Financial Services Interest Group (FSIG) brings together participants from regulated financial institutions to identify shared MCP
+adoption and interoperability problems, exchange implementation experience, and connect those needs to existing protocol capabilities and
+community work. Its default approach is to first identify how existing MCP primitives and publicly shareable industry patterns address a
+problem, then bring any unresolved protocol gap to the appropriate Working Group (WG). Where no WG covers a widely acknowledged problem with
+a clear potential deliverable, FSIG helps gather cross-community interest and contributors to propose a WG through [MCP group governance](/community/working-interest-groups#forming-a-group).
+
+FSIG may discuss and recommend potential solutions, and collaborate with relevant Working Groups to prototype approaches, including
+exploratory finance-specific extensions.
 
 ## Scope
 
 ### In Scope
 
-- **Compliance and auditability**: requirements for tamper-evident, portable records of what a tool
-  call did, under what authority, and against which policy, so that MCP interactions can satisfy
-  regulatory audit and incident-review obligations
-- **Data lineage and provenance**: source attribution, citation, and consent metadata for data
-  surfaced through MCP, so that downstream consumers can establish where information came from and
-  on what basis it may be used
-- **Guardrails and attestation**: verification frameworks and cryptographic attestations that let a
-  regulated institution gain assurance about server identity, tool behavior, and the integrity of
-  responses before acting on them
-- **Policy enforcement**: declarative policies for tool usage and data handling, and the points at
-  which they are enforced, so that institutions can encode regulatory and internal-control
-  constraints as machine-checkable rules
-- **Finance-specific extensions**: developing, maintaining, and gathering implementation experience
-  on MCP extensions that address the above in the FSIG repository, including reference
-  implementations and conformance testing
-- **Interoperability across institutions**: common patterns and standards that allow regulated
-  institutions to interoperate without each reinventing compliance plumbing
-- **SEP promotion**: identifying extensions with applicability beyond financial services and
-  shepherding them toward the core specification with core-maintainer sponsorship
-- **Regulatory liaison**: translating constraints from regulators and industry bodies into concrete
-  technical requirements and input for other groups
+- **Auditability and operational control**. Identify what a financial institution needs to know about an MCP tool call to review an action or investigate an incident.
+- **Data lineage and citation**. Identify how clients can trace financial data returned through MCP to its source and preserve citations when presenting it.
+- **Data handling**. Examine what information a client needs when a tool result contains data subject to usage or redistribution restrictions.
+- **Problem discovery and shared implementation experience**: collecting cross-institution use cases, documenting common constraints, and
+  sharing public examples of how existing MCP primitives and complementary implementation patterns can be combined within the current spec
+- **Solution exploration**: discussing and, where useful, prototyping possible approaches or experimental extensions to test feasibility
+  and clarify requirements, without treating FSIG as the default owner of standards-track deliverables
+- **Interoperability across institutions**: identifying reusable patterns and gaps while avoiding institution-specific prescriptions or
+  duplicative protocol development
+- **WG collaboration and referrals**: connecting unresolved problems, evidence and interested participants to existing WGs responsible for
+  the relevant technical scope
+- **New WG incubation**: when a broadly relevant gap has no existing WG, gathering cross-IG and wider community interest, potential
+  contributors and a clear problem statement to support a proposed WG under the [group formation
+  rules](/community/working-interest-groups#forming-a-group)
+- **SEP input**: contributing problem statements, use cases, implementation experience and draft proposals in collaboration with relevant
+  WGs
 
 ### Out of Scope
 
-- **Competitively sensitive or non-public business information**: pricing, costs, margins, customer
-  lists, market segmentation, and competitive strategy, per the [MCP Antitrust Policy](/community/antitrust)
-- **General security threat modeling**: MCP-wide attack-surface analysis belongs to the
-  [Security IG](/community/interest-groups/security). This group provides financial-sector requirements as
-  input and consumes its threat models
-- **Authorization protocol mechanics**: OAuth flows, scopes, client registration, and token handling
-  belong to the [Authorization IG](/community/interest-groups/auth)
-- **Product-specific compliance guides**: step-by-step configuration for an individual host
-  application, cloud platform, or institution is documentation for that product rather than protocol
-  work
-- **Non-technical business discussions**: legal interpretation, procurement, and commercial terms
+- **Independent ownership of standards-track protocol changes**: FSIG does not independently sponsor SEPs or substitute for a WG's
+  delegated technical decision-making and delivery role; exploratory solutions and extensions may inform WG work
+- **Competitively sensitive or non-public business information**: pricing, costs, margins, customer lists, market segmentation, and
+  competitive strategy, per the [MCP Antitrust Policy](/community/antitrust)
+- **General security threat modeling**: MCP-wide attack-surface analysis belongs to the [Security IG](/community/interest-groups/security).
+  This group provides financial-sector requirements as input and consumes its threat models
+- **Authorization protocol mechanics**: OAuth flows, scopes, client registration, and token handling belong to the [Authorization
+  IG](/community/interest-groups/auth)
+- **Product-specific compliance guides**: step-by-step configuration for an individual host application, cloud platform, or institution is
+  documentation for that product rather than protocol work
+- **Legal, regulatory, and commercial advice or coordination**: legal interpretation, regulatory policy positions, procurement, commercial
+  terms, and engagement with regulators or industry bodies on their behalf
 
 ### Related Groups
 
-- **[Security IG](/community/interest-groups/security)**: attestation, auditability, and guardrails are
-  shared concerns; the FSIG supplies regulated-deployment requirements and consumes the IG's threat
-  models
-- **[Authorization IG](/community/interest-groups/auth)**: identity and access control for sensitive
-  financial data sit at the boundary between the two groups
-- **[Tool Annotations IG](/community/interest-groups/tool-annotations)**: trust and sensitivity annotations
-  are directly relevant to financial tool exposure; the FSIG provides requirements as input
-- **[Interceptors WG](/community/working-groups/interceptors)**: interceptors are a primary enforcement point
-  for the policy and guardrail requirements surfaced here
-- **[Registry WG](/community/working-groups/registry)**: server provenance and publishing metadata intersect
-  with financial supply-chain and admission concerns
+- FSIG shares financial-sector incident review use cases with the [Security IG](/community/interest-groups/security) and draws on its threat models.
+- **[Authorization IG](/community/interest-groups/auth)**: identity and access control for sensitive financial data sit at the boundary
+  between the two groups
+- **[Tool Annotations IG](/community/interest-groups/tool-annotations)**: trust and sensitivity annotations are directly relevant to
+  financial tool exposure; the FSIG provides requirements as input
+- FSIG brings use cases involving the observation of tool calls to the [Interceptors WG](/community/working-groups/interceptors).
+- **[Registry WG](/community/working-groups/registry)**: server provenance and publishing metadata intersect with financial supply-chain
+  and admission concerns
 
 ## Leadership
 
@@ -85,36 +80,42 @@ ecosystem.
 | Kengo Arao    | Bloomberg    | [@KengoA](https://github.com/KengoA)   | _TBD_   | Participant |
 | King Yew Choo | True Primary | [@kychooo](https://github.com/kychooo) | kychooo | Participant |
 
-Open to anyone. Join the `#financial-services-ig` channel on the
-[MCP Contributors Discord](/community/communication#discord). Calls are open and no approval is
-required to attend or contribute. The group especially welcomes contributors from regulated
-institutions who can bring real-world deployment constraints and help drive proposals forward.
+Open to anyone. Join the `#financial-services-ig` channel on the [MCP Contributors Discord](/community/communication#discord). Calls are
+open and no approval is required to attend or contribute. The group especially welcomes contributors from regulated institutions who can
+bring real-world deployment constraints and help drive proposals forward.
 
 ## Operations
 
-| Meeting         | Frequency     | Duration | Purpose                                                   |
-| --------------- | ------------- | -------- | --------------------------------------------------------- |
-| Working Session | Every 2 weeks | 60 min   | Use-case review, extension and proposal work, SEP scoping |
+FSIG meets **monthly, for up to 60 minutes** initially, as an open industry forum for sharing common problems, exchanging experience with
+existing MCP capabilities, and helping participants find relevant Working Groups and opportunities to contribute. Facilitators may revisit
+the cadence if recurring topics, sustained interest, or the volume of proposed agenda items warrants more frequent meetings.
 
-Meetings are held 16:00–17:00 London (BST/GMT). An agenda is shared in `#financial-services-ig`
-ahead of each call, and notes with decisions and action items are published afterwards.
+Meetings use a lightweight, community-driven agenda, not fixed time allocations. Recurring prompts may include introductions and ways to get
+involved, shared problems, existing approaches using MCP primitives, relevant WG/IG work, and follow-ups. Facilitators invite agenda
+suggestions in a thread in `#financial-services-ig` ahead of each meeting; anyone can reply with topics or questions. The discussion remains
+free-flowing, with Facilitators helping route detailed technical work to WGs.
 
-Discord: [#financial-services-ig](https://discord.gg/6CSzBmMkjX)
+The agenda or a link to it is posted in the GitHub Discussions Meeting Notes category before the meeting, and notes are published to that
+discussion within 48 hours, as required by [MCP meeting governance](/community/working-interest-groups#meetings-and-channels). Calendar
+entries are published at least seven days ahead, meetings are open to all, and the Code of Conduct and Antitrust Policy apply. This
+Discord-first agenda workflow follows the approaches used by the [Security IG](/community/interest-groups/security) and [Authorization IG](/community/interest-groups/auth).
+
+Discord: [#financial-services-ig](https://discord.gg/modelcontextprotocol)
 
 ## Discussion Topics
 
-The following items form the IG's current agenda. This list is not exhaustive and will evolve as the
-group identifies new areas of interest.
+The following are illustrative examples of topics relevant to MCP adoption in financial services, not predefined deliverables. This list is
+not exhaustive and will evolve based on community interest.
 
-| Item | Name                                                                          | Status | Champion |
-| ---- | ----------------------------------------------------------------------------- | ------ | -------- |
-| —    | Regulatory audit & attestation: portable, verifiable event/claim models       | Open   | —        |
-| —    | Data lineage & citation: provenance, consent metadata, source attribution     | Open   | —        |
-| —    | Guardrails & security: verification frameworks and cryptographic attestations | Open   | —        |
-| —    | Policy enforcement: declarative policies for tool usage and data handling     | Open   | —        |
+| Topic                                    | Illustrative discussion question                                                                                             |
+| ---------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| **Auditability and operational control** | If a connection drops after an order is submitted, what can the client establish about the outcome?                          |
+| **Data lineage and citation**            | Can a reader trace a reported figure to the filing and reporting period it came from?                                        |
+| **Data handling**                        | When a result combines licensed market data with a public filing, can the client tell which data the restriction applies to? |
 
 ## Changelog
 
-| Date       | Change          |
-| ---------- | --------------- |
-| 2026-06-25 | Initial charter |
+| Date       | Change                                                                                                                                |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-11-20 | Proposed clarification of problem-first scope, existing-solution discovery and WG-led escalation; subject to Core Maintainer approval |
+| 2026-06-25 | Initial charter                                                                                                                       |
