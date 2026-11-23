@@ -23,16 +23,10 @@
 {{- $stylesheet := $styles | resources.Concat "assets/css/blog.css" | minify | fingerprint }}
 <link rel="stylesheet" href="{{ $stylesheet.RelPermalink }}" integrity="{{ $stylesheet.Data.Integrity }}" crossorigin="anonymous">
 
-{{- if eq .Layout "search" -}}
-  {{- $search := resources.Get "js/search.js" | minify -}}
-  {{- $bundle := slice (resources.Get "js/vendor/fuse.basic.min.js") $search | resources.Concat "assets/js/search.js" | fingerprint }}
-<script defer src="{{ $bundle.RelPermalink }}" integrity="{{ $bundle.Data.Integrity }}" crossorigin="anonymous"></script>
-{{- end }}
-
 {{- range .AlternativeOutputFormats }}
 <link rel="{{ .Rel }}" type="{{ .MediaType.Type }}" href="{{ .Permalink }}">
 {{- end }}
 {{- partial "extend_head.html" . }}
 {{- partial "social_meta.html" . }}
 {{- partial "templates/schema_json.html" . }}
-<noscript><style>#theme-toggle, .top-link { display: none; }</style></noscript>
+<noscript><style>#theme-toggle, #search-open, .top-link { display: none; }</style></noscript>

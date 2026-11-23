@@ -19,7 +19,6 @@ capitalizeListTitles = false
   mainSections = ["posts"]
   author = "The MCP project"
   description = "Updates from the Model Context Protocol project"
-  images = ["og-image.png"]
 
   # defaultTheme = "dark" # MCP uses a dark theme
   disableThemeToggle = false
@@ -65,7 +64,7 @@ capitalizeListTitles = false
   [[params.socialIcons]]
     name = "discord"
     title = "Discord"
-    url = "https://discord.gg/6CSzBmMkjX"
+    url = "https://discord.gg/modelcontextprotocol"
 
 # Menu configuration
 [[menu.main]]
@@ -73,12 +72,6 @@ capitalizeListTitles = false
   name = "Documentation"
   url = "https://modelcontextprotocol.io/docs"
   weight = 10
-
-[[menu.main]]
-  identifier = "search"
-  name = "Search"
-  url = "/search/"
-  weight = 30
 
 # Markup configuration for syntax highlighting
 [markup]
