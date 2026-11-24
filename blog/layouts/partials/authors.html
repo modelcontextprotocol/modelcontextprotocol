@@ -13,6 +13,9 @@
   inside the brackets does not start a new author. The role is what the last
   pair of brackets holds. It may itself contain one level of brackets, as in
   "Ana Li (Core (Lead) Maintainer)". Empty items are skipped.
+
+  A line break in a role ("\n" in a double-quoted list item) is kept in the
+  byline, so that a long role doesn't hold its column wide.
 */ -}}
 {{- $raw := .Params.author | default site.Params.author }}
 {{- $brackets := `\((?:[^()]|\([^()]*\))*\)` }}
