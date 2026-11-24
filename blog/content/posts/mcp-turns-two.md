@@ -5,7 +5,7 @@ publishDate: "2026-11-24T09:00:00+00:00"
 slug: mcp-turns-two
 description: "The Model Context Protocol turns two years old this week, and we're celebrating the people who helped us build it and everyone building with it."
 author:
-  - "David Soria Parra (Co-creator of MCP, Lead\u00a0Maintainer)"
+  - "David Soria Parra (Co-creator of MCP,\nLead Maintainer)"
   - Den Delimarsky (Lead Maintainer)
 tags:
   - mcp
