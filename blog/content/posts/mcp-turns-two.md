@@ -143,8 +143,8 @@ September was especially packed, with AGNTCon + MCPCon taking place in [Shanghai
 </figure>
 
 <figure>
-  <img src="/posts/images/mcp-turns-two/agntcon-mcpcon-amsterdam.jpg" width="1440" height="960" loading="lazy" style="max-width: 100%; height: auto" alt="A speaker on stage beside the lectern at AGNTCon + MCPCon Europe in Amsterdam, clicker in hand.">
-  <figcaption>On stage at AGNTCon + MCPCon Europe in Amsterdam</figcaption>
+  <img src="/posts/images/mcp-turns-two/agntcon-mcpcon-amsterdam.jpg" width="1440" height="960" loading="lazy" style="max-width: 100%; height: auto" alt="David Soria Parra on stage beside the lectern at AGNTCon + MCPCon Europe in Amsterdam, clicker in hand.">
+  <figcaption>David Soria Parra on stage at AGNTCon + MCPCon Europe in Amsterdam</figcaption>
 </figure>
 
 October opened with MCP Dev Summit in [Toronto](https://events.linuxfoundation.org/mcp-dev-summit-toronto/), followed by [AGNTCon + MCPCon North America](https://events.linuxfoundation.org/archive/2026/agntcon-mcpcon-north-america/) in San Jose. Just last week, builders spent two whole days in [Nairobi](https://events.linuxfoundation.org/mcp-dev-summit-nairobi/) sharing their work and learning about how MCP continues to shift and influence the agentic landscape.
