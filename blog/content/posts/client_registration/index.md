@@ -219,6 +219,6 @@ Discussions for these approaches are happening in the [Specification Enhancement
 - [SEP-991: Client ID Metadata Documents](https://github.com/modelcontextprotocol/specification/discussions/991)
 - [SEP-1032: Software Statements with DCR](https://github.com/modelcontextprotocol/specification/discussions/1032)
 
-Get involved: Join the conversation in [Discord](https://discord.gg/6CSzBmMkjX) (the \#auth-wg-client-registration channel) or comment on the SEPs directly.
+Get involved: Join the conversation in [Discord](https://discord.gg/modelcontextprotocol) (the \#auth-wg-client-registration channel) or comment on the SEPs directly.
 
 A big thank to the following folks for help with this blog post: Den Delimarsky, Aaron Parecki, Geoff Goodman, Andrew Block, Pieter Kasselman, Abhishek Hingnikar, and Bobby Tiernay.

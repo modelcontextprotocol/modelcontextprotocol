@@ -1,0 +1,87 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1760" height="680" viewBox="0 0 1760 680" role="img" aria-labelledby="title description">
+  <title id="title">Specification targets 2027-03-30 and 2027-09-28</title>
+  <desc id="description">Two release cycles on one calendar, following SEP-3398. March 30, 2027 is the announced release target. September 28, 2027 is the target implied by the last-Tuesday cadence, subject to the published release calendar. Month positions are schematic late-month targets; exact deadlines come from that calendar. March uses the transition calendar and planning completed in August 2026. September planning starts in January 2027, overlapping March stabilization by two months. Its Core Maintainer review window runs from March until soft freeze two and a half months before release. Tier 1 SDK betas are marked by diamonds one and a half months before each release; hard freeze begins one month before release. The releases are six months apart.</desc>
+  <defs>
+    <style>
+      text { font-family: 'Avenir Next', Avenir, sans-serif; fill: #e6ecef; letter-spacing: 0; }
+      .month { font-family: 'SF Mono', Menlo, monospace; font-size: 18px; fill: #a0afb7; text-anchor: middle; }
+      .year { font-family: 'SF Mono', Menlo, monospace; font-size: 23px; fill: #ced9de; }
+      .release { font-family: 'SF Mono', Menlo, monospace; font-size: 27px; font-weight: 500; dominant-baseline: central; }
+      .row-label { font-size: 16px; fill: #9eafb9; dominant-baseline: central; }
+      .phase { font-size: 22px; text-anchor: middle; dominant-baseline: central; }
+      .detail { font-size: 18px; fill: #9eafb9; text-anchor: middle; }
+      .sdk-label { font-size: 18px; font-weight: 600; fill: #c6d9e3; text-anchor: middle; }
+      .dimension { font-family: 'SF Mono', Menlo, monospace; font-size: 18px; fill: #b8cbd5; text-anchor: middle; }
+    </style>
+    <pattern id="tape" width="20" height="20" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <rect width="20" height="20" fill="#d5b76d"/>
+      <rect width="10" height="20" fill="#141c22"/>
+    </pattern>
+    <g id="freeze">
+      <rect width="144" height="76" fill="#282b28" stroke="#b6a879"/>
+      <rect x="144" width="96" height="76" fill="#343127" stroke="#b6a879"/>
+      <rect y="68" width="240" height="8" fill="url(#tape)"/>
+      <g font-size="20" text-anchor="middle" dominant-baseline="central">
+        <text x="72" y="23">Soft</text>
+        <text x="72" y="45">freeze</text>
+        <text x="192" y="23">Hard</text>
+        <text x="192" y="45">freeze</text>
+      </g>
+      <path d="M96 -18V-6" stroke="#c6d9e3" stroke-width="1.5"/>
+      <path d="M96 -6L102 0L96 6L90 0Z" fill="#141c22" stroke="#c6d9e3" stroke-width="2"/>
+      <text class="sdk-label" x="96" y="-28">Tier 1 SDK betas</text>
+      <circle cx="240" cy="38" r="6" fill="#141c22" stroke="#e6ecef" stroke-width="2"/>
+      <text x="258" y="45" font-size="19">Release</text>
+    </g>
+    <marker id="dimension-arrow" markerWidth="8" markerHeight="8" refX="8" refY="4" orient="auto-start-reverse" markerUnits="userSpaceOnUse">
+      <path d="M0 0L8 4L0 8" fill="none" stroke="#8aa8b8"/>
+    </marker>
+  </defs>
+
+  <rect width="1760" height="680" fill="#141c22"/>
+
+  <text class="year" x="280" y="65">2026</text>
+  <text class="year" x="856" y="65">2027</text>
+  <path d="M280 81H832M856 81H1624" stroke="#485f6c"/>
+  <g class="month">
+    <text x="280" y="121">Jul</text>
+    <text x="376" y="121">Aug</text>
+    <text x="472" y="121">Sep</text>
+    <text x="568" y="121">Oct</text>
+    <text x="664" y="121">Nov</text>
+    <text x="760" y="121">Dec</text>
+    <text x="856" y="121">Jan</text>
+    <text x="952" y="121">Feb</text>
+    <text x="1048" y="121">Mar</text>
+    <text x="1144" y="121">Apr</text>
+    <text x="1240" y="121">May</text>
+    <text x="1336" y="121">Jun</text>
+    <text x="1432" y="121">Jul</text>
+    <text x="1528" y="121">Aug</text>
+    <text x="1624" y="121">Sep</text>
+  </g>
+  <path d="M280 144H1624M280 144V154M376 144V154M472 144V154M568 144V154M664 144V154M760 144V154M856 144V154M952 144V154M1048 144V154M1144 144V154M1240 144V154M1336 144V154M1432 144V154M1528 144V154M1624 144V154" fill="none" stroke="#526a78"/>
+
+  <path d="M856 284V456M1048 284V456" fill="none" stroke="#66818f" stroke-opacity="0.65" stroke-dasharray="3 5"/>
+  <path d="M856 366H1048" stroke="#8aa8b8" marker-start="url(#dimension-arrow)" marker-end="url(#dimension-arrow)"/>
+  <text class="dimension" x="952" y="348">2-month overlap</text>
+
+  <text class="row-label" x="64" y="222">Specification target</text>
+  <text class="release" x="64" y="255">2027-03-30</text>
+  <rect x="376" y="208" width="432" height="76" fill="#202a31" stroke="#728c9a" stroke-dasharray="5 4"/>
+  <text class="phase" x="592" y="235">Planning + review</text>
+  <text class="detail" x="592" y="262" font-size="16">Transition cycle</text>
+  <use href="#freeze" x="808" y="208"/>
+
+  <text class="row-label" x="64" y="470">Specification target</text>
+  <text class="release" x="64" y="503">2027-09-28</text>
+  <rect x="856" y="456" width="192" height="76" fill="#203038" stroke="#809eaa"/>
+  <text class="phase" x="952" y="494">Planning</text>
+  <rect x="1048" y="456" width="336" height="76" fill="#202a31" stroke="#728c9a"/>
+  <text class="phase" x="1216" y="494">Core Maintainer review</text>
+  <use href="#freeze" x="1384" y="456"/>
+
+  <path d="M1048 532V628M1624 532V628" fill="none" stroke="#66818f" stroke-opacity="0.65" stroke-dasharray="3 5"/>
+  <path d="M1048 618H1624" stroke="#8aa8b8" marker-start="url(#dimension-arrow)" marker-end="url(#dimension-arrow)"/>
+  <text class="dimension" x="1336" y="600">6-month cadence</text>
+</svg>

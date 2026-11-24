@@ -1,0 +1,32 @@
+{{- /*
+  Returns the images that stand for a page where a link to it is shared, as a slice of maps: "Permalink"
+  always, and "Width", "Height", "Type" and "Alt" where they are known. social_meta.html and schema_json.html
+  both read it.
+
+  A post that names its own picture in front matter (cover.image, or images) gets that. Every other page gets
+  the card drawn by og/image.html: a post its own, the rest of the site one between them.
+*/ -}}
+{{- $images := slice -}}
+{{- $candidates := .Params.images | default slice -}}
+{{- with .Params.cover.image -}}
+  {{- $candidates = slice . -}}
+{{- end -}}
+{{- range $candidates -}}
+  {{- $url := . | absURL -}}
+  {{- with $.Resources.GetMatch . -}}
+    {{- $url = .Permalink -}}
+  {{- end -}}
+  {{- $images = $images | append (dict "Permalink" $url) -}}
+{{- end -}}
+{{- if not $images -}}
+  {{- $card := "" -}}
+  {{- $alt := site.Title -}}
+  {{- if and .IsPage (eq .Type "posts") -}}
+    {{- $card = partialCached "og/image.html" . .RelPermalink -}}
+    {{- $alt = printf "%s, on the %s" .Title site.Title -}}
+  {{- else -}}
+    {{- $card = partialCached "og/image.html" site.Home "site" -}}
+  {{- end -}}
+  {{- $images = slice (dict "Permalink" $card.Permalink "Width" $card.Width "Height" $card.Height "Type" $card.MediaType.Type "Alt" $alt) -}}
+{{- end -}}
+{{- return $images -}}

@@ -248,7 +248,7 @@ tail -n 20 -f ~/.config/Claude/logs/mcp*.log
 ```
 
 ```powershell Windows
-type "%APPDATA%\Claude\logs\mcp*.log"
+type "$env:AppData\Claude\logs\mcp*.log"
 ```
 
 </CodeGroup>
@@ -274,12 +274,18 @@ If your configured server fails to load, and you see within its logs an error re
 
 ```json
 {
-  "brave-search": {
-    "command": "npx",
-    "args": ["-y", "@modelcontextprotocol/server-brave-search"],
-    "env": {
-      "APPDATA": "C:\\Users\\user\\AppData\\Roaming\\",
-      "BRAVE_API_KEY": "..."
+  "mcpServers": {
+    "filesystem": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "C:\\Users\\username\\Desktop",
+        "C:\\Users\\username\\Downloads"
+      ],
+      "env": {
+        "APPDATA": "C:\\Users\\username\\AppData\\Roaming"
+      }
     }
   }
 }
@@ -310,10 +316,9 @@ Now that you've successfully connected Claude Desktop to a local MCP server, exp
   <Card
     title="Explore other servers"
     icon="grid"
-    href="https://github.com/modelcontextprotocol/servers"
+    href="https://registry.modelcontextprotocol.io/"
   >
-    Browse our collection of official and community-created MCP servers for
-    additional capabilities
+    Browse the servers published to the MCP Registry
   </Card>
   <Card
     title="Build your own server"

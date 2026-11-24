@@ -421,7 +421,7 @@ sequenceDiagram
     User-->>Client: Provide consent
 
     Client->>UserAgent: Open URL
-    Client->>Server: tools/call(id: 2, Accept Response, requestState))
+    Client->>Server: tools/call(id: 2, Accept Response, requestState)
     Note over Server: Server uses requestState to discover url info. <br/> It may need to block until the request is fulfilled.
 
     Note over User,UserAgent: User interaction
