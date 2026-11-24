@@ -172,15 +172,15 @@ sequenceDiagram
 - `argument`: Object containing:
   - `name`: Argument name
   - `value`: Current value
-- `context`: Object containing:
-  - `arguments`: A mapping of already-resolved argument names to their values.
+- `context`: Optional object containing:
+  - `arguments`: Optional mapping of already-resolved argument names to their values.
 
 ### CompleteResult
 
 - `completion`: Object containing:
   - `values`: Array of suggestions (max 100)
   - `total`: Optional total matches
-  - `hasMore`: Additional results flag
+  - `hasMore`: Optional additional results flag
 
 ## Error Handling
 

@@ -512,7 +512,7 @@ sequenceDiagram
     User-->>Client: Review and approve/modify
 
     Note over Server,Client: Replay Request with approved response
-    Client-->>Server: tools/call(id:3, Return approved response)
+    Client-->>Server: tools/call(id:2, Return approved response)
 ```
 
 ## Data Types
@@ -610,8 +610,8 @@ The client **MAY** modify or ignore this field without communicating this to the
 
 ### Context Inclusion
 
-The `includeContext` parameter specifies what context information the client is expected
-to include in its response:
+The `includeContext` parameter requests that the client attach context information to
+the prompt:
 
 - `"none"`: No additional context.
 - `"thisServer"`: Include context from the requesting server.

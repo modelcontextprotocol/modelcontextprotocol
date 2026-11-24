@@ -119,6 +119,9 @@ TTL and server-push notifications are complementary:
 
 When a relevant notification is received while a cached response is still fresh, the
 notification **invalidates** the cached response and it should be considered immediately stale.
+For a cached `resources/read` result, the relevant notification is
+[`notifications/resources/updated`](/specification/draft/server/resources#subscriptions) for that
+resource or a sub-resource of it.
 
 ```mermaid
 sequenceDiagram

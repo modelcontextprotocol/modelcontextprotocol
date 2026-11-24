@@ -11,7 +11,7 @@ necessary information dynamically.
 
 Elicitation supports two modes:
 
-- **Form mode**: Servers can request structured data from users with optional JSON schemas to validate responses
+- **Form mode**: Servers can request structured data from users with JSON schemas to validate responses
 - **URL mode**: Servers can direct users to external URLs for sensitive interactions that must _not_ pass through the MCP client
 
 ## User Interaction Model
@@ -87,7 +87,8 @@ Servers **MUST NOT** send elicitation requests with modes that are not supported
 Servers **MAY** request information from a user during the processing of a client request, by sending an [`InputRequiredResult`](/specification/2026-07-28/basic/patterns/mrtr#inputrequiredresult)
 containing an `elicitation/create` request.
 
-All elicitation requests **MUST** include the following parameters:
+All elicitation requests **MUST** include the following parameters, except that form mode
+requests **MAY** omit `mode`:
 
 | Name      | Type   | Options       | Description                                                                            |
 | --------- | ------ | ------------- | -------------------------------------------------------------------------------------- |
@@ -323,7 +324,7 @@ Note that complex nested structures, arrays of objects (beyond enums), and other
 
 <Note>
 
-**New feature:** URL mode elicitation is introduced in the `2025-11-25` version of the MCP specification. Its design and implementation may change in future protocol revisions.
+URL mode elicitation was introduced in the `2025-11-25` version of the MCP specification. Its design and implementation may change in future protocol revisions.
 
 </Note>
 
