@@ -25,6 +25,11 @@ This week, our little open-source project, the Model Context Protocol (MCP), tur
 
 When MCP first launched, we could not have imagined how creative and ambitious the community would get with it, or how many people would jump in to help make it become what it is today. Developers have been showing up since the very first day the project landed on GitHub, and we've had more than 2,500 unique contributors since then. As we're heading into our third year, it's worth looking back at some of the highlights since that fateful November of 2024.
 
+<picture>
+  <source media="(max-width: 600px)" srcset="/posts/images/mcp-turns-two/mcp-timeline-phone.png" width="1200" height="3096">
+  <img src="/posts/images/mcp-turns-two/mcp-timeline.png" width="2160" height="1926" loading="lazy" style="max-width: 100%; height: auto" alt="Timeline of MCP's first two years. Year one: open-source launch with spec 2024-11-05 in November 2024; remote servers and authorization with spec 2025-03-26 in March 2025; elicitation and structured output with spec 2025-06-18 in June 2025; formal governance in July; the MCP Registry preview in September; and the first birthday with spec 2025-11-25 in November. Year two: the move to the Agentic AI Foundation in December 2025; MCP Apps, the first official extension, in January 2026; Enterprise-Managed Authorization in June; the stateless protocol with spec 2026-07-28 in July; Skills over MCP beta in October; and Events beta in November.">
+</picture>
+
 ## Open from the start
 
 MCP began in the summer of 2024, when David Soria Parra pitched Justin Spahr-Summers on an open protocol for connecting AI applications to tools and data. Justin was on board right away, and [the two of them spent the next few months building it](https://www.latent.space/p/mcp). On November 25, Anthropic [open-sourced the Model Context Protocol](https://www.anthropic.com/news/model-context-protocol).
@@ -40,11 +45,6 @@ Just a couple of weeks later, we got to celebrate again when MCP joined the [Age
 Whether an agent is querying a database to fix a bug, or helping a researcher access the data they need to, MCP servers have become part of the fabric of the agentic internet. None of this would be possible without the individual builders who saw something missing, and shipped a server that everyone could benefit from. When builders get a stake in shaping the technology they use, everyone wins.
 
 {{< /quote >}}
-
-<picture>
-  <source media="(max-width: 600px)" srcset="/posts/images/mcp-turns-two/mcp-timeline-phone.png" width="1200" height="3096">
-  <img src="/posts/images/mcp-turns-two/mcp-timeline.png" width="2160" height="1926" loading="lazy" style="max-width: 100%; height: auto" alt="Timeline of MCP's first two years. Year one: open-source launch with spec 2024-11-05 in November 2024; remote servers and authorization with spec 2025-03-26 in March 2025; elicitation and structured output with spec 2025-06-18 in June 2025; formal governance in July; the MCP Registry preview in September; and the first birthday with spec 2025-11-25 in November. Year two: the move to the Agentic AI Foundation in December 2025; MCP Apps, the first official extension, in January 2026; Enterprise-Managed Authorization in June; the stateless protocol with spec 2026-07-28 in July; Skills over MCP beta in October; and Events beta in November.">
-</picture>
 
 ## The year of the builder
 
