@@ -53,8 +53,8 @@ While our first year was very much about establishing the foundations of the pro
 In fact, our SDKs just crossed 5 billion total downloads, and more than 4.5 billion of those came in the past year alone.
 
 <picture>
-  <source media="(max-width: 600px)" srcset="/posts/images/mcp-turns-two/mcp-sdk-downloads-phone.png" width="2160" height="1500">
-  <img src="/posts/images/mcp-turns-two/mcp-sdk-downloads.png" width="2160" height="1392" loading="lazy" style="max-width: 100%; height: auto" alt="Line chart of monthly MCP SDK downloads, with a shaded gradient under the line. It goes from near zero at launch in November 2024 to more than 90 million in November 2025, the month of the first birthday, and a high of 614 million in October 2026. A footnote says that it covers the Python, TypeScript, C#, Rust, and Ruby SDKs, with data from official public registries, and that C# and Rust are included where monthly data is available.">
+  <source media="(max-width: 600px)" srcset="/posts/images/mcp-turns-two/mcp-sdk-downloads-phone.png" width="2160" height="1650">
+  <img src="/posts/images/mcp-turns-two/mcp-sdk-downloads.png" width="2160" height="1458" loading="lazy" style="max-width: 100%; height: auto" alt="Line chart of monthly MCP SDK downloads, with a shaded gradient under the line. It goes from near zero at launch in November 2024 to more than 90 million in November 2025, the month of the first birthday, and more than 700 million in the last 30 days, as of November 22, 2026. A footnote says that it covers the Python, TypeScript, C#, Rust, and Ruby SDKs, with data from official public registries, that C# and Rust are included where monthly data is available, and that the dashed line skips October 2026, when npm had no data for five days.">
 </picture>
 
 With so many builders behind that growth, we wanted to use this moment to highlight some of their most creative and ambitious work.
