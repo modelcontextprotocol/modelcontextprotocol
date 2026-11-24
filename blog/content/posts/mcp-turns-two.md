@@ -45,7 +45,7 @@ Just a couple of weeks later, we got to celebrate again when MCP joined the [Age
 
 {{< quote name="Angie Jones" title="VP of Developer Experience" company="Agentic AI Foundation" >}}
 
-Whether an agent is querying a database to fix a bug, or helping a researcher access the data they need to, MCP servers have become part of the fabric of the agentic internet. None of this would be possible without the individual builders who saw something missing, and shipped a server that everyone could benefit from. When builders get a stake in shaping the technology they use, everyone wins.
+Whether an agent is querying a database to fix a bug, or helping a researcher access the data they need, MCP servers have become part of the fabric of the agentic internet. None of this would be possible without the individual builders who saw something missing, and shipped a server that everyone could benefit from. When builders get a stake in shaping the technology they use, everyone wins.
 
 {{< /quote >}}
 
