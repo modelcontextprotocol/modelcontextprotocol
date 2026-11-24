@@ -35,6 +35,12 @@ By the time we celebrated the [first birthday](https://blog.modelcontextprotocol
 
 Just a couple of weeks later, we got to celebrate again when MCP joined the [Agentic AI Foundation](https://blog.modelcontextprotocol.io/posts/2025-12-09-mcp-joins-agentic-ai-foundation/) under the Linux Foundation. That gave maintainers and the community the independence to keep steering the protocol together for years to come, with the same vendor-neutral stewardship as projects like Kubernetes, PyTorch, and Node.js.
 
+{{< quote name="Angie Jones" title="VP of Developer Experience" company="Agentic AI Foundation" >}}
+
+Whether an agent is querying a database to fix a bug, or helping a researcher access the data they need to, MCP servers have become part of the fabric of the agentic internet. None of this would be possible without the individual builders who saw something missing, and shipped a server that everyone could benefit from. When builders get a stake in shaping the technology they use, everyone wins.
+
+{{< /quote >}}
+
 <picture>
   <source media="(max-width: 600px)" srcset="/posts/images/mcp-turns-two/mcp-timeline-phone.png" width="1200" height="3096">
   <img src="/posts/images/mcp-turns-two/mcp-timeline.png" width="2160" height="1926" loading="lazy" style="max-width: 100%; height: auto" alt="Timeline of MCP's first two years. Year one: open-source launch with spec 2024-11-05 in November 2024; remote servers and authorization with spec 2025-03-26 in March 2025; elicitation and structured output with spec 2025-06-18 in June 2025; formal governance in July; the MCP Registry preview in September; and the first birthday with spec 2025-11-25 in November. Year two: the move to the Agentic AI Foundation in December 2025; MCP Apps, the first official extension, in January 2026; Enterprise-Managed Authorization in June; the stateless protocol with spec 2026-07-28 in July; Skills over MCP beta in October; and Events beta in November.">
@@ -77,12 +83,6 @@ MCP is just as useful in everyday life as it is in studios and research labs. Da
 Developers have built MCP into their everyday workflows, too. An agent can pick up an issue in [Linear](https://linear.app/docs/mcp), pull the latest library docs from [Context7](https://github.com/upstash/context7), see how its fix behaves in [Chrome](https://developer.chrome.com/blog/chrome-devtools-mcp) or [Safari](https://webkit.org/blog/18136/introducing-the-safari-mcp-server-for-web-developers/), and deploy it to [Cloudflare](https://blog.cloudflare.com/code-mode-mcp/) - all through the same open protocol.
 
 The agent that helps you ship code can also use MCP to draw on public knowledge from around the world. You can find [NASA satellite data](https://github.com/nasa/earthdata-mcp) on wildfires or sea ice, or explore [Wikidata](https://www.wikidata.org/wiki/Wikidata:MCP), the free knowledge base that anyone can edit. [India's statistics ministry built a server](https://github.com/nso-india/esankhyiki-mcp) on Prefect's [FastMCP](https://github.com/PrefectHQ/fastmcp), so you can ask about jobs, inflation, health, or education and get official numbers straight from the source.
-
-{{< quote name="Angie Jones" title="VP of Developer Experience" company="Agentic AI Foundation" >}}
-
-Whether an agent is querying a database to fix a bug, or helping a researcher access the data they need to, MCP servers have become part of the fabric of the agentic internet. None of this would be possible without the individual builders who saw something missing, and shipped a server that everyone could benefit from. When builders get a stake in shaping the technology they use, everyone wins.
-
-{{< /quote >}}
 
 ## By the builders, for the builders
 
