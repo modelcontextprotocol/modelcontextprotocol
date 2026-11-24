@@ -14,6 +14,13 @@ tags:
 ShowToc: true
 ---
 
+<video autoplay loop muted playsinline width="1920" height="1080" poster="/posts/images/second-mcp-anniversary/mcp-second-birthday-poster.jpg" style="max-width: 100%; height: auto" aria-label="Animation for MCP's second birthday. In a snowy village square at night, a gift box topped with the MCP logo opens, and toy blocks stack up into the number two, with MCP spelled across the top, two lit candles, and fireworks all around.">
+  <source media="(prefers-reduced-motion: no-preference)" src="/posts/images/second-mcp-anniversary/mcp-second-birthday-av1.mp4" type='video/mp4; codecs="av01.0.08M.10"'>
+  <source media="(prefers-reduced-motion: no-preference)" src="/posts/images/second-mcp-anniversary/mcp-second-birthday.mp4" type='video/mp4; codecs="avc1.640028"'>
+  <source src="/posts/images/second-mcp-anniversary/mcp-second-birthday-still.mp4" type="video/mp4">
+  <img src="/posts/images/second-mcp-anniversary/mcp-second-birthday-poster.jpg" width="1920" height="1080" loading="lazy" style="max-width: 100%; height: auto" alt="Animation for MCP's second birthday. In a snowy village square at night, a gift box topped with the MCP logo opens, and toy blocks stack up into the number two, with MCP spelled across the top, two lit candles, and fireworks all around.">
+</video>
+
 This week, our little open-source project, the Model Context Protocol (MCP), turns **two years old**. And what better way to mark this occasion than by celebrating the people who helped us build it and everyone building with it.
 
 When MCP first launched, we could not have imagined how creative and ambitious the community would get with it, or how many people would jump in to help make it become what it is today. Developers have been showing up since the very first day the project landed on GitHub, and we've had more than 2,500 unique contributors since then. As we're heading into our third year, it's worth looking back at some of the highlights since that fateful November of 2024.
@@ -70,6 +77,12 @@ MCP is just as useful in everyday life as it is in studios and research labs. Da
 Developers have built MCP into their everyday workflows, too. An agent can pick up an issue in [Linear](https://linear.app/docs/mcp), pull the latest library docs from [Context7](https://github.com/upstash/context7), see how its fix behaves in [Chrome](https://developer.chrome.com/blog/chrome-devtools-mcp) or [Safari](https://webkit.org/blog/18136/introducing-the-safari-mcp-server-for-web-developers/), and deploy it to [Cloudflare](https://blog.cloudflare.com/code-mode-mcp/) - all through the same open protocol.
 
 The agent that helps you ship code can also use MCP to draw on public knowledge from around the world. You can find [NASA satellite data](https://github.com/nasa/earthdata-mcp) on wildfires or sea ice, or explore [Wikidata](https://www.wikidata.org/wiki/Wikidata:MCP), the free knowledge base that anyone can edit. [India's statistics ministry built a server](https://github.com/nso-india/esankhyiki-mcp) on Prefect's [FastMCP](https://github.com/PrefectHQ/fastmcp), so you can ask about jobs, inflation, health, or education and get official numbers straight from the source.
+
+{{< quote name="Angie Jones" title="VP of Developer Experience" company="Agentic AI Foundation" >}}
+
+Whether an agent is querying a database to fix a bug, or helping a researcher access the data they need to, MCP servers have become part of the fabric of the agentic internet. None of this would be possible without the individual builders who saw something missing, and shipped a server that everyone could benefit from. When builders get a stake in shaping the technology they use, everyone wins.
+
+{{< /quote >}}
 
 ## By the builders, for the builders
 
