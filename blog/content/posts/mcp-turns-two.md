@@ -2,7 +2,7 @@
 title: "Two Years of MCP Builders"
 date: "2026-11-24T09:00:00+00:00"
 publishDate: "2026-11-24T09:00:00+00:00"
-slug: second-mcp-anniversary
+slug: mcp-turns-two
 description: "The Model Context Protocol turns two years old this week, and we're celebrating the people who helped us build it and everyone building with it."
 author:
   - "David Soria Parra (Co-creator of MCP, Lead\u00a0Maintainer)"
@@ -14,11 +14,11 @@ tags:
 ShowToc: true
 ---
 
-<video autoplay loop muted playsinline width="1920" height="1080" poster="/posts/images/second-mcp-anniversary/mcp-second-birthday-poster.jpg" style="max-width: 100%; height: auto" aria-label="Animation for MCP's second birthday. In a snowy village square at night, a gift box topped with the MCP logo opens, and toy blocks stack up into the number two, with MCP spelled across the top, two lit candles, and fireworks all around.">
-  <source media="(prefers-reduced-motion: no-preference)" src="/posts/images/second-mcp-anniversary/mcp-second-birthday-av1.mp4" type='video/mp4; codecs="av01.0.08M.10"'>
-  <source media="(prefers-reduced-motion: no-preference)" src="/posts/images/second-mcp-anniversary/mcp-second-birthday.mp4" type='video/mp4; codecs="avc1.640028"'>
-  <source src="/posts/images/second-mcp-anniversary/mcp-second-birthday-still.mp4" type="video/mp4">
-  <img src="/posts/images/second-mcp-anniversary/mcp-second-birthday-poster.jpg" width="1920" height="1080" loading="lazy" style="max-width: 100%; height: auto" alt="Animation for MCP's second birthday. In a snowy village square at night, a gift box topped with the MCP logo opens, and toy blocks stack up into the number two, with MCP spelled across the top, two lit candles, and fireworks all around.">
+<video autoplay loop muted playsinline width="1920" height="1080" poster="/posts/images/mcp-turns-two/mcp-second-birthday-poster.jpg" style="max-width: 100%; height: auto" aria-label="Animation for MCP's second birthday. In a snowy village square at night, a gift box topped with the MCP logo opens, and toy blocks stack up into the number two, with MCP spelled across the top, two lit candles, and fireworks all around.">
+  <source media="(prefers-reduced-motion: no-preference)" src="/posts/images/mcp-turns-two/mcp-second-birthday-av1.mp4" type='video/mp4; codecs="av01.0.08M.10"'>
+  <source media="(prefers-reduced-motion: no-preference)" src="/posts/images/mcp-turns-two/mcp-second-birthday.mp4" type='video/mp4; codecs="avc1.640028"'>
+  <source src="/posts/images/mcp-turns-two/mcp-second-birthday-still.mp4" type="video/mp4">
+  <img src="/posts/images/mcp-turns-two/mcp-second-birthday-poster.jpg" width="1920" height="1080" loading="lazy" style="max-width: 100%; height: auto" alt="Animation for MCP's second birthday. In a snowy village square at night, a gift box topped with the MCP logo opens, and toy blocks stack up into the number two, with MCP spelled across the top, two lit candles, and fireworks all around.">
 </video>
 
 This week, our little open-source project, the Model Context Protocol (MCP), turns **two years old**. And what better way to mark this occasion than by celebrating the people who helped us build it and everyone building with it.
@@ -36,8 +36,8 @@ By the time we celebrated the [first birthday](https://blog.modelcontextprotocol
 Just a couple of weeks later, we got to celebrate again when MCP joined the [Agentic AI Foundation](https://blog.modelcontextprotocol.io/posts/2025-12-09-mcp-joins-agentic-ai-foundation/) under the Linux Foundation. That gave maintainers and the community the independence to keep steering the protocol together for years to come, with the same vendor-neutral stewardship as projects like Kubernetes, PyTorch, and Node.js.
 
 <picture>
-  <source media="(max-width: 600px)" srcset="/posts/images/second-mcp-anniversary/mcp-timeline-phone.png" width="1200" height="3096">
-  <img src="/posts/images/second-mcp-anniversary/mcp-timeline.png" width="2160" height="1926" loading="lazy" style="max-width: 100%; height: auto" alt="Timeline of MCP's first two years. Year one: open-source launch with spec 2024-11-05 in November 2024; remote servers and authorization with spec 2025-03-26 in March 2025; elicitation and structured output with spec 2025-06-18 in June 2025; formal governance in July; the MCP Registry preview in September; and the first birthday with spec 2025-11-25 in November. Year two: the move to the Agentic AI Foundation in December 2025; MCP Apps, the first official extension, in January 2026; Enterprise-Managed Authorization in June; the stateless protocol with spec 2026-07-28 in July; Skills over MCP beta in October; and Events beta in November.">
+  <source media="(max-width: 600px)" srcset="/posts/images/mcp-turns-two/mcp-timeline-phone.png" width="1200" height="3096">
+  <img src="/posts/images/mcp-turns-two/mcp-timeline.png" width="2160" height="1926" loading="lazy" style="max-width: 100%; height: auto" alt="Timeline of MCP's first two years. Year one: open-source launch with spec 2024-11-05 in November 2024; remote servers and authorization with spec 2025-03-26 in March 2025; elicitation and structured output with spec 2025-06-18 in June 2025; formal governance in July; the MCP Registry preview in September; and the first birthday with spec 2025-11-25 in November. Year two: the move to the Agentic AI Foundation in December 2025; MCP Apps, the first official extension, in January 2026; Enterprise-Managed Authorization in June; the stateless protocol with spec 2026-07-28 in July; Skills over MCP beta in October; and Events beta in November.">
 </picture>
 
 ## The year of the builder
@@ -47,8 +47,8 @@ While our first year was very much about establishing the foundations of the pro
 In fact, our SDKs just crossed 5 billion total downloads, and more than 4.5 billion of those came in the past year alone.
 
 <picture>
-  <source media="(max-width: 600px)" srcset="/posts/images/second-mcp-anniversary/mcp-sdk-downloads-phone.png" width="2160" height="1392">
-  <img src="/posts/images/second-mcp-anniversary/mcp-sdk-downloads.png" width="2160" height="1392" loading="lazy" style="max-width: 100%; height: auto" alt="Line chart of cumulative MCP SDK downloads, with a shaded gradient under the line. It climbs from zero at launch in November 2024 to more than 400 million at the first birthday and 5.22 billion as of November 23, 2026. A footnote says that the total covers the Python, TypeScript, C#, Rust, and Ruby SDKs, with data from official public registries.">
+  <source media="(max-width: 600px)" srcset="/posts/images/mcp-turns-two/mcp-sdk-downloads-phone.png" width="2160" height="1392">
+  <img src="/posts/images/mcp-turns-two/mcp-sdk-downloads.png" width="2160" height="1392" loading="lazy" style="max-width: 100%; height: auto" alt="Line chart of cumulative MCP SDK downloads, with a shaded gradient under the line. It climbs from zero at launch in November 2024 to more than 400 million at the first birthday and 5.22 billion as of November 23, 2026. A footnote says that the total covers the Python, TypeScript, C#, Rust, and Ruby SDKs, with data from official public registries.">
 </picture>
 
 With so many builders behind that growth, we wanted to use this moment to highlight some of their most creative and ambitious work.
@@ -68,8 +68,8 @@ And if retro computing is more your thing, PokuG built [PC98Bridge](https://gith
 Over at Berkeley Lab's Molecular Foundry, Morgan Wall, Peter Ercius, and their colleagues built [TEM Agent](https://newscenter.lbl.gov/2026/10/29/new-virtual-assistant-streamlines-one-of-the-most-advanced-microscopes/), which lets scientists run one of the world's most advanced electron microscopes just by describing what they need. It's amazing to see MCP play a part in research at the atomic scale.
 
 <picture>
-  <source media="(prefers-reduced-motion: reduce)" srcset="/posts/images/second-mcp-anniversary/mcp-connects-still.png" width="1200" height="798">
-  <img src="/posts/images/second-mcp-anniversary/mcp-connects.gif" width="1200" height="798" loading="lazy" style="max-width: 100%; height: auto" alt="Animation of MCP connecting an AI agent to robotics, creativity, developer tools, and research. Requests travel from a laptop through MCP to each area, where a robot arm moves a block, a music keyboard plays, code appears on a monitor, and atoms light up next to an electron microscope. The results travel back to the agent, and then all four areas work at once.">
+  <source media="(prefers-reduced-motion: reduce)" srcset="/posts/images/mcp-turns-two/mcp-connects-still.png" width="1200" height="798">
+  <img src="/posts/images/mcp-turns-two/mcp-connects.gif" width="1200" height="798" loading="lazy" style="max-width: 100%; height: auto" alt="Animation of MCP connecting an AI agent to robotics, creativity, developer tools, and research. Requests travel from a laptop through MCP to each area, where a robot arm moves a block, a music keyboard plays, code appears on a monitor, and atoms light up next to an electron microscope. The results travel back to the agent, and then all four areas work at once.">
 </picture>
 
 MCP is just as useful in everyday life as it is in studios and research labs. Dave Sirota's [ROLLIN](https://github.com/DavidSirota/rollin-mcp-server) helps people find wheelchair-accessible restaurants, cafes, and bars across the US, and Zach Greene's [BirdNET-Go MCP server](https://github.com/zax0rz/birdnet-go-mcp) lets you ask which birds stopped by your backyard today. [AllTrails](https://support.alltrails.com/hc/en-us/articles/47343827423764-AllTrails-integrations-with-AI-assistants) uses [MCP Apps](https://blog.modelcontextprotocol.io/posts/2026-01-26-mcp-apps/) to help you find your next hike on a map right in the chat.
@@ -106,25 +106,25 @@ Behind every one of those changes is a global, distributed crew of folks who car
 
 It all kicked off in April with [MCP Dev Summit in New York](https://events.linuxfoundation.org/mcp-dev-summit-north-america/), which drew a crowd of about 1,200 - four times the size of the very first summit in [San Francisco](https://luma.com/mcpdevsummit2025) in May of 2025. June brought back-to-back summits in [Bengaluru](https://events.linuxfoundation.org/mcp-dev-summit-bengaluru/) and [Mumbai](https://events.linuxfoundation.org/mcp-dev-summit-mumbai/), and August took MCP all the way to [Seoul](https://events.linuxfoundation.org/mcp-dev-summit-seoul/).
 
-<img src="/posts/images/second-mcp-anniversary/mcp-dev-summit-new-york.jpg" width="1440" height="960" loading="lazy" style="max-width: 100%; height: auto" alt="Two speakers present on stage to hundreds of attendees at MCP Dev Summit in New York, in a blue-lit ballroom with ring-shaped chandeliers.">
+<img src="/posts/images/mcp-turns-two/mcp-dev-summit-new-york.jpg" width="1440" height="960" loading="lazy" style="max-width: 100%; height: auto" alt="Two speakers present on stage to hundreds of attendees at MCP Dev Summit in New York, in a blue-lit ballroom with ring-shaped chandeliers.">
 
-<img src="/posts/images/second-mcp-anniversary/mcp-dev-summit-seoul.jpg" width="1440" height="568" loading="lazy" style="max-width: 100%; height: auto" alt="Attendees gather at round tables, many of them on laptops and phones, in a ballroom at MCP Dev Summit Seoul.">
+<img src="/posts/images/mcp-turns-two/mcp-dev-summit-seoul.jpg" width="1440" height="568" loading="lazy" style="max-width: 100%; height: auto" alt="Attendees gather at round tables, many of them on laptops and phones, in a ballroom at MCP Dev Summit Seoul.">
 
-<img src="/posts/images/second-mcp-anniversary/mcp-dev-summit-seoul-talk.jpg" width="1440" height="960" loading="lazy" style="max-width: 100%; height: auto" alt="A speaker presents on stage to a ballroom of attendees seated at round tables at MCP Dev Summit Seoul.">
+<img src="/posts/images/mcp-turns-two/mcp-dev-summit-seoul-talk.jpg" width="1440" height="960" loading="lazy" style="max-width: 100%; height: auto" alt="A speaker presents on stage to a ballroom of attendees seated at round tables at MCP Dev Summit Seoul.">
 
 September was especially packed, with AGNTCon + MCPCon taking place in [Shanghai](https://www.lfopensource.cn/mcp-dev-summit-shanghai/), [Tokyo](https://events.linuxfoundation.org/mcp-dev-summit-tokyo/), and [Amsterdam](https://events.linuxfoundation.org/agntcon-mcpcon-europe/) - all in less than two weeks. Fun fact - during AGNTCon + MCPCon Europe, the protocol Core Maintainers established the basics for the next spec release, that we're planning on [releasing in March of next year](https://blog.modelcontextprotocol.io/posts/mcp-release-cycle/).
 
-<img src="/posts/images/second-mcp-anniversary/amsterdam-maintainers.jpg" width="1440" height="1080" loading="lazy" style="max-width: 100%; height: auto" alt="Maintainers in Amsterdam planning the next spec, seated around a long conference table.">
+<img src="/posts/images/mcp-turns-two/amsterdam-maintainers.jpg" width="1440" height="1080" loading="lazy" style="max-width: 100%; height: auto" alt="Maintainers in Amsterdam planning the next spec, seated around a long conference table.">
 
-<img src="/posts/images/second-mcp-anniversary/amsterdam-core-maintainers.jpg" width="1440" height="1080" loading="lazy" style="max-width: 100%; height: auto" alt="Core Maintainers in Amsterdam helping plan the next spec, as one of them sketches a timeline on a flip chart.">
+<img src="/posts/images/mcp-turns-two/amsterdam-core-maintainers.jpg" width="1440" height="1080" loading="lazy" style="max-width: 100%; height: auto" alt="Core Maintainers in Amsterdam helping plan the next spec, as one of them sketches a timeline on a flip chart.">
 
-<img src="/posts/images/second-mcp-anniversary/agntcon-mcpcon-amsterdam.jpg" width="1440" height="960" loading="lazy" style="max-width: 100%; height: auto" alt="A speaker on stage beside the lectern at AGNTCon + MCPCon Europe in Amsterdam, clicker in hand.">
+<img src="/posts/images/mcp-turns-two/agntcon-mcpcon-amsterdam.jpg" width="1440" height="960" loading="lazy" style="max-width: 100%; height: auto" alt="A speaker on stage beside the lectern at AGNTCon + MCPCon Europe in Amsterdam, clicker in hand.">
 
 October opened with MCP Dev Summit in [Toronto](https://events.linuxfoundation.org/mcp-dev-summit-toronto/), followed by [AGNTCon + MCPCon North America](https://events.linuxfoundation.org/archive/2026/agntcon-mcpcon-north-america/) in San Jose. Just last week, builders spent two whole days in [Nairobi](https://events.linuxfoundation.org/mcp-dev-summit-nairobi/) sharing their work and learning about how MCP continues to shift and influence the agentic landscape.
 
-<img src="/posts/images/second-mcp-anniversary/agntcon-mcpcon-san-jose.jpg" width="799" height="533" loading="lazy" style="max-width: 100%; height: auto" alt="A speaker addresses the audience from the stage at AGNTCon + MCPCon North America in San Jose, under a screen that reads &quot;Where the agentic stack is being built.&quot;">
+<img src="/posts/images/mcp-turns-two/agntcon-mcpcon-san-jose.jpg" width="799" height="533" loading="lazy" style="max-width: 100%; height: auto" alt="A speaker addresses the audience from the stage at AGNTCon + MCPCon North America in San Jose, under a screen that reads &quot;Where the agentic stack is being built.&quot;">
 
-<img src="/posts/images/second-mcp-anniversary/agntcon-mcpcon-san-jose-audience.jpg" width="1440" height="1080" loading="lazy" style="max-width: 100%; height: auto" alt="Hundreds of attendees fill a dimly lit hall at AGNTCon + MCPCon North America in San Jose, with others sitting on the floor and standing at the side.">
+<img src="/posts/images/mcp-turns-two/agntcon-mcpcon-san-jose-audience.jpg" width="1440" height="1080" loading="lazy" style="max-width: 100%; height: auto" alt="Hundreds of attendees fill a dimly lit hall at AGNTCon + MCPCon North America in San Jose, with others sitting on the floor and standing at the side.">
 
 Ten cities and four continents later, MCP has brought together a massively talented group of people from all over the world. We've never seen anything like it, and that community is only getting bigger.
 
