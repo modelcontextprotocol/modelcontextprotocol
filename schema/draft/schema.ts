@@ -48,7 +48,7 @@ export const JSONRPC_VERSION = "2.0";
  * - Unless empty, MUST start and end with an alphanumeric character (`[a-z0-9A-Z]`).
  * - Interior characters may be alphanumeric, hyphens (`-`), underscores (`_`), or dots (`.`).
  *
- * @see [General fields: `_meta`](/specification/draft/basic/index#meta) for more details.
+ * @see [General fields: `_meta`](/specification/draft/basic/index#_meta) for more details.
  * @category Common Types
  */
 export type MetaObject = Record<string, unknown>;
@@ -57,7 +57,7 @@ export type MetaObject = Record<string, unknown>;
  * Extends {@link MetaObject} with additional request-specific fields. All key naming rules from `MetaObject` apply.
  *
  * @see {@link MetaObject} for key naming rules and reserved prefixes.
- * @see [General fields: `_meta`](/specification/draft/basic/index#meta) for more details.
+ * @see [General fields: `_meta`](/specification/draft/basic/index#_meta) for more details.
  * @category Common Types
  */
 export interface RequestMetaObject extends MetaObject {
@@ -75,12 +75,19 @@ export interface RequestMetaObject extends MetaObject {
    */
   "io.modelcontextprotocol/protocolVersion": string;
   /**
-   * Identifies the client software making the request. Required.
+   * Identifies the client software making the request. Clients SHOULD
+   * include this field on every request unless specifically configured not
+   * to do so.
    *
    * The {@link Implementation} schema requires `name` and `version`; other
    * fields are optional.
+   *
+   * The value is self-reported by the client and is not verified by the
+   * protocol. It is intended for display, logging, and debugging. Servers
+   * SHOULD NOT use it to change their behavior, and SHOULD NOT rely on it for
+   * security decisions.
    */
-  "io.modelcontextprotocol/clientInfo": Implementation;
+  "io.modelcontextprotocol/clientInfo"?: Implementation;
   /**
    * The client's capabilities for this specific request. Required.
    *
@@ -107,7 +114,7 @@ export interface RequestMetaObject extends MetaObject {
  * Extends {@link MetaObject} with additional notification-specific fields. All key naming rules from `MetaObject` apply.
  *
  * @see {@link MetaObject} for key naming rules and reserved prefixes.
- * @see [General fields: `_meta`](/specification/draft/basic/index#meta) for more details.
+ * @see [General fields: `_meta`](/specification/draft/basic/index#_meta) for more details.
  * @category Common Types
  */
 export interface NotificationMetaObject extends MetaObject {
@@ -124,6 +131,30 @@ export interface NotificationMetaObject extends MetaObject {
    * opened the stream.
    */
   "io.modelcontextprotocol/subscriptionId"?: RequestId;
+}
+
+/**
+ * Extends {@link MetaObject} with additional result-specific fields. All key naming rules from `MetaObject` apply.
+ *
+ * @see {@link MetaObject} for key naming rules and reserved prefixes.
+ * @see [General fields: `_meta`](/specification/draft/basic/index#_meta) for more details.
+ * @category Common Types
+ */
+export interface ResultMetaObject extends MetaObject {
+  /**
+   * Identifies the server software producing the response. Servers SHOULD
+   * include this field on every response unless specifically configured not
+   * to do so.
+   *
+   * The {@link Implementation} schema requires `name` and `version`; other
+   * fields are optional.
+   *
+   * The value is self-reported by the server and is not verified by the
+   * protocol. It is intended for display, logging, and debugging. Clients
+   * SHOULD NOT use it to change their behavior, and SHOULD NOT rely on it for
+   * security decisions.
+   */
+  "io.modelcontextprotocol/serverInfo"?: Implementation;
 }
 
 /**
@@ -190,7 +221,7 @@ export type ResultType = "complete" | "input_required" | string;
  * @category Common Types
  */
 export interface Result {
-  _meta?: MetaObject;
+  _meta?: ResultMetaObject;
   /**
    * Indicates the type of the result, which allows the client to determine
    * how to parse the result object.
@@ -332,20 +363,20 @@ export interface MethodNotFoundError extends Error {
  *
  * In MCP, this error is returned in various contexts when request parameters fail validation:
  *
- * - **Tools**: Unknown tool name or invalid tool arguments
+ * - **Tools**: Unknown tool name, or a request that does not satisfy the `CallToolRequest` schema. Invalid tool arguments are instead reported as tool execution errors, with `isError` set to true
  * - **Prompts**: Unknown prompt name or missing required arguments
  * - **Pagination**: Invalid or expired cursor values
- * - **Logging**: Invalid log level
+ * - **Logging** (deprecated): Invalid log level
  * - **Elicitation**: Server requests an elicitation mode not declared in client capabilities
- * - **Sampling**: Missing tool result or tool results mixed with other content
+ * - **Sampling** (deprecated): Missing tool result or tool results mixed with other content
  *
  * @see {@link https://www.jsonrpc.org/specification#error_object | JSON-RPC 2.0 Error Object}
  *
  * @example Unknown tool
  * {@includeCode ./examples/InvalidParamsError/unknown-tool.json}
  *
- * @example Invalid tool arguments
- * {@includeCode ./examples/InvalidParamsError/invalid-tool-arguments.json}
+ * @example Malformed tool call
+ * {@includeCode ./examples/InvalidParamsError/malformed-tool-call.json}
  *
  * @example Unknown prompt
  * {@includeCode ./examples/InvalidParamsError/unknown-prompt.json}
@@ -564,7 +595,8 @@ export interface InputRequiredResult extends Result {
 }
 
 /* Request parameter type that includes input responses and request state.
- * These parameters may be included in any client-initiated request.
+ * These parameters may be included in `prompts/get`, `resources/read`, and
+ * `tools/call` requests.
  */
 export interface InputResponseRequestParams extends RequestParams {
   /* New field to carry the responses for the server's requests from the
@@ -654,10 +686,6 @@ export interface DiscoverResult extends CacheableResult {
    * The capabilities of the server.
    */
   capabilities: ServerCapabilities;
-  /**
-   * Information about the server software implementation.
-   */
-  serverInfo: Implementation;
   /**
    * Natural-language guidance describing the server and its features.
    *
@@ -1290,13 +1318,13 @@ export interface SubscriptionsListenRequest extends JSONRPCRequest {
 }
 
 /**
- * Extends {@link MetaObject} with the subscription-stream identifier carried by a
+ * Extends {@link ResultMetaObject} with the subscription-stream identifier carried by a
  * {@link SubscriptionsListenResult}. All key naming rules from `MetaObject` apply.
  *
  * @see {@link MetaObject} for key naming rules and reserved prefixes.
  * @category `subscriptions/listen`
  */
-export interface SubscriptionsListenResultMeta extends MetaObject {
+export interface SubscriptionsListenResultMetaObject extends ResultMetaObject {
   /**
    * Identifies the subscription stream this response closes, so the client can
    * correlate it with the originating subscription — mirroring the same key on
@@ -1320,7 +1348,20 @@ export interface SubscriptionsListenResultMeta extends MetaObject {
  * @category `subscriptions/listen`
  */
 export interface SubscriptionsListenResult extends Result {
-  _meta: SubscriptionsListenResultMeta;
+  _meta: SubscriptionsListenResultMetaObject;
+}
+
+/**
+ * A successful response from the server for a {@link SubscriptionsListenRequest | subscriptions/listen}
+ * request, sent when the server tears the subscription down gracefully.
+ *
+ * @example Subscription closed gracefully response
+ * {@includeCode ./examples/SubscriptionsListenResultResponse/listen-closed-response.json}
+ *
+ * @category `subscriptions/listen`
+ */
+export interface SubscriptionsListenResultResponse extends JSONRPCResultResponse {
+  result: SubscriptionsListenResult;
 }
 
 /**
@@ -1764,6 +1805,9 @@ export interface ListToolsResultResponse extends JSONRPCResultResponse {
  * @example Invalid tool input error
  * {@includeCode ./examples/CallToolResult/invalid-tool-input-error.json}
  *
+ * @example Missing required tool argument
+ * {@includeCode ./examples/CallToolResult/missing-required-argument-error.json}
+ *
  * @category `tools/call`
  */
 export interface CallToolResult extends Result {
@@ -1925,8 +1969,14 @@ export interface ToolAnnotations {
  * @example With no parameters
  * {@includeCode ./examples/Tool/with-no-parameters.json}
  *
+ * @example With a composition input schema
+ * {@includeCode ./examples/Tool/tool-with-composition-input-schema.json}
+ *
  * @example With output schema for structured content
  * {@includeCode ./examples/Tool/with-output-schema-for-structured-content.json}
+ *
+ * @example With an array output schema
+ * {@includeCode ./examples/Tool/tool-with-array-output-schema.json}
  *
  * @category `tools/list`
  */
@@ -1946,6 +1996,11 @@ export interface Tool extends BaseMetadata, Icons {
    * composition keywords (`oneOf`, `anyOf`, `allOf`, `not`), conditional keywords
    * (`if`/`then`/`else`), reference keywords (`$ref`, `$defs`, `$anchor`), and any other
    * standard validation or annotation keywords.
+   *
+   * When using composition keywords, declare `properties` at the schema root and keep the
+   * branches to presence assertions such as `required`. A subschema that fails on a type
+   * error is indistinguishable from one that does not apply, so type constraints placed
+   * inside `oneOf` branches are not enforced for whichever branch does not match.
    *
    * Property schemas may carry an `x-mcp-header` annotation to mirror the
    * argument value into an HTTP header on the Streamable HTTP transport. See
@@ -2109,6 +2164,8 @@ export interface CreateMessageRequestParams {
    * Default is `{ mode: "auto" }`.
    */
   toolChoice?: ToolChoice;
+
+  _meta?: MetaObject;
 }
 
 /**
@@ -2701,6 +2758,8 @@ export interface ListRootsRequest {
  */
 export interface ListRootsResult {
   roots: Root[];
+
+  _meta?: MetaObject;
 }
 
 /**
@@ -2768,6 +2827,8 @@ export interface ElicitRequestFormParams {
     };
     required?: string[];
   };
+
+  _meta?: MetaObject;
 }
 
 /**
@@ -2795,6 +2856,8 @@ export interface ElicitRequestURLParams {
    * @format uri
    */
   url: string;
+
+  _meta?: MetaObject;
 }
 
 /**
@@ -2819,8 +2882,8 @@ export interface ElicitRequest {
 }
 
 /**
- * Restricted schema definitions that only allow primitive types
- * without nested objects or arrays.
+ * Restricted schema definitions for strings, numbers, booleans, and enums,
+ * without nested objects. The only arrays allowed are multi-select enums.
  *
  * @category `elicitation/create`
  */
@@ -3106,6 +3169,8 @@ export interface ElicitResult {
    * Omitted for out-of-band mode responses.
    */
   content?: { [key: string]: string | number | boolean | string[] };
+
+  _meta?: MetaObject;
 }
 
 /* Client messages */

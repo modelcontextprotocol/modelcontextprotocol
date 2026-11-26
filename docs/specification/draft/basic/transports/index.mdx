@@ -38,8 +38,8 @@ initiate JSON-RPC requests and clients do not send JSON-RPC responses.
 ## Request Metadata
 
 All protocol metadata travels in the message body: every request carries its
-protocol version, client identity, and client capabilities in
-[`_meta.io.modelcontextprotocol/*`](/specification/draft/basic/index#meta)
+protocol version and client capabilities in
+[`_meta.io.modelcontextprotocol/*`](/specification/draft/basic/index#_meta)
 fields.
 
 A binding **MAY** additionally mirror selected body fields into envelope

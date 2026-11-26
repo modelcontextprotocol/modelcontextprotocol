@@ -27,13 +27,13 @@ This change was submitted despite me reading the rules and understanding AI cont
 ## Documentation Structure
 
 - `docs/` - Mintlify site (`npm run serve:docs`)
-  - `docs/docs/` - guides and tutorials
+  - `docs/docs/` - guides and tutorials, versioned like the spec: `docs/docs/draft/` for in-progress work, `docs/docs/[YYYY-MM-DD]/` per released spec version
   - `docs/specification/` - MCP specification (more formal, versioned)
 - `blog/` - Hugo blog (`npm run serve:blog`)
 
 ### Documentation Guidelines
 
-- When creating flowcharts, and graphs to visualize aspect of the protocol, use mermaid diagrams where
+- When creating flowcharts and graphs to visualize aspects of the protocol, use mermaid diagrams where
   possible.
 - When writing tables, ensure column headers and columns are aligned with whitespace.
 - Before pushing or creating PR's ensure that `npm run prep` is free of warnings and errors.
@@ -109,4 +109,20 @@ are redirected out of this repo entirely:
 
 ## Commit Guidelines
 
-- Do not include model names or details (e.g., "Claude", "Opus") in commit messages
+Use Conventional Commit PR titles: `type(scope): description`. The scope is optional.
+
+```text
+sep: propose task cancellation
+sep(SEP-3398): clarify task cancellation
+fix(SEP-3398): correct the cancellation result type
+docs: clarify authorization
+ci: validate PR titles
+```
+
+- Once a new SEP has a PR number, use it as the `SEP-XXXX` scope. Follow-up PRs
+  keep the original SEP number and link to the proposal.
+- This format applies to PR titles; individual branch commits do not need rewriting.
+- Do not include model names or details (e.g., "Claude", "Opus") in commit messages.
+
+See [CONTRIBUTING.md](CONTRIBUTING.md#pull-request-titles) for the full type list
+and less common cases.

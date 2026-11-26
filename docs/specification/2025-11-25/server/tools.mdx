@@ -307,12 +307,12 @@ or data using a suitable [URI scheme](./resources#common-uri-schemes). Servers t
   "resource": {
     "uri": "file:///project/src/main.rs",
     "mimeType": "text/x-rust",
-    "text": "fn main() {\n    println!(\"Hello world!\");\n}",
-    "annotations": {
-      "audience": ["user", "assistant"],
-      "priority": 0.7,
-      "lastModified": "2025-05-03T14:30:00Z"
-    }
+    "text": "fn main() {\n    println!(\"Hello world!\");\n}"
+  },
+  "annotations": {
+    "audience": ["user", "assistant"],
+    "priority": 0.7,
+    "lastModified": "2025-05-03T14:30:00Z"
   }
 }
 ```
@@ -324,6 +324,13 @@ Embedded resources support the same [Resource annotations](/specification/2025-1
 **Structured** content is returned as a JSON object in the `structuredContent` field of a result.
 
 For backwards compatibility, a tool that returns structured content SHOULD also return the serialized JSON in a TextContent block.
+
+<Note>
+
+`structuredContent` is server-produced result data and is unrelated to LLM
+"structured outputs" (schema-constrained model generation).
+
+</Note>
 
 #### Output Schema
 

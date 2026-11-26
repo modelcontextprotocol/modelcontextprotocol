@@ -300,7 +300,9 @@ described in [Value Encoding](#value-encoding).
 
 ```http
 POST /mcp HTTP/1.1
+Host: example.com
 Content-Type: application/json
+Accept: application/json, text/event-stream
 MCP-Protocol-Version: 2026-07-28
 Mcp-Method: tools/call
 Mcp-Name: get_weather
@@ -330,7 +332,9 @@ Mcp-Name: get_weather
 
 ```http
 POST /mcp HTTP/1.1
+Host: example.com
 Content-Type: application/json
+Accept: application/json, text/event-stream
 MCP-Protocol-Version: 2026-07-28
 Mcp-Method: resources/read
 Mcp-Name: file:///projects/myapp/config.json
@@ -383,7 +387,8 @@ the header name `Mcp-Param-{name}`.
   the `inputSchema`
 - **MUST** only be applied to parameters with primitive types (integer,
   string, boolean). Parameters with type `number` are not permitted.
-  Integer values **MUST** be within the safe range for JavaScript
+  Integer values **MUST** be within the safe range for integers
+  represented using IEEE754 double-precision floating point numbers
   (−2<sup>53</sup>+1 to 2<sup>53</sup>−1)
 - **MUST** only be applied to properties that are _statically reachable_
   from the schema root: reachable via a chain consisting solely of
@@ -436,7 +441,9 @@ annotations entirely.
 
 ```http
 POST /mcp HTTP/1.1
+Host: example.com
 Content-Type: application/json
+Accept: application/json, text/event-stream
 MCP-Protocol-Version: 2026-07-28
 Mcp-Method: tools/call
 Mcp-Name: execute_sql

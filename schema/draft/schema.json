@@ -123,7 +123,7 @@
             "description": "A result that supports a time-to-live (TTL) hint for client-side caching.",
             "properties": {
                 "_meta": {
-                    "$ref": "#/$defs/MetaObject"
+                    "$ref": "#/$defs/ResultMetaObject"
                 },
                 "cacheScope": {
                     "description": "Indicates the intended scope of the cached response, analogous to HTTP\n`Cache-Control: public` vs `Cache-Control: private`.\n\n- `\"public\"`: The response does not contain user-specific data. Any\n  client or intermediary (e.g., shared gateway, caching proxy) MAY cache\n  the response and serve it across authorization contexts.\n- `\"private\"`: The response MAY be cached and reused only within the\n  same authorization context. Caches MUST NOT be shared across\n  authorization contexts (e.g., a different access token requires a\n  different cache).",
@@ -208,7 +208,7 @@
             "description": "The result returned by the server for a {@link CallToolRequesttools/call} request.",
             "properties": {
                 "_meta": {
-                    "$ref": "#/$defs/MetaObject"
+                    "$ref": "#/$defs/ResultMetaObject"
                 },
                 "content": {
                     "description": "A list of content objects that represent the unstructured result of the tool call.",
@@ -501,7 +501,7 @@
             "description": "The result returned by the server for a {@link CompleteRequestcompletion/complete} request.",
             "properties": {
                 "_meta": {
-                    "$ref": "#/$defs/MetaObject"
+                    "$ref": "#/$defs/ResultMetaObject"
                 },
                 "completion": {
                     "properties": {
@@ -598,6 +598,9 @@
         "CreateMessageRequestParams": {
             "description": "Parameters for a `sampling/createMessage` request.",
             "properties": {
+                "_meta": {
+                    "$ref": "#/$defs/MetaObject"
+                },
                 "includeContext": {
                     "description": "A request to include context from one or more MCP servers (including the caller), to be attached to the prompt.\nThe client MAY ignore this request.\n\nDefault is `\"none\"`. The values `\"thisServer\"` and `\"allServers\"` are deprecated (SEP-2596): servers SHOULD\nomit this field or use `\"none\"`, and SHOULD only use the deprecated values if the client declares\n{@link ClientCapabilities.sampling.context}.",
                     "enum": [
@@ -740,7 +743,7 @@
             "description": "The result returned by the server for a {@link DiscoverRequestserver/discover} request.",
             "properties": {
                 "_meta": {
-                    "$ref": "#/$defs/MetaObject"
+                    "$ref": "#/$defs/ResultMetaObject"
                 },
                 "cacheScope": {
                     "description": "Indicates the intended scope of the cached response, analogous to HTTP\n`Cache-Control: public` vs `Cache-Control: private`.\n\n- `\"public\"`: The response does not contain user-specific data. Any\n  client or intermediary (e.g., shared gateway, caching proxy) MAY cache\n  the response and serve it across authorization contexts.\n- `\"private\"`: The response MAY be cached and reused only within the\n  same authorization context. Caches MUST NOT be shared across\n  authorization contexts (e.g., a different access token requires a\n  different cache).",
@@ -762,10 +765,6 @@
                     "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object.\n\nServers implementing this protocol version MUST include this field.\nFor backward compatibility, when a client receives a result from a\nserver implementing an earlier protocol version (which does not include\n`resultType`), the client MUST treat the absent field as `\"complete\"`.",
                     "type": "string"
                 },
-                "serverInfo": {
-                    "$ref": "#/$defs/Implementation",
-                    "description": "Information about the server software implementation."
-                },
                 "supportedVersions": {
                     "description": "MCP Protocol Versions this server supports. The client should choose a\nversion from this list for use in subsequent requests.",
                     "items": {
@@ -783,7 +782,6 @@
                 "cacheScope",
                 "capabilities",
                 "resultType",
-                "serverInfo",
                 "supportedVersions",
                 "ttlMs"
             ],
@@ -830,6 +828,9 @@
         "ElicitRequestFormParams": {
             "description": "The parameters for a request to elicit non-sensitive information from the user via a form in the client.",
             "properties": {
+                "_meta": {
+                    "$ref": "#/$defs/MetaObject"
+                },
                 "message": {
                     "description": "The message to present to the user describing what information is being requested.",
                     "type": "string"
@@ -889,6 +890,9 @@
         "ElicitRequestURLParams": {
             "description": "The parameters for a request to elicit information from the user via a URL in the client.",
             "properties": {
+                "_meta": {
+                    "$ref": "#/$defs/MetaObject"
+                },
                 "message": {
                     "description": "The message to present to the user explaining why the interaction is needed.",
                     "type": "string"
@@ -914,6 +918,9 @@
         "ElicitResult": {
             "description": "The result returned by the client for an {@link ElicitRequestelicitation/create} request.",
             "properties": {
+                "_meta": {
+                    "$ref": "#/$defs/MetaObject"
+                },
                 "action": {
                     "description": "The user action in response to the elicitation.\n- `\"accept\"`: User submitted the form/confirmed the action\n- `\"decline\"`: User explicitly declined the action\n- `\"cancel\"`: User dismissed without making an explicit choice",
                     "enum": [
@@ -1084,7 +1091,7 @@
             "description": "The result returned by the server for a {@link GetPromptRequestprompts/get} request.",
             "properties": {
                 "_meta": {
-                    "$ref": "#/$defs/MetaObject"
+                    "$ref": "#/$defs/ResultMetaObject"
                 },
                 "description": {
                     "description": "An optional description for the prompt.",
@@ -1310,7 +1317,7 @@
             "description": "An InputRequiredResult sent by the server to indicate that additional input is needed\nbefore the request can be completed.\n\nAt least one of `inputRequests` or `requestState` MUST be present.",
             "properties": {
                 "_meta": {
-                    "$ref": "#/$defs/MetaObject"
+                    "$ref": "#/$defs/ResultMetaObject"
                 },
                 "inputRequests": {
                     "$ref": "#/$defs/InputRequests"
@@ -1388,7 +1395,7 @@
             "type": "object"
         },
         "InvalidParamsError": {
-            "description": "A JSON-RPC error indicating that the method parameters are invalid or malformed.\n\nIn MCP, this error is returned in various contexts when request parameters fail validation:\n\n- **Tools**: Unknown tool name or invalid tool arguments\n- **Prompts**: Unknown prompt name or missing required arguments\n- **Pagination**: Invalid or expired cursor values\n- **Logging**: Invalid log level\n- **Elicitation**: Server requests an elicitation mode not declared in client capabilities\n- **Sampling**: Missing tool result or tool results mixed with other content",
+            "description": "A JSON-RPC error indicating that the method parameters are invalid or malformed.\n\nIn MCP, this error is returned in various contexts when request parameters fail validation:\n\n- **Tools**: Unknown tool name, or a request that does not satisfy the `CallToolRequest` schema. Invalid tool arguments are instead reported as tool execution errors, with `isError` set to true\n- **Prompts**: Unknown prompt name or missing required arguments\n- **Pagination**: Invalid or expired cursor values\n- **Logging** (deprecated): Invalid log level\n- **Elicitation**: Server requests an elicitation mode not declared in client capabilities\n- **Sampling** (deprecated): Missing tool result or tool results mixed with other content",
             "properties": {
                 "code": {
                     "const": -32602,
@@ -1644,7 +1651,7 @@
             "description": "The result returned by the server for a {@link ListPromptsRequestprompts/list} request.",
             "properties": {
                 "_meta": {
-                    "$ref": "#/$defs/MetaObject"
+                    "$ref": "#/$defs/ResultMetaObject"
                 },
                 "cacheScope": {
                     "description": "Indicates the intended scope of the cached response, analogous to HTTP\n`Cache-Control: public` vs `Cache-Control: private`.\n\n- `\"public\"`: The response does not contain user-specific data. Any\n  client or intermediary (e.g., shared gateway, caching proxy) MAY cache\n  the response and serve it across authorization contexts.\n- `\"private\"`: The response MAY be cached and reused only within the\n  same authorization context. Caches MUST NOT be shared across\n  authorization contexts (e.g., a different access token requires a\n  different cache).",
@@ -1733,7 +1740,7 @@
             "description": "The result returned by the server for a {@link ListResourceTemplatesRequestresources/templates/list} request.",
             "properties": {
                 "_meta": {
-                    "$ref": "#/$defs/MetaObject"
+                    "$ref": "#/$defs/ResultMetaObject"
                 },
                 "cacheScope": {
                     "description": "Indicates the intended scope of the cached response, analogous to HTTP\n`Cache-Control: public` vs `Cache-Control: private`.\n\n- `\"public\"`: The response does not contain user-specific data. Any\n  client or intermediary (e.g., shared gateway, caching proxy) MAY cache\n  the response and serve it across authorization contexts.\n- `\"private\"`: The response MAY be cached and reused only within the\n  same authorization context. Caches MUST NOT be shared across\n  authorization contexts (e.g., a different access token requires a\n  different cache).",
@@ -1822,7 +1829,7 @@
             "description": "The result returned by the server for a {@link ListResourcesRequestresources/list} request.",
             "properties": {
                 "_meta": {
-                    "$ref": "#/$defs/MetaObject"
+                    "$ref": "#/$defs/ResultMetaObject"
                 },
                 "cacheScope": {
                     "description": "Indicates the intended scope of the cached response, analogous to HTTP\n`Cache-Control: public` vs `Cache-Control: private`.\n\n- `\"public\"`: The response does not contain user-specific data. Any\n  client or intermediary (e.g., shared gateway, caching proxy) MAY cache\n  the response and serve it across authorization contexts.\n- `\"private\"`: The response MAY be cached and reused only within the\n  same authorization context. Caches MUST NOT be shared across\n  authorization contexts (e.g., a different access token requires a\n  different cache).",
@@ -1905,6 +1912,9 @@
         "ListRootsResult": {
             "description": "The result returned by the client for a {@link ListRootsRequestroots/list} request.\nThis result contains an array of {@link Root} objects, each representing a root directory\nor file that the server can operate on.",
             "properties": {
+                "_meta": {
+                    "$ref": "#/$defs/MetaObject"
+                },
                 "roots": {
                     "items": {
                         "$ref": "#/$defs/Root"
@@ -1947,7 +1957,7 @@
             "description": "The result returned by the server for a {@link ListToolsRequesttools/list} request.",
             "properties": {
                 "_meta": {
-                    "$ref": "#/$defs/MetaObject"
+                    "$ref": "#/$defs/ResultMetaObject"
                 },
                 "cacheScope": {
                     "description": "Indicates the intended scope of the cached response, analogous to HTTP\n`Cache-Control: public` vs `Cache-Control: private`.\n\n- `\"public\"`: The response does not contain user-specific data. Any\n  client or intermediary (e.g., shared gateway, caching proxy) MAY cache\n  the response and serve it across authorization contexts.\n- `\"private\"`: The response MAY be cached and reused only within the\n  same authorization context. Caches MUST NOT be shared across\n  authorization contexts (e.g., a different access token requires a\n  different cache).",
@@ -2299,7 +2309,7 @@
         "PaginatedResult": {
             "properties": {
                 "_meta": {
-                    "$ref": "#/$defs/MetaObject"
+                    "$ref": "#/$defs/ResultMetaObject"
                 },
                 "nextCursor": {
                     "description": "An opaque token representing the pagination position after the last returned result.\nIf present, there may be more results available.",
@@ -2364,7 +2374,7 @@
                     "$ref": "#/$defs/LegacyTitledEnumSchema"
                 }
             ],
-            "description": "Restricted schema definitions that only allow primitive types\nwithout nested objects or arrays."
+            "description": "Restricted schema definitions for strings, numbers, booleans, and enums,\nwithout nested objects. The only arrays allowed are multi-select enums."
         },
         "ProgressNotification": {
             "description": "An out-of-band notification used to inform the receiver of a progress update for a long-running request.",
@@ -2600,7 +2610,7 @@
             "description": "The result returned by the server for a {@link ReadResourceRequestresources/read} request.",
             "properties": {
                 "_meta": {
-                    "$ref": "#/$defs/MetaObject"
+                    "$ref": "#/$defs/ResultMetaObject"
                 },
                 "cacheScope": {
                     "description": "Indicates the intended scope of the cached response, analogous to HTTP\n`Cache-Control: public` vs `Cache-Control: private`.\n\n- `\"public\"`: The response does not contain user-specific data. Any\n  client or intermediary (e.g., shared gateway, caching proxy) MAY cache\n  the response and serve it across authorization contexts.\n- `\"private\"`: The response MAY be cached and reused only within the\n  same authorization context. Caches MUST NOT be shared across\n  authorization contexts (e.g., a different access token requires a\n  different cache).",
@@ -2700,7 +2710,7 @@
                 },
                 "io.modelcontextprotocol/clientInfo": {
                     "$ref": "#/$defs/Implementation",
-                    "description": "Identifies the client software making the request. Required.\n\nThe {@link Implementation} schema requires `name` and `version`; other\nfields are optional."
+                    "description": "Identifies the client software making the request. Clients SHOULD\ninclude this field on every request unless specifically configured not\nto do so.\n\nThe {@link Implementation} schema requires `name` and `version`; other\nfields are optional.\n\nThe value is self-reported by the client and is not verified by the\nprotocol. It is intended for display, logging, and debugging. Servers\nSHOULD NOT use it to change their behavior, and SHOULD NOT rely on it for\nsecurity decisions."
                 },
                 "io.modelcontextprotocol/logLevel": {
                     "$ref": "#/$defs/LoggingLevel",
@@ -2717,7 +2727,6 @@
             },
             "required": [
                 "io.modelcontextprotocol/clientCapabilities",
-                "io.modelcontextprotocol/clientInfo",
                 "io.modelcontextprotocol/protocolVersion"
             ],
             "type": "object"
@@ -3005,7 +3014,7 @@
             "description": "Common result fields.",
             "properties": {
                 "_meta": {
-                    "$ref": "#/$defs/MetaObject"
+                    "$ref": "#/$defs/ResultMetaObject"
                 },
                 "resultType": {
                     "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object.\n\nServers implementing this protocol version MUST include this field.\nFor backward compatibility, when a client receives a result from a\nserver implementing an earlier protocol version (which does not include\n`resultType`), the client MUST treat the absent field as `\"complete\"`.",
@@ -3015,6 +3024,16 @@
             "required": [
                 "resultType"
             ],
+            "type": "object"
+        },
+        "ResultMetaObject": {
+            "description": "Extends {@link MetaObject} with additional result-specific fields. All key naming rules from `MetaObject` apply.",
+            "properties": {
+                "io.modelcontextprotocol/serverInfo": {
+                    "$ref": "#/$defs/Implementation",
+                    "description": "Identifies the server software producing the response. Servers SHOULD\ninclude this field on every response unless specifically configured not\nto do so.\n\nThe {@link Implementation} schema requires `name` and `version`; other\nfields are optional.\n\nThe value is self-reported by the server and is not verified by the\nprotocol. It is intended for display, logging, and debugging. Clients\nSHOULD NOT use it to change their behavior, and SHOULD NOT rely on it for\nsecurity decisions."
+                }
+            },
             "type": "object"
         },
         "ResultType": {
@@ -3396,7 +3415,7 @@
             "description": "The response to a {@link SubscriptionsListenRequestsubscriptions/listen}\nrequest, signalling that the subscription has ended gracefully (for example,\nduring server shutdown). Because the listen stream is long-lived, this result\nis sent only when the server tears the subscription down; an abrupt transport\nclose carries no response. The result body is otherwise empty.",
             "properties": {
                 "_meta": {
-                    "$ref": "#/$defs/SubscriptionsListenResultMeta"
+                    "$ref": "#/$defs/SubscriptionsListenResultMetaObject"
                 },
                 "resultType": {
                     "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object.\n\nServers implementing this protocol version MUST include this field.\nFor backward compatibility, when a client receives a result from a\nserver implementing an earlier protocol version (which does not include\n`resultType`), the client MUST treat the absent field as `\"complete\"`.",
@@ -3409,9 +3428,13 @@
             ],
             "type": "object"
         },
-        "SubscriptionsListenResultMeta": {
-            "description": "Extends {@link MetaObject} with the subscription-stream identifier carried by a\n{@link SubscriptionsListenResult}. All key naming rules from `MetaObject` apply.",
+        "SubscriptionsListenResultMetaObject": {
+            "description": "Extends {@link ResultMetaObject} with the subscription-stream identifier carried by a\n{@link SubscriptionsListenResult}. All key naming rules from `MetaObject` apply.",
             "properties": {
+                "io.modelcontextprotocol/serverInfo": {
+                    "$ref": "#/$defs/Implementation",
+                    "description": "Identifies the server software producing the response. Servers SHOULD\ninclude this field on every response unless specifically configured not\nto do so.\n\nThe {@link Implementation} schema requires `name` and `version`; other\nfields are optional.\n\nThe value is self-reported by the server and is not verified by the\nprotocol. It is intended for display, logging, and debugging. Clients\nSHOULD NOT use it to change their behavior, and SHOULD NOT rely on it for\nsecurity decisions."
+                },
                 "io.modelcontextprotocol/subscriptionId": {
                     "$ref": "#/$defs/RequestId",
                     "description": "Identifies the subscription stream this response closes, so the client can\ncorrelate it with the originating subscription — mirroring the same key on\nthe stream's notifications. The value is the JSON-RPC ID of the\n`subscriptions/listen` request that opened the stream (and equals this\nresponse's `id`)."
@@ -3419,6 +3442,27 @@
             },
             "required": [
                 "io.modelcontextprotocol/subscriptionId"
+            ],
+            "type": "object"
+        },
+        "SubscriptionsListenResultResponse": {
+            "description": "A successful response from the server for a {@link SubscriptionsListenRequestsubscriptions/listen}\nrequest, sent when the server tears the subscription down gracefully.",
+            "properties": {
+                "id": {
+                    "$ref": "#/$defs/RequestId"
+                },
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
+                "result": {
+                    "$ref": "#/$defs/SubscriptionsListenResult"
+                }
+            },
+            "required": [
+                "id",
+                "jsonrpc",
+                "result"
             ],
             "type": "object"
         },
@@ -3609,7 +3653,7 @@
                 },
                 "inputSchema": {
                     "additionalProperties": {},
-                    "description": "A JSON Schema object defining the expected parameters for the tool.\n\nTool arguments are always JSON objects, so `type: \"object\"` is required at the root.\nBeyond that, any JSON Schema 2020-12 keyword may appear alongside `type` — including\ncomposition keywords (`oneOf`, `anyOf`, `allOf`, `not`), conditional keywords\n(`if`/`then`/`else`), reference keywords (`$ref`, `$defs`, `$anchor`), and any other\nstandard validation or annotation keywords.\n\nProperty schemas may carry an `x-mcp-header` annotation to mirror the\nargument value into an HTTP header on the Streamable HTTP transport. See\nthe Streamable HTTP transport specification for the validity and\nextraction rules.\n\nDefaults to JSON Schema 2020-12 when no explicit `$schema` is provided.",
+                    "description": "A JSON Schema object defining the expected parameters for the tool.\n\nTool arguments are always JSON objects, so `type: \"object\"` is required at the root.\nBeyond that, any JSON Schema 2020-12 keyword may appear alongside `type` — including\ncomposition keywords (`oneOf`, `anyOf`, `allOf`, `not`), conditional keywords\n(`if`/`then`/`else`), reference keywords (`$ref`, `$defs`, `$anchor`), and any other\nstandard validation or annotation keywords.\n\nWhen using composition keywords, declare `properties` at the schema root and keep the\nbranches to presence assertions such as `required`. A subschema that fails on a type\nerror is indistinguishable from one that does not apply, so type constraints placed\ninside `oneOf` branches are not enforced for whichever branch does not match.\n\nProperty schemas may carry an `x-mcp-header` annotation to mirror the\nargument value into an HTTP header on the Streamable HTTP transport. See\nthe Streamable HTTP transport specification for the validity and\nextraction rules.\n\nDefaults to JSON Schema 2020-12 when no explicit `$schema` is provided.",
                     "properties": {
                         "$schema": {
                             "type": "string"

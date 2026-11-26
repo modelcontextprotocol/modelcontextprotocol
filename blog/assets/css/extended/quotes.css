@@ -1,0 +1,424 @@
+/* ─── Quote cards (quotes / quote shortcodes) ────────────────────────────── */
+/* A row of testimonial cards separated by hairline dividers. The track is a
+   scroll-snap carousel; nav controls are injected by the shortcode's script
+   and stay hidden when everything fits one view. */
+
+/* The strip breaks out of the prose column: symmetric negative margins grow
+   it toward the viewport edges, capped at 1200px so it stays sane on wide
+   monitors. The viewport bound is 50vw - 50% - 32px per side. 100vw includes
+   the page scrollbar, so the 32px gutter both absorbs the scrollbar width
+   and keeps a visible margin, which is what prevents a page-level horizontal
+   scrollbar. The prose column is centered in the viewport, so symmetric
+   margins keep the strip centered too. */
+.mcp-quotes {
+    --mcp-quotes-bleed: max(0px, min((1200px - 100%) / 2, 50vw - 50% - 32px));
+    margin: var(--gap-block) calc(-1 * var(--mcp-quotes-bleed));
+}
+
+/* A lone quote is a pull quote, not a strip: it stays in the prose column. */
+.mcp-quotes:has(.mcp-quote:only-child) {
+    --mcp-quotes-bleed: 0px;
+}
+
+.mcp-quotes-track {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 100%;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+}
+
+.mcp-quotes-track::-webkit-scrollbar {
+    display: none;
+}
+
+/* When more cards exist than fit one view, they are sized a bit narrower so
+   a slice of the next card peeks at the right edge, signaling that the strip
+   scrolls. Sets that fit exactly (1, 2, or 3 cards per breakpoint) keep the
+   full division and no peek. */
+@media (max-width: 599px) {
+    .mcp-quotes-track:has(> .mcp-quote + .mcp-quote) {
+        grid-auto-columns: calc(100% - 44px);
+    }
+}
+
+@media (min-width: 600px) {
+    .mcp-quotes-track {
+        grid-auto-columns: 50%;
+    }
+}
+
+@media (min-width: 600px) and (max-width: 899px) {
+    .mcp-quotes-track:has(> .mcp-quote:nth-child(3)) {
+        grid-auto-columns: calc((100% - 56px) / 2);
+    }
+}
+
+@media (min-width: 900px) {
+    .mcp-quotes-track {
+        grid-auto-columns: calc(100% / 3);
+    }
+
+    .mcp-quotes-track:has(> .mcp-quote:nth-child(4)) {
+        grid-auto-columns: calc((100% - 72px) / 3);
+    }
+}
+
+.post-content .mcp-quote {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    margin: 0;
+    padding: var(--s-2) var(--s-6);
+    border-inline-start: 1px solid var(--line);
+    scroll-snap-align: start;
+}
+
+.post-content .mcp-quote:first-child {
+    padding-inline-start: 0;
+    border-inline-start: none;
+}
+
+/* A lone quote reads as a pull quote: full track width, capped measure. */
+.mcp-quotes-track:has(> .mcp-quote:only-child) {
+    grid-auto-columns: 100%;
+}
+
+.post-content .mcp-quote:only-child {
+    padding-inline-end: 0;
+}
+
+.post-content .mcp-quote:only-child .mcp-quote-text {
+    max-width: 640px;
+}
+
+/* 1-up mobile: tighter padding, but keep the hairline so the peeking next
+   card reads as a separate card. */
+@media (max-width: 599px) {
+    .post-content .mcp-quote {
+        padding-inline: var(--s-4);
+    }
+}
+
+/* Logos render at a common cap height regardless of the SVG's own aspect
+   ratio. Inline SVGs inherit currentColor so they track the theme. */
+.mcp-quote-logo {
+    display: block;
+    height: var(--lh-4);
+    margin-bottom: var(--s-5);
+    color: var(--ink);
+}
+
+.mcp-quote-logo svg,
+.mcp-quote-logo img {
+    display: block;
+    height: 100%;
+    width: auto;
+    max-width: 100%;
+}
+
+.post-content .mcp-quote-logo svg,
+.post-content .mcp-quote-logo img {
+    margin: 0;
+    border-radius: 0;
+}
+
+.mcp-quote-logo-dark {
+    display: none;
+}
+
+@media screen {
+    body.dark .mcp-quote-logo-light {
+        display: none;
+    }
+
+    body.dark .mcp-quote-logo-dark {
+        display: block;
+    }
+}
+
+@media screen and (scripting: none) and (prefers-color-scheme: dark) {
+    .mcp-quote-logo-light {
+        display: none;
+    }
+
+    .mcp-quote-logo-dark {
+        display: block;
+    }
+}
+
+.mcp-quote-logo-text {
+    font-size: var(--fs-3);
+    font-weight: var(--fw-regular);
+    line-height: var(--lh-4);
+    letter-spacing: var(--ls-3);
+    color: var(--ink);
+}
+
+.post-content .mcp-quote-text {
+    margin: 0;
+    padding: 0;
+    border: none;
+    font-size: var(--fs-2);
+    font-style: normal;
+    line-height: var(--lh-2);
+    letter-spacing: var(--ls-2);
+    color: var(--text);
+}
+
+.post-content .mcp-quote-text p {
+    display: inline;
+    margin: 0;
+    font-size: inherit;
+}
+
+.post-content .mcp-quote-attrib {
+    margin-top: auto;
+    padding-top: var(--s-4);
+    font-size: var(--fs-1);
+    font-weight: var(--fw-regular);
+    line-height: var(--lh-1);
+    letter-spacing: var(--ls-1);
+    color: var(--faint);
+}
+
+.mcp-quote-attrib-name {
+    display: block;
+    font-size: var(--fs-2);
+    font-weight: var(--fw-medium);
+    line-height: var(--lh-2);
+    color: var(--ink);
+}
+
+.mcp-quote-attrib-title {
+    display: block;
+}
+
+.post-content .mcp-quote .mcp-quote-attrib {
+    margin: auto 0 0;
+}
+
+/* Attributions start on the same line in every card. The track exposes three
+   explicit rows (logo / quote / attribution) and each card adopts them via
+   subgrid, so the quote row is sized by the longest quote in the set and
+   every attribution starts at the same y, on every carousel page. Long
+   quotes spill downward inside that row; short cards keep the open space.
+   Browsers without subgrid keep the flex column above, where attributions
+   bottom-align instead. Skipped under 600px, where cards show one per view
+   and cross-card alignment would only add empty space. */
+@media (min-width: 600px) {
+    @supports (grid-template-rows: subgrid) {
+        .mcp-quotes-track {
+            grid-template-rows: auto auto auto;
+        }
+
+        .post-content .mcp-quote {
+            display: grid;
+            grid-template-rows: subgrid;
+            grid-row: span 3;
+        }
+
+        .post-content .mcp-quote .mcp-quote-attrib {
+            margin-top: 0;
+            align-self: start;
+        }
+    }
+}
+
+/* ─── Carousel controls ──────────────────────────────────────────────────── */
+.mcp-quotes-nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--s-4);
+    margin-top: var(--s-6);
+}
+
+.mcp-quotes-nav[hidden] {
+    display: none;
+}
+
+/* The same outlined square as the back-to-top link (.top-link in custom.css). */
+.mcp-quotes-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--s-10);
+    height: var(--s-10);
+    padding: 0;
+    color: var(--ink);
+    background: none;
+    border: var(--hair) solid var(--edge);
+    border-radius: var(--r-sm);
+    cursor: pointer;
+}
+
+@media (hover: hover) {
+    .mcp-quotes-btn:not(:disabled):hover {
+        color: var(--ink);
+        background: var(--surface);
+        border-color: var(--ink);
+    }
+}
+
+.mcp-quotes-btn:disabled {
+    opacity: 0.35;
+    cursor: default;
+}
+
+/* Wraps, so a long run of dots cannot push the arrows off a small phone. */
+.mcp-quotes-dots {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: var(--s-2);
+}
+
+.mcp-quotes-dot {
+    width: var(--s-2);
+    height: var(--s-2);
+    padding: 0;
+    background: var(--edge);
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.mcp-quotes-dot[aria-current="true"] {
+    background: var(--ink);
+}
+
+/* ─── Quote blocks (a quote shortcode on its own) ────────────────────────── */
+/* One person's words on a panel in the text column. Two large quotation
+   marks stand behind the words, one step darker than the panel: an opening
+   mark cut by the top edge at the left, and a closing mark cut by the bottom
+   edge at the right. The words carry no quotation marks of their own. The
+   attribution is set like the post byline: the name at step 2, the role at
+   step 1. Several blocks in a row stand closer together than other blocks
+   do, so they read as one set. */
+.post-content .mcp-quote-block {
+    --mcp-quote-pad: var(--s-8);
+    /* Six times the page title, so the marks shrink with it on a phone. */
+    --mcp-quote-mark: calc(var(--title-fs) * 6);
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    margin: var(--gap-block) 0;
+    padding: var(--mcp-quote-pad);
+    background: var(--surface);
+    border-radius: var(--r-lg);
+}
+
+.post-content .mcp-quote-block:has(+ .mcp-quote-block) {
+    margin-bottom: var(--s-4);
+}
+
+.post-content .mcp-quote-block + .mcp-quote-block {
+    margin-top: 0;
+}
+
+/* The marks are Geist's own. The em offsets are the glyph's measurements at
+   weight 600 with a line height of 1: its ink starts 0.044em in from the
+   side of its box, 0.129em below the top, and ends 0.579em above the bottom.
+   They put the ink on the padding edge and let the panel cut a quarter of it
+   off. The second content line gives a mark no spoken name where the browser
+   supports that. */
+.post-content .mcp-quote-block::before,
+.post-content .mcp-quote-block::after {
+    position: absolute;
+    z-index: -1;
+    color: var(--surface-2);
+    font-size: var(--mcp-quote-mark);
+    font-weight: var(--fw-strong);
+    line-height: 1;
+    letter-spacing: 0;
+    pointer-events: none;
+    user-select: none;
+}
+
+.post-content .mcp-quote-block::before {
+    content: "\201C";
+    content: "\201C" / "";
+    inset-block-start: -0.2em;
+    inset-inline-start: calc(var(--mcp-quote-pad) - 0.044em);
+}
+
+.post-content .mcp-quote-block::after {
+    content: "\201D";
+    content: "\201D" / "";
+    inset-block-end: -0.65em;
+    inset-inline-end: calc(var(--mcp-quote-pad) - 0.044em);
+}
+
+.post-content .mcp-quote-block-text {
+    margin: 0;
+    padding: 0;
+    color: var(--text);
+    border: none;
+}
+
+.post-content .mcp-quote-block-text > * {
+    margin-block: 0 var(--s-4);
+}
+
+.post-content .mcp-quote-block-text > :last-child {
+    margin-bottom: 0;
+}
+
+.post-content .mcp-quote-block-attrib {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--s-3);
+    margin: var(--s-6) 0 0;
+    padding: 0;
+    text-align: start;
+}
+
+.mcp-quote-block-person {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.mcp-quote-block-name {
+    color: var(--ink);
+    font-size: var(--fs-2);
+    font-weight: var(--fw-medium);
+    line-height: var(--lh-2);
+    letter-spacing: var(--ls-2);
+}
+
+.mcp-quote-block-role {
+    color: var(--faint);
+    font-size: var(--fs-1);
+    line-height: var(--lh-1);
+    letter-spacing: var(--ls-1);
+}
+
+.post-content .mcp-quote-block-role a {
+    color: var(--muted);
+}
+
+/* A logo closes the attribution, under the role, clear of the closing mark. */
+.mcp-quote-block-logo {
+    flex: none;
+    height: var(--s-4);
+    margin: 0;
+    color: var(--muted);
+}
+
+@media screen and (max-width: 600px) {
+    .post-content .mcp-quote-block {
+        --mcp-quote-pad: var(--s-5);
+    }
+}
+
+@media print {
+    .post-content .mcp-quote-block {
+        break-inside: avoid;
+    }
+}

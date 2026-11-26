@@ -1,0 +1,45 @@
+<svg viewBox="0 0 1200 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="t d" font-family="ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif">
+  <title id="t">MCP Roadmap</title>
+  <desc id="d">Model Context Protocol roadmap priority areas: agentic messaging primitives, HTTP-native transport unification and hardening, agent identity and enterprise-ready security, improved primitives, and improved SDK developer experience.</desc>
+  <defs>
+    <pattern id="gmin" width="24" height="24" patternUnits="userSpaceOnUse"><path d="M24 0H0V24" fill="none" stroke="#fff" stroke-opacity=".07"/></pattern>
+    <pattern id="gmaj" width="120" height="120" patternUnits="userSpaceOnUse"><path d="M120 0H0V120" fill="none" stroke="#fff" stroke-opacity=".14"/></pattern>
+    <style>
+      .bg   { fill:#0d2b4e }
+      .mark { fill:none; stroke:#fff; stroke-width:12; stroke-linecap:round }
+      .h1   { fill:#fff; font-size:52px; font-weight:650; letter-spacing:-.02em; dominant-baseline:central }
+      .tbl  { fill:none; stroke:#fff; stroke-opacity:.6; stroke-width:1 }
+      .rule { fill:none; stroke:#fff; stroke-opacity:.4; stroke-width:1; stroke-dasharray:4 4 }
+      .col  { stroke:#fff; stroke-opacity:.4; stroke-width:1 }
+      .ico  { fill:none; stroke:#fff; stroke-opacity:.95; stroke-width:1.75; stroke-linecap:round; stroke-linejoin:round }
+      .name { fill:#fff; font-size:16px; font-weight:500; letter-spacing:.14em; dominant-baseline:middle }
+    </style>
+  </defs>
+  <rect class="bg" width="1200" height="600"/>
+  <rect width="1200" height="600" fill="url(#gmin)"/>
+  <rect width="1200" height="600" fill="url(#gmaj)"/>
+
+  <g transform="translate(64.8,78.4) scale(0.29)"><g class="mark">
+    <path d="M25 97.8528L92.8823 29.9706C102.255 20.598 117.451 20.598 126.823 29.9706C136.196 39.3431 136.196 54.5391 126.823 63.9117L75.5581 115.177"/>
+    <path d="M76.2653 114.47L126.823 63.9117C136.196 54.5391 151.392 54.5391 160.765 63.9117L161.118 64.2652C170.491 73.6378 170.491 88.8338 161.118 98.2063L99.7248 159.6C96.6006 162.724 96.6006 167.789 99.7248 170.913L112.331 183.52"/>
+    <path d="M109.853 46.9411L59.6482 97.1457C50.2757 106.518 50.2757 121.714 59.6482 131.087C69.0208 140.459 84.2168 140.459 93.5894 131.087L143.794 80.8822"/>
+  </g></g>
+  <text class="h1" x="132" y="108">Roadmap</text>
+
+  <path class="tbl" d="M65 168H1135M65 528H1135M72 161V535M1128 161V535"/>
+  <line class="col" x1="144" y1="168" x2="144" y2="528"/>
+  <g class="ico" transform="translate(94,190) scale(1.1667)"><path d="M8 3 4 7l4 4" /> <path d="M4 7h16" /> <path d="m16 21 4-4-4-4" /> <path d="M20 17H4" /></g>
+  <text class="name" x="168" y="205">AGENTIC MESSAGING PRIMITIVES</text>
+  <path class="rule" d="M72 240H1128"/>
+  <g class="ico" transform="translate(94,262) scale(1.1667)"><path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83z" /> <path d="M2 12a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 12" /> <path d="M2 17a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 17" /></g>
+  <text class="name" x="168" y="277">HTTP-NATIVE TRANSPORT UNIFICATION AND HARDENING</text>
+  <path class="rule" d="M72 312H1128"/>
+  <g class="ico" transform="translate(94,334) scale(1.1667)"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" /> <path d="m9 12 2 2 4-4" /></g>
+  <text class="name" x="168" y="349">AGENT IDENTITY AND ENTERPRISE-READY SECURITY</text>
+  <path class="rule" d="M72 384H1128"/>
+  <g class="ico" transform="translate(94,406) scale(1.1667)"><path d="M10 22V7a1 1 0 0 0-1-1H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-5a1 1 0 0 0-1-1H2" /> <rect x="14" y="2" width="8" height="8" rx="1" /></g>
+  <text class="name" x="168" y="421">IMPROVED PRIMITIVES</text>
+  <path class="rule" d="M72 456H1128"/>
+  <g class="ico" transform="translate(94,478) scale(1.1667)"><path d="m18 16 4-4-4-4" /> <path d="m6 8-4 4 4 4" /> <path d="m14.5 4-5 16" /></g>
+  <text class="name" x="168" y="493">IMPROVED SDK DEVELOPER EXPERIENCE</text>
+</svg>

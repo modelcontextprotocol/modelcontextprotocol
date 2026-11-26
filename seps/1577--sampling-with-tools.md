@@ -27,7 +27,7 @@
 - _Nov 5_:
   - kept `stopReason` as open string but w/ redundant explicit enums for visibility
   - removed requirement to throw when `includeContext` not matching advertised `ClientCapabilities.sampling.context`
-  - mitigates backwards compatibility issue of `CreateMessageResult.content` being an array of contents OR a single content by saying sampling _MUST NOT_ return an array in earlier spec versions (+ ackowledging SDK updates of code w/ sampling will need small code changes)
+  - mitigates backwards compatibility issue of `CreateMessageResult.content` being an array of contents OR a single content by saying sampling _MUST NOT_ return an array in earlier spec versions (+ acknowledging SDK updates of code w/ sampling will need small code changes)
 - _Nov 7_: renamed type `ToolCallContent` to `ToolUseContent` (to match its `tool_use` type & the `toolUse` `stopReason`). SEP was approved!
 - _Nov 10_: removing `disable_parallel_tool_use` / keeping for a later update as the Gemini API has no way to implement this for now.
 - _Nov 11_: added extra notes about Gemini API's function calling modes & roles; requiring SamplingMessage w/ tool result contents not be mixed w/ other content types
@@ -49,7 +49,7 @@ Please note some related work:
   - Deprecate `includeContext` (doc explains why its semantics are ambiguous)
   - (goes further to suggest explicit context sharing, which is out of scope from this proposal)
 - [Allow Prompt/Sampling Messages to contain multiple content blocks. #198](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/198)
-  - In this PR we've made `{CreateMessageResult,SamplingMessage}.content` to accept a single content or an array of contents. The `result.content` change is backwards incompatible but is required to support parallel tool calls. The `SamplingMessage.content` change then makes it much more natural to write a tool loop (see example in reference implementation: [toolLoopSampling.ts](https://github.com/modelcontextprotocol/typescript-sdk/blob/ochafik/sep1577/src/examples/server/toolLoopSampling.ts))
+  - In this PR we've made `{CreateMessageResult,SamplingMessage}.content` to accept a single content or an array of contents. The `result.content` change is backwards incompatible but is required to support parallel tool calls. The `SamplingMessage.content` change then makes it much more natural to write a tool loop (see example in reference implementation: [toolLoopSampling.ts](https://github.com/modelcontextprotocol/typescript-sdk/blob/d372eff7a764c72619b15a9f31c2756fa402fa14/src/examples/server/toolLoopSampling.ts))
 
 In the "Possible Follow ups" Section below, we give examples of features that were kept out of scope from this SEP but which we took care to make this SEP reasonably compatible with.
 
@@ -286,7 +286,7 @@ In the "Possible Follow ups" Section below, we give examples of features that we
 
 ## Possible Follow ups
 
-Theses are out of scope for this SEP, but care was taken not to preclude them, so where appropriate we give examples of how they could be implemented on top of / after this SEP.
+These are out of scope for this SEP, but care was taken not to preclude them, so where appropriate we give examples of how they could be implemented on top of / after this SEP.
 
 ### Streaming support
 

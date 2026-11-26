@@ -394,10 +394,17 @@ body:has(#schema-reference) {
 
 /*** LF Projects copyright footer ***/
 
+/* footer.js appends #lf-copyright into Mintlify's #footer flex row, which
+   already draws the top border. Let the row wrap so the notice sits beside
+   the social icons when there is room and drops to its own line otherwise. */
+#footer {
+  flex-wrap: wrap;
+  row-gap: 1.5rem;
+}
+
 #lf-copyright {
-  margin-top: 2rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid light-dark(rgb(var(--gray-950)/.1), rgba(255 255 255/0.1));
+  flex: 1 1 32rem;
+  min-width: 0;
   text-align: center;
   font-size: 0.875rem;
   color: rgb(var(--gray-500));

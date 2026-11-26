@@ -238,7 +238,7 @@ Implementers **MUST** ensure that:
 
 **No changes required** - Clients should already handle sampling/elicitation requests in the context of their own outbound requests. Potential to simplify implementations if out-of-band is currently supported.
 
-Clients recieving server-to-client requests with no associated outbound request **SHOULD** respond with a `-32602` (Invalid Params) error.
+Clients receiving server-to-client requests with no associated outbound request **SHOULD** respond with a `-32602` (Invalid Params) error.
 
 ### For Transport Implementers
 

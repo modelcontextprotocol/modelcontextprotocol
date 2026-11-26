@@ -7,6 +7,8 @@
  * 2. Parses their metadata (title, status, type, authors, etc.)
  * 3. Generates an index page with a tabular overview
  * 4. Generates individual MDX files for each SEP in docs/seps/
+ * 5. Updates docs/docs.json with the SEPs navigation tab and a /seps/{number}
+ *    redirect for each SEP
  *
  * Usage: npx tsx scripts/render-seps.ts [--check]
  *   --check: Verify generated files are up to date (exit 1 if not)
@@ -63,7 +65,9 @@ function parseSEPMetadata(content: string, filename: string): SEPMetadata | null
   const typeMatch = content.match(/^\s*-\s*\*\*Type\*\*:\s*(.+)$/m);
   const createdMatch = content.match(/^\s*-\s*\*\*Created\*\*:\s*(.+)$/m);
   const acceptedMatch = content.match(/^\s*-\s*\*\*Accepted\*\*:\s*(.+)$/m);
-  const authorsMatch = content.match(/^\s*-\s*\*\*Author\(s\)\*\*:\s*(.+)$/m);
+  const authorsMatch = content.match(
+    /^[ \t]*-[ \t]*\*\*Author\(s\)\*\*:[ \t]*([^\n]*(?:\n[ \t]+(?![-*+][ \t])[^\n]*)*)/m
+  );
   const sponsorMatch = content.match(/^\s*-\s*\*\*Sponsor\*\*:\s*(.+)$/m);
   const prMatch = content.match(/^\s*-\s*\*\*PR\*\*:.*?(?:#|\/pull\/)(\d+)/m);
 
@@ -74,7 +78,7 @@ function parseSEPMetadata(content: string, filename: string): SEPMetadata | null
     type: typeMatch ? typeMatch[1].trim() : "Unknown",
     created: createdMatch ? createdMatch[1].trim() : "Unknown",
     accepted: acceptedMatch ? acceptedMatch[1].trim() : undefined,
-    authors: authorsMatch ? authorsMatch[1].trim() : "Unknown",
+    authors: authorsMatch ? authorsMatch[1].replace(/\s+/g, " ").trim() : "Unknown",
     sponsor: sponsorMatch ? sponsorMatch[1].trim() : "None",
     prNumber: prMatch ? prMatch[1] : number,
     slug,
@@ -120,6 +124,18 @@ function getStatusBadgeColor(status: string): string {
 }
 
 /**
+ * Notice injected into every Final SEP page. Final SEPs are point-in-time
+ * historical records and are not edited after finalization.
+ */
+const FINAL_SEP_NOTICE = `<Note>
+  This SEP has reached Final status and is preserved as a historical record of
+  the design as accepted. Changes made to the protocol after finalization are
+  not reflected here. Refer to the
+  [current specification](/specification/latest) and its changelog for
+  authoritative requirements.
+</Note>`;
+
+/**
  * Generate MDX content for a single SEP page
  */
 function generateSEPPage(sep: SEPMetadata, originalContent: string): string {
@@ -127,6 +143,10 @@ function generateSEPPage(sep: SEPMetadata, originalContent: string): string {
   // Find where the Abstract section starts
   const abstractIndex = originalContent.indexOf("## Abstract");
   const body = abstractIndex !== -1 ? originalContent.slice(abstractIndex) : originalContent;
+
+  // Final SEPs get a notice marking them as historical records
+  const isFinal = sep.status.toLowerCase() === "final";
+  const notice = isFinal ? `${FINAL_SEP_NOTICE}\n\n` : "";
 
   return `---
 title: "SEP-${sep.number}: ${sep.title}"
@@ -139,7 +159,7 @@ description: "${sep.title}"
   <Badge color="gray" shape="pill">${sep.type}</Badge>
 </div>
 
-| Field | Value |
+${notice}| Field | Value |
 |-------|-------|
 | **SEP** | ${sep.number} |
 | **Title** | ${sep.title} |
@@ -193,6 +213,8 @@ description: Index of all MCP Specification Enhancement Proposals
 ---
 
 Specification Enhancement Proposals (SEPs) are the primary mechanism for proposing major changes to the Model Context Protocol. Each SEP provides a concise technical specification and rationale for proposed features.
+
+Each SEP is reachable by number at \`/seps/<number>\` (for example, [/seps/1850](/seps/1850)).
 
 <Card title="Submit a SEP" icon="file-plus" href="/community/sep-guidelines">
   Learn how to submit your own Specification Enhancement Proposal
@@ -284,7 +306,13 @@ function groupSepsByStatus(seps: SEPMetadata[]): Record<string, SEPMetadata[]> {
 }
 
 /**
- * Update docs.json to include SEPs as a top-level tab, grouped by status
+ * Matches the short SEP redirect sources managed by this script (e.g. "/seps/1850").
+ */
+const SEP_SHORT_LINK_SOURCE = /^\/seps\/\d+$/;
+
+/**
+ * Update docs.json to include SEPs as a top-level tab, grouped by status,
+ * and a /seps/{number} redirect to each SEP page
  */
 function updateDocsJson(seps: SEPMetadata[]): string {
   const docsJson = JSON.parse(fs.readFileSync(DOCS_JSON_PATH, "utf-8"));
@@ -333,6 +361,18 @@ function updateDocsJson(seps: SEPMetadata[]): string {
       docsJson.navigation.tabs.push(sepsTab);
     }
   }
+
+  // Replace the managed /seps/{number} redirects, leaving hand-written redirects untouched
+  const otherRedirects = (docsJson.redirects ?? []).filter(
+    (redirect: { source: string }) => !SEP_SHORT_LINK_SOURCE.test(redirect.source)
+  );
+  const sepRedirects = [...seps]
+    .sort((a, b) => parseInt(a.number) - parseInt(b.number))
+    .map((sep) => ({
+      source: `/seps/${sep.number}`,
+      destination: `/seps/${sep.number}-${sep.slug}`,
+    }));
+  docsJson.redirects = [...otherRedirects, ...sepRedirects];
 
   return JSON.stringify(docsJson, null, 2) + "\n";
 }

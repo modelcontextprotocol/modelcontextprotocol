@@ -1,0 +1,6 @@
+{{- /*
+  A number from 0 up to 1 that depends only on the string it is given, so the same key always gives the same
+  number. og/image.html draws every "random" choice from here, keyed by the page and by what is being chosen,
+  which is why a post's card looks the same on every build.
+*/ -}}
+{{- return div (float (mod (hash.FNV32a (printf "og/%s" .)) 100003)) 100003.0 -}}

@@ -10,11 +10,12 @@ users are filling in argument values for a specific prompt (identified by name) 
 resource template (identified by URI), servers can provide contextual suggestions.
 
 <Note>
-  For brevity, the request examples on this page omit the required `_meta`
-  request metadata (`io.modelcontextprotocol/protocolVersion`,
+  For brevity, the request examples on this page omit the `_meta` request
+  metadata (`io.modelcontextprotocol/protocolVersion`,
   `io.modelcontextprotocol/clientInfo`, and
   `io.modelcontextprotocol/clientCapabilities`). Every request **MUST** include
-  these fields; see [`_meta`](/specification/draft/basic/index#meta).
+  the required `_meta` fields; see
+  [`_meta`](/specification/draft/basic/index#_meta).
 </Note>
 
 ## User Interaction Model
@@ -171,15 +172,15 @@ sequenceDiagram
 - `argument`: Object containing:
   - `name`: Argument name
   - `value`: Current value
-- `context`: Object containing:
-  - `arguments`: A mapping of already-resolved argument names to their values.
+- `context`: Optional object containing:
+  - `arguments`: Optional mapping of already-resolved argument names to their values.
 
 ### CompleteResult
 
 - `completion`: Object containing:
   - `values`: Array of suggestions (max 100)
   - `total`: Optional total matches
-  - `hasMore`: Additional results flag
+  - `hasMore`: Optional additional results flag
 
 ## Error Handling
 

@@ -11,7 +11,7 @@ necessary information dynamically.
 
 Elicitation supports two modes:
 
-- **Form mode**: Servers can request structured data from users with optional JSON schemas to validate responses
+- **Form mode**: Servers can request structured data from users with JSON schemas to validate responses
 - **URL mode**: Servers can direct users to external URLs for sensitive interactions that must _not_ pass through the MCP client
 
 ## User Interaction Model
@@ -87,7 +87,8 @@ Servers **MUST NOT** send elicitation requests with modes that are not supported
 Servers **MAY** request information from a user during the processing of a client request, by sending an [`InputRequiredResult`](/specification/draft/basic/patterns/mrtr#inputrequiredresult)
 containing an `elicitation/create` request.
 
-All elicitation requests **MUST** include the following parameters:
+All elicitation requests **MUST** include the following parameters, except that form mode
+requests **MAY** omit `mode`:
 
 | Name      | Type   | Options       | Description                                                                            |
 | --------- | ------ | ------------- | -------------------------------------------------------------------------------------- |
@@ -117,9 +118,10 @@ The `requestedSchema` parameter allows servers to define the structure of the ex
 response using a restricted subset of JSON Schema.
 
 To simplify client user experience, form mode elicitation schemas are limited to flat objects
-with primitive properties only.
+whose properties are strings, numbers, booleans, or enums. The only array properties
+allowed are multi-select enums.
 
-The schema is restricted to these primitive types:
+The schema is restricted to these types:
 
 1. **String Schema**
 
@@ -234,9 +236,9 @@ Clients can use this schema to:
 2. Validate user input before sending
 3. Provide better guidance to users
 
-All primitive types support optional default values to provide sensible starting points. Clients that support defaults SHOULD pre-populate form fields with these values.
+All of these types support optional default values to provide sensible starting points. Clients that support defaults SHOULD pre-populate form fields with these values.
 
-Note that complex nested structures, arrays of objects (beyond enums), and other advanced JSON Schema features are intentionally not supported to simplify client user experience.
+Note that complex nested structures, arrays other than multi-select enums, and other advanced JSON Schema features are intentionally not supported to simplify client user experience.
 
 #### Example: Simple Text Request
 
@@ -323,7 +325,7 @@ Note that complex nested structures, arrays of objects (beyond enums), and other
 
 <Note>
 
-**New feature:** URL mode elicitation is introduced in the `2025-11-25` version of the MCP specification. Its design and implementation may change in future protocol revisions.
+URL mode elicitation was introduced in the `2025-11-25` version of the MCP specification. Its design and implementation may change in future protocol revisions.
 
 </Note>
 
@@ -421,7 +423,7 @@ sequenceDiagram
     User-->>Client: Provide consent
 
     Client->>UserAgent: Open URL
-    Client->>Server: tools/call(id: 2, Accept Response, requestState))
+    Client->>Server: tools/call(id: 2, Accept Response, requestState)
     Note over Server: Server uses requestState to discover url info. <br/> It may need to block until the request is fulfilled.
 
     Note over User,UserAgent: User interaction
@@ -472,7 +474,7 @@ Servers should handle each state appropriately:
 
 Elicitations do not require that the server maintain state about users with the [multi round-trip requests](/specification/draft/basic/patterns/mrtr#multi-round-trip-requests) mechanism.
 
-However, if state is stored, servers implementing elicitation **MUST** securely associate this state with individual users following the guidelines in the [security best practices](/docs/tutorials/security/security_best_practices) document. Specifically:
+However, if state is stored, servers implementing elicitation **MUST** securely associate this state with individual users following the guidelines in the [security best practices](/docs/draft/tutorials/security/security_best_practices) document. Specifically:
 
 - State storage **MUST** be protected against unauthorized access
 - For remote MCP servers, user identification **MUST** be derived from credentials acquired via [MCP authorization](../basic/authorization) when possible (e.g. `sub` claim)
@@ -521,7 +523,7 @@ Example scenario:
 The critical security requirements are:
 
 1. **The third-party credentials MUST NOT transit through the MCP client**: The client must never see third-party credentials to protect the security boundary
-2. **The MCP server MUST NOT use the client's credentials for the third-party service**: That would be [token passthrough](/docs/tutorials/security/security_best_practices#token-passthrough), which is forbidden
+2. **The MCP server MUST NOT use the client's credentials for the third-party service**: That would be [token passthrough](/docs/draft/tutorials/security/security_best_practices#token-passthrough), which is forbidden
 3. **The user MUST authorize the MCP server directly**: The interaction happens outside the MCP protocol, without involving the MCP client
 4. **The MCP server is responsible for tokens**: The MCP server is responsible for storing and managing the third-party tokens obtained through the URL mode elicitation (in other words, the MCP server must be stateful).
 
@@ -529,7 +531,7 @@ Credentials obtained via URL mode elicitation are distinct from the MCP server c
 
 <Note>
   For additional background, refer to the [token passthrough
-  section](/docs/tutorials/security/security_best_practices#token-passthrough)
+  section](/docs/draft/tutorials/security/security_best_practices#token-passthrough)
   of the Security Best Practices document to understand why MCP servers cannot
   act as pass-through proxies.
 </Note>
@@ -561,12 +563,11 @@ sequenceDiagram
     Note over Server: Needs 3rd-party authorization for user
     Note over Server: Store state (bind the elicitation request to the user)
     Note over Server: generate requestState that encodes information about the original request and user.
-    Server->>Client: InputRequiredResult<br/>(mode: "url", url: "https://mcp.example.com/connect?...", requestState)
+    Server->>Client: InputRequiredResult<br/>(elicitation/create (mode: "url", url: "https://mcp.example.com/connect?..."), requestState)
 
     Client->>User: Present consent to open URL
     User->>Client: Provide consent
     Client->>UserAgent: Open URL
-    Client->>Server: Accept response
     UserAgent->>Server: Load connect route
 
     Note over Server: Confirm: user is logged into MCP Server or MCP AS<br>Confirm: elicitation user matches session user
@@ -579,6 +580,7 @@ sequenceDiagram
     Server->>3AS: Exchange authorization code for  OAuth tokens
     3AS->>Server: Grants tokens
     Note over Server: Bind tokens to MCP user identity
+    User->>Client: Retry the original request
     Client->>Server: tools/call (ElicitResults, requestState)
     Note over Server: Retrieve token bound to user identity
     Server->>3RS: Call 3rd-party API
@@ -625,7 +627,7 @@ When handling URL mode elicitation requests, MCP clients:
 ### Identifying the User
 
 Servers **MUST NOT** rely on client-provided user identification without server verification, as this can be forged.
-Instead, servers **SHOULD** follow [security best practices](/docs/tutorials/security/security_best_practices).
+Instead, servers **SHOULD** follow [security best practices](/docs/draft/tutorials/security/security_best_practices).
 
 Non-normative examples:
 

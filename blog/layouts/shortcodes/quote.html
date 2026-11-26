@@ -1,0 +1,101 @@
+{{- /*
+  A quotation from a named person. It has two forms.
+
+  Inside a `quotes` block it is a testimonial card in the carousel.
+
+  On its own it is a quote block in the text column, for a quotation of any
+  length:
+
+    {{< quote name="Ada Person" title="CTO" company="Acme" url="https://acme.example" >}}
+    Quote text, markdown allowed. Leave out the quotation marks. The marks
+    behind the words stand for them.
+    {{< /quote >}}
+
+  Params:
+    name    - person's name
+    title   - person's role. In a card it is on its own line under the name.
+              In a quote block it stands before the company on one line, and
+              markdown is allowed, so a second affiliation can carry its own
+              link.
+    company - company name. In a card it is the logo's accessible label
+              (and shown as text when no logo is given).
+    url     - quote block only: link for the company name
+    logo    - filename of an SVG in the post's page bundle, or a static path.
+              Bundle SVGs are inlined so currentColor tracks the theme.
+              Optional in a quote block.
+    logo-dark - optional dark-theme counterpart to `logo`, for brand marks
+              with fixed colors that can't rely on currentColor. When set,
+              `logo` shows in light mode and `logo-dark` in dark mode
+              (toggled in CSS via body.dark).
+
+  The quote text goes in the shortcode body. Markdown is supported.
+*/ -}}
+{{- $name := .Get "name" -}}
+{{- $title := .Get "title" -}}
+{{- $company := .Get "company" -}}
+{{- $url := .Get "url" -}}
+{{- $logo := .Get "logo" -}}
+{{- $logoDark := .Get "logo-dark" -}}
+{{- $variants := slice -}}
+{{- with $logo -}}
+  {{- if $logoDark -}}
+    {{- $variants = slice (dict "file" . "class" " mcp-quote-logo-light") (dict "file" $logoDark "class" " mcp-quote-logo-dark") -}}
+  {{- else -}}
+    {{- $variants = slice (dict "file" . "class" "") -}}
+  {{- end -}}
+{{- end -}}
+{{- if not .Parent -}}
+<figure class="mcp-quote-block">
+  <blockquote class="mcp-quote-block-text">{{ .Page.RenderString (dict "display" "block") (trim .Inner " \n") }}</blockquote>
+  <figcaption class="mcp-quote-block-attrib">
+    <span class="mcp-quote-block-person">
+      <span class="mcp-quote-block-name">{{ $name }}</span>
+      {{- if or $title $company }}
+      <span class="mcp-quote-block-role">
+        {{- with $title }}{{ . | $.Page.RenderString }}{{ end -}}
+        {{- if and $title $company }}, {{ end -}}
+        {{- with $company }}{{ if $url }}<a href="{{ $url }}">{{ . }}</a>{{ else }}{{ . }}{{ end }}{{ end -}}
+      </span>
+      {{- end }}
+    </span>
+    {{- range $variants -}}
+      {{- $class := .class -}}
+      {{- with $.Page.Resources.GetMatch .file -}}
+        {{- if eq .MediaType.SubType "svg" }}
+    <span class="mcp-quote-logo mcp-quote-block-logo{{ $class }}" role="img" aria-label="{{ $company }}">{{ .Content | safeHTML }}</span>
+        {{- else }}
+    <span class="mcp-quote-logo mcp-quote-block-logo{{ $class }}"><img src="{{ .RelPermalink }}" alt="{{ $company }}" loading="lazy"></span>
+        {{- end -}}
+      {{- else }}
+    <span class="mcp-quote-logo mcp-quote-block-logo{{ $class }}"><img src="{{ .file }}" alt="{{ $company }}" loading="lazy"></span>
+      {{- end -}}
+    {{- end }}
+  </figcaption>
+</figure>
+{{- else -}}
+<figure class="mcp-quote">
+  {{- if $variants -}}
+    {{- range $variants -}}
+      {{- $class := .class -}}
+      {{- with $.Page.Resources.GetMatch .file -}}
+        {{- if eq .MediaType.SubType "svg" -}}
+        <span class="mcp-quote-logo{{ $class }}" role="img" aria-label="{{ $company }}">{{ .Content | safeHTML }}</span>
+        {{- else -}}
+        <span class="mcp-quote-logo{{ $class }}"><img src="{{ .RelPermalink }}" alt="{{ $company }}" loading="lazy"></span>
+        {{- end -}}
+      {{- else -}}
+        <span class="mcp-quote-logo{{ $class }}"><img src="{{ .file }}" alt="{{ $company }}" loading="lazy"></span>
+      {{- end -}}
+    {{- end -}}
+  {{- else -}}
+    <span class="mcp-quote-logo mcp-quote-logo-text">{{ $company }}</span>
+  {{- end }}
+  <blockquote class="mcp-quote-text">{{ trim .Inner " \n" | .Page.RenderString }}</blockquote>
+  <figcaption class="mcp-quote-attrib">
+    <span class="mcp-quote-attrib-name">{{ $name }}</span>
+    {{- with $title }}
+    <span class="mcp-quote-attrib-title">{{ . }}</span>
+    {{- end }}
+  </figcaption>
+</figure>
+{{- end -}}

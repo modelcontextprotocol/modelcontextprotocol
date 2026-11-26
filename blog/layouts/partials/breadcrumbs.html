@@ -1,0 +1,9 @@
+{{- if (.Param "ShowBreadCrumbs") }}
+<nav class="breadcrumbs" aria-label="Breadcrumb">
+  {{- if eq .Kind "term" }}
+  <a href="{{ .Parent.RelPermalink }}">All {{ lower .Parent.LinkTitle }}</a>
+  {{- else }}
+  <a href="{{ site.Home.RelPermalink }}">All posts</a>
+  {{- end }}
+</nav>
+{{- end -}}

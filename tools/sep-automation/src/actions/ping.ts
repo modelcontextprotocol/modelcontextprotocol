@@ -10,12 +10,10 @@ import { MaintainerResolver } from '../maintainers/resolver.js';
 import { STATE_TRANSITIONS } from '../rules.js';
 import { getErrorMessage } from '../utils/index.js';
 import {
-  createAuthorPingComment,
-  createSponsorPingComment,
+  createDraftPingComment,
   createMaintainerPingComment,
   createDormantComment,
   createAcceptedReminderComment,
-  createNeedsSponsorComment,
 } from './comment.js';
 
 export class PingHandler {
@@ -57,8 +55,6 @@ export class PingHandler {
     switch (pingTarget) {
       case 'author':
         return this.pingAuthor(item, daysSinceActivity, dryRun);
-      case 'sponsor':
-        return this.pingSponsor(item, daysSinceActivity, dryRun);
       case 'maintainer':
         return this.pingMaintainer(item, daysSinceActivity, dryRun);
       default:
@@ -134,55 +130,12 @@ export class PingHandler {
     try {
       const comment = item.state === 'accepted'
         ? createAcceptedReminderComment(item, daysSinceActivity)
-        : createAuthorPingComment(item, daysSinceActivity);
+        : createDraftPingComment(item, daysSinceActivity);
       const { url } = await this.github.addComment(item.number, comment);
 
       this.logger.info(
         { item: item.number, author: item.author, commentUrl: url },
         'Pinged author'
-      );
-      return { action, success: true, commentUrl: url };
-    } catch (error) {
-      const message = getErrorMessage(error);
-      return { action, success: false, error: message };
-    }
-  }
-
-  private async pingSponsor(
-    item: SEPItem,
-    daysSinceActivity: number,
-    dryRun: boolean
-  ): Promise<ActionResult> {
-    const sponsor = await this.maintainers.getSponsor([...item.assignees]);
-
-    if (!sponsor) {
-      // No core maintainer sponsor - post a comment asking for one
-      return this.postNeedsSponsor(item, daysSinceActivity, dryRun);
-    }
-
-    const action = this.createAction(
-      ActionType.PingSponsor,
-      item,
-      dryRun,
-      `Sponsor ping after ${daysSinceActivity} days of inactivity`,
-      sponsor
-    );
-
-    if (dryRun) {
-      this.logger.info(
-        { item: item.number, sponsor, daysSinceActivity },
-        'DRY RUN: Would ping sponsor'
-      );
-      return { action, success: true };
-    }
-
-    try {
-      const comment = createSponsorPingComment(item, sponsor, daysSinceActivity);
-      const { url } = await this.github.addComment(item.number, comment);
-
-      this.logger.info(
-        { item: item.number, sponsor, commentUrl: url },
-        'Pinged sponsor'
       );
       return { action, success: true, commentUrl: url };
     } catch (error) {
@@ -261,41 +214,6 @@ export class PingHandler {
       this.logger.info(
         { item: item.number, daysSinceActivity, closed: shouldClose, commentUrl: url },
         'Marked as dormant'
-      );
-      return { action, success: true, commentUrl: url };
-    } catch (error) {
-      const message = getErrorMessage(error);
-      return { action, success: false, error: message };
-    }
-  }
-
-  private async postNeedsSponsor(
-    item: SEPItem,
-    daysSinceActivity: number,
-    dryRun: boolean
-  ): Promise<ActionResult> {
-    const action = this.createAction(
-      ActionType.NeedsSponsor,
-      item,
-      dryRun,
-      `Draft SEP needs core maintainer sponsor (${daysSinceActivity} days inactive)`
-    );
-
-    if (dryRun) {
-      this.logger.info(
-        { item: item.number, assignees: [...item.assignees], daysSinceActivity },
-        'DRY RUN: Would post needs-sponsor comment'
-      );
-      return { action, success: true };
-    }
-
-    try {
-      const comment = createNeedsSponsorComment(item, daysSinceActivity);
-      const { url } = await this.github.addComment(item.number, comment);
-
-      this.logger.info(
-        { item: item.number, commentUrl: url },
-        'Posted needs-sponsor comment'
       );
       return { action, success: true, commentUrl: url };
     } catch (error) {

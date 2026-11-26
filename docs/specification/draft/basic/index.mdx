@@ -11,8 +11,8 @@ The Model Context Protocol consists of several key components that work together
 - **Message Patterns**: Messaging patterns supported by the core protocol including request and response, multi round-trip requests (MRTR), and subscribe and notify
 - **Authorization**: Authentication and authorization framework for HTTP-based transports
 - **Server Features**: Resources, prompts, and tools exposed by servers
-- **Client Features**: Elicitation, sampling and root directory lists provided by clients
-- **Utilities**: Cross-cutting concerns like logging and argument completion
+- **Client Features**: Elicitation provided by clients; sampling and root directory lists are [deprecated](/specification/draft/deprecated)
+- **Utilities**: Cross-cutting concerns like argument completion and pagination; logging is [deprecated](/specification/draft/deprecated)
 
 All implementations **MUST** support the base protocol, versioning,
 and the message patterns. Other components **MAY** be implemented based on the specific needs of the
@@ -100,7 +100,7 @@ can use to determine how to parse and handle the `result` object.
 }
 ```
 
-- Error responses **MUST** include the same ID as the request they correspond to (except in error cases where the ID could not be read due a malformed request).
+- Error responses **MUST** include the same ID as the request they correspond to (except in error cases where the ID could not be read due to a malformed request).
 - Error responses **MUST** include an `error` field with a `code` and `message`.
 - Error codes **MUST** be integers.
 - Error responses **MAY** include a `data` member with additional information of any type, such
@@ -176,7 +176,7 @@ The receiver **MUST NOT** send a response.
 The Model Context Protocol (MCP) supports several [Message Patterns](/specification/draft/basic/patterns) that define how clients and servers interact:
 
 1. **[Request and Response](/specification/draft/basic/patterns#request-and-response)**: A client sends a request to the server, and the server responds with a result or error.
-2. **[Multi Round-Trip Requests (MRTR)](/specification/draft/basic/patterns#multi-round-trip-requests)**: A server requires additional client input (sampling, elicitation, or roots) to complete a request.
+2. **[Multi Round-Trip Requests (MRTR)](/specification/draft/basic/patterns#multi-round-trip-requests)**: A server requires additional client input (e.g. elicitation) to complete a request.
 3. **[Subscribe and Notify](/specification/draft/basic/patterns#subscribe-and-notify)**: A client subscribes to a stream of notifications from the server, which are sent as they occur.
 
 ## Statelessness
@@ -190,7 +190,7 @@ Specifically:
 
 - Servers **MUST NOT** rely on prior requests over the same connection to
   establish context (e.g., capabilities, protocol version, client identity).
-  Every request supplies this metadata in its [`_meta`](#meta) field.
+  Every request supplies this metadata in its [`_meta`](#_meta) field.
 - Servers **SHOULD** be prepared to handle requests associated with multiple
   tasks, threads, or conversations.
 - Servers **SHOULD NOT** require that a client reuse the same connection or process to
@@ -215,7 +215,7 @@ Their state is scoped to the request itself, not to the connection underneath.
 
 <Info>
   For a walkthrough of how the per-request model maps to SDK code, see the
-  [Architecture guide](/docs/learn/architecture#example).
+  [Architecture guide](/docs/draft/learn/architecture#example).
 </Info>
 
 ## Auth
@@ -354,6 +354,7 @@ The following `_meta` keys are reserved by this specification:
 | `io.modelcontextprotocol/clientInfo`         | Client name and version                                     | Per-request protocol fields (below)                                |
 | `io.modelcontextprotocol/clientCapabilities` | Client capabilities relevant to a request                   | Per-request protocol fields (below)                                |
 | `io.modelcontextprotocol/logLevel`           | Minimum log level the server should emit for a request      | [Logging](/specification/draft/server/utilities/logging)           |
+| `io.modelcontextprotocol/serverInfo`         | Server name and version                                     | Per-response protocol fields (below)                               |
 | `io.modelcontextprotocol/subscriptionId`     | Correlates a notification with its originating subscription | [Subscriptions](/specification/draft/basic/patterns/subscriptions) |
 | `traceparent`, `tracestate`, `baggage`       | OpenTelemetry trace context propagation                     | OpenTelemetry trace context (below)                                |
 
@@ -364,15 +365,16 @@ In both cases the keys are specified in the extension's documentation.
 
 **Per-request protocol fields:**
 
-Every client request **MUST** include the following `io.modelcontextprotocol/*` fields
-in `_meta`. Servers use these to identify the client and the protocol version in use
-without relying on any prior connection state. See
+Client requests carry the following `io.modelcontextprotocol/*` fields in `_meta`;
+fields marked as required **MUST** be included on every request. Servers use these
+to identify the protocol version and capabilities in use without relying on any
+prior connection state. See
 [Versioning and Compatibility][lifecycle] for version negotiation rules.
 
 | Key                                          | Type                 | Required | Description                                               |
 | -------------------------------------------- | -------------------- | -------- | --------------------------------------------------------- |
 | `io.modelcontextprotocol/protocolVersion`    | `string`             | Yes      | Protocol version for this request (e.g., `"2026-07-28"`)  |
-| `io.modelcontextprotocol/clientInfo`         | `Implementation`     | Yes      | Client name and version                                   |
+| `io.modelcontextprotocol/clientInfo`         | `Implementation`     | No       | Client name and version                                   |
 | `io.modelcontextprotocol/clientCapabilities` | `ClientCapabilities` | Yes      | Client capabilities relevant to this request              |
 | `io.modelcontextprotocol/logLevel`           | `LoggingLevel`       | No       | Minimum log level the server should emit for this request |
 
@@ -380,12 +382,33 @@ A request missing any required field is malformed; the server **MUST** reject it
 JSON-RPC error code `-32602` (Invalid params). On HTTP, the response status **MUST** be
 `400 Bad Request`.
 
+Clients **SHOULD** include `io.modelcontextprotocol/clientInfo` on every request
+unless specifically configured not to do so.
+
 A server **MUST NOT** rely on capabilities the client has not declared. If
 processing a request requires a capability the client did not include in
 `io.modelcontextprotocol/clientCapabilities`, the server **MUST** return a
 [`MissingRequiredClientCapabilityError`](/specification/draft/schema#missingrequiredclientcapabilityerror)
 (`-32021`) whose `data.requiredCapabilities` lists the missing capabilities. On
 HTTP, the response status **MUST** be `400 Bad Request`.
+
+**Per-response protocol fields:**
+
+Servers **SHOULD** include the following `io.modelcontextprotocol/*` field in
+every result's `_meta`, unless specifically configured not to do so, to
+identify themselves without relying on any prior connection state:
+
+| Key                                  | Type             | Required | Description             |
+| ------------------------------------ | ---------------- | -------- | ----------------------- |
+| `io.modelcontextprotocol/serverInfo` | `Implementation` | No       | Server name and version |
+
+<Note>
+  `io.modelcontextprotocol/clientInfo` and `io.modelcontextprotocol/serverInfo`
+  are self-reported by the sender and are not verified by the protocol. They are
+  intended for display, logging, and debugging. Implementations **SHOULD NOT**
+  use them to change the behavior of the client or server, and **SHOULD NOT**
+  rely on them for security decisions.
+</Note>
 
 On notifications delivered via a [`subscriptions/listen`][subscriptions-listen] stream,
 the server **MUST** include `io.modelcontextprotocol/subscriptionId` in `_meta` so the
@@ -417,6 +440,12 @@ Non-normative example of trace context in `_meta`:
       "location": "New York"
     },
     "_meta": {
+      "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+      "io.modelcontextprotocol/clientInfo": {
+        "name": "ExampleClient",
+        "version": "1.0.0"
+      },
+      "io.modelcontextprotocol/clientCapabilities": {},
       "traceparent": "00-0af7651916cd43dd8448eb211c80319c-00f067aa0ba902b7-01"
     }
   }
@@ -432,7 +461,7 @@ Icons are represented as an array of `Icon` objects, where each icon includes:
 - `src`: A URI pointing to the icon resource (required). This can be:
   - An HTTP/HTTPS URL pointing to an image file
   - A data URI with base64-encoded image data
-- `mimeType`: Optional MIME type if the server's type is missing or generic
+- `mimeType`: Optional MIME type override if the source MIME type is missing or generic
 - `sizes`: Optional array of size specifications (e.g., `["48x48"]`, `["any"]` for scalable formats like SVG, or `["48x48", "96x96"]` for multiple sizes)
 - `theme`: Optional theme preference (`light` or `dark`) for the icon background
 
