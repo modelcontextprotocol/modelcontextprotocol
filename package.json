@@ -49,7 +49,7 @@
     "ajv": "^8.20.0",
     "ajv-formats": "^3.0.1",
     "cheerio": "^1.2.0",
-    "eslint": "^10.14.0",
+    "eslint": "^10.15.0",
     "eslint-config-prettier": "^10.1.8",
     "glob": "^14.0.6",
     "mint": "4.3.75",
@@ -59,7 +59,7 @@
     "tsx": "^4.23.15",
     "typedoc": "^0.28.20",
     "typescript": "^6.0.3",
-    "typescript-eslint": "^8.72.2",
+    "typescript-eslint": "^8.73.0",
     "typescript-json-schema": "0.68.0",
     "unified": "^11.0.5"
   },

@@ -5,7 +5,8 @@
   {{- range . }}
   <li class="author">
     <span class="author-name">{{ .name }}</span>
-    {{- with .role }} <span class="author-role">{{ . }}</span>{{ end }}
+    {{- /* A column is as wide as its longest unwrapped line, so a line break in a long role is kept. */ -}}
+    {{- with .role }} <span class="author-role">{{ range $i, $line := split . "\n" }}{{ if $i }}<br>{{ end }}{{ trim $line " " }}{{ end }}</span>{{ end }}
   </li>
   {{- end }}
 </ul>
