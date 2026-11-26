@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="432" viewBox="0 0 880 432" role="img" aria-labelledby="title description">
+  <title id="title">Example MCP release cycle timeline</title>
+  <desc id="description">The March cycle runs from July to March, and the September cycle runs from January to September. Each includes two months of planning, Core Maintainer review until soft freeze 2.5 months before release, and stabilization until release. Planning for September overlaps the last two months of the March cycle. Releases are six months apart.</desc>
+  <defs>
+    <style>
+      text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; fill: #e6ecef; }
+      .month { font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size: 16px; fill: #a0afb7; text-anchor: middle; }
+      .row-name { font-size: 20px; font-weight: 600; dominant-baseline: central; }
+      .phase { font-size: 18px; text-anchor: middle; dominant-baseline: central; }
+      .release { font-size: 16px; text-anchor: middle; }
+      .dimension { font-size: 16px; fill: #b8cbd5; text-anchor: middle; }
+    </style>
+    <marker id="dimension-arrow" markerWidth="8" markerHeight="8" refX="8" refY="4" orient="auto-start-reverse" markerUnits="userSpaceOnUse">
+      <path d="M0 0L8 4L0 8" fill="none" stroke="#8aa8b8"/>
+    </marker>
+  </defs>
+
+  <rect width="880" height="432" fill="#141c22"/>
+
+  <g class="month">
+    <text x="140" y="40">Jul</text>
+    <text x="188" y="40">Aug</text>
+    <text x="236" y="40">Sep</text>
+    <text x="284" y="40">Oct</text>
+    <text x="332" y="40">Nov</text>
+    <text x="380" y="40">Dec</text>
+    <text x="428" y="40">Jan</text>
+    <text x="476" y="40">Feb</text>
+    <text x="524" y="40">Mar</text>
+    <text x="572" y="40">Apr</text>
+    <text x="620" y="40">May</text>
+    <text x="668" y="40">Jun</text>
+    <text x="716" y="40">Jul</text>
+    <text x="764" y="40">Aug</text>
+    <text x="812" y="40">Sep</text>
+  </g>
+  <path d="M140 60H812M140 60V68M188 60V68M236 60V68M284 60V68M332 60V68M380 60V68M428 60V68M476 60V68M524 60V68M572 60V68M620 60V68M668 60V68M716 60V68M764 60V68M812 60V68" fill="none" stroke="#526a78"/>
+
+  <text class="row-name" x="16" y="140">March</text>
+  <rect x="140" y="110" width="96" height="60" fill="#203038" stroke="#809eaa"/>
+  <text class="phase" x="188" y="140">Planning</text>
+  <rect x="236" y="110" width="168" height="60" fill="#202a31" stroke="#728c9a"/>
+  <text class="phase" x="320" y="130">Core Maintainer</text>
+  <text class="phase" x="320" y="150">review</text>
+  <rect x="404" y="110" width="120" height="60" fill="#282b28" stroke="#b6a879"/>
+  <text class="phase" x="464" y="140">Stabilization</text>
+  <circle cx="524" cy="140" r="5" fill="#141c22" stroke="#e6ecef" stroke-width="2"/>
+  <text class="release" x="524" y="96">Release</text>
+
+  <path d="M428 170V280M524 170V280" fill="none" stroke="#66818f" stroke-dasharray="3 5"/>
+  <text class="dimension" x="476" y="210">2-month</text>
+  <text class="dimension" x="476" y="232">overlap</text>
+  <path d="M428 248H524" stroke="#8aa8b8" marker-start="url(#dimension-arrow)" marker-end="url(#dimension-arrow)"/>
+
+  <text class="row-name" x="16" y="310">September</text>
+  <rect x="428" y="280" width="96" height="60" fill="#203038" stroke="#809eaa"/>
+  <text class="phase" x="476" y="310">Planning</text>
+  <rect x="524" y="280" width="168" height="60" fill="#202a31" stroke="#728c9a"/>
+  <text class="phase" x="608" y="300">Core Maintainer</text>
+  <text class="phase" x="608" y="320">review</text>
+  <rect x="692" y="280" width="120" height="60" fill="#282b28" stroke="#b6a879"/>
+  <text class="phase" x="752" y="310">Stabilization</text>
+  <circle cx="812" cy="310" r="5" fill="#141c22" stroke="#e6ecef" stroke-width="2"/>
+  <text class="release" x="812" y="266">Release</text>
+
+  <path d="M524 340V408M812 340V408" fill="none" stroke="#66818f" stroke-dasharray="3 5"/>
+  <text class="dimension" x="668" y="388">6 months between releases</text>
+  <path d="M524 408H812" stroke="#8aa8b8" marker-start="url(#dimension-arrow)" marker-end="url(#dimension-arrow)"/>
+</svg>
