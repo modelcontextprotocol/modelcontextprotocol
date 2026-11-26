@@ -63,13 +63,16 @@ Servers offer any of the following features to clients:
 
 Clients may offer the following features to servers:
 
-- **Elicitation**: Server-initiated requests for additional information from users
+- **Elicitation**: Server requests for additional information from users
 
 ### Additional Utilities
 
-- Configuration
 - Progress tracking
 - Cancellation
+- Subscriptions
+- Completion
+- Pagination
+- Caching
 - Error reporting
 
 ### Extensions
@@ -83,7 +86,7 @@ Notable extensions include:
 
 - **[Tasks](/extensions/tasks/overview)**: Asynchronous execution of long-running
   operations, with polling, mid-flight input, and durable handles
-- **[Skills over MCP](/community/working-groups/skills-over-mcp)**: Rich, structured
+- **[Skills over MCP](/extensions/skills/overview)**: Rich, structured
   instructions for agent workflows, discovered and consumed through MCP
 - **[MCP Apps](/extensions/apps/overview)**: Interactive UI elements (charts, forms,
   video players) rendered inline within conversations
@@ -144,7 +147,7 @@ Explore the detailed specification for each protocol component:
   <Card
     title="Client Features"
     icon="user"
-    href="/specification/draft/client"
+    href="/specification/draft/client/elicitation"
   />
   <Card title="Contributing" icon="pencil" href="/community/contributing" />
 </CardGroup>

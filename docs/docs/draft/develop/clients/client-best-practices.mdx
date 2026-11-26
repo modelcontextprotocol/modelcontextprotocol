@@ -133,12 +133,12 @@ This works especially well for general-purpose agents, where the user's intent i
 
 When implementing progressive discovery:
 
-| Guideline                        | Rationale                                                                                                                                                                                          |
-| -------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Offer multiple detail levels** | Let the model choose between name-only, name-and-description, or full-schema responses.                                                                                                            |
-| **Cache tool definitions**       | Once fetched from a server, memoize the definition host-side so re-injecting it later doesn't need another `tools/list` round trip. This is separate from what's currently in the model's context. |
-| **Refresh on `list_changed`**    | Re-index the search catalog when a server sends `notifications/tools/list_changed`.                                                                                                                |
-| **Group tools by server**        | Present tools organized by their source server so the model can reason about related capabilities.                                                                                                 |
+| Guideline                        | Rationale                                                                                                                                                                                                                                                                |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Offer multiple detail levels** | Let the model choose between name-only, name-and-description, or full-schema responses.                                                                                                                                                                                  |
+| **Cache tool definitions**       | Once fetched from a server, memoize the definition host-side so re-injecting it later doesn't need another `tools/list` round trip. This is separate from what's currently in the model's context.                                                                       |
+| **Refresh on `list_changed`**    | If the server declares `listChanged: true` for tools, open a [`subscriptions/listen`](/specification/draft/basic/patterns/subscriptions) stream with `toolsListChanged: true`, and re-index the search catalog when the server sends `notifications/tools/list_changed`. |
+| **Group tools by server**        | Present tools organized by their source server so the model can reason about related capabilities.                                                                                                                                                                       |
 
 ### Caching
 

@@ -40,8 +40,8 @@ as they depend on inputs that are not part of the cache key.
 
 Cacheable Results in MCP use two fields to provide caching hints to clients:
 
-- The <b>Time-to-live (TTL) Field</b>,`ttlMs`, is an integer value in milliseconds specifying how long the client MAY consider the result fresh.
-- The <b>Cache Scope Field</b>,`cacheScope`, indicates the intended scope of the cached response, either `"public"` or `"private"`.
+- The <b>Time-to-live (TTL) Field</b>, `ttlMs`, is an integer value in milliseconds specifying how long the client MAY consider the result fresh.
+- The <b>Cache Scope Field</b>, `cacheScope`, indicates the intended scope of the cached response, either `"public"` or `"private"`.
 
 ### Time-to-Live (TTL) Field
 
@@ -119,6 +119,9 @@ TTL and server-push notifications are complementary:
 
 When a relevant notification is received while a cached response is still fresh, the
 notification **invalidates** the cached response and it should be considered immediately stale.
+For a cached `resources/read` result, the relevant notification is
+[`notifications/resources/updated`](/specification/2026-07-28/server/resources#subscriptions) for that
+resource or a sub-resource of it.
 
 ```mermaid
 sequenceDiagram
@@ -170,7 +173,7 @@ request. For example, if the first page of a `tools/list` response has
 
 ## Security Considerations
 
-A `cacheScope` of `"public"` indicates that the response does not contain user-specific data and can be safely shared. Servers MUST be aware that responses with a `"public"` `cacheScope` may be shared between callers even if the Result is coming from an authenticated endpoint. For example, the Result from an authenticated `tools/list` call with a `"public"` `cacheScope` may be cached by a client and may be shared outside of the initial requests authorization context. (i.e. different access tokens can leverage the same cache).
+A `cacheScope` of `"public"` indicates that the response does not contain user-specific data and can be safely shared. Servers MUST be aware that responses with a `"public"` `cacheScope` may be shared between callers even if the Result is coming from an authenticated endpoint. For example, the Result from an authenticated `tools/list` call with a `"public"` `cacheScope` may be cached by a client and may be shared outside of the initial request's authorization context (i.e. different access tokens can leverage the same cache).
 
 Server implementors:
 

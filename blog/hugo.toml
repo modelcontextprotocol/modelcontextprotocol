@@ -64,7 +64,7 @@ capitalizeListTitles = false
   [[params.socialIcons]]
     name = "discord"
     title = "Discord"
-    url = "https://discord.gg/6CSzBmMkjX"
+    url = "https://discord.gg/modelcontextprotocol"
 
 # Menu configuration
 [[menu.main]]

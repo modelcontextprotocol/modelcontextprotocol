@@ -100,7 +100,7 @@ can use to determine how to parse and handle the `result` object.
 }
 ```
 
-- Error responses **MUST** include the same ID as the request they correspond to (except in error cases where the ID could not be read due a malformed request).
+- Error responses **MUST** include the same ID as the request they correspond to (except in error cases where the ID could not be read due to a malformed request).
 - Error responses **MUST** include an `error` field with a `code` and `message`.
 - Error codes **MUST** be integers.
 - Error responses **MAY** include a `data` member with additional information of any type, such
@@ -354,6 +354,7 @@ The following `_meta` keys are reserved by this specification:
 | `io.modelcontextprotocol/clientInfo`         | Client name and version                                     | Per-request protocol fields (below)                                     |
 | `io.modelcontextprotocol/clientCapabilities` | Client capabilities relevant to a request                   | Per-request protocol fields (below)                                     |
 | `io.modelcontextprotocol/logLevel`           | Minimum log level the server should emit for a request      | [Logging](/specification/2026-07-28/server/utilities/logging)           |
+| `io.modelcontextprotocol/serverInfo`         | Server name and version                                     | Per-response protocol fields (below)                                    |
 | `io.modelcontextprotocol/subscriptionId`     | Correlates a notification with its originating subscription | [Subscriptions](/specification/2026-07-28/basic/patterns/subscriptions) |
 | `traceparent`, `tracestate`, `baggage`       | OpenTelemetry trace context propagation                     | OpenTelemetry trace context (below)                                     |
 
@@ -439,6 +440,12 @@ Non-normative example of trace context in `_meta`:
       "location": "New York"
     },
     "_meta": {
+      "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+      "io.modelcontextprotocol/clientInfo": {
+        "name": "ExampleClient",
+        "version": "1.0.0"
+      },
+      "io.modelcontextprotocol/clientCapabilities": {},
       "traceparent": "00-0af7651916cd43dd8448eb211c80319c-00f067aa0ba902b7-01"
     }
   }

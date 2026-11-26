@@ -15,7 +15,7 @@ prompts, retrieve their contents, and provide arguments to customize them.
   `io.modelcontextprotocol/clientInfo`, and
   `io.modelcontextprotocol/clientCapabilities`). Every request **MUST** include
   the required `_meta` fields; see
-  [`_meta`](/specification/2026-07-28/basic/index#meta).
+  [`_meta`](/specification/2026-07-28/basic/index#_meta).
 </Note>
 
 ## User Interaction Model
@@ -174,7 +174,12 @@ capability **SHOULD** send a notification to clients that have opened a
 ```json
 {
   "jsonrpc": "2.0",
-  "method": "notifications/prompts/list_changed"
+  "method": "notifications/prompts/list_changed",
+  "params": {
+    "_meta": {
+      "io.modelcontextprotocol/subscriptionId": "listen-1"
+    }
+  }
 }
 ```
 
