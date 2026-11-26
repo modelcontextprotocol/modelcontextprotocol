@@ -39,7 +39,7 @@ The TUI also takes the [shared server-selection flags](/docs/draft/tools/inspect
 | **Tools**         | `t` | View tools and execute them with form-like inputs.                                                                                    |
 | **Tasks**         | `s` | List tasks, fetch their results, cancel them, and clear finished ones (servers that support Tasks).                                   |
 | **Protocol**      | `p` | JSON-RPC request/response/notification history.                                                                                       |
-| **Network**       | `n` | HTTP traffic for SSE and [Streamable HTTP](/specification/latest/basic/transports) servers.                                           |
+| **Network**       | `n` | HTTP traffic for SSE and [Streamable HTTP](/specification/draft/basic/transports) servers.                                            |
 | **Console**       | `o` | `stderr` from a connected stdio server process.                                                                                       |
 
 The accelerators avoid collisions rather than always taking the first letter: **P**rotocol takes `p` so Pro**m**pts takes `m`, and **C**onsole takes `o` because `c` is the global Connect action. Ta**s**ks takes `s`, its only free letter, so Subscriptions takes `u` and Skills takes `k`.
@@ -71,7 +71,7 @@ Press **`?`** whenever no dialog is open for the full keybinding reference, incl
 3. When the browser redirect lands on the TUI's loopback listener, the connection finishes on its own, with no second **`c`**.
 4. Use the **Auth** tab to inspect the resulting OAuth state, or to clear it.
 
-The TUI's callback listener defaults to `http://127.0.0.1:6276/oauth/callback`. The port is fixed on purpose: a pre-registered (static) OAuth client, a [Client ID Metadata Document (CIMD)](/specification/latest/basic/authorization/client-registration#client-id-metadata-documents), or an enterprise-managed IdP all need a redirect URI known in advance. Register that URI once and it works across sessions. On a remote host where your browser is on another machine, forward the callback port so the redirect reaches this listener; see [Callback URLs](/docs/draft/tools/inspector/authorization#callback-urls).
+The TUI's callback listener defaults to `http://127.0.0.1:6276/oauth/callback`. The port is fixed on purpose: a pre-registered (static) OAuth client, a [Client ID Metadata Document (CIMD)](/specification/draft/basic/authorization/client-registration#client-id-metadata-documents), or an enterprise-managed IdP all need a redirect URI known in advance. Register that URI once and it works across sessions. On a remote host where your browser is on another machine, forward the callback port so the redirect reaches this listener; see [Callback URLs](/docs/draft/tools/inspector/authorization#callback-urls).
 
 The trade-off is that only one TUI OAuth flow can hold the port at a time; a second concurrent flow fails with `EADDRINUSE`. To override it, pass `--callback-url` or set `MCP_OAUTH_CALLBACK_URL`: use a different fixed port per instance, or `http://127.0.0.1:0/oauth/callback` for an OS-assigned ephemeral port when your authorization server registers redirect URIs dynamically.
 

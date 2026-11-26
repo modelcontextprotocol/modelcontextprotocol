@@ -9,7 +9,7 @@ title: Sampling
   `2026-07-28`
   ([SEP-2577](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2577)).
   Under the [feature lifecycle policy](/community/feature-lifecycle), it remains
-  in the specification for at least twelve months after this revision's release
+  in the specification for at least twelve months after that revision's release
   before it becomes eligible for removal. New implementations **SHOULD NOT**
   adopt it; existing implementations **SHOULD** migrate to integrating directly
   with LLM provider APIs. See the [deprecated features
@@ -512,7 +512,7 @@ sequenceDiagram
     User-->>Client: Review and approve/modify
 
     Note over Server,Client: Replay Request with approved response
-    Client-->>Server: tools/call(id:3, Return approved response)
+    Client-->>Server: tools/call(id:2, Return approved response)
 ```
 
 ## Data Types
@@ -525,7 +525,9 @@ a `content` field representing the message data.
 The list of messages in a sampling request **SHOULD NOT** be retained between
 separate requests.
 
-The `content` field can contain:
+The `content` field contains a single content block or an array of content blocks. Each
+block is one of the following types, subject to the
+[message content constraints](#message-content-constraints):
 
 #### Text Content
 
@@ -553,6 +555,32 @@ The `content` field can contain:
   "type": "audio",
   "data": "base64-encoded-audio-data",
   "mimeType": "audio/wav"
+}
+```
+
+#### Tool Use Content
+
+```json
+{
+  "type": "tool_use",
+  "id": "call_abc123",
+  "name": "get_weather",
+  "input": { "city": "Paris" }
+}
+```
+
+#### Tool Result Content
+
+```json
+{
+  "type": "tool_result",
+  "toolUseId": "call_abc123",
+  "content": [
+    {
+      "type": "text",
+      "text": "Weather in Paris: 18°C, partly cloudy"
+    }
+  ]
 }
 ```
 
@@ -610,8 +638,8 @@ The client **MAY** modify or ignore this field without communicating this to the
 
 ### Context Inclusion
 
-The `includeContext` parameter specifies what context information the client is expected
-to include in its response:
+The `includeContext` parameter requests that the client attach context information to
+the prompt:
 
 - `"none"`: No additional context.
 - `"thisServer"`: Include context from the requesting server.
