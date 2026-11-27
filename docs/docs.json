@@ -8,6 +8,14 @@
     "dark": "#09090b"
   },
   "favicon": "/favicon.svg",
+  "banner": {
+    "content": "Want to contribute to MCP? Join the [MCP Contributor Discord](https://discord.gg/modelcontextprotocol).",
+    "dismissible": true,
+    "color": {
+      "light": "#09090b",
+      "dark": "#2e2e33"
+    }
+  },
   "navbar": {
     "links": [
       {
