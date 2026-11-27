@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="264" viewBox="0 0 880 264" role="img" aria-labelledby="title description">
+  <title id="title">Formal SEP review timeline</title>
+  <desc id="description">Release managers publish the agenda 2 weeks before the Core Maintainer meeting. Reviewers comment on the pull request during the week before the meeting. The proposal is presented at the meeting, and the acceptance vote then stays open for 7 calendar days.</desc>
+  <defs>
+    <style>
+      text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; fill: #1c2429; }
+      .tick { font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size: 16px; fill: #5b6b74; text-anchor: middle; }
+      .phase { font-size: 18px; text-anchor: middle; dominant-baseline: central; }
+      .event { font-size: 16px; text-anchor: middle; }
+      .dimension { font-size: 16px; fill: #3e5866; text-anchor: middle; }
+    </style>
+    <marker id="dimension-arrow" markerWidth="8" markerHeight="8" refX="8" refY="4" orient="auto-start-reverse" markerUnits="userSpaceOnUse">
+      <path d="M0 0L8 4L0 8" fill="none" stroke="#6f8b98"/>
+    </marker>
+  </defs>
+
+  <rect width="880" height="264" fill="#ffffff"/>
+
+  <g class="tick">
+    <text x="80" y="40">2 weeks before</text>
+    <text x="320" y="40">1 week before</text>
+    <text x="560" y="40">Meeting</text>
+    <text x="800" y="40">7 days after</text>
+  </g>
+  <path d="M80 60H800M80 60V68M320 60V68M560 60V68M800 60V68" fill="none" stroke="#a9b7be"/>
+
+  <rect x="80" y="110" width="240" height="60" fill="#e2eef3" stroke="#6f8f9c"/>
+  <text class="phase" x="200" y="140">Agenda published</text>
+  <rect x="320" y="110" width="240" height="60" fill="#eef3f5" stroke="#8a9ea8"/>
+  <text class="phase" x="440" y="140">Pull request comments</text>
+  <rect x="560" y="110" width="240" height="60" fill="#f7f2e3" stroke="#a8904a"/>
+  <text class="phase" x="680" y="140">Acceptance vote</text>
+  <circle cx="560" cy="140" r="5" fill="#ffffff" stroke="#1c2429" stroke-width="2"/>
+  <text class="event" x="560" y="96">Presentation</text>
+
+  <path d="M80 170V240M560 170V240M800 170V240" fill="none" stroke="#8ea3ad" stroke-dasharray="3 5"/>
+  <text class="dimension" x="320" y="220">2 weeks of preparation</text>
+  <path d="M80 240H560" stroke="#6f8b98" marker-start="url(#dimension-arrow)" marker-end="url(#dimension-arrow)"/>
+  <text class="dimension" x="680" y="220">7 calendar days</text>
+  <path d="M560 240H800" stroke="#6f8b98" marker-start="url(#dimension-arrow)" marker-end="url(#dimension-arrow)"/>
+</svg>

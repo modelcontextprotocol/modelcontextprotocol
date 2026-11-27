@@ -9,7 +9,7 @@ description: Security considerations, attack vectors, and best practices for MCP
 
 This document provides security considerations for the Model Context
 Protocol (MCP), complementing the
-[MCP Authorization](/specification/latest/basic/authorization)
+[MCP Authorization](/specification/draft/basic/authorization)
 specification. This document identifies security risks, attack vectors,
 and best practices specific to MCP implementations.
 
@@ -33,6 +33,12 @@ vulnerabilities. This attack allows malicious clients to obtain
 authorization codes without proper user consent by exploiting the
 combination of static client IDs, dynamic client registration, and
 consent cookies.
+
+<Note>
+
+Dynamic Client Registration is [deprecated](/specification/draft/deprecated) as of protocol version `2026-07-28`. The attack still applies to MCP proxy servers that support it.
+
+</Note>
 
 #### Terminology
 
@@ -149,7 +155,7 @@ possible:
    consent screen
 6. The MCP authorization code is redirected to the attacker's server
    (specified in the malicious `redirect_uri` parameter during
-   [dynamic client registration](/specification/latest/basic/authorization/client-registration#dynamic-client-registration))
+   [dynamic client registration](/specification/draft/basic/authorization/client-registration#dynamic-client-registration))
 7. The attacker exchanges the stolen authorization code for access
    tokens for the MCP server without the user's explicit approval
 8. The attacker now has access to the third-party API as the compromised
@@ -304,7 +310,7 @@ This vulnerability has two critical dimensions:
 #### Risks
 
 Token passthrough is explicitly forbidden in the
-[authorization specification](/specification/latest/basic/authorization)
+[authorization specification](/specification/draft/basic/authorization)
 as it introduces a number of security risks, that include:
 
 - **Security Control Circumvention**
@@ -640,7 +646,7 @@ mitigate potential code execution attack vectors:
 - Keep sandboxing solutions up-to-date to account for emerging
   vulnerabilities
 
-MCP servers intending for their servers to be run locally **SHOULD**
+MCP server developers intending for their servers to be run locally **SHOULD**
 implement measures to prevent unauthorized usage from malicious
 processes:
 

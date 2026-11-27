@@ -20,7 +20,7 @@
       },
       {
         "label": "Discord",
-        "href": "https://discord.gg/6CSzBmMkjX"
+        "href": "https://discord.gg/modelcontextprotocol"
       }
     ]
   },
@@ -83,6 +83,7 @@
                       "docs/2026-07-28/tools/inspector/cli",
                       "docs/2026-07-28/tools/inspector/tui",
                       "docs/2026-07-28/tools/inspector/mcpdo",
+                      "docs/2026-07-28/tools/inspector/load-testing",
                       "docs/2026-07-28/tools/inspector/configuration",
                       "docs/2026-07-28/tools/inspector/authorization",
                       "docs/2026-07-28/tools/inspector/protocol-eras",
@@ -384,6 +385,7 @@
                       "docs/draft/tools/inspector/cli",
                       "docs/draft/tools/inspector/tui",
                       "docs/draft/tools/inspector/mcpdo",
+                      "docs/draft/tools/inspector/load-testing",
                       "docs/draft/tools/inspector/configuration",
                       "docs/draft/tools/inspector/authorization",
                       "docs/draft/tools/inspector/protocol-eras",
@@ -783,6 +785,12 @@
             "pages": [
               "extensions/skills/overview"
             ]
+          },
+          {
+            "group": "Events",
+            "pages": [
+              "extensions/events/overview"
+            ]
           }
         ]
       },
@@ -862,7 +870,8 @@
               "seps/2596-spec-feature-lifecycle-and-deprecation",
               "seps/2640-skills-extension",
               "seps/2663-tasks-extension",
-              "seps/3392-extension-lifecycle"
+              "seps/3392-extension-lifecycle",
+              "seps/3415-events-extension"
             ]
           },
           {
@@ -887,7 +896,8 @@
           {
             "group": "Roadmap",
             "pages": [
-              "development/roadmap"
+              "development/roadmap",
+              "community/release-cycle"
             ]
           },
           {
@@ -902,6 +912,7 @@
                 "pages": [
                   "community/working-groups/overview",
                   "community/working-groups/apps",
+                  "community/working-groups/core-primitives",
                   "community/working-groups/file-uploads",
                   "community/working-groups/filesystems",
                   "community/working-groups/governance",
@@ -958,7 +969,7 @@
   "footer": {
     "socials": {
       "github": "https://github.com/modelcontextprotocol",
-      "discord": "https://discord.gg/6CSzBmMkjX"
+      "discord": "https://discord.gg/modelcontextprotocol"
     }
   },
   "redirects": [
@@ -1467,6 +1478,10 @@
     {
       "source": "/seps/3398",
       "destination": "/seps/3398-release-cycle-updates"
+    },
+    {
+      "source": "/seps/3415",
+      "destination": "/seps/3415-events-extension"
     }
   ],
   "contextual": {

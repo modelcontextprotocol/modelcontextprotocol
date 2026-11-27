@@ -67,7 +67,7 @@ img, video {
     margin-inline: var(--gap);
 }
 
-#menu, #searchResults {
+#menu {
     list-style: none;
 }
 
@@ -136,16 +136,6 @@ pre:hover .copy-code,
 
 .entry-cover {
     margin-block: var(--gap-block);
-}
-
-#searchInput {
-    width: 100%;
-}
-
-#searchStatus {
-    color: var(--muted);
-    font-size: var(--fs-2);
-    line-height: var(--lh-2);
 }
 
 .top-link {
