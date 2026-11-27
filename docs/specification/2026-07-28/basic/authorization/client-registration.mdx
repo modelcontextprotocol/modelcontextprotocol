@@ -80,10 +80,10 @@ sequenceDiagram
     participant Metadata as Metadata Endpoint<br/>(Client's HTTPS URL)
     participant Resource as MCP Server
 
-    Note over Client,Metadata: Client hosts metadata at<br/>https://app.example.com/oauth/metadata.json
+    Note over Client,Metadata: Client hosts metadata at<br/>https://app.example.com/oauth/client-metadata.json
 
     User->>Client: Initiates connection to MCP Server
-    Client->>Server: Authorization Request<br/>client_id=https://app.example.com/oauth/metadata.json<br/>redirect_uri=http://localhost:3000/callback
+    Client->>Server: Authorization Request<br/>client_id=https://app.example.com/oauth/client-metadata.json<br/>redirect_uri=http://localhost:3000/callback
 
     Server->>User: Authentication prompt
     User->>Server: Provides credentials
@@ -91,7 +91,7 @@ sequenceDiagram
 
     Note over Server: Detects URL-formatted client_id
 
-    Server->>Metadata: GET https://app.example.com/oauth/metadata.json
+    Server->>Metadata: GET https://app.example.com/oauth/client-metadata.json
     Metadata-->>Server: JSON Metadata Document<br/>{client_id, client_name, redirect_uris, ...}
 
     Note over Server: Validates:<br/>1. client_id matches URL<br/>2. redirect_uri in allowed list<br/>3. Document structure valid<br/>4. (Optional) Domain allowed via trust policy
@@ -100,7 +100,7 @@ sequenceDiagram
         Server->>User: Display consent page with client_name
         User->>Server: Approves access
         Server->>Client: Authorization code via redirect_uri
-        Client->>Server: Exchange code for token<br/>client_id=https://app.example.com/oauth/metadata.json
+        Client->>Server: Exchange code for token<br/>client_id=https://app.example.com/oauth/client-metadata.json
         Server-->>Client: Access token
         Client->>Resource: MCP requests with access token
         Resource-->>Client: MCP responses
@@ -138,10 +138,16 @@ MCP clients **SHOULD** support an option for static client credentials such as t
 ## Dynamic Client Registration
 
 <Warning>
-  Dynamic Client Registration is deprecated. New implementations should use
-  [Client ID Metadata Documents](#client-id-metadata-documents) instead. This
-  option remains available for backwards compatibility with authorization
-  servers that do not support Client ID Metadata Documents.
+  **Deprecated**: Dynamic Client Registration is deprecated as of protocol
+  version `2026-07-28` ([PR
+  #2858](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2858)).
+  Under the [feature lifecycle policy](/community/feature-lifecycle), it remains
+  in the specification for at least twelve months after that revision's release
+  before it becomes eligible for removal. New implementations should use [Client
+  ID Metadata Documents](#client-id-metadata-documents) instead. This option
+  remains available for backwards compatibility with authorization servers that
+  do not support Client ID Metadata Documents. See the [deprecated features
+  registry](/specification/2026-07-28/deprecated).
 </Warning>
 
 MCP clients and authorization servers **MAY** support the

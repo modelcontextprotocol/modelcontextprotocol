@@ -2,7 +2,7 @@
 
 This document lists current maintainers in the Model Context Protocol project.
 
-**Last updated:** October 1, 2026
+**Last updated:** November 15, 2026
 
 ## Lead Maintainers
 
@@ -24,6 +24,18 @@ This document lists current maintainers in the Model Context Protocol project.
 - [Basil Hosmer](https://github.com/bhosmer-ant) (Core Maintainer Emeritus)
 - [Che Liu](https://github.com/pwwpche) (Core Maintainer Emeritus)
 - [Nick Aldridge](https://github.com/000-000-000-000-000) (Core Maintainer Emeritus)
+
+## Release Managers
+
+Release managers are appointed for each specification release, with a primary and a secondary role. The secondary release manager becomes the primary release manager for the following release. See the [contributor ladder](https://modelcontextprotocol.io/community/contributor-ladder#release-managers) for details.
+
+### 2027-03-30 Release
+
+For this first release, two of the [Lead Maintainers](https://modelcontextprotocol.io/community/contributor-ladder#lead-maintainer) share the primary release manager role.
+
+- [David Soria Parra](https://github.com/dsp-ant) (Primary)
+- [Den Delimarsky](https://github.com/localden) (Primary)
+- [Luca Chang](https://github.com/LucaButBoring) (Secondary)
 
 ## SDK Maintainers
 

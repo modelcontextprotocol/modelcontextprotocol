@@ -1,0 +1,10 @@
+{
+  "resultType": "complete",
+  "content": [
+    {
+      "type": "text",
+      "text": "Invalid arguments for tool calculate: Missing required property 'expression'"
+    }
+  ],
+  "isError": true
+}

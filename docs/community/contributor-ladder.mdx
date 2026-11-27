@@ -12,9 +12,9 @@ This page defines the contributor roles in the MCP project, what each requires a
 | [Contributor](#contributor)                 | Anyone who has contributed to MCP in any form                                             | None. Issues and group meetings are open to all. [Pull requests](/community/contributing#change-the-specification-or-docs) vary by repository | None                                                  |
 | [Member](#member)                           | Established, active contributor                                                           | GitHub organization membership, triage rights                                                                                                 | 2-3 months of active participation                    |
 | [Maintainer](#maintainer)                   | Steward of a named area (an SDK, a tool, a docs area, a group)                            | Merge rights in the area, listed in [`MAINTAINERS.md`](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/MAINTAINERS.md) | 6 months as Member                                    |
-| [Core Maintainer](#core-maintainer)         | Project-wide technical leadership; authority in [Governance](/community/governance#roles) | Administrative rights on all repositories                                                                                                     | By invitation after sustained Maintainer contribution |
-| [Lead Maintainer](#lead-maintainer)         | Founding role; authority in [Governance](/community/governance#roles)                     | Administrative rights on all repositories and infrastructure                                                                                  | Founders and their successors only                    |
-| [Community Moderator](#community-moderator) | Code of Conduct enforcement and incident handling                                         | Moderation tools on Discord and GitHub Discussions                                                                                            | Member status; parallel track                         |
+| [Core Maintainer](#core-maintainer)         | Project-wide technical leadership. Authority in [Governance](/community/governance#roles) | Administrative rights on all repositories                                                                                                     | By invitation after sustained Maintainer contribution |
+| [Lead Maintainer](#lead-maintainer)         | Founding role. Authority in [Governance](/community/governance#roles)                     | Administrative rights on all repositories and infrastructure                                                                                  | Founders and their successors only                    |
+| [Community Moderator](#community-moderator) | Code of Conduct enforcement and incident handling                                         | Moderation tools on Discord and GitHub Discussions                                                                                            | Member status, parallel track                         |
 
 Timelines are minimums, advancement is discretionary, and an exception requires Core Maintainer approval with written rationale. Code, specification text, documentation, triage, security work, community work and moderation all count equally toward every role.
 
@@ -50,6 +50,39 @@ A Contributor is anyone who has contributed to MCP in any form: issues, pull req
 **Privileges.** Merge rights in owned areas. May sponsor Members, Maintainers and SEPs (see [SEP Guidelines](/community/sep-guidelines#sponsors)). Included in roadmap and prioritization discussions. Listed in [`MAINTAINERS.md`](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/MAINTAINERS.md).
 
 **Minimum time.** 6 months as Member.
+
+### Release managers
+
+Primary and secondary release managers are selected from the project's [Maintainers](#maintainer).
+
+Maintainers can nominate themselves for these roles. A candidate is selected when more than half of the [Core Maintainers](#core-maintainer) vote in favor. The voting group includes Lead Maintainers but not emeritus members.
+
+If a release manager becomes unavailable, Core Maintainers can select a replacement through the same nomination and voting process.
+
+The secondary release manager becomes the primary release manager for the following release. Core Maintainers select a new secondary release manager before planning for that release begins. The primary release managers for the first release do not need to have served as secondary release managers.
+
+The primary release manager coordinates:
+
+- The release calendar
+- SEP review scheduling
+- Soft and hard freezes
+- SDK readiness
+- Release publication
+- Release communications
+
+The secondary release manager helps maintain the [SEP review queue](/community/release-cycle#sep-review-queue) and handoff notes while preparing to lead the next release cycle.
+
+Release cycles overlap by two months. During the overlap, the secondary release manager is also the primary release manager for the following cycle and leads its planning with the new secondary release manager.
+
+The outgoing primary release manager remains accountable for the current release until it is published. On release day, the release managers complete the handoff notes with outstanding issues and their owners.
+
+After each release, the release managers publish a retrospective. It covers SEP review queue wait times, readiness at soft freeze, SDK beta availability, critical fixes after hard freeze, and release manager workload while cycles overlap.
+
+A release manager who is blocked can escalate the decision to the Core Maintainers.
+
+Core Maintainers accept or reject SEPs and approve any change after hard freeze. They also make sure that release managers have the access and resources they need, and invite them to Core Maintainer meetings.
+
+The [release cycle](/community/release-cycle) defines the schedule and deadlines, and the [maintainer roster](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/MAINTAINERS.md#release-managers) lists the current release managers.
 
 ## Core Maintainer
 
@@ -132,6 +165,8 @@ Decisions are made at the lowest level that owns the matter and are recorded in 
 | Security issue                                | Core Maintainer     | Lead Maintainer   | Immediate        |
 
 A vulnerability is reported through a private advisory first (see [Reporting a vulnerability](/community/policies#reporting-a-vulnerability)). The security row is the maintainer-internal escalation once a report exists.
+
+Maintainers who learn of an actively exploited vulnerability or a severe incident must follow the [EU Cyber Resilience Act (CRA) escalation rule](/community/policies#eu-cyber-resilience-act-cra-stewardship). They must notify a Core Maintainer or Lead Maintainer immediately in `#security-disclosures` on Discord while they fix the problem, and that Core Maintainer or Lead Maintainer works with the Linux Foundation CRA steward.
 
 To escalate:
 

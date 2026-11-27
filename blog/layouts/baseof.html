@@ -6,7 +6,7 @@
 </head>
 
 <body class="
-{{- if (or (ne .Kind `page` ) (eq .Layout `search`)) -}}
+{{- if ne .Kind `page` -}}
 {{- print "list" -}}
 {{- end -}}
 {{- if eq site.Params.defaultTheme `dark` -}}
@@ -19,6 +19,7 @@
         {{- block "main" . }}{{ end }}
     </main>
     {{ partialCached "footer.html" . .Layout .Kind (.Param "hideFooter") (.Param "ShowCodeCopyButtons") -}}
+    {{ partialCached "search_dialog.html" . -}}
 
     {{- if .Store.Get "hasMermaid" }}
     <script type="module">

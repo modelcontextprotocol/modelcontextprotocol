@@ -1,0 +1,89 @@
+---
+title: Core Primitives Charter
+description: Charter for the MCP Core Primitives Working Group.
+---
+
+## Group Type
+
+**Working Group**
+
+## Mission Statement
+
+The Core Primitives Working Group coordinates proposals that improve MCP's core primitives. The [roadmap](/development/roadmap#4-improved-primitives) names the group under its Improved Primitives priority area. The group currently focuses on tool results: their shape, their stability, and their audience.
+
+## Scope
+
+### In Scope
+
+The group currently focuses on three problems with tool results:
+
+- **Tool result shape**: The result contract mixes format and audience across `content`, `structuredContent`, `outputSchema`, and audience annotations, and specifications, extensions, and host documentation give conflicting guidance on how results are handled. The work covers explicit result selection and routing that is independent of format, and return types that clients can discover before generating code. The problem statement is under review in [core-primitives-wg#2](https://github.com/modelcontextprotocol/core-primitives-wg/pull/2).
+- **Tool result stability**: Client implementations have no stability guarantee for tool result types. The same tool and inputs can yield different result schemas across calls, across time, and across clients. The work covers what stability means for a result type, an identity for that type that clients can compare and pin, and how compatible and breaking schema changes are classified and signalled.
+- **Tool result audience**: `content` and `structuredContent` encode a result's format and leave its destination open. The model, programmatic code, an MCP App view, and the user can each need different data from the same call. The work covers keeping audience distinct from format in the result contract.
+
+The roadmap also assigns primitive annotations to the group: deciding whether [content annotations](/specification/2026-07-28/server/resources#annotations) apply to tool results and resources, or are deprecated if they are not useful.
+
+The roadmap leaves the rest of the priority area open for the group to define.
+
+### Out of Scope
+
+- **Progressive discovery**: Handled by the [Progressive Disclosure WG](/community/working-groups/progressive-disclosure).
+
+### Related Groups
+
+- **[Progressive Disclosure WG](/community/working-groups/progressive-disclosure)**: Handles progressive discovery, the roadmap item in the same priority area on clients learning a server's tools and resources as they need them.
+- **[File Uploads WG](/community/working-groups/file-uploads)**: The roadmap places its work on scoped file operations and filesystem-like resource semantics in the same priority area.
+
+## Leadership
+
+| Role | Name              | Organization | GitHub                                   | Term            |
+| ---- | ----------------- | ------------ | ---------------------------------------- | --------------- |
+| Lead | Kurtis Van Gent   | Google       | [@kurtisvg](https://github.com/kurtisvg) | To be confirmed |
+| Lead | David Soria Parra | Anthropic    | [@dsp-ant](https://github.com/dsp-ant)   | To be confirmed |
+
+## Authority & Decision Rights
+
+| Decision Type                       | Authority Level                                        |
+| ----------------------------------- | ------------------------------------------------------ |
+| Meeting logistics & scheduling      | WG Leads (autonomous)                                  |
+| Proposal prioritization within WG   | WG Leads (autonomous)                                  |
+| SEP triage & closure (in scope)     | WG Leads (autonomous, with documented rationale)       |
+| Technical design within scope       | WG consensus                                           |
+| Spec changes (additive)             | WG consensus → Core Maintainer approval                |
+| Spec changes (breaking/fundamental) | WG consensus → Core Maintainer approval + wider review |
+| Scope expansion                     | Core Maintainer approval required                      |
+| WG Member approval                  | WG Member sponsors                                     |
+
+## Operations
+
+| Meeting         | Frequency | Duration   | Purpose                               |
+| --------------- | --------- | ---------- | ------------------------------------- |
+| Working Session | Weekly    | 60 minutes | Technical discussion, proposal review |
+
+Meetings are listed on the [community calendar](https://meet.modelcontextprotocol.io/tag/core-primitives-wg).
+
+Repository: [modelcontextprotocol/core-primitives-wg](https://github.com/modelcontextprotocol/core-primitives-wg).
+
+Discord: `#core-primitives-wg`.
+
+## Deliverables & Success Metrics
+
+### Active Work Items
+
+| Item                  | Status                             | Target Date     | Champion          |
+| --------------------- | ---------------------------------- | --------------- | ----------------- |
+| Tool result shape     | Problem statement approved         | To be confirmed | Kurtis Van Gent   |
+| Tool result stability | Problem statement seeking feedback | To be confirmed | David Soria Parra |
+| Tool result audience  | To be confirmed                    | To be confirmed | To be confirmed   |
+
+Proposals are developed in the [core-primitives-wg repository](https://github.com/modelcontextprotocol/core-primitives-wg).
+
+### Success Criteria
+
+To be defined by the leads.
+
+## Changelog
+
+| Date       | Change          |
+| ---------- | --------------- |
+| 2026-11-11 | Initial charter |

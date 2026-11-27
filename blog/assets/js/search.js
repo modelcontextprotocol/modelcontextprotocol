@@ -1,71 +1,167 @@
-const searchInput = document.getElementById("searchInput");
-const searchResults = document.getElementById("searchResults");
-const searchStatus = document.getElementById("searchStatus");
-let searchIndex;
+// Search over the index in /index.json (layouts/index.json), for the dialog in
+// layouts/partials/search_dialog.html, which loads this script the first time the reader reaches for search.
+//
+// The input keeps the focus. The arrow keys move a highlight through the results and Enter opens the
+// highlighted one, so the first result is always one key away. Before anything is typed the list shows the
+// newest posts.
+(() => {
+    const input = document.getElementById("searchInput");
+    if (!input) return;
+    const list = document.getElementById("searchResults");
+    const status = document.getElementById("searchStatus");
+    const heading = document.getElementById("searchHeading");
+    const RECENT = 4;
+    const LIMIT = 20;
+    const EXCERPT = 160;
+    let entries = [];
+    let fuse;
+    let failed = false;
+    let active = -1;
 
-function renderSearchResults() {
-    const query = searchInput.value.trim();
-    const matches = searchIndex && query ? searchIndex.search(query, { limit: 50 }) : [];
-    const fragment = document.createDocumentFragment();
-
-    for (const { item } of matches) {
-        const row = document.createElement("li");
-        const link = document.createElement("a");
-        link.href = item.permalink;
-        link.textContent = item.title;
-        row.appendChild(link);
-        fragment.appendChild(row);
+    // The words of a query that are worth marking in a result. Fuse also matches loosely, so a result may
+    // hold none of them as typed.
+    function wordsOf(query) {
+        return query.toLowerCase().split(/\s+/).filter((word) => word.length > 1);
     }
 
-    searchResults.replaceChildren(fragment);
-    searchStatus.textContent = query && searchIndex && !matches.length ? "No results." : "";
-}
-
-searchInput.addEventListener("input", renderSearchResults);
-searchInput.addEventListener("search", renderSearchResults);
-
-document.getElementById("searchbox").addEventListener("keydown", (event) => {
-    const links = Array.from(searchResults.querySelectorAll("a"));
-    const position = links.indexOf(document.activeElement);
-
-    if (event.key === "Escape") {
-        searchInput.value = "";
-        renderSearchResults();
-        searchInput.focus();
-    } else if (event.key === "ArrowDown" && links.length) {
-        event.preventDefault();
-        links[Math.min(position + 1, links.length - 1)].focus();
-    } else if (event.key === "ArrowUp" && position >= 0) {
-        event.preventDefault();
-        (position === 0 ? searchInput : links[position - 1]).focus();
-    } else if (event.key === "ArrowRight" && position >= 0) {
-        links[position].click();
+    // The summary if the query is in it, or else the stretch of the post's text around the first place it is.
+    function excerptOf(entry, words) {
+        const summary = entry.summary.toLowerCase();
+        if (!words.length || words.some((word) => summary.includes(word))) return entry.summary;
+        const content = entry.content.toLowerCase();
+        const at = Math.min(...words.map((word) => content.indexOf(word)).filter((i) => i >= 0));
+        if (at === Infinity) return entry.summary;
+        let start = Math.max(0, at - EXCERPT / 3);
+        if (start > 0) start = content.indexOf(" ", start) + 1;
+        let end = Math.min(entry.content.length, start + EXCERPT);
+        if (end < entry.content.length) end = content.lastIndexOf(" ", end);
+        return (start > 0 ? "… " : "") + entry.content.slice(start, end).trim() + (end < entry.content.length ? " …" : "");
     }
-});
 
-searchResults.addEventListener("focusin", () => {
-    for (const row of searchResults.children) {
-        row.classList.toggle("focus", row.contains(document.activeElement));
-    }
-});
-
-searchInput.addEventListener("focus", () => {
-    for (const row of searchResults.children) row.classList.remove("focus");
-});
-
-fetch(searchInput.dataset.index)
-    .then((response) => {
-        if (!response.ok) throw new Error("Search index unavailable");
-        return response.json();
-    })
-    .then((entries) => {
-        searchIndex = new Fuse(entries, {
-            threshold: 0.4,
-            ignoreLocation: true,
-            keys: ["title", "permalink", "summary", "content"],
+    // `text` as nodes, with each of `words` in <mark>.
+    function marked(text, words) {
+        const fragment = document.createDocumentFragment();
+        if (!words.length) {
+            fragment.append(text);
+            return fragment;
+        }
+        const pattern = new RegExp(`(${words.map((word) => word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|")})`, "gi");
+        text.split(pattern).forEach((part, i) => {
+            if (i % 2) {
+                const mark = document.createElement("mark");
+                mark.textContent = part;
+                fragment.append(mark);
+            } else if (part) {
+                fragment.append(part);
+            }
         });
-        renderSearchResults();
-    })
-    .catch(() => {
-        searchStatus.textContent = "Search is unavailable. Please try again later.";
+        return fragment;
+    }
+
+    function rowFor(entry, words, i) {
+        const row = document.createElement("li");
+        row.className = "search-result";
+        row.id = `search-result-${i}`;
+        row.setAttribute("role", "option");
+        row.setAttribute("aria-selected", "false");
+        const link = document.createElement("a");
+        link.href = entry.permalink;
+        link.tabIndex = -1;
+        // The date stands in a column of its own, as in the post list, so the titles share one edge.
+        const date = document.createElement("time");
+        date.className = "search-result-date";
+        date.textContent = entry.date;
+        const body = document.createElement("span");
+        body.className = "search-result-body";
+        const title = document.createElement("span");
+        title.className = "search-result-title";
+        title.textContent = entry.title;
+        const text = document.createElement("span");
+        text.className = "search-result-text";
+        text.append(marked(excerptOf(entry, words), words));
+        body.append(title, text);
+        link.append(date, body);
+        row.append(link);
+        return row;
+    }
+
+    function setActive(i, scroll) {
+        active = i;
+        [...list.children].forEach((row, at) => {
+            row.classList.toggle("active", at === i);
+            row.setAttribute("aria-selected", String(at === i));
+        });
+        if (i < 0) {
+            input.removeAttribute("aria-activedescendant");
+            return;
+        }
+        input.setAttribute("aria-activedescendant", list.children[i].id);
+        if (scroll) list.children[i].scrollIntoView({ block: "nearest" });
+    }
+
+    function render() {
+        const query = input.value.trim();
+        const words = wordsOf(query);
+        let shown = [];
+        if (fuse) shown = query ? fuse.search(query, { limit: LIMIT }).map((match) => match.item) : entries.slice(0, RECENT);
+        list.replaceChildren(...shown.map((entry, i) => rowFor(entry, words, i)));
+        list.scrollTop = 0;
+        heading.hidden = Boolean(query) || !shown.length;
+        input.setAttribute("aria-expanded", String(shown.length > 0));
+        if (failed) status.textContent = "Search is unavailable. Please try again later.";
+        else status.textContent = query && fuse && !shown.length ? `No posts match “${query}”.` : "";
+        setActive(query && shown.length ? 0 : -1);
+    }
+
+    input.addEventListener("input", render);
+
+    input.addEventListener("keydown", (event) => {
+        const last = list.children.length - 1;
+        if (event.key === "ArrowDown" && last >= 0) {
+            event.preventDefault();
+            setActive(Math.min(active + 1, last), true);
+        } else if (event.key === "ArrowUp" && last >= 0) {
+            event.preventDefault();
+            setActive(Math.max(active - 1, 0), true);
+        } else if (event.key === "Enter" && active >= 0) {
+            event.preventDefault();
+            const { href } = list.children[active].querySelector("a");
+            if (event.metaKey || event.ctrlKey) window.open(href, "_blank", "noopener");
+            else window.location.assign(href);
+        }
     });
+
+    // The pointer moves the same highlight as the arrow keys, so there is only ever one.
+    list.addEventListener("pointermove", (event) => {
+        const row = event.target.closest(".search-result");
+        const at = [...list.children].indexOf(row);
+        if (at >= 0 && at !== active) setActive(at);
+    });
+
+    // A click on a result must not take the focus, and with it the keyboard, out of the input.
+    list.addEventListener("mousedown", (event) => event.preventDefault());
+
+    fetch(input.dataset.index)
+        .then((response) => {
+            if (!response.ok) throw new Error("Search index unavailable");
+            return response.json();
+        })
+        .then((loaded) => {
+            entries = loaded;
+            fuse = new Fuse(entries, {
+                threshold: 0.3,
+                ignoreLocation: true,
+                minMatchCharLength: 2,
+                keys: [
+                    { name: "title", weight: 3 },
+                    { name: "tags", weight: 2 },
+                    { name: "summary", weight: 2 },
+                    { name: "content", weight: 1 },
+                ],
+            });
+        })
+        .catch(() => {
+            failed = true;
+        })
+        .finally(render);
+})();
