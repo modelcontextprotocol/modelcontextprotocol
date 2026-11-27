@@ -879,6 +879,12 @@
             "pages": [
               "seps/3398-release-cycle-updates"
             ]
+          },
+          {
+            "group": "Draft",
+            "pages": [
+              "seps/3405-conformance-driven-sdk-tiers"
+            ]
           }
         ]
       },
@@ -1478,6 +1484,10 @@
     {
       "source": "/seps/3398",
       "destination": "/seps/3398-release-cycle-updates"
+    },
+    {
+      "source": "/seps/3405",
+      "destination": "/seps/3405-conformance-driven-sdk-tiers"
     },
     {
       "source": "/seps/3415",
