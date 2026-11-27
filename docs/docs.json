@@ -879,6 +879,12 @@
             "pages": [
               "seps/3398-release-cycle-updates"
             ]
+          },
+          {
+            "group": "Draft",
+            "pages": [
+              "seps/2028-meta-http-header-forwarding"
+            ]
           }
         ]
       },
@@ -1390,6 +1396,10 @@
     {
       "source": "/seps/1865",
       "destination": "/seps/1865-mcp-apps-interactive-user-interfaces-for-mcp"
+    },
+    {
+      "source": "/seps/2028",
+      "destination": "/seps/2028-meta-http-header-forwarding"
     },
     {
       "source": "/seps/2085",
