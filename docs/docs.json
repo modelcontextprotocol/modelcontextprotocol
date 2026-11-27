@@ -879,6 +879,12 @@
             "pages": [
               "seps/3398-release-cycle-updates"
             ]
+          },
+          {
+            "group": "Draft",
+            "pages": [
+              "seps/3570-tasks-core-promotion"
+            ]
           }
         ]
       },
@@ -1482,6 +1488,10 @@
     {
       "source": "/seps/3415",
       "destination": "/seps/3415-events-extension"
+    },
+    {
+      "source": "/seps/3570",
+      "destination": "/seps/3570-tasks-core-promotion"
     }
   ],
   "contextual": {
