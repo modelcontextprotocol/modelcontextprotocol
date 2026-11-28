@@ -198,7 +198,6 @@
 {{- if $isPost -}}
   {{- $names := slice -}}
   {{- range partial "authors.html" . }}{{ $names = $names | append .name }}{{ end -}}
-  {{- /* Six or more names: the first four, then "and N more". Five or fewer are listed in full. */ -}}
   {{- if gt (len $names) 5 -}}
     {{- $names = first 4 $names | append (printf "and %d more" (sub (len $names) 4)) -}}
   {{- end -}}
