@@ -868,13 +868,8 @@
           {
             "group": "Accepted",
             "pages": [
+              "seps/3371-sdk-extension-points",
               "seps/3398-release-cycle-updates"
-            ]
-          },
-          {
-            "group": "In-Review",
-            "pages": [
-              "seps/3371-sdk-extension-points"
             ]
           }
         ]

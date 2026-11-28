@@ -1,6 +1,6 @@
 # SEP-3371: Consistent SDK Extension Points
 
-- **Status**: In-Review
+- **Status**: Accepted
 - **Type**: Standards Track
 - **Created**: 2026-09-18
 - **Author(s)**: Sambhav Kothari (@sambhav)
