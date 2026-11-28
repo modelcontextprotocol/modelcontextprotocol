@@ -198,8 +198,8 @@
 {{- if $isPost -}}
   {{- $names := slice -}}
   {{- range partial "authors.html" . }}{{ $names = $names | append .name }}{{ end -}}
-  {{- if gt (len $names) 4 -}}
-    {{- $names = first 3 $names | append (printf "and %d more" (sub (len $names) 3)) -}}
+  {{- if gt (len $names) 5 -}}
+    {{- $names = first 4 $names | append (printf "and %d more" (sub (len $names) 4)) -}}
   {{- end -}}
   {{- $top := sub 558 (mul 40 (math.Max 1 (len $names))) | int -}}
   {{- $filters = $filters | append (images.Text (.Date.Format "Jan 2, 2006") (dict
