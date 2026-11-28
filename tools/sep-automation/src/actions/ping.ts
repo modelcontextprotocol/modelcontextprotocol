@@ -13,6 +13,8 @@ import {
   createDraftPingComment,
   createMaintainerPingComment,
   createDormantComment,
+  createInactivityWarningComment,
+  createInactivityCloseComment,
   createAcceptedReminderComment,
 } from './comment.js';
 
@@ -214,6 +216,54 @@ export class PingHandler {
       this.logger.info(
         { item: item.number, daysSinceActivity, closed: shouldClose, commentUrl: url },
         'Marked as dormant'
+      );
+      return { action, success: true, commentUrl: url };
+    } catch (error) {
+      const message = getErrorMessage(error);
+      return { action, success: false, error: message };
+    }
+  }
+
+  /**
+   * Apply the inactivity rule to a SEP pull request: post the one-time
+   * warning, or post the closing comment and close. No label is changed.
+   */
+  async handleInactivity(
+    item: SEPItem,
+    kind: 'warn' | 'close',
+    daysSinceProgress: number,
+    dryRun: boolean
+  ): Promise<ActionResult> {
+    const close = kind === 'close';
+    const action = this.createAction(
+      close ? ActionType.Close : ActionType.WarnInactive,
+      item,
+      dryRun,
+      `${close ? 'Closing' : 'Inactivity warning'} after ${daysSinceProgress} days without progress`
+    );
+
+    if (dryRun) {
+      this.logger.info(
+        { item: item.number, daysSinceProgress },
+        close ? 'DRY RUN: Would close for inactivity' : 'DRY RUN: Would warn about inactivity'
+      );
+      return { action, success: true };
+    }
+
+    try {
+      const { inactivityWarningDays: warnDays, inactivityCloseDays: closeDays } = this.config;
+      const comment = close
+        ? createInactivityCloseComment(daysSinceProgress, closeDays)
+        : createInactivityWarningComment(daysSinceProgress, closeDays, Math.max(closeDays - warnDays, 0));
+      // Close first: if closing fails, the next run retries without a duplicate comment
+      if (close) {
+        await this.github.closeIssue(item.number);
+      }
+      const { url } = await this.github.addComment(item.number, comment);
+
+      this.logger.info(
+        { item: item.number, daysSinceProgress, commentUrl: url },
+        close ? 'Closed for inactivity' : 'Warned about inactivity'
       );
       return { action, success: true, commentUrl: url };
     } catch (error) {

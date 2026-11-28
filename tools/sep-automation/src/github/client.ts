@@ -5,7 +5,7 @@
 import { Octokit } from '@octokit/rest';
 import { createAppAuth } from '@octokit/auth-app';
 import type { Config } from '../config.js';
-import type { GitHubIssue, GitHubComment, GitHubEvent, GitHubTeamMembership, GitHubTeam } from './types.js';
+import type { GitHubIssue, GitHubComment, GitHubEvent, GitHubTimelineEntry, GitHubTeamMembership, GitHubTeam } from './types.js';
 import { isHttpError } from '../utils/index.js';
 
 /** Search query constants */
@@ -147,6 +147,24 @@ export class GitHubClient {
       }
     );
     return events as GitHubEvent[];
+  }
+
+  /**
+   * Get the full timeline of an issue/PR with pagination support.
+   * Unlike getEvents, this includes commits, reviews and comments.
+   */
+  async getTimeline(issueNumber: number): Promise<GitHubTimelineEntry[]> {
+    await this.ensureInitialized();
+    const entries = await this.octokit.paginate(
+      this.octokit.issues.listEventsForTimeline,
+      {
+        owner: this.owner,
+        repo: this.repo,
+        issue_number: issueNumber,
+        per_page: 100,
+      }
+    );
+    return entries as GitHubTimelineEntry[];
   }
 
   /**

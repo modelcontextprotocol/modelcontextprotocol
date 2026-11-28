@@ -45,6 +45,8 @@ describe('loadConfig', () => {
     expect(config.draftPingDays).toBe(90);
     expect(config.acceptedPingDays).toBe(30);
     expect(config.pingCooldownDays).toBe(14);
+    expect(config.inactivityWarningDays).toBe(150);
+    expect(config.inactivityCloseDays).toBe(180);
     expect(config.dryRun).toBe(false);
     expect(config.discordWebhookUrl).toBeNull();
   });
@@ -54,6 +56,8 @@ describe('loadConfig', () => {
     process.env['TARGET_OWNER'] = 'custom-owner';
     process.env['TARGET_REPO'] = 'custom-repo';
     process.env['DRAFT_PING_DAYS'] = '60';
+    process.env['INACTIVITY_WARNING_DAYS'] = '100';
+    process.env['INACTIVITY_CLOSE_DAYS'] = '120';
     process.env['DRY_RUN'] = 'true';
     process.env['DISCORD_WEBHOOK_URL'] = 'https://discord.com/webhook';
 
@@ -62,6 +66,8 @@ describe('loadConfig', () => {
     expect(config.targetOwner).toBe('custom-owner');
     expect(config.targetRepo).toBe('custom-repo');
     expect(config.draftPingDays).toBe(60);
+    expect(config.inactivityWarningDays).toBe(100);
+    expect(config.inactivityCloseDays).toBe(120);
     expect(config.dryRun).toBe(true);
     expect(config.discordWebhookUrl).toBe('https://discord.com/webhook');
   });
